@@ -231,3 +231,25 @@ export function getSmartTabPlan(
       return { kind, at, insert: "\n\n", cursor: at + 2, openCompletion: true };
   }
 }
+
+/**
+ * Smart Enter: at the end of a transition, the same as Smart Tab (new
+ * slugline); at the end of a dialogue line, a blank line and the character
+ * list for the next speaker. Anything else keeps the normal Enter.
+ */
+export function getSmartEnterPlan(
+  source: string,
+  cursorOffset: number,
+  knownTimes: readonly string[] = DEFAULT_TIMES_OF_DAY,
+): SmartTabPlan | null {
+  const plan = getSmartTabPlan(source, cursorOffset, knownTimes);
+  if (plan?.kind === "transition") return plan;
+  if (plan?.kind !== "dialogue") return null;
+  return {
+    kind: "dialogue",
+    at: plan.at,
+    insert: "\n\n",
+    cursor: plan.at + 2,
+    openCompletion: true,
+  };
+}

@@ -32,6 +32,7 @@ import { loadScreenplayContext } from "../projects/vault";
 import { buildScreenplayIndex } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
 import {
+  getSmartEnterPlan,
   getSmartTabPlan,
   isForcedTransition,
   type SmartTabPlan,
@@ -105,7 +106,10 @@ export function createScreenplayCompletionExtension(
 
   // Tab accepts an open suggestion; otherwise Smart Tab may insert the next
   // Fountain element. Returning false keeps Obsidian's normal Tab.
-  const smartPlan = (view: EditorView): SmartTabPlan | null => {
+  const smartPlan = (
+    view: EditorView,
+    planner: typeof getSmartTabPlan = getSmartTabPlan,
+  ): SmartTabPlan | null => {
     if (!plugin.settings.smartTabEnabled) return null;
     const file = view.state.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return null;
@@ -119,7 +123,7 @@ export function createScreenplayCompletionExtension(
         (usage) => usage.value,
       ),
     ];
-    return getSmartTabPlan(source, selection.main.head, knownTimes);
+    return planner(source, selection.main.head, knownTimes);
   };
 
   const tab = (view: EditorView): boolean => {
@@ -129,12 +133,26 @@ export function createScreenplayCompletionExtension(
     return plan !== null && applySmartPlan(view, plan);
   };
 
-  // Enter at the end of a transition behaves like Tab: new slugline. An open
-  // suggestion menu keeps Enter for accepting.
+  // Enter at the end of a transition starts a slugline; at the end of
+  // dialogue, a new speaker. An open suggestion menu keeps Enter for
+  // accepting.
   const enter = (view: EditorView): boolean => {
     if (completionStatus(view.state) === "active") return false;
-    const plan = smartPlan(view);
-    return plan?.kind === "transition" && applySmartPlan(view, plan);
+    const plan = smartPlan(view, getSmartEnterPlan);
+    return plan !== null && applySmartPlan(view, plan);
+  };
+
+  // Shift+Enter: a plain line break, e.g. to continue the same speech.
+  const shiftEnter = (view: EditorView): boolean => {
+    if (completionStatus(view.state) === "active") return false;
+    if (!plugin.settings.smartTabEnabled) return false;
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    view.dispatch(view.state.replaceSelection("\n"), {
+      scrollIntoView: true,
+      userEvent: "input",
+    });
+    return true;
   };
 
   const applySmartPlan = (view: EditorView, plan: SmartTabPlan): boolean => {
@@ -184,6 +202,7 @@ export function createScreenplayCompletionExtension(
       keymap.of([
         { key: "Tab", run: tab },
         { key: "Enter", run: enter },
+        { key: "Shift-Enter", run: shiftEnter },
       ]),
     ),
   ];

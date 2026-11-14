@@ -15,7 +15,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { getSmartTabPlan } from "../src/editor/smartTab";
+import { getSmartEnterPlan, getSmartTabPlan } from "../src/editor/smartTab";
 import {
   DEFAULT_COMPLETION_PREFERENCES,
   getScreenplayCompletionPlan,
@@ -218,5 +218,33 @@ describe("parenthetical suggestions", () => {
         true,
       )?.kind,
     ).not.toBe("parenthetical");
+  });
+});
+
+describe("Smart Enter", () => {
+  it("starts a new speaker after dialogue", () => {
+    const source = "BLAKE\nHello.";
+    const plan = getSmartEnterPlan(source, source.length);
+    expect(plan).toMatchObject({
+      kind: "dialogue",
+      insert: "\n\n",
+      cursor: source.length + 2,
+      openCompletion: true,
+    });
+  });
+
+  it("starts a slugline after a transition", () => {
+    const source = "> cut to:";
+    expect(getSmartEnterPlan(source, source.length)?.insert).toBe(
+      "> CUT TO:\n\n",
+    );
+  });
+
+  it("keeps the normal Enter elsewhere", () => {
+    expect(getSmartEnterPlan("BLAKE", 5)).toBeNull();
+    expect(getSmartEnterPlan("BLAKE\nHello.", 9)).toBeNull();
+    expect(getSmartEnterPlan("BLAKE\n(quietly)", 15)).toBeNull();
+    expect(getSmartEnterPlan("She runs.", 9)).toBeNull();
+    expect(getSmartEnterPlan("INT. ROOF", 9)).toBeNull();
   });
 });
