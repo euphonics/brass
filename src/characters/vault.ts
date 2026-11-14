@@ -18,6 +18,7 @@ import { normalizePath, Notice, TFile, TFolder } from "obsidian";
 import type { App } from "obsidian";
 import {
   characterFilename,
+  characterFirstName,
   characterPageFromFrontmatter,
   characterPageTemplate,
   characterProjectName,
@@ -204,6 +205,7 @@ async function markAsCharacterPage(
   file: TFile,
   cue: string,
   owner: TFile,
+  addFirstNameAlias = false,
 ): Promise<void> {
   const link = `[[${app.metadataCache.fileToLinktext(owner, file.path, owner.extension === "md")}]]`;
   await app.fileManager.processFrontMatter(
@@ -213,7 +215,16 @@ async function markAsCharacterPage(
       if (typeof frontmatter.character !== "string") {
         frontmatter.character = normalizeCharacterName(cue);
       }
-      if (!Array.isArray(frontmatter.aliases)) frontmatter.aliases = [];
+      const aliases = Array.isArray(frontmatter.aliases)
+        ? (frontmatter.aliases as unknown[])
+        : [];
+      // New pages get the first name as an alias: [[John]] links to
+      // "John (Character in STORY)".
+      const firstName = characterFirstName(cue);
+      if (addFirstNameAlias && firstName && !aliases.includes(firstName)) {
+        aliases.push(firstName);
+      }
+      frontmatter.aliases = aliases;
       const screenplays = Array.isArray(frontmatter.screenplays)
         ? (frontmatter.screenplays as unknown[])
         : [];
@@ -289,7 +300,7 @@ export async function ensureCharacterPage(
   });
   const file = await app.vault.create(path, content);
   // The user's template may lack the properties First Draft needs.
-  await markAsCharacterPage(app, file, cue, owner);
+  await markAsCharacterPage(app, file, cue, owner, true);
   return file;
 }
 

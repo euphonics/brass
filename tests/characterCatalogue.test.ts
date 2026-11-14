@@ -17,6 +17,7 @@
 import { describe, expect, it } from "vitest";
 import {
   characterFilename,
+  characterFirstName,
   characterProjectName,
   renderCharacterTemplate,
   characterPageFromFrontmatter,
@@ -76,6 +77,16 @@ describe("character catalogue", () => {
       "# Jen\n\n#Character in [[TIGHTER (project)|TIGHTER]]\n\n## Background",
     );
     expect(template).toContain('character: "JEN"');
+  });
+
+  it("adds the first name as an alias on new pages", () => {
+    expect(characterFirstName("JOHN")).toBe("John");
+    expect(characterFirstName("JANE MORROW")).toBe("Jane");
+    expect(characterFirstName("DR. JANE MORROW (O.S.)")).toBe("Jane");
+    expect(characterFirstName("MR. SMITH")).toBe("Smith");
+    expect(characterPageTemplate("JOHN", "STORY", "STORY")).toContain(
+      'aliases:\n  - "John"\n',
+    );
   });
 
   it("fills placeholders in a user character template", () => {

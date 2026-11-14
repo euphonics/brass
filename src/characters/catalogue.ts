@@ -152,6 +152,35 @@ export function renderCharacterTemplate(
   );
 }
 
+const HONORIFICS = new Set([
+  "DR",
+  "DR.",
+  "MR",
+  "MR.",
+  "MRS",
+  "MRS.",
+  "MS",
+  "MS.",
+  "MX",
+  "MX.",
+  "MISS",
+  "SIR",
+  "DAME",
+]);
+
+/**
+ * First name for a character page alias: "JOHN" -> "John",
+ * "JANE MORROW" -> "Jane", "DR. JANE MORROW" -> "Jane".
+ */
+export function characterFirstName(cue: string): string {
+  const words = characterTitle(cue).split(" ");
+  const first =
+    words.find((word) => !HONORIFICS.has(word.toLocaleUpperCase())) ??
+    words[0] ??
+    "";
+  return first;
+}
+
 function yamlString(value: string): string {
   return JSON.stringify(value);
 }
@@ -169,7 +198,8 @@ export function characterPageTemplate(
   return `---
 firstdraft: character
 character: ${yamlString(character)}
-aliases: []
+aliases:
+  - ${yamlString(characterFirstName(character))}
 screenplays:
   - ${yamlString(`[[${screenplayLink}]]`)}
 related: []
