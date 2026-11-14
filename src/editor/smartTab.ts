@@ -31,6 +31,7 @@ export type SmartTabLineKind =
   | "transition"
   | "character"
   | "dialogue"
+  | "parenthetical"
   | "scene-heading"
   | "action";
 
@@ -125,7 +126,7 @@ export function classifySmartTabLine(
   if (isSceneHeading(text)) return "scene-heading";
   if (isTransitionText(text)) return "transition";
   if (isInDialogueBlock(lines, index)) {
-    return text.startsWith("(") ? null : "dialogue";
+    return text.startsWith("(") ? "parenthetical" : "dialogue";
   }
   if (startsBlock && looksLikeCharacterCue(text)) return "character";
   return "action";
@@ -149,13 +150,31 @@ export function getSmartTabPlan(
   const nextBreak = source.indexOf("\n", cursorOffset);
   const lineEnd = nextBreak === -1 ? source.length : nextBreak;
   const line = source.slice(lineStart, lineEnd);
-  // Only act with the cursor at the end of the line's text.
-  if (cursorOffset < lineStart + line.trimEnd().length) return null;
+  const textEnd = lineStart + line.trimEnd().length;
   const lines = source.split("\n");
   const index = source.slice(0, lineStart).split("\n").length - 1;
   const kind = classifySmartTabLine(lines, index);
   if (kind === null) return null;
 
+  if (kind === "parenthetical") {
+    // "(scoffs)": Tab goes to a new dialogue line. Also works with the
+    // cursor just inside the closing ")", and closes an unclosed "(scoffs".
+    const closed = line.trimEnd().endsWith(")");
+    const insideClose = closed && cursorOffset === textEnd - 1;
+    if (cursorOffset < textEnd && !insideClose) return null;
+    const insert = closed ? "\n" : ")\n";
+    return {
+      kind,
+      at: textEnd,
+      replaceFrom: textEnd,
+      insert,
+      cursor: textEnd + insert.length,
+      openCompletion: false,
+    };
+  }
+
+  // Otherwise only act with the cursor at the end of the line's text.
+  if (cursorOffset < textEnd) return null;
   const at = cursorOffset;
   switch (kind) {
     case "new-block":

@@ -77,9 +77,37 @@ describe("Smart Tab", () => {
     expect(getSmartTabPlan(opening, opening.length - 3)).toBeNull();
     // Empty line straight under dialogue, with no blank line yet.
     expect(getSmartTabPlan(`${opening}\n`, opening.length + 1)).toBeNull();
+    // Mid-parenthetical.
     expect(
-      getSmartTabPlan(`${opening}\n(beat)`, opening.length + 7),
+      getSmartTabPlan(`${opening}\n(beat)`, opening.length + 3),
     ).toBeNull();
+  });
+
+  it("moves to a new dialogue line after a parenthetical", () => {
+    const apply = (source: string, cursor: number) => {
+      const plan = getSmartTabPlan(source, cursor);
+      if (!plan) return null;
+      const from = plan.replaceFrom ?? plan.at;
+      return {
+        text: source.slice(0, from) + plan.insert + source.slice(plan.at),
+        cursor: plan.cursor,
+        kind: plan.kind,
+      };
+    };
+    const source = "JEN\ntesting\n(scoffs)";
+    expect(apply(source, source.length)).toEqual({
+      text: "JEN\ntesting\n(scoffs)\n",
+      cursor: source.length + 1,
+      kind: "parenthetical",
+    });
+    // Cursor just inside the closing parenthesis.
+    expect(apply(source, source.length - 1)?.text).toBe(
+      "JEN\ntesting\n(scoffs)\n",
+    );
+    // Unclosed parenthetical gets closed.
+    expect(apply("JEN\n(scoffs", 11)?.text).toBe("JEN\n(scoffs)\n");
+    // Parenthetical right under the cue.
+    expect(apply("JEN\n(quietly)", 13)?.text).toBe("JEN\n(quietly)\n");
   });
 
   it("opens the character list on an empty line after a blank line", () => {
