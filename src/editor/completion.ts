@@ -116,12 +116,14 @@ export function createScreenplayCompletionExtension(
     ];
     const plan = getSmartTabPlan(source, selection.main.head, knownTimes);
     if (plan === null) return false;
-    view.dispatch({
-      changes: { from: plan.at, insert: plan.insert },
-      selection: { anchor: plan.cursor },
-      scrollIntoView: true,
-      userEvent: "input",
-    });
+    if (plan.insert) {
+      view.dispatch({
+        changes: { from: plan.at, insert: plan.insert },
+        selection: { anchor: plan.cursor },
+        scrollIntoView: true,
+        userEvent: "input",
+      });
+    }
     if (plan.openCompletion) startCompletion(view);
     return true;
   };

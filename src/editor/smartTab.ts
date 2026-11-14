@@ -26,7 +26,12 @@ import { isSceneHeading } from "../screenplay/parser";
  */
 
 export type SmartTabLineKind =
-  "heading" | "character" | "dialogue" | "scene-heading" | "action";
+  | "new-block"
+  | "heading"
+  | "character"
+  | "dialogue"
+  | "scene-heading"
+  | "action";
 
 export interface SmartTabPlan {
   kind: SmartTabLineKind;
@@ -101,7 +106,10 @@ export function classifySmartTabLine(
 ): SmartTabLineKind | null {
   if (index <= frontmatterEnd(lines)) return null;
   const text = (lines[index] ?? "").trim();
-  if (!text) return null;
+  const firstContentLine = frontmatterEnd(lines) + 1;
+  const startsBlock = index === firstContentLine || isBlank(lines[index - 1]);
+  // Empty line after a blank line: where a new cue or slugline goes.
+  if (!text) return startsBlock ? "new-block" : null;
   if (isMarkdownHeading(text)) return "heading";
   // Leave notes, boneyard, tags and synopses alone.
   if (/^(?:\/\*|\*\/|\[\[|#|=)/u.test(text)) return null;
@@ -110,8 +118,6 @@ export function classifySmartTabLine(
   if (isInDialogueBlock(lines, index)) {
     return text.startsWith("(") ? null : "dialogue";
   }
-  const firstContentLine = frontmatterEnd(lines) + 1;
-  const startsBlock = index === firstContentLine || isBlank(lines[index - 1]);
   if (startsBlock && looksLikeCharacterCue(text)) return "character";
   return "action";
 }
@@ -143,6 +149,10 @@ export function getSmartTabPlan(
 
   const at = cursorOffset;
   switch (kind) {
+    case "new-block":
+      // Nothing to insert: open the character list (scene types after a
+      // # heading).
+      return { kind, at, insert: "", cursor: at, openCompletion: true };
     case "heading":
       // Blank line and the scene type list for a new slugline.
       return { kind, at, insert: "\n\n", cursor: at + 2, openCompletion: true };

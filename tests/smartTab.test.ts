@@ -73,13 +73,31 @@ describe("Smart Tab", () => {
     expect(result?.plan.openCompletion).toBe(true);
   });
 
-  it("leaves Tab alone mid-line, on blank lines and in parentheticals", () => {
+  it("leaves Tab alone mid-line, right under dialogue and in parentheticals", () => {
     expect(getSmartTabPlan(opening, opening.length - 3)).toBeNull();
+    // Empty line straight under dialogue, with no blank line yet.
     expect(getSmartTabPlan(`${opening}\n`, opening.length + 1)).toBeNull();
     expect(
       getSmartTabPlan(`${opening}\n(beat)`, opening.length + 7),
     ).toBeNull();
     expect(getSmartTabPlan("CUT TO:", 7)).toBeNull();
+  });
+
+  it("opens the character list on an empty line after a blank line", () => {
+    const source = "HELIOS\nYeah.\n\n";
+    expect(getSmartTabPlan(source, source.length)).toMatchObject({
+      kind: "new-block",
+      insert: "",
+      openCompletion: true,
+    });
+    const characters = getScreenplayCompletionPlan(
+      source,
+      source.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+      true,
+    );
+    expect(characters?.kind).toBe("character");
+    expect(characters?.candidates[0]?.label).toBe("HELIOS");
   });
 
   it("ignores frontmatter", () => {
