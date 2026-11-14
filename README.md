@@ -300,10 +300,95 @@ First Draft keeps mobile support enabled. Before the public release, follow the
 [mobile testing checklist](docs/MOBILE_TESTING.md) on at least one physical
 device and record the Obsidian and operating-system versions used.
 
-## Privacy
+## Security and privacy
 
-First Draft is local-only. It includes no telemetry and needs no network
-connection during ordinary use. See [PRIVACY.md](PRIVACY.md).
+This section covers this fork, **First Draft (arvn)** (plugin ID
+`firstdraft-arvn`), a personal fork of
+[grobmeier/firstdraft](https://github.com/grobmeier/firstdraft). The original
+plugin's [PRIVACY.md](PRIVACY.md) also applies.
+
+### What the plugin does not do
+
+- **No network access.** It makes no network requests. It does not download,
+  upload, sync or "phone home", and it has no telemetry, analytics, accounts or
+  cloud services. The only web address in the code is a help link that opens in
+  your browser when you click it.
+- **No remote or dynamic code.** It does not use `eval`, does not load scripts
+  from the internet and does not run code from your notes. Character page
+  templates are plain text: `{{character}}`-style placeholders are filled in,
+  and nothing in a template is executed (unlike, for example, Templater).
+- **No HTML injection.** It does not insert raw HTML into Obsidian's interface.
+- **No clipboard access**, and it does not scan your whole vault.
+
+### What it reads
+
+Only what it needs, inside your vault:
+
+- the screenplay note you are editing, and the parts of its screenplay project;
+- character pages in the configured character folder;
+- the character page template you choose in settings;
+- the folder set in Obsidian's core **Templates** plugin, read from Obsidian's
+  internal settings to limit the template picker. This uses an internal
+  Obsidian API; if it changes, the picker falls back to searching the whole
+  vault.
+
+### What it writes to your notes
+
+Several features edit notes. All edits are ordinary text changes that can be
+undone with Ctrl+Z or recovered from Obsidian's file history:
+
+- **Smart Tab and Enter** insert Fountain text (blank lines, `()`, `-`, and so
+  on) and uppercase transition lines.
+- **Typing on a `> …` transition line** is uppercased as you type.
+- **Turning a note into a screenplay**, or **opening a character page**, adds a
+  `title` property to the screenplay note if it has none.
+- **Opening a character page** creates the page, or, when a page with the
+  expected name already exists, adds the properties First Draft needs
+  (`firstdraft`, `character`, `aliases`, `screenplays`, `related`) to its
+  frontmatter. The page's text is not changed.
+- **Moving a scene between files** (an original First Draft feature) saves the
+  full before/after text of both files in `scene-recovery.json` in the plugin
+  folder (`.obsidian/plugins/firstdraft-arvn/`). It is plain text, not
+  encrypted, and may end up in backups and sync. Delete it when you no longer
+  need it.
+
+### Dependencies
+
+The installed plugin bundles four libraries for PDF export: `pdf-lib`,
+`@pdf-lib/fontkit`, `linebreak` and `pako`. They are pinned in
+`package-lock.json` and, at the time of writing, `npm audit` reports no known
+vulnerabilities in them. Build and test tools (Vite, Vitest, ESLint, esbuild)
+run only on the developer's machine and are not part of the installed plugin.
+
+### Changes from the original plugin
+
+Nothing from the original repository reaches this fork automatically. Upstream
+changes arrive only when they are deliberately merged here, and can be
+reviewed then. This fork uses a different plugin ID, so community-store
+updates to the original First Draft never replace it. Do not enable both
+plugins at the same time.
+
+### What you are trusting
+
+Like every Obsidian community plugin, this plugin runs with the same access as
+Obsidian itself: it can read and change any note in your vault and, on desktop,
+access your computer much as other apps can. Obsidian does not sandbox plugins.
+Installing it means trusting the code in this repository and the GitHub account
+that publishes it. The source is open; review it, or build it yourself with
+`npm ci && npm run build`, if you want to verify what you install.
+
+### Reporting a problem
+
+Report suspected vulnerabilities privately, not in a public issue:
+
+- **Problems in this fork's own features**: use
+  [private vulnerability reporting](https://github.com/euphonics/firstdraft/security)
+  on this repository.
+- **Problems that also affect the original plugin**: follow
+  [SECURITY.md](SECURITY.md) to report them to the original author.
+
+Never attach real screenplay content, credentials or other personal data to a
+report.
 
 ## Contributing
 
