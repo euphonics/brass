@@ -302,4 +302,28 @@ INT. `;
       ),
     ).toBeNull();
   });
+
+  it("treats .LATER as a time, not a location", () => {
+    const script = `${screenplay}\n.LATER\n\nJane waits.\n\n.MOMENTS LATER\n\nShe leaves.\n`;
+    const typed = `${script}\nINT. `;
+    const locations = getScreenplayCompletionPlan(
+      typed,
+      typed.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+    )?.candidates.map((candidate) => candidate.label);
+    expect(locations).not.toContain("LATER");
+    expect(locations).not.toContain("MOMENTS LATER");
+
+    const dot = `${script}\n.`;
+    const afterDot = getScreenplayCompletionPlan(
+      dot,
+      dot.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+    )?.candidates;
+    const later = afterDot?.find((candidate) => candidate.label === "LATER");
+    expect(later).toMatchObject({ applyText: "LATER", detail: "Time" });
+    expect(afterDot?.map((candidate) => candidate.label)).toContain(
+      "MILITARY BASE - WARD",
+    );
+  });
 });

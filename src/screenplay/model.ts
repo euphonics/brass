@@ -77,6 +77,8 @@ export interface ScreenplayIndex {
   characters: Usage[];
   locations: Usage[];
   timesOfDay: Usage[];
+  /** Times used as a whole forced heading, e.g. ".LATER". */
+  standaloneTimes: Usage[];
   parentheticals: Usage[];
   transitions: Usage[];
 }

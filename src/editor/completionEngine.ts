@@ -192,6 +192,7 @@ function scenePlan(
 ): ScreenplayCompletionPlan | null {
   let value: string;
   let valueFrom: number;
+  let untypedForced = false;
   const match = SCENE_LINE.exec(before);
   if (match) {
     const sceneType = match[1] ?? "";
@@ -209,6 +210,7 @@ function scenePlan(
     } else {
       value = forcedBody;
       valueFrom = lineFrom + 1;
+      untypedForced = true;
     }
   }
   const normalizedValue = value.toLocaleUpperCase();
@@ -227,6 +229,21 @@ function scenePlan(
       applyText: `${usage.value} - `,
       detail: "Location",
     }));
+    // After a bare ".", times used on their own (".LATER") are offered too.
+    if (untypedForced) {
+      candidates.push(
+        ...rankUsages(
+          index.standaloneTimes,
+          value,
+          preferences.recentItemsWeighting,
+          preferences.maximumSuggestions,
+        ).map((usage) => ({
+          label: usage.value,
+          applyText: usage.value,
+          detail: "Time",
+        })),
+      );
+    }
     return candidates.length === 0
       ? null
       : {

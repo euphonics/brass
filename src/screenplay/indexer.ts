@@ -84,6 +84,21 @@ function forcedSceneHeadingParts(text: string): SceneHeadingParts | null {
 export function buildScreenplayIndex(
   document: ScreenplayDocument,
 ): ScreenplayIndex {
+  // A forced heading that is only a time (".LATER", ".MOMENTS LATER") is a
+  // time, not a location. Known times: the defaults plus any time used after
+  // " - " in the script.
+  const knownTimes = new Set(
+    DEFAULT_TIMES_OF_DAY.map((time) => time.toLocaleUpperCase()),
+  );
+  for (const element of document.elements) {
+    if (element.type !== "scene-heading") continue;
+    const time = (
+      parseSceneHeadingParts(element.text) ??
+      forcedSceneHeadingParts(element.text)
+    )?.timeOfDay;
+    if (time) knownTimes.add(time.toLocaleUpperCase());
+  }
+  const standaloneTimes = new Map<string, Usage>();
   const characters = new Map<string, Usage>();
   const locations = new Map<string, Usage>();
   const timesOfDay = new Map<string, Usage>();
@@ -99,7 +114,16 @@ export function buildScreenplayIndex(
         parseSceneHeadingParts(element.text) ??
         forcedSceneHeadingParts(element.text);
       if (!parts) continue;
-      addUsage(locations, parts.location, element.line);
+      if (
+        parts.type === "" &&
+        parts.timeOfDay === null &&
+        knownTimes.has(parts.location.toLocaleUpperCase())
+      ) {
+        addUsage(standaloneTimes, parts.location, element.line);
+        addUsage(timesOfDay, parts.location, element.line);
+        continue;
+      }
+      if (parts.location) addUsage(locations, parts.location, element.line);
       if (parts.timeOfDay) {
         addUsage(timesOfDay, parts.timeOfDay, element.line);
       }
@@ -116,6 +140,7 @@ export function buildScreenplayIndex(
     characters: [...characters.values()],
     locations: [...locations.values()],
     timesOfDay: [...timesOfDay.values()],
+    standaloneTimes: [...standaloneTimes.values()],
     parentheticals: [...parentheticals.values()],
     transitions: [...transitions.values()],
   };
