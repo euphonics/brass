@@ -31,6 +31,7 @@ import type FirstDraftPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
 import { buildScreenplayIndex } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
+import { ScreenplayIndexCache, textOutsideLine } from "./indexCache";
 import {
   getSmartEnterPlan,
   getSmartTabPlan,
@@ -62,6 +63,21 @@ function applyCandidate(
 export function createScreenplayCompletionExtension(
   plugin: FirstDraftPlugin,
 ): Extension {
+  // Smart rebuild: reuse the suggestion index while only the current line
+  // changes. Edits to other notes (e.g. other project parts) clear it.
+  const indexCache = new ScreenplayIndexCache();
+  plugin.registerEvent(
+    plugin.app.vault.on("modify", (changed) =>
+      indexCache.invalidate(changed.path),
+    ),
+  );
+  plugin.registerEvent(
+    plugin.app.vault.on("rename", () => indexCache.invalidate()),
+  );
+  plugin.registerEvent(
+    plugin.app.vault.on("delete", () => indexCache.invalidate()),
+  );
+
   const source = async (
     context: CompletionContext,
   ): Promise<CompletionResult | null> => {
@@ -76,18 +92,24 @@ export function createScreenplayCompletionExtension(
     }
 
     const editorSource = context.state.doc.toString();
-    const screenplay = await loadScreenplayContext(
-      plugin.app,
-      file,
-      plugin.settings.characterFolder,
-      editorSource,
-    );
+    const line = context.state.doc.lineAt(context.pos);
+    const outside = textOutsideLine(editorSource, line.from, line.to);
+    const index = await indexCache.get(file.path, outside, async () => {
+      const screenplay = await loadScreenplayContext(
+        plugin.app,
+        file,
+        plugin.settings.characterFolder,
+        outside,
+      );
+      return buildScreenplayIndex(screenplay.document);
+    });
     const plan = getScreenplayCompletionPlan(
       editorSource,
       context.pos,
       plugin.settings,
       context.explicit,
-      screenplay.document,
+      undefined,
+      index,
     );
     if (!plan) return null;
 

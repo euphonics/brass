@@ -28,7 +28,11 @@ import {
   rankUsages,
 } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
-import type { ScreenplayDocument, Usage } from "../screenplay/model";
+import type {
+  ScreenplayDocument,
+  ScreenplayIndex,
+  Usage,
+} from "../screenplay/model";
 import {
   isInDialogueBlock,
   isMarkdownHeading,
@@ -354,14 +358,16 @@ export function getScreenplayCompletionPlan(
   preferences: CompletionPreferences,
   explicit = false,
   projectDocument?: ScreenplayDocument,
+  /** A ready-made index (smart rebuild cache); skips building one. */
+  precomputedIndex?: ScreenplayIndex,
 ): ScreenplayCompletionPlan | null {
   const { before, from, indexSource, previousLine } = lineContext(
     source,
     cursorOffset,
   );
-  const index = buildScreenplayIndex(
-    projectDocument ?? parseFountain(indexSource),
-  );
+  const index =
+    precomputedIndex ??
+    buildScreenplayIndex(projectDocument ?? parseFountain(indexSource));
   const characterNames = index.characters.map((usage) =>
     usage.value.toLocaleUpperCase(),
   );
