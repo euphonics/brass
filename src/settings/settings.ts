@@ -17,6 +17,10 @@
 import { PluginSettingTab } from "obsidian";
 import type { App, SettingDefinitionItem } from "obsidian";
 import type FirstDraftPlugin from "../main";
+import {
+  DEFAULT_CLEAN_EXPORT_OPTIONS,
+  type CleanExportOptions,
+} from "../export/fountain";
 import { coreTemplatesFolder, isTemplateCandidate } from "../characters/vault";
 import type { PageSize } from "../screenplay/model";
 import { isPdfLanguage, PDF_LANGUAGES } from "../export/pdfLanguage";
@@ -48,7 +52,73 @@ export interface FirstDraftSettings {
   updateDelayMs: number;
   characterFolder: string;
   characterTemplate: string;
+  cleanExport: CleanExportOptions;
 }
+
+/** Clean Fountain export toggles, in the order shown in settings. */
+const CLEAN_EXPORT_SETTINGS: {
+  option: keyof CleanExportOptions;
+  name: string;
+  desc: string;
+}[] = [
+  {
+    option: "removeTasks",
+    name: "Remove tasks",
+    desc: "- [ ] and - [x] lines.",
+  },
+  {
+    option: "unwrapWikilinks",
+    name: "Unwrap wikilinks",
+    desc: "[[Note|alias]] becomes alias; [[Note]] becomes Note. Note: Fountain notes use the same [[ ]] syntax and are unwrapped too.",
+  },
+  {
+    option: "removeEmbeds",
+    name: "Remove embeds",
+    desc: "![[image.png]] and ![alt](image.png).",
+  },
+  {
+    option: "unwrapMarkdownLinks",
+    name: "Unwrap Markdown links",
+    desc: "[text](https://...) becomes text.",
+  },
+  {
+    option: "removeHeadings",
+    name: "Remove headings",
+    desc: "# Heading lines. These are also Fountain sections (acts, sequences).",
+  },
+  {
+    option: "removeComments",
+    name: "Remove comments",
+    desc: "%% comments %%, inline or across lines.",
+  },
+  {
+    option: "removeCallouts",
+    name: "Remove callouts",
+    desc: "> [!note] blocks and their > lines.",
+  },
+  {
+    option: "removeFootnotes",
+    name: "Remove footnotes",
+    desc: "[^1] references and [^1]: definition lines.",
+  },
+  {
+    option: "removeBlockIds",
+    name: "Remove block IDs",
+    desc: "^abc123 at the end of a line. A lone ^ (dual dialogue) is kept.",
+  },
+  {
+    option: "removeHighlights",
+    name: "Remove highlight marks",
+    desc: "==text== becomes text.",
+  },
+  {
+    option: "removeTags",
+    name: "Remove tags",
+    desc: "Inline #tags. Scene numbers like #12# are kept.",
+  },
+];
+
+const CLEAN_EXPORT_PREFIX = "cleanExport.";
 
 export const DEFAULT_SETTINGS: FirstDraftSettings = {
   activateFountainFiles: true,
@@ -72,6 +142,7 @@ export const DEFAULT_SETTINGS: FirstDraftSettings = {
   updateDelayMs: 300,
   characterFolder: "Characters",
   characterTemplate: "",
+  cleanExport: { ...DEFAULT_CLEAN_EXPORT_OPTIONS },
 };
 
 function valuesFromText(value: string): string[] {
@@ -287,6 +358,19 @@ export class FirstDraftSettingTab extends PluginSettingTab {
         },
       },
       {
+        type: "group",
+        heading: "Clean Fountain export",
+        items: CLEAN_EXPORT_SETTINGS.map(({ option, name, desc }) => ({
+          name,
+          desc,
+          control: {
+            type: "toggle" as const,
+            key: `${CLEAN_EXPORT_PREFIX}${option}`,
+            defaultValue: DEFAULT_CLEAN_EXPORT_OPTIONS[option],
+          },
+        })),
+      },
+      {
         name: "Preferred scene types",
         desc: "Comma-separated values shown by New Scene, in order.",
         control: {
@@ -316,12 +400,32 @@ export class FirstDraftSettingTab extends PluginSettingTab {
   }
 
   getControlValue(key: string): unknown {
+    if (key.startsWith(CLEAN_EXPORT_PREFIX)) {
+      const option = key.slice(CLEAN_EXPORT_PREFIX.length);
+      return option in DEFAULT_CLEAN_EXPORT_OPTIONS
+        ? this.plugin.settings.cleanExport[option as keyof CleanExportOptions]
+        : undefined;
+    }
     if (!isSettingKey(key)) return undefined;
     const value = this.plugin.settings[key];
     return Array.isArray(value) ? value.join(", ") : value;
   }
 
   async setControlValue(key: string, value: unknown): Promise<void> {
+    if (key.startsWith(CLEAN_EXPORT_PREFIX)) {
+      const option = key.slice(CLEAN_EXPORT_PREFIX.length);
+      if (
+        !(option in DEFAULT_CLEAN_EXPORT_OPTIONS) ||
+        typeof value !== "boolean"
+      )
+        return;
+      this.plugin.settings.cleanExport = {
+        ...this.plugin.settings.cleanExport,
+        [option]: value,
+      };
+      await this.plugin.saveSettings();
+      return;
+    }
     if (!isSettingKey(key)) return;
 
     if (key === "preferredSceneTypes" || key === "preferredTimesOfDay") {

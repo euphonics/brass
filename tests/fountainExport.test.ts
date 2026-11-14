@@ -17,6 +17,7 @@
 import { describe, expect, it } from "vitest";
 import {
   cleanFountainSource,
+  DEFAULT_CLEAN_EXPORT_OPTIONS,
   fountainExportPath,
   stripObsidianFrontmatter,
 } from "../src/export/fountain";
@@ -76,7 +77,12 @@ Hello.
       "_Nobody_ calls me that.",
     ].join("\n");
 
-    expect(cleanFountainSource(source)).toBe(
+    expect(
+      cleanFountainSource(source, {
+        ...DEFAULT_CLEAN_EXPORT_OPTIONS,
+        removeEmbeds: false,
+      }),
+    ).toBe(
       [
         "# Act One",
         "",
@@ -95,5 +101,71 @@ Hello.
     expect(cleanFountainSource(source)).toBe(
       "- a list item\n[ ] not a task\nNo links here? b",
     );
+  });
+
+  it("removes each Obsidian element only when its option is on", () => {
+    const on = (option: keyof typeof DEFAULT_CLEAN_EXPORT_OPTIONS) =>
+      ({
+        ...Object.fromEntries(
+          Object.keys(DEFAULT_CLEAN_EXPORT_OPTIONS).map((key) => [key, false]),
+        ),
+        [option]: true,
+      }) as unknown as typeof DEFAULT_CLEAN_EXPORT_OPTIONS;
+
+    expect(
+      cleanFountainSource("# Act One\n\nINT. ROOF - DAY", on("removeHeadings")),
+    ).toBe("INT. ROOF - DAY");
+    expect(
+      cleanFountainSource("She runs. %%cut?%% Fast.", on("removeComments")),
+    ).toBe("She runs.  Fast.");
+    expect(
+      cleanFountainSource("A\n%%\nhidden\nnotes\n%%\nB", on("removeComments")),
+    ).toBe("A\nB");
+    expect(
+      cleanFountainSource(
+        "A\n\n> [!note] Fix\n> this beat\n\nB",
+        on("removeCallouts"),
+      ),
+    ).toBe("A\n\nB");
+    expect(
+      cleanFountainSource(
+        "She runs.[^1]\n\n[^1]: Source note",
+        on("removeFootnotes"),
+      ),
+    ).toBe("She runs.\n");
+    expect(cleanFountainSource("She runs. ^abc123", on("removeBlockIds"))).toBe(
+      "She runs.",
+    );
+    // Fountain dual dialogue caret is not a block ID.
+    expect(cleanFountainSource("JEN ^", on("removeBlockIds"))).toBe("JEN ^");
+    expect(
+      cleanFountainSource("A ==big== moment", on("removeHighlights")),
+    ).toBe("A big moment");
+    expect(
+      cleanFountainSource(
+        "See [the site](https://x.y).",
+        on("unwrapMarkdownLinks"),
+      ),
+    ).toBe("See the site.");
+    expect(
+      cleanFountainSource("Look ![[photo.png]] here", on("removeEmbeds")),
+    ).toBe("Look  here");
+    expect(cleanFountainSource("She runs #idea/later", on("removeTags"))).toBe(
+      "She runs",
+    );
+    // Scene numbers are not tags.
+    expect(cleanFountainSource("INT. ROOF - DAY #12#", on("removeTags"))).toBe(
+      "INT. ROOF - DAY #12#",
+    );
+    // Everything off: unchanged.
+    const all = "# H\n- [ ] t\n[[a|b]] %%c%% ==h== #tag ^id1";
+    expect(
+      cleanFountainSource(
+        all,
+        Object.fromEntries(
+          Object.keys(DEFAULT_CLEAN_EXPORT_OPTIONS).map((key) => [key, false]),
+        ) as unknown as typeof DEFAULT_CLEAN_EXPORT_OPTIONS,
+      ),
+    ).toBe(all);
   });
 });
