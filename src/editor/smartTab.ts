@@ -28,6 +28,7 @@ import { isSceneHeading } from "../screenplay/parser";
 export type SmartTabLineKind =
   | "new-block"
   | "heading"
+  | "transition"
   | "character"
   | "dialogue"
   | "scene-heading"
@@ -37,6 +38,8 @@ export interface SmartTabPlan {
   kind: SmartTabLineKind;
   /** Offset where `insert` goes (the cursor). */
   at: number;
+  /** When set, `insert` replaces the text from here to `at`. */
+  replaceFrom?: number;
   insert: string;
   /** Cursor offset after the insertion. */
   cursor: number;
@@ -56,8 +59,14 @@ function isBlank(line: string | undefined): boolean {
   return (line ?? "").trim() === "";
 }
 
-function isTransitionText(text: string): boolean {
-  if (text.startsWith(">")) return true;
+/** Forced transition line: "> CUT TO:" (not centered "> THE END <"). */
+export function isForcedTransition(text: string): boolean {
+  const trimmed = text.trim();
+  return trimmed.startsWith(">") && !trimmed.endsWith("<");
+}
+
+export function isTransitionText(text: string): boolean {
+  if (isForcedTransition(text)) return true;
   return (
     text.endsWith("TO:") &&
     UPPERCASE_LETTER.test(text) &&
@@ -114,7 +123,7 @@ export function classifySmartTabLine(
   // Leave notes, boneyard, tags and synopses alone.
   if (/^(?:\/\*|\*\/|\[\[|#|=)/u.test(text)) return null;
   if (isSceneHeading(text)) return "scene-heading";
-  if (isTransitionText(text)) return null;
+  if (isTransitionText(text)) return "transition";
   if (isInDialogueBlock(lines, index)) {
     return text.startsWith("(") ? null : "dialogue";
   }
@@ -153,6 +162,18 @@ export function getSmartTabPlan(
       // Nothing to insert: open the character list (scene types after a
       // # heading).
       return { kind, at, insert: "", cursor: at, openCompletion: true };
+    case "transition": {
+      // Uppercase the transition, then a blank line and the scene types.
+      const text = `${line.trimEnd().toLocaleUpperCase()}\n\n`;
+      return {
+        kind,
+        at,
+        replaceFrom: lineStart,
+        insert: text,
+        cursor: lineStart + text.length,
+        openCompletion: true,
+      };
+    }
     case "heading":
       // Blank line and the scene type list for a new slugline.
       return { kind, at, insert: "\n\n", cursor: at + 2, openCompletion: true };

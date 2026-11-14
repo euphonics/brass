@@ -17,6 +17,7 @@
 import {
   CHARACTER_EXTENSIONS,
   COMMON_PARENTHETICALS,
+  COMMON_TRANSITIONS,
   DEFAULT_SCENE_TYPES,
   DEFAULT_TIMES_OF_DAY,
   SCENE_TYPE_SOURCE,
@@ -28,12 +29,17 @@ import {
 } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
 import type { ScreenplayDocument, Usage } from "../screenplay/model";
-import { isInDialogueBlock, isMarkdownHeading } from "./smartTab";
+import {
+  isInDialogueBlock,
+  isMarkdownHeading,
+  isTransitionText,
+} from "./smartTab";
 
 export type ScreenplayCompletionKind =
   | "character"
   | "character-extension"
   | "parenthetical"
+  | "transition"
   | "scene-type"
   | "scene-location"
   | "scene-time";
@@ -111,6 +117,62 @@ function extensionPlan(
     : {
         kind: "character-extension",
         from: lineFrom + openParenthesis,
+        to: cursorOffset,
+        candidates,
+      };
+}
+
+/** Transition text without the ">" marker, uppercased: "> cut to:" -> "CUT TO:". */
+function transitionValue(text: string): string {
+  return text.trim().replace(/^>\s*/u, "").trim().toLocaleUpperCase();
+}
+
+function transitionPlan(
+  before: string,
+  lineFrom: number,
+  cursorOffset: number,
+  index: ReturnType<typeof buildScreenplayIndex>,
+  preferences: CompletionPreferences,
+): ScreenplayCompletionPlan | null {
+  const match = /^(\s*)>\s*([^<]*)$/u.exec(before);
+  if (!match) return null;
+
+  // Transitions used in the script first, then the common ones.
+  const usages = new Map<string, Usage>();
+  for (const usage of index.transitions) {
+    const value = transitionValue(usage.value);
+    if (!value) continue;
+    const known = usages.get(value);
+    usages.set(value, {
+      value,
+      count: (known?.count ?? 0) + usage.count,
+      lastUsedPosition: Math.max(
+        known?.lastUsedPosition ?? 0,
+        usage.lastUsedPosition,
+      ),
+    });
+  }
+  for (const value of COMMON_TRANSITIONS) {
+    if (!usages.has(value)) {
+      usages.set(value, { value, count: 0, lastUsedPosition: 0 });
+    }
+  }
+
+  const candidates = rankUsages(
+    [...usages.values()],
+    match[2] ?? "",
+    preferences.recentItemsWeighting,
+    preferences.maximumSuggestions,
+  ).map((usage) => ({
+    label: usage.value,
+    applyText: `> ${usage.value}`,
+    detail: "Transition",
+  }));
+  return candidates.length === 0
+    ? null
+    : {
+        kind: "transition",
+        from: lineFrom + (match[1]?.length ?? 0),
         to: cursorOffset,
         candidates,
       };
@@ -261,6 +323,15 @@ export function getScreenplayCompletionPlan(
   const extensions = extensionPlan(before, from, cursorOffset, characterNames);
   if (extensions) return extensions;
 
+  const transition = transitionPlan(
+    before,
+    from,
+    cursorOffset,
+    index,
+    preferences,
+  );
+  if (transition) return transition;
+
   const scene = scenePlan(before, from, cursorOffset, index, preferences);
   if (scene) return scene;
 
@@ -282,7 +353,10 @@ export function getScreenplayCompletionPlan(
   // scene type prefix ("in", "EXT"). Two letters minimum keeps ordinary
   // action lines from popping the menu.
   const lastContentLine = source.slice(0, from).trimEnd().split("\n").pop();
-  const afterHeading = isMarkdownHeading(lastContentLine ?? "");
+  // After a "# heading" or a transition, a slugline comes next.
+  const afterHeading =
+    isMarkdownHeading(lastContentLine ?? "") ||
+    isTransitionText((lastContentLine ?? "").trim());
   const wantsSceneTypes =
     plausiblePosition &&
     !/\s/u.test(query) &&

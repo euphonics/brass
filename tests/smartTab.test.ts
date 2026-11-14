@@ -80,7 +80,6 @@ describe("Smart Tab", () => {
     expect(
       getSmartTabPlan(`${opening}\n(beat)`, opening.length + 7),
     ).toBeNull();
-    expect(getSmartTabPlan("CUT TO:", 7)).toBeNull();
   });
 
   it("opens the character list on an empty line after a blank line", () => {
@@ -98,6 +97,29 @@ describe("Smart Tab", () => {
     );
     expect(characters?.kind).toBe("character");
     expect(characters?.candidates[0]?.label).toBe("HELIOS");
+  });
+
+  it("uppercases a transition and starts a slugline after it", () => {
+    const source = "She leaves.\n\n> cut to:";
+    const plan = getSmartTabPlan(source, source.length);
+    expect(plan?.kind).toBe("transition");
+    const text =
+      source.slice(0, plan?.replaceFrom) +
+      (plan?.insert ?? "") +
+      source.slice(plan?.at);
+    expect(text).toBe("She leaves.\n\n> CUT TO:\n\n");
+    expect(plan?.cursor).toBe(text.length);
+    expect(plan?.openCompletion).toBe(true);
+    expect(getSmartTabPlan("CUT TO:", 7)?.kind).toBe("transition");
+    expect(getSmartTabPlan("> THE END <", 11)?.kind).not.toBe("transition");
+
+    const next = getScreenplayCompletionPlan(
+      text,
+      text.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+      true,
+    );
+    expect(next?.kind).toBe("scene-type");
   });
 
   it("ignores frontmatter", () => {

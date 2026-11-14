@@ -206,4 +206,27 @@ INT. `;
       "MILITARY BASE - WARD",
     );
   });
+
+  it("lists transitions after > and keeps them uppercase", () => {
+    const source = `${screenplay}\n> SMASH TO:\n\nINT. ROOF - DAY\n\n>`;
+    const plan = getScreenplayCompletionPlan(
+      source,
+      source.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+    );
+    expect(plan?.kind).toBe("transition");
+    const labels = plan?.candidates.map((candidate) => candidate.label);
+    expect(labels).toContain("SMASH TO:");
+    expect(labels).toContain("CUT TO:");
+    expect(plan?.candidates[0]?.applyText).toMatch(/^> [A-Z]/u);
+
+    const typed = `${screenplay}\n> cu`;
+    expect(
+      getScreenplayCompletionPlan(
+        typed,
+        typed.length,
+        DEFAULT_COMPLETION_PREFERENCES,
+      )?.candidates.map((candidate) => candidate.applyText),
+    ).toEqual(["> CUT TO:"]);
+  });
 });

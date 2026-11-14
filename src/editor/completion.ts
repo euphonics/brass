@@ -31,7 +31,7 @@ import type FirstDraftPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
 import { buildScreenplayIndex } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
-import { getSmartTabPlan } from "./smartTab";
+import { getSmartTabPlan, isForcedTransition } from "./smartTab";
 import {
   getScreenplayCompletionPlan,
   type CompletionCandidate,
@@ -118,7 +118,11 @@ export function createScreenplayCompletionExtension(
     if (plan === null) return false;
     if (plan.insert) {
       view.dispatch({
-        changes: { from: plan.at, insert: plan.insert },
+        changes: {
+          from: plan.replaceFrom ?? plan.at,
+          to: plan.at,
+          insert: plan.insert,
+        },
         selection: { anchor: plan.cursor },
         scrollIntoView: true,
         userEvent: "input",
@@ -128,7 +132,24 @@ export function createScreenplayCompletionExtension(
     return true;
   };
 
+  // Transitions are all caps: typing on a "> ..." line is uppercased.
+  const uppercaseTransitions = EditorState.transactionFilter.of((tr) => {
+    if (!tr.docChanged || !tr.isUserEvent("input.type")) return tr;
+    const file = tr.startState.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return tr;
+    const fixes: { from: number; to: number; insert: string }[] = [];
+    tr.changes.iterChanges((_fromA, _toA, fromB, toB, inserted) => {
+      const text = inserted.toString();
+      const upper = text.toLocaleUpperCase();
+      if (upper === text || upper.length !== text.length) return;
+      if (!isForcedTransition(tr.newDoc.lineAt(fromB).text)) return;
+      fixes.push({ from: fromB, to: toB, insert: upper });
+    });
+    return fixes.length === 0 ? tr : [tr, { changes: fixes, sequential: true }];
+  });
+
   return [
+    uppercaseTransitions,
     autocompletion({
       activateOnTyping: true,
       // Keep the slugline flowing: scene type -> location -> time.
