@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-import { normalizePath, TFile, TFolder } from "obsidian";
+import { normalizePath, Notice, TFile, TFolder } from "obsidian";
 import type { App } from "obsidian";
 import {
   characterFilename,
   characterPageFromFrontmatter,
   characterPageTemplate,
+  characterProjectName,
+  characterTitle,
+  normalizeCharacterName,
+  renderCharacterTemplate,
   matchingCharacterPages,
   type CharacterPage,
   wikiLinkTarget,
@@ -104,8 +108,13 @@ async function ensureFolder(app: App, folder: string): Promise<void> {
   }
 }
 
-function availablePath(app: App, folder: string, cue: string): string {
-  const stem = characterFilename(cue);
+function availablePath(
+  app: App,
+  folder: string,
+  cue: string,
+  projectName: string,
+): string {
+  const stem = characterFilename(cue, projectName);
   let suffix = 1;
   let path = normalizePath(`${folder}/${stem}.md`);
   while (app.vault.getAbstractFileByPath(path) !== null) {
@@ -115,12 +124,26 @@ function availablePath(app: App, folder: string, cue: string): string {
   return path;
 }
 
+/** Find the user's character template by vault path or note name. */
+export function resolveCharacterTemplate(
+  app: App,
+  templateSetting: string,
+): TFile | null {
+  const target = templateSetting.trim().replace(/\.md$/iu, "");
+  if (!target) return null;
+  return (
+    app.vault.getFileByPath(normalizePath(`${target}.md`)) ??
+    app.metadataCache.getFirstLinkpathDest(target, "")
+  );
+}
+
 export async function ensureCharacterPage(
   app: App,
   folder: string,
   owner: TFile,
   scopeFiles: readonly TFile[],
   cue: string,
+  templateSetting = "",
 ): Promise<TFile | null> {
   const matches = matchingCharacterPages(
     characterPagesForScope(app, folder, scopeFiles),
@@ -130,13 +153,59 @@ export async function ensureCharacterPage(
   if (matches.length > 1) return null;
 
   await ensureFolder(app, folder);
-  const path = availablePath(app, folder, cue);
+  const projectName = characterProjectName(owner.basename);
+  const path = availablePath(app, folder, cue, projectName);
   const screenplayLink = app.metadataCache.fileToLinktext(
     owner,
     path,
     owner.extension === "md",
   );
-  return app.vault.create(path, characterPageTemplate(cue, screenplayLink));
+
+  const templateFile = templateSetting.trim()
+    ? resolveCharacterTemplate(app, templateSetting)
+    : null;
+  if (templateSetting.trim() && templateFile === null) {
+    new Notice(
+      `Character template "${templateSetting}" was not found. Using the built-in template.`,
+    );
+  }
+  if (templateFile === null) {
+    return app.vault.create(
+      path,
+      characterPageTemplate(cue, screenplayLink, projectName),
+    );
+  }
+
+  const now = new Date();
+  const pad = (value: number) => String(value).padStart(2, "0");
+  const content = renderCharacterTemplate(await app.vault.read(templateFile), {
+    character: characterTitle(cue),
+    cue: normalizeCharacterName(cue),
+    project: projectName,
+    title: path.slice(path.lastIndexOf("/") + 1).replace(/\.md$/u, ""),
+    screenplayLink,
+    date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
+    time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+  });
+  const file = await app.vault.create(path, content);
+  // First Draft recognises character pages by these properties, so make
+  // sure they exist whatever the user's template contains.
+  const link = `[[${screenplayLink}]]`;
+  await app.fileManager.processFrontMatter(
+    file,
+    (frontmatter: Record<string, unknown>) => {
+      frontmatter.firstdraft = "character";
+      frontmatter.character = normalizeCharacterName(cue);
+      if (!Array.isArray(frontmatter.aliases)) frontmatter.aliases = [];
+      const screenplays = Array.isArray(frontmatter.screenplays)
+        ? (frontmatter.screenplays as unknown[])
+        : [];
+      if (!screenplays.includes(link)) screenplays.push(link);
+      frontmatter.screenplays = screenplays;
+      if (!Array.isArray(frontmatter.related)) frontmatter.related = [];
+    },
+  );
+  return file;
 }
 
 export async function openCharacterPage(app: App, file: TFile): Promise<void> {

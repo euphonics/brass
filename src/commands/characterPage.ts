@@ -108,6 +108,7 @@ async function ensureAndOpen(
     context.owner,
     context.scopeFiles,
     cue,
+    plugin.settings.characterTemplate,
   );
   if (file === null) {
     new Notice(`Could not create or resolve the character page for ${cue}.`);

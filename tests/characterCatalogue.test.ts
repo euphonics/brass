@@ -17,6 +17,8 @@
 import { describe, expect, it } from "vitest";
 import {
   characterFilename,
+  characterProjectName,
+  renderCharacterTemplate,
   characterPageFromFrontmatter,
   characterPageTemplate,
   matchingCharacterPages,
@@ -58,6 +60,37 @@ describe("character catalogue", () => {
     expect(template).toContain('character: "JANE"');
     expect(template).toContain('"[[Scripts/Milestone 4]]"');
     expect(template).toContain("## Relationships");
+  });
+
+  it("names and heads character pages after their project", () => {
+    expect(characterProjectName("TIGHTER (project)")).toBe("TIGHTER");
+    expect(characterProjectName("TIGHTER")).toBe("TIGHTER");
+    expect(characterFilename("JEN", "TIGHTER")).toBe(
+      "Jen (Character in TIGHTER)",
+    );
+    const template = characterPageTemplate("JEN", "TIGHTER", "TIGHTER");
+    expect(template).toContain(
+      "# Jen\n\n#Character in [[TIGHTER (project)|TIGHTER]]\n\n## Background",
+    );
+    expect(template).toContain('character: "JEN"');
+  });
+
+  it("fills placeholders in a user character template", () => {
+    const rendered = renderCharacterTemplate(
+      "# {{character}}\n\n#Character in {{project_link}}\n{{ cue }} {{screenplay}} {{date}} {{unknown}}",
+      {
+        character: "Jen",
+        cue: "JEN",
+        project: "TIGHTER",
+        title: "Jen (Character in TIGHTER)",
+        screenplayLink: "TIGHTER",
+        date: "2026-11-14",
+        time: "12:00",
+      },
+    );
+    expect(rendered).toBe(
+      "# Jen\n\n#Character in [[TIGHTER (project)|TIGHTER]]\nJEN [[TIGHTER]] 2026-11-14 {{unknown}}",
+    );
   });
 
   it("extracts ordinary Obsidian link targets", () => {

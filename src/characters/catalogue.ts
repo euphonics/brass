@@ -72,16 +72,81 @@ export function matchingCharacterPages(
   );
 }
 
-export function characterFilename(cue: string): string {
+const UNSAFE_FILENAME_CHARACTERS = /[\\/:*?"<>|#[\]^]/gu;
+
+/** Readable character name, e.g. "DR. JANE MORROW (O.S.)" -> "Dr. Jane Morrow". */
+export function characterTitle(cue: string): string {
   const words = normalizeCharacterName(cue)
     .replace(/\s+\([^)]*\)\s*$/u, "")
-    .replace(/[\\/:*?"<>|#[\]^]/gu, " ")
+    .replace(UNSAFE_FILENAME_CHARACTERS, " ")
     .split(/\s+/u)
     .filter(Boolean);
   const title = words
     .map((word) => `${word.charAt(0)}${word.slice(1).toLocaleLowerCase()}`)
     .join(" ");
   return title || "Character";
+}
+
+/**
+ * Project name used in character page names and headings: the project or
+ * screenplay note's name without a trailing " (project)".
+ */
+export function characterProjectName(ownerBasename: string): string {
+  return ownerBasename
+    .replace(/\s*\(project\)\s*$/iu, "")
+    .replace(UNSAFE_FILENAME_CHARACTERS, " ")
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
+/** "Jen (Character in TIGHTER)", or just "Jen" without a project name. */
+export function characterFilename(cue: string, projectName = ""): string {
+  const title = characterTitle(cue);
+  return projectName ? `${title} (Character in ${projectName})` : title;
+}
+
+function projectLink(projectName: string): string {
+  return `[[${projectName} (project)|${projectName}]]`;
+}
+
+export interface CharacterTemplateValues {
+  /** Readable character name, e.g. "Jen". */
+  character: string;
+  /** Character cue as written in the script, e.g. "JEN". */
+  cue: string;
+  /** Project name, e.g. "TIGHTER". */
+  project: string;
+  /** New note's filename without extension. */
+  title: string;
+  /** Link text for the screenplay or project note. */
+  screenplayLink: string;
+  date: string;
+  time: string;
+}
+
+/**
+ * Fill a user's character template. Supported placeholders:
+ * {{character}}, {{cue}}, {{project}}, {{project_link}}, {{screenplay}},
+ * {{title}}, {{date}}, {{time}}. Unknown placeholders are left untouched.
+ */
+export function renderCharacterTemplate(
+  template: string,
+  values: CharacterTemplateValues,
+): string {
+  const replacements: Record<string, string> = {
+    character: values.character,
+    cue: values.cue,
+    project: values.project,
+    project_link: values.project ? projectLink(values.project) : "",
+    screenplay: `[[${values.screenplayLink}]]`,
+    title: values.title,
+    date: values.date,
+    time: values.time,
+  };
+  return template.replace(
+    /\{\{\s*([a-z_]+)\s*\}\}/giu,
+    (match, key: string) => replacements[key.toLowerCase()] ?? match,
+  );
 }
 
 function yamlString(value: string): string {
@@ -91,9 +156,13 @@ function yamlString(value: string): string {
 export function characterPageTemplate(
   cue: string,
   screenplayLink: string,
+  projectName = "",
 ): string {
   const character = normalizeCharacterName(cue);
-  const title = characterFilename(character);
+  const title = characterTitle(character);
+  const projectLine = projectName
+    ? `\n#Character in ${projectLink(projectName)}\n`
+    : "";
   return `---
 firstdraft: character
 character: ${yamlString(character)}
@@ -104,7 +173,7 @@ related: []
 ---
 
 # ${title}
-
+${projectLine}
 ## Background
 
 ## Wants and fears

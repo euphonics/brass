@@ -43,6 +43,7 @@ export interface FirstDraftSettings {
   minutesPerPage: number;
   updateDelayMs: number;
   characterFolder: string;
+  characterTemplate: string;
 }
 
 export const DEFAULT_SETTINGS: FirstDraftSettings = {
@@ -63,6 +64,7 @@ export const DEFAULT_SETTINGS: FirstDraftSettings = {
   minutesPerPage: 1,
   updateDelayMs: 300,
   characterFolder: "Characters",
+  characterTemplate: "",
 };
 
 function valuesFromText(value: string): string[] {
@@ -232,6 +234,16 @@ export class FirstDraftSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Character page template",
+        desc: "Note used for new character pages, by name or vault path (for example _template/Writing/_character). Placeholders: {{character}}, {{cue}}, {{project}}, {{project_link}}, {{screenplay}}, {{title}}, {{date}}, {{time}}. Leave empty for the built-in template.",
+        control: {
+          type: "text",
+          key: "characterTemplate",
+          placeholder: "_character",
+          defaultValue: DEFAULT_SETTINGS.characterTemplate,
+        },
+      },
+      {
         name: "Preferred scene types",
         desc: "Comma-separated values shown by New Scene, in order.",
         control: {
@@ -279,6 +291,9 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       const folder = value.trim().replace(/\/+$/gu, "");
       if (!folder || folder === "/") return;
       this.plugin.settings.characterFolder = folder;
+    } else if (key === "characterTemplate") {
+      if (typeof value !== "string") return;
+      this.plugin.settings.characterTemplate = value.trim();
     } else if (key === "pageSize") {
       if (value !== "us-letter" && value !== "a4") return;
       this.plugin.settings.pageSize = value;
