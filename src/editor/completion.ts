@@ -52,6 +52,9 @@ function applyCandidate(
     changes: { from, to, insert: candidate.applyText },
     selection: { anchor: from + candidate.applyText.length },
     annotations: pickedCompletion.of(completion),
+    // Marks the change as a picked suggestion, so activateOnCompletion can
+    // open the next list (scene type -> location -> time).
+    userEvent: "input.complete",
   });
 }
 
