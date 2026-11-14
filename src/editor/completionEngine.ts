@@ -62,6 +62,10 @@ export interface CompletionPreferences {
   maximumSuggestions: number;
   preferredTimesOfDay: readonly string[];
   preferredSceneTypes?: readonly string[];
+  /** Letters typed before scene types are suggested (at least 1). */
+  sceneTypeMinimumLetters?: number;
+  /** Scene type suggestions require the typed letters' case to match. */
+  sceneTypeMatchCase?: boolean;
 }
 
 const SCENE_LINE = new RegExp(`^(${SCENE_TYPE_SOURCE})\\s+(.*)$`, "iu");
@@ -349,9 +353,11 @@ export function getScreenplayCompletionPlan(
   const leadingWhitespace = before.length - query.length;
   const plausiblePosition = from === 0 || previousLine.trim() === "";
 
-  // Scene types: after Tab on a "# heading", or when a block starts with a
-  // scene type prefix ("in", "EXT"). Two letters minimum keeps ordinary
-  // action lines from popping the menu.
+  // Scene types: after Tab on a "# heading" or transition, or when a block
+  // starts with a scene type prefix ("in", "EXT"). A minimum number of
+  // letters (default 2) keeps ordinary action lines from popping the menu.
+  const minimumLetters = Math.max(1, preferences.sceneTypeMinimumLetters ?? 2);
+  const matchCase = preferences.sceneTypeMatchCase ?? false;
   const lastContentLine = source.slice(0, from).trimEnd().split("\n").pop();
   // After a "# heading" or a transition, a slugline comes next.
   const afterHeading =
@@ -360,11 +366,14 @@ export function getScreenplayCompletionPlan(
   const wantsSceneTypes =
     plausiblePosition &&
     !/\s/u.test(query) &&
-    (query.length >= 2 || (explicit && afterHeading && query.length === 0));
+    (query.length >= minimumLetters ||
+      (explicit && afterHeading && query.length === 0));
   const sceneTypeCandidates = wantsSceneTypes
     ? (preferences.preferredSceneTypes ?? DEFAULT_SCENE_TYPES)
         .filter((type) =>
-          type.toLocaleUpperCase().startsWith(query.toLocaleUpperCase()),
+          matchCase
+            ? type.startsWith(query)
+            : type.toLocaleUpperCase().startsWith(query.toLocaleUpperCase()),
         )
         .map((type) => ({
           label: type,

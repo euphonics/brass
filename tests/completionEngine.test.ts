@@ -229,4 +229,24 @@ INT. `;
       )?.candidates.map((candidate) => candidate.applyText),
     ).toEqual(["> CUT TO:"]);
   });
+
+  it("respects the scene type letter minimum and case settings", () => {
+    const labels = (typed: string, preferences: object) => {
+      const source = `${screenplay}\n${typed}`;
+      return getScreenplayCompletionPlan(source, source.length, {
+        ...DEFAULT_COMPLETION_PREFERENCES,
+        ...preferences,
+      })?.candidates.map((candidate) => candidate.label);
+    };
+
+    // Scenario 1: two letters, case-insensitive.
+    const relaxed = { sceneTypeMinimumLetters: 2, sceneTypeMatchCase: false };
+    expect(labels("in", relaxed)).toContain("INT.");
+    expect(labels("i", relaxed)).toBeUndefined();
+
+    // Scenario 2: one letter, case-sensitive.
+    const strict = { sceneTypeMinimumLetters: 1, sceneTypeMatchCase: true };
+    expect(labels("E", strict)).toContain("EXT.");
+    expect(labels("ext", strict)).toBeUndefined();
+  });
 });

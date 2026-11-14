@@ -31,6 +31,8 @@ export interface FirstDraftSettings {
   activateFrontmatter: boolean;
   autocompleteEnabled: boolean;
   smartTabEnabled: boolean;
+  sceneTypeMinimumLetters: number;
+  sceneTypeMatchCase: boolean;
   recentItemsWeighting: number;
   maximumSuggestions: number;
   preferredSceneTypes: string[];
@@ -53,6 +55,8 @@ export const DEFAULT_SETTINGS: FirstDraftSettings = {
   activateFrontmatter: true,
   autocompleteEnabled: true,
   smartTabEnabled: true,
+  sceneTypeMinimumLetters: 2,
+  sceneTypeMatchCase: false,
   recentItemsWeighting: 0.65,
   maximumSuggestions: 8,
   preferredSceneTypes: DEFAULT_SCENE_TYPES,
@@ -211,6 +215,29 @@ export class FirstDraftSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Scene type suggestions start after",
+        desc: "Letters typed at the start of a new block before INT., EXT. and other scene types are suggested. Example: with 2, typing in shows INT.",
+        control: {
+          type: "slider",
+          key: "sceneTypeMinimumLetters",
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultValue: DEFAULT_SETTINGS.sceneTypeMinimumLetters,
+          displayFormat: (value) =>
+            `${value} ${value === 1 ? "letter" : "letters"}`,
+        },
+      },
+      {
+        name: "Match case for scene type suggestions",
+        desc: "Only suggest scene types when the letters typed match their case. On: E shows EXT., but ext shows nothing. Off: ext shows EXT.",
+        control: {
+          type: "toggle",
+          key: "sceneTypeMatchCase",
+          defaultValue: DEFAULT_SETTINGS.sceneTypeMatchCase,
+        },
+      },
+      {
         name: "Maximum autocomplete suggestions",
         desc: "Limit the number of First Draft suggestions shown at once.",
         control: {
@@ -350,6 +377,8 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       case "activateFountainFiles":
       case "activateFrontmatter":
       case "autocompleteEnabled":
+      case "smartTabEnabled":
+      case "sceneTypeMatchCase":
       case "statusBarEnabled":
       case "showEstimatedPages":
       case "showEstimatedRuntime":
@@ -366,6 +395,9 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       case "minutesPerPage":
       case "updateDelayMs":
         this.plugin.settings[key] = value;
+        break;
+      case "sceneTypeMinimumLetters":
+        this.plugin.settings[key] = Math.max(1, Math.round(value));
     }
   }
 }
