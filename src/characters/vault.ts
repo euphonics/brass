@@ -124,6 +124,41 @@ function availablePath(
   return path;
 }
 
+interface TemplatesPluginHost {
+  internalPlugins?: {
+    getPluginById?: (id: string) => {
+      enabled?: boolean;
+      instance?: { options?: { folder?: unknown } };
+    } | null;
+  };
+}
+
+/**
+ * Folder set in Obsidian's core Templates plugin, or "" when the plugin is
+ * off or has no folder. Uses Obsidian's internal plugin registry, which has
+ * no public API.
+ */
+export function coreTemplatesFolder(app: App): string {
+  const templates = (
+    app as unknown as TemplatesPluginHost
+  ).internalPlugins?.getPluginById?.("templates");
+  const folder = templates?.enabled
+    ? templates.instance?.options?.folder
+    : undefined;
+  return typeof folder === "string"
+    ? normalizePath(folder).replace(/^\/+|\/+$/gu, "")
+    : "";
+}
+
+/** Markdown files inside `folder` and its subfolders; any note if empty. */
+export function isTemplateCandidate(
+  file: Pick<TFile, "path" | "extension">,
+  folder: string,
+): boolean {
+  if (file.extension !== "md") return false;
+  return !folder || file.path.startsWith(`${folder}/`);
+}
+
 /** Find the user's character template by vault path or note name. */
 export function resolveCharacterTemplate(
   app: App,

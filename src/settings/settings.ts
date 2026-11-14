@@ -17,6 +17,7 @@
 import { PluginSettingTab } from "obsidian";
 import type { App, SettingDefinitionItem } from "obsidian";
 import type FirstDraftPlugin from "../main";
+import { coreTemplatesFolder, isTemplateCandidate } from "../characters/vault";
 import type { PageSize } from "../screenplay/model";
 import { isPdfLanguage, PDF_LANGUAGES } from "../export/pdfLanguage";
 import type { PdfLanguage } from "../export/pdfLanguage";
@@ -89,6 +90,7 @@ export class FirstDraftSettingTab extends PluginSettingTab {
   }
 
   getSettingDefinitions(): SettingDefinitionItem[] {
+    const templatesFolder = coreTemplatesFolder(this.app);
     return [
       {
         name: "Open .fountain files in screenplay mode",
@@ -246,12 +248,15 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       },
       {
         name: "Character page template",
-        desc: "Note used for new character pages, by name or vault path (for example _template/Writing/_character). Placeholders: {{character}}, {{cue}}, {{project}}, {{project_link}}, {{screenplay}}, {{title}}, {{date}}, {{time}}. Leave empty for the built-in template.",
+        desc: `Note used for new character pages. Type to search ${templatesFolder ? `your templates folder (${templatesFolder}) and its subfolders` : "your vault (set a folder in the core Templates plugin to narrow this)"}. Placeholders: {{character}}, {{cue}}, {{project}}, {{project_link}}, {{screenplay}}, {{title}}, {{date}}, {{time}}. Leave empty for the built-in template.`,
         control: {
-          type: "text",
+          type: "file",
           key: "characterTemplate",
-          placeholder: "_character",
+          placeholder: templatesFolder
+            ? `${templatesFolder}/…`
+            : "Search for a template note",
           defaultValue: DEFAULT_SETTINGS.characterTemplate,
+          filter: (file) => isTemplateCandidate(file, templatesFolder),
         },
       },
       {
