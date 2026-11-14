@@ -17,7 +17,9 @@
 import {
   acceptCompletion,
   autocompletion,
+  completionStatus,
   pickedCompletion,
+  startCompletion,
   type Completion,
   type CompletionContext,
   type CompletionResult,
@@ -27,6 +29,9 @@ import { keymap, type EditorView } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
 import type FirstDraftPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
+import { buildScreenplayIndex } from "../screenplay/indexer";
+import { parseFountain } from "../screenplay/parser";
+import { getSmartTabPlan } from "./smartTab";
 import {
   getScreenplayCompletionPlan,
   type CompletionCandidate,
@@ -91,6 +96,36 @@ export function createScreenplayCompletionExtension(
     };
   };
 
+  // Tab accepts an open suggestion; otherwise Smart Tab may insert the next
+  // Fountain element. Returning false keeps Obsidian's normal Tab.
+  const tab = (view: EditorView): boolean => {
+    if (completionStatus(view.state) === "active")
+      return acceptCompletion(view);
+    if (!plugin.settings.smartTabEnabled) return false;
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+
+    const source = view.state.doc.toString();
+    const knownTimes = [
+      ...plugin.settings.preferredTimesOfDay,
+      ...buildScreenplayIndex(parseFountain(source)).timesOfDay.map(
+        (usage) => usage.value,
+      ),
+    ];
+    const plan = getSmartTabPlan(source, selection.main.head, knownTimes);
+    if (plan === null) return false;
+    view.dispatch({
+      changes: { from: plan.at, insert: plan.insert },
+      selection: { anchor: plan.cursor },
+      scrollIntoView: true,
+      userEvent: "input",
+    });
+    if (plan.openCompletion) startCompletion(view);
+    return true;
+  };
+
   return [
     autocompletion({
       activateOnTyping: true,
@@ -98,6 +133,6 @@ export function createScreenplayCompletionExtension(
       maxRenderedOptions: 20,
     }),
     EditorState.languageData.of(() => [{ autocomplete: source }]),
-    Prec.highest(keymap.of([{ key: "Tab", run: acceptCompletion }])),
+    Prec.highest(keymap.of([{ key: "Tab", run: tab }])),
   ];
 }

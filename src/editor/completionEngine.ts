@@ -16,6 +16,7 @@
 
 import {
   CHARACTER_EXTENSIONS,
+  COMMON_PARENTHETICALS,
   DEFAULT_TIMES_OF_DAY,
   SCENE_TYPE_SOURCE,
 } from "../screenplay/fountain";
@@ -25,10 +26,15 @@ import {
   rankUsages,
 } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
-import type { ScreenplayDocument } from "../screenplay/model";
+import type { ScreenplayDocument, Usage } from "../screenplay/model";
+import { isInDialogueBlock } from "./smartTab";
 
 export type ScreenplayCompletionKind =
-  "character" | "character-extension" | "scene-location" | "scene-time";
+  | "character"
+  | "character-extension"
+  | "parenthetical"
+  | "scene-location"
+  | "scene-time";
 
 export interface CompletionCandidate {
   label: string;
@@ -184,6 +190,53 @@ function scenePlan(
       };
 }
 
+// Generic defaults only; "(to Reeves)" in COMMON_PARENTHETICALS is an example.
+const DEFAULT_PARENTHETICALS = COMMON_PARENTHETICALS.filter(
+  (value) => !value.startsWith("(to "),
+);
+
+function parentheticalPlan(
+  source: string,
+  before: string,
+  lineFrom: number,
+  cursorOffset: number,
+  index: ReturnType<typeof buildScreenplayIndex>,
+  preferences: CompletionPreferences,
+): ScreenplayCompletionPlan | null {
+  const match = /^(\s*)\(([^)]*)$/u.exec(before);
+  if (!match) return null;
+  const lines = source.split("\n");
+  const lineIndex = source.slice(0, lineFrom).split("\n").length - 1;
+  if (!isInDialogueBlock(lines, lineIndex)) return null;
+
+  const used = new Set(index.parentheticals.map((usage) => usage.value));
+  const usages: Usage[] = [
+    ...index.parentheticals,
+    ...DEFAULT_PARENTHETICALS.filter((value) => !used.has(value)).map(
+      (value) => ({ value, count: 0, lastUsedPosition: 0 }),
+    ),
+  ];
+  const candidates = rankUsages(
+    usages,
+    `(${match[2] ?? ""}`,
+    preferences.recentItemsWeighting,
+    preferences.maximumSuggestions,
+  ).map((usage) => ({
+    label: usage.value,
+    applyText: usage.value,
+    detail: "Parenthetical",
+  }));
+  if (candidates.length === 0) return null;
+  // Smart Tab inserts "()", so replace the closing parenthesis too.
+  const closes = source.charAt(cursorOffset) === ")";
+  return {
+    kind: "parenthetical",
+    from: lineFrom + (match[1]?.length ?? 0),
+    to: cursorOffset + (closes ? 1 : 0),
+    candidates,
+  };
+}
+
 export function getScreenplayCompletionPlan(
   source: string,
   cursorOffset: number,
@@ -207,6 +260,16 @@ export function getScreenplayCompletionPlan(
 
   const scene = scenePlan(before, from, cursorOffset, index, preferences);
   if (scene) return scene;
+
+  const parenthetical = parentheticalPlan(
+    source,
+    before,
+    from,
+    cursorOffset,
+    index,
+    preferences,
+  );
+  if (parenthetical) return parenthetical;
 
   const query = before.trimStart();
   const leadingWhitespace = before.length - query.length;

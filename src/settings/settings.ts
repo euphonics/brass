@@ -29,6 +29,7 @@ export interface FirstDraftSettings {
   activateFountainFiles: boolean;
   activateFrontmatter: boolean;
   autocompleteEnabled: boolean;
+  smartTabEnabled: boolean;
   recentItemsWeighting: number;
   maximumSuggestions: number;
   preferredSceneTypes: string[];
@@ -50,6 +51,7 @@ export const DEFAULT_SETTINGS: FirstDraftSettings = {
   activateFountainFiles: true,
   activateFrontmatter: true,
   autocompleteEnabled: true,
+  smartTabEnabled: true,
   recentItemsWeighting: 0.65,
   maximumSuggestions: 8,
   preferredSceneTypes: DEFAULT_SCENE_TYPES,
@@ -217,6 +219,15 @@ export class FirstDraftSettingTab extends PluginSettingTab {
           step: 1,
           defaultValue: DEFAULT_SETTINGS.maximumSuggestions,
           displayFormat: (value) => String(value),
+        },
+      },
+      {
+        name: "Smart Tab",
+        desc: 'At the end of a line, Tab inserts the next Fountain element: after a character or dialogue line, a new () line; after a scene heading, " - " and times of day, or a blank line once complete; after action, a blank line and the character list.',
+        control: {
+          type: "toggle",
+          key: "smartTabEnabled",
+          defaultValue: DEFAULT_SETTINGS.smartTabEnabled,
         },
       },
       {
