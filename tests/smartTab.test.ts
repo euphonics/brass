@@ -86,6 +86,41 @@ describe("Smart Tab", () => {
     const source = "---\nscreenplay: true\n---";
     expect(getSmartTabPlan(source, 19)).toBeNull();
   });
+
+  it("starts a new slugline after a # heading", () => {
+    for (const heading of ["# Act One", "## The Barn", "### Sequence 3"]) {
+      const result = tabAtEnd(heading);
+      expect(result?.plan.kind).toBe("heading");
+      expect(result?.text).toBe(`${heading}\n\n`);
+      expect(result?.plan.openCompletion).toBe(true);
+    }
+    // A tag line is not a heading.
+    expect(tabAtEnd("#Character in TIGHTER")).toBeNull();
+  });
+
+  it("offers scene types after a heading, then characters if none match", () => {
+    const source = "# Act One\n\n";
+    const plan = getScreenplayCompletionPlan(
+      source,
+      source.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+      true,
+    );
+    expect(plan?.kind).toBe("scene-type");
+    expect(plan?.candidates[0]).toMatchObject({
+      label: "INT.",
+      applyText: "INT. ",
+    });
+
+    const typed = "# Act One\n\nINT";
+    expect(
+      getScreenplayCompletionPlan(
+        typed,
+        typed.length,
+        DEFAULT_COMPLETION_PREFERENCES,
+      )?.candidates.map((candidate) => candidate.label),
+    ).toEqual(["INT.", "INT./EXT.", "INT/EXT"]);
+  });
 });
 
 describe("parenthetical suggestions", () => {

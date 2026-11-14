@@ -178,4 +178,32 @@ Up here.
       ),
     ).toBeNull();
   });
+
+  it("offers scene types when a block starts with one, in any case", () => {
+    for (const typed of ["int", "INT", "ex"]) {
+      const source = `${screenplay}
+${typed}`;
+      const plan = getScreenplayCompletionPlan(
+        source,
+        source.length,
+        DEFAULT_COMPLETION_PREFERENCES,
+      );
+      expect(plan?.kind).toBe("scene-type");
+      expect(plan?.candidates[0]?.applyText).toMatch(/^(INT|EXT)\. $/u);
+    }
+  });
+
+  it("lists locations as soon as the scene type is typed", () => {
+    const source = `${screenplay}
+INT. `;
+    const plan = getScreenplayCompletionPlan(
+      source,
+      source.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+    );
+    expect(plan?.kind).toBe("scene-location");
+    expect(plan?.candidates.map((candidate) => candidate.label)).toContain(
+      "MILITARY BASE - WARD",
+    );
+  });
 });

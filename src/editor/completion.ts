@@ -129,7 +129,9 @@ export function createScreenplayCompletionExtension(
   return [
     autocompletion({
       activateOnTyping: true,
-      activateOnCompletion: (completion) => completion.detail === "Location",
+      // Keep the slugline flowing: scene type -> location -> time.
+      activateOnCompletion: (completion) =>
+        completion.detail === "Location" || completion.detail === "Scene type",
       maxRenderedOptions: 20,
     }),
     EditorState.languageData.of(() => [{ autocomplete: source }]),

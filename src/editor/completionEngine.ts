@@ -17,6 +17,7 @@
 import {
   CHARACTER_EXTENSIONS,
   COMMON_PARENTHETICALS,
+  DEFAULT_SCENE_TYPES,
   DEFAULT_TIMES_OF_DAY,
   SCENE_TYPE_SOURCE,
 } from "../screenplay/fountain";
@@ -27,12 +28,13 @@ import {
 } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
 import type { ScreenplayDocument, Usage } from "../screenplay/model";
-import { isInDialogueBlock } from "./smartTab";
+import { isInDialogueBlock, isMarkdownHeading } from "./smartTab";
 
 export type ScreenplayCompletionKind =
   | "character"
   | "character-extension"
   | "parenthetical"
+  | "scene-type"
   | "scene-location"
   | "scene-time";
 
@@ -53,9 +55,10 @@ export interface CompletionPreferences {
   recentItemsWeighting: number;
   maximumSuggestions: number;
   preferredTimesOfDay: readonly string[];
+  preferredSceneTypes?: readonly string[];
 }
 
-const SCENE_LINE = new RegExp(`^(${SCENE_TYPE_SOURCE})\\s+(.+)$`, "iu");
+const SCENE_LINE = new RegExp(`^(${SCENE_TYPE_SOURCE})\\s+(.*)$`, "iu");
 // Fountain forced scene heading: a single leading "." (not "..", which is an ellipsis).
 const FORCED_SCENE_LINE = /^\.(?![.\s])(.*)$/u;
 const POSSIBLE_CHARACTER = /^[\p{Lu}\p{N} ._'’-]+$/u;
@@ -274,29 +277,57 @@ export function getScreenplayCompletionPlan(
   const query = before.trimStart();
   const leadingWhitespace = before.length - query.length;
   const plausiblePosition = from === 0 || previousLine.trim() === "";
-  if (
+
+  // Scene types: after Tab on a "# heading", or when a block starts with a
+  // scene type prefix ("in", "EXT"). Two letters minimum keeps ordinary
+  // action lines from popping the menu.
+  const lastContentLine = source.slice(0, from).trimEnd().split("\n").pop();
+  const afterHeading = isMarkdownHeading(lastContentLine ?? "");
+  const wantsSceneTypes =
+    plausiblePosition &&
+    !/\s/u.test(query) &&
+    (query.length >= 2 || (explicit && afterHeading && query.length === 0));
+  const sceneTypeCandidates = wantsSceneTypes
+    ? (preferences.preferredSceneTypes ?? DEFAULT_SCENE_TYPES)
+        .filter((type) =>
+          type.toLocaleUpperCase().startsWith(query.toLocaleUpperCase()),
+        )
+        .map((type) => ({
+          label: type,
+          applyText: `${type} `,
+          detail: "Scene type",
+        }))
+    : [];
+  if (afterHeading && query.length === 0 && sceneTypeCandidates.length > 0) {
+    return {
+      kind: "scene-type",
+      from: from + leadingWhitespace,
+      to: cursorOffset,
+      candidates: sceneTypeCandidates,
+    };
+  }
+
+  const characterCandidates =
     !plausiblePosition ||
     (!explicit && query.length === 0) ||
     (query.length > 0 && !POSSIBLE_CHARACTER.test(query))
-  ) {
-    return null;
-  }
+      ? []
+      : rankUsages(
+          index.characters,
+          query,
+          preferences.recentItemsWeighting,
+          preferences.maximumSuggestions,
+        ).map((usage) => ({
+          label: usage.value,
+          applyText: `${usage.value}\n`,
+          detail: `${usage.count} dialogue ${usage.count === 1 ? "block" : "blocks"}`,
+        }));
 
-  const candidates = rankUsages(
-    index.characters,
-    query,
-    preferences.recentItemsWeighting,
-    preferences.maximumSuggestions,
-  ).map((usage) => ({
-    label: usage.value,
-    applyText: `${usage.value}\n`,
-    detail: `${usage.count} dialogue ${usage.count === 1 ? "block" : "blocks"}`,
-  }));
-
+  const candidates = [...sceneTypeCandidates, ...characterCandidates];
   return candidates.length === 0
     ? null
     : {
-        kind: "character",
+        kind: characterCandidates.length === 0 ? "scene-type" : "character",
         from: from + leadingWhitespace,
         to: cursorOffset,
         candidates,

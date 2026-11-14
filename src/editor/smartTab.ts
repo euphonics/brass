@@ -26,7 +26,7 @@ import { isSceneHeading } from "../screenplay/parser";
  */
 
 export type SmartTabLineKind =
-  "character" | "dialogue" | "scene-heading" | "action";
+  "heading" | "character" | "dialogue" | "scene-heading" | "action";
 
 export interface SmartTabPlan {
   kind: SmartTabLineKind;
@@ -90,6 +90,11 @@ export function isInDialogueBlock(
   return cueStartsBlock && looksLikeCharacterCue(lines[cueIndex] ?? "");
 }
 
+/** Markdown heading or Fountain section: "# Act One", "## Sequence". */
+export function isMarkdownHeading(text: string): boolean {
+  return /^#{1,6}\s+\S/u.test(text.trim());
+}
+
 export function classifySmartTabLine(
   lines: readonly string[],
   index: number,
@@ -97,7 +102,8 @@ export function classifySmartTabLine(
   if (index <= frontmatterEnd(lines)) return null;
   const text = (lines[index] ?? "").trim();
   if (!text) return null;
-  // Leave notes, boneyard, sections and synopses alone.
+  if (isMarkdownHeading(text)) return "heading";
+  // Leave notes, boneyard, tags and synopses alone.
   if (/^(?:\/\*|\*\/|\[\[|#|=)/u.test(text)) return null;
   if (isSceneHeading(text)) return "scene-heading";
   if (isTransitionText(text)) return null;
@@ -137,6 +143,9 @@ export function getSmartTabPlan(
 
   const at = cursorOffset;
   switch (kind) {
+    case "heading":
+      // Blank line and the scene type list for a new slugline.
+      return { kind, at, insert: "\n\n", cursor: at + 2, openCompletion: true };
     case "character":
     case "dialogue":
       // New line with "()" and the cursor between the parentheses.
