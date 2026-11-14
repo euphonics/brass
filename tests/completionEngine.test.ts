@@ -249,4 +249,34 @@ INT. `;
     expect(labels("E", strict)).toContain("EXT.");
     expect(labels("ext", strict)).toBeUndefined();
   });
+
+  it("puts the other speaker first so dialogue alternates", () => {
+    const labels = (source: string) =>
+      getScreenplayCompletionPlan(
+        source,
+        source.length,
+        DEFAULT_COMPLETION_PREFERENCES,
+        true,
+      )?.candidates.map((candidate) => candidate.label);
+
+    const twoHander = `${screenplay}\nINT. ROOF - DAY\n\nMILLER\nHi.\n\nJANE\nHi.\n\n`;
+    const order = labels(twoHander) ?? [];
+    expect(order[0]).toBe("MILLER");
+    expect(order[order.length - 1]).toBe("JANE");
+
+    const threeWay = `INT. ROOF - DAY\n\nAMY\nOne.\n\nBEN\nTwo.\n\nCARL\nThree.\n\nDANA\nFour.\n\nCARL\nFive.\n\n`;
+    expect(labels(threeWay)).toEqual(["DANA", "BEN", "AMY", "CARL"]);
+  });
+
+  it("only considers speakers in the current scene", () => {
+    const source = `INT. A - DAY\n\nAMY\nOne.\n\nINT. B - DAY\n\nBEN\nTwo.\n\n`;
+    const labels = getScreenplayCompletionPlan(
+      source,
+      source.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+      true,
+    )?.candidates.map((candidate) => candidate.label);
+    expect(labels?.[labels.length - 1]).toBe("BEN");
+    expect(labels?.[0]).toBe("AMY");
+  });
 });

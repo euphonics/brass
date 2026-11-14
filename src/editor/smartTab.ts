@@ -253,3 +253,40 @@ export function getSmartEnterPlan(
     openCompletion: true,
   };
 }
+
+/** Character name from a cue line: "@jen (V.O.) ^" -> "JEN". */
+function cueName(text: string): string {
+  return text
+    .trim()
+    .replace(/^@/u, "")
+    .replace(/\s*\^\s*$/u, "")
+    .replace(/(?:\s+\([^)]*\))+\s*$/u, "")
+    .trim()
+    .toLocaleUpperCase();
+}
+
+/**
+ * Speakers in the current scene before `offset`, most recent first and
+ * without repeats: for "BLAKE ... JEN ..." it returns ["JEN", "BLAKE"].
+ * Stops at the scene heading.
+ */
+export function recentSceneSpeakers(source: string, offset: number): string[] {
+  const lines = source.slice(0, offset).split("\n");
+  const firstContentLine = frontmatterEnd(lines) + 1;
+  const speakers: string[] = [];
+  for (let index = lines.length - 2; index >= firstContentLine; index -= 1) {
+    const text = lines[index] ?? "";
+    if (isSceneHeading(text.trim())) break;
+    const startsBlock = index === firstContentLine || isBlank(lines[index - 1]);
+    if (
+      startsBlock &&
+      !isBlank(text) &&
+      !isBlank(lines[index + 1]) &&
+      looksLikeCharacterCue(text)
+    ) {
+      const name = cueName(text);
+      if (name && !speakers.includes(name)) speakers.push(name);
+    }
+  }
+  return speakers;
+}

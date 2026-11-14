@@ -33,6 +33,7 @@ import {
   isInDialogueBlock,
   isMarkdownHeading,
   isTransitionText,
+  recentSceneSpeakers,
 } from "./smartTab";
 
 export type ScreenplayCompletionKind =
@@ -259,6 +260,30 @@ function scenePlan(
       };
 }
 
+/**
+ * Order character suggestions for the next cue. Whoever spoke last goes to
+ * the bottom (they rarely speak twice in a row); the other speakers in the
+ * scene come first, most recent first, so a two-hander alternates. The rest
+ * keep their usual frequency/recency ranking.
+ */
+function orderByTurn(
+  ranked: readonly Usage[],
+  sceneSpeakers: readonly string[],
+  limit: number,
+): Usage[] {
+  const [lastSpeaker, ...earlierSpeakers] = sceneSpeakers;
+  const key = (usage: Usage) => usage.value.toLocaleUpperCase();
+  const scene = earlierSpeakers.flatMap((name) =>
+    ranked.filter((usage) => key(usage) === name),
+  );
+  const last = ranked.filter((usage) => key(usage) === lastSpeaker);
+  const rest = ranked.filter(
+    (usage) => !scene.includes(usage) && !last.includes(usage),
+  );
+  const max = Math.max(1, limit);
+  return [...scene, ...rest].slice(0, max - last.length).concat(last);
+}
+
 // Generic defaults only; "(to Reeves)" in COMMON_PARENTHETICALS is an example.
 const DEFAULT_PARENTHETICALS = COMMON_PARENTHETICALS.filter(
   (value) => !value.startsWith("(to "),
@@ -395,10 +420,14 @@ export function getScreenplayCompletionPlan(
     (!explicit && query.length === 0) ||
     (query.length > 0 && !POSSIBLE_CHARACTER.test(query))
       ? []
-      : rankUsages(
-          index.characters,
-          query,
-          preferences.recentItemsWeighting,
+      : orderByTurn(
+          rankUsages(
+            index.characters,
+            query,
+            preferences.recentItemsWeighting,
+            Number.MAX_SAFE_INTEGER,
+          ),
+          recentSceneSpeakers(source, from),
           preferences.maximumSuggestions,
         ).map((usage) => ({
           label: usage.value,
