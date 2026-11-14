@@ -279,4 +279,27 @@ INT. `;
     expect(labels?.[labels.length - 1]).toBe("BEN");
     expect(labels?.[0]).toBe("AMY");
   });
+
+  it("matches lowercase letters once the character list is open", () => {
+    const source = `${screenplay}\nMILLER\nGo.\n\nj`;
+    const opened = getScreenplayCompletionPlan(
+      source,
+      source.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+      true,
+    );
+    expect(opened?.candidates.map((candidate) => candidate.label)).toEqual([
+      "JANE",
+    ]);
+    expect(opened?.candidates[0]?.applyText).toBe("JANE\n");
+    // Typing lowercase without the list open stays quiet (action lines).
+    expect(
+      getScreenplayCompletionPlan(
+        source,
+        source.length,
+        DEFAULT_COMPLETION_PREFERENCES,
+        false,
+      ),
+    ).toBeNull();
+  });
 });

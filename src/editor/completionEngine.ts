@@ -415,10 +415,14 @@ export function getScreenplayCompletionPlan(
     };
   }
 
+  // Typing only opens the list for capitals (so lowercase action doesn't),
+  // but once it is open on purpose (Tab, Enter, Ctrl+Space) any case
+  // matches: "f" finds FIONA.
+  const characterQuery = explicit ? query.toLocaleUpperCase() : query;
   const characterCandidates =
     !plausiblePosition ||
     (!explicit && query.length === 0) ||
-    (query.length > 0 && !POSSIBLE_CHARACTER.test(query))
+    (query.length > 0 && !POSSIBLE_CHARACTER.test(characterQuery))
       ? []
       : orderByTurn(
           rankUsages(
