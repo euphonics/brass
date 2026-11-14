@@ -16,6 +16,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  cleanFountainSource,
   fountainExportPath,
   stripObsidianFrontmatter,
 } from "../src/export/fountain";
@@ -58,5 +59,41 @@ Hello.
     expect(
       fountainExportPath("Draft.fountain", new Set(["Draft-export.fountain"])),
     ).toBe("Draft-export-2.fountain");
+  });
+
+  it("cleans wikilinks and task lines for a clean Fountain export", () => {
+    const source = [
+      "# Act One",
+      "",
+      "INT. [[Jen's Apartment|APARTMENT]] - NIGHT",
+      "",
+      "[[Jen (Character in TIGHTER)|JEN]] reads **[[The Letter]]** and an embed ![[photo.png]].",
+      "",
+      "- [ ] fix this scene",
+      "- [x] done task",
+      "",
+      "JEN",
+      "_Nobody_ calls me that.",
+    ].join("\n");
+
+    expect(cleanFountainSource(source)).toBe(
+      [
+        "# Act One",
+        "",
+        "INT. APARTMENT - NIGHT",
+        "",
+        "JEN reads **The Letter** and an embed ![[photo.png]].",
+        "",
+        "JEN",
+        "_Nobody_ calls me that.",
+      ].join("\n"),
+    );
+  });
+
+  it("keeps ordinary lists and bracketed text that are not tasks", () => {
+    const source = "- a list item\n[ ] not a task\nNo [[links]] here? [[a|b]]";
+    expect(cleanFountainSource(source)).toBe(
+      "- a list item\n[ ] not a task\nNo links here? b",
+    );
   });
 });

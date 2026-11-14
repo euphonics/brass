@@ -50,3 +50,40 @@ export function fountainExportPath(
   }
   return candidate;
 }
+
+const TASK_LINE = /^\s*[-*+]\s+\[[^\]]?\](?:\s.*)?$/u;
+const WIKILINK = /(?<!!)\[\[([^[\]\n]+?)\]\]/gu;
+
+/** `[[target|alias]]` -> `alias`, `[[target]]` -> `target`. Embeds stay. */
+export function unwrapWikilinks(text: string): string {
+  return text.replace(WIKILINK, (_match, inner: string) => {
+    const pipe = inner.indexOf("|");
+    return (pipe === -1 ? inner : inner.slice(pipe + 1)).trim();
+  });
+}
+
+/**
+ * Clean Fountain export: remove Markdown task lines (`- [ ] ...`, any status)
+ * and unwrap wikilinks. Headings and inline formatting are kept.
+ */
+export function cleanFountainSource(source: string): string {
+  const output: string[] = [];
+  let removedSinceLastLine = false;
+  for (const line of source.replaceAll("\r\n", "\n").split("\n")) {
+    if (TASK_LINE.test(line)) {
+      removedSinceLastLine = true;
+      continue;
+    }
+    // Avoid leaving a double blank line where a task block was removed.
+    if (
+      removedSinceLastLine &&
+      line.trim() === "" &&
+      (output.length === 0 || output[output.length - 1]?.trim() === "")
+    ) {
+      continue;
+    }
+    removedSinceLastLine = false;
+    output.push(unwrapWikilinks(line));
+  }
+  return output.join("\n");
+}

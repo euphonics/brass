@@ -146,6 +146,10 @@ function renderProjectActions(
     const view = plugin.activeMarkdownView();
     if (view) void exportFountain(plugin, view);
   });
+  addAction("Export Clean Fountain", () => {
+    const view = plugin.activeMarkdownView();
+    if (view) void exportFountain(plugin, view, true);
+  });
   addAction("Export FDX", () => {
     const view = plugin.activeMarkdownView();
     if (view) void exportFdx(plugin, view);

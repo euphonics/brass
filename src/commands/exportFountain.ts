@@ -17,12 +17,13 @@
 import { Notice } from "obsidian";
 import type { MarkdownView } from "obsidian";
 import type FirstDraftPlugin from "../main";
-import { fountainExportPath } from "../export/fountain";
+import { cleanFountainSource, fountainExportPath } from "../export/fountain";
 import { loadScreenplayContext } from "../projects/vault";
 
 export async function exportFountain(
   plugin: FirstDraftPlugin,
   view: MarkdownView,
+  clean = false,
 ): Promise<void> {
   const file = view.file;
   if (file === null) return;
@@ -38,7 +39,7 @@ export async function exportFountain(
     plugin.isScreenplayFile(file) ? view.editor.getValue() : undefined,
   );
   const path = fountainExportPath(context.owner.path, existingPaths);
-  const content = context.source;
+  const content = clean ? cleanFountainSource(context.source) : context.source;
 
   try {
     const exported = await plugin.app.vault.create(path, content);

@@ -278,6 +278,20 @@ export default class FirstDraftPlugin extends Plugin {
       },
     });
     this.addCommand({
+      id: "screenplay-export-clean-fountain",
+      name: "Screenplay: Export to clean Fountain",
+      checkCallback: (checking) => {
+        const view = this.activeMarkdownView();
+        if (
+          view === null ||
+          (!this.isScreenplayFile(view.file) && !this.isProjectFile(view.file))
+        )
+          return false;
+        if (!checking) void exportFountain(this, view, true);
+        return true;
+      },
+    });
+    this.addCommand({
       id: "screenplay-export-final-draft-fdx",
       name: "Screenplay: Export to Final Draft FDX",
       checkCallback: (checking) => {
