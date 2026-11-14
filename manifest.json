@@ -1,9 +1,9 @@
 {
-  "id": "firstdraft",
-  "name": "First Draft",
+  "id": "firstdraft-arun",
+  "name": "First Draft (Arun)",
   "version": "0.13.1",
   "minAppVersion": "1.13.7",
-  "description": "Write screenplays efficiently in portable Fountain text.",
+  "description": "Personal fork of First Draft: write screenplays efficiently in portable Fountain text.",
   "author": "Christian Grobmeier",
   "isDesktopOnly": false
 }
