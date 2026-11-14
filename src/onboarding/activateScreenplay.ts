@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-import { isCharacterFrontmatter } from "../characters/catalogue";
+import {
+  characterProjectName,
+  isCharacterFrontmatter,
+} from "../characters/catalogue";
 import { isScreenplayProjectFrontmatter } from "../projects/model";
 
 export interface ActivationFile {
   extension: string;
+  basename?: string;
 }
 
 export interface ActivationContext<T extends ActivationFile> {
@@ -68,6 +72,14 @@ export async function activateScreenplay<T extends ActivationFile>(
         isScreenplayProjectFrontmatter(frontmatter)
       )
         return;
+      // Official title, used for character page names and the title page.
+      const title = characterProjectName(file.basename ?? "");
+      if (
+        title &&
+        (typeof frontmatter.title !== "string" || !frontmatter.title.trim())
+      ) {
+        frontmatter.title = title;
+      }
       if (frontmatter.screenplay === true) {
         result = "already-active";
         return;

@@ -88,12 +88,15 @@ export function characterTitle(cue: string): string {
 }
 
 /**
- * Project name used in character page names and headings: the project or
- * screenplay note's name without a trailing " (project)".
+ * Project name used in character page names and headings, from the
+ * screenplay's `title` property or, failing that, its note name without a
+ * trailing " (project)", " fountain pages", " pages", " script", " draft"
+ * or " screenplay" ("TIGHTER fountain pages" -> "TIGHTER").
  */
-export function characterProjectName(ownerBasename: string): string {
-  return ownerBasename
+export function characterProjectName(titleOrBasename: string): string {
+  return titleOrBasename
     .replace(/\s*\(project\)\s*$/iu, "")
+    .replace(/\s+(?:fountain\s+)?(?:pages|script|draft|screenplay)\s*$/iu, "")
     .replace(UNSAFE_FILENAME_CHARACTERS, " ")
     .replace(/\s+/gu, " ")
     .trim();

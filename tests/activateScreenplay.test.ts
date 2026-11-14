@@ -76,6 +76,15 @@ describe("one-click screenplay activation", () => {
     expect(await activateScreenplay(f.context, f.file)).toBe("already-active");
   });
 
+  it("fills in a missing title from the note name", async () => {
+    const f = fixture();
+    delete f.frontmatter.title;
+    const file = { extension: "md", basename: "TIGHTER fountain pages" };
+    const context = { ...f.context, activeFile: () => file };
+    expect(await activateScreenplay(context, file)).toBe("activated");
+    expect(f.frontmatter.title).toBe("TIGHTER");
+  });
+
   it("does not write when the setting is disabled", async () => {
     const f = fixture();
     f.disable();

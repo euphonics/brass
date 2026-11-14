@@ -65,6 +65,9 @@ describe("character catalogue", () => {
   it("names and heads character pages after their project", () => {
     expect(characterProjectName("TIGHTER (project)")).toBe("TIGHTER");
     expect(characterProjectName("TIGHTER")).toBe("TIGHTER");
+    expect(characterProjectName("TIGHTER fountain pages")).toBe("TIGHTER");
+    expect(characterProjectName("ARACHNID script")).toBe("ARACHNID");
+    expect(characterProjectName("Pages of Fire")).toBe("Pages of Fire");
     expect(characterFilename("JEN", "TIGHTER")).toBe(
       "Jen (Character in TIGHTER)",
     );

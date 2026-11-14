@@ -172,6 +172,58 @@ export function resolveCharacterTemplate(
   );
 }
 
+/**
+ * The screenplay's official title: its `title` property, else a name guessed
+ * from the note name, which is then saved as `title` so it can be edited.
+ */
+export async function screenplayProjectName(
+  app: App,
+  owner: TFile,
+): Promise<string> {
+  const title: unknown =
+    app.metadataCache.getFileCache(owner)?.frontmatter?.title;
+  if (typeof title === "string" && title.trim()) {
+    return characterProjectName(title);
+  }
+  const guessed = characterProjectName(owner.basename);
+  if (owner.extension === "md" && guessed) {
+    await app.fileManager.processFrontMatter(
+      owner,
+      (frontmatter: Record<string, unknown>) => {
+        if (typeof frontmatter.title !== "string" || !frontmatter.title.trim())
+          frontmatter.title = guessed;
+      },
+    );
+  }
+  return guessed;
+}
+
+/** Add the properties First Draft uses to recognise a character page. */
+async function markAsCharacterPage(
+  app: App,
+  file: TFile,
+  cue: string,
+  owner: TFile,
+): Promise<void> {
+  const link = `[[${app.metadataCache.fileToLinktext(owner, file.path, owner.extension === "md")}]]`;
+  await app.fileManager.processFrontMatter(
+    file,
+    (frontmatter: Record<string, unknown>) => {
+      frontmatter.firstdraft = "character";
+      if (typeof frontmatter.character !== "string") {
+        frontmatter.character = normalizeCharacterName(cue);
+      }
+      if (!Array.isArray(frontmatter.aliases)) frontmatter.aliases = [];
+      const screenplays = Array.isArray(frontmatter.screenplays)
+        ? (frontmatter.screenplays as unknown[])
+        : [];
+      if (!screenplays.includes(link)) screenplays.push(link);
+      frontmatter.screenplays = screenplays;
+      if (!Array.isArray(frontmatter.related)) frontmatter.related = [];
+    },
+  );
+}
+
 export async function ensureCharacterPage(
   app: App,
   folder: string,
@@ -187,8 +239,21 @@ export async function ensureCharacterPage(
   if (matches.length === 1) return characterPageFile(app, matches[0]);
   if (matches.length > 1) return null;
 
+  const projectName = await screenplayProjectName(app, owner);
+
+  // A page with the expected name may already exist without First Draft's
+  // properties (written by hand, or moved). Adopt it instead of making
+  // "Name (Character in X) 2".
+  const existing = app.metadataCache.getFirstLinkpathDest(
+    characterFilename(cue, projectName),
+    owner.path,
+  );
+  if (existing !== null && existing.extension === "md") {
+    await markAsCharacterPage(app, existing, cue, owner);
+    return existing;
+  }
+
   await ensureFolder(app, folder);
-  const projectName = characterProjectName(owner.basename);
   const path = availablePath(app, folder, cue, projectName);
   const screenplayLink = app.metadataCache.fileToLinktext(
     owner,
@@ -223,23 +288,8 @@ export async function ensureCharacterPage(
     time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
   });
   const file = await app.vault.create(path, content);
-  // First Draft recognises character pages by these properties, so make
-  // sure they exist whatever the user's template contains.
-  const link = `[[${screenplayLink}]]`;
-  await app.fileManager.processFrontMatter(
-    file,
-    (frontmatter: Record<string, unknown>) => {
-      frontmatter.firstdraft = "character";
-      frontmatter.character = normalizeCharacterName(cue);
-      if (!Array.isArray(frontmatter.aliases)) frontmatter.aliases = [];
-      const screenplays = Array.isArray(frontmatter.screenplays)
-        ? (frontmatter.screenplays as unknown[])
-        : [];
-      if (!screenplays.includes(link)) screenplays.push(link);
-      frontmatter.screenplays = screenplays;
-      if (!Array.isArray(frontmatter.related)) frontmatter.related = [];
-    },
-  );
+  // The user's template may lack the properties First Draft needs.
+  await markAsCharacterPage(app, file, cue, owner);
   return file;
 }
 
