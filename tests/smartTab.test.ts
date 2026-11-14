@@ -240,11 +240,22 @@ describe("Smart Enter", () => {
     );
   });
 
+  it("adds a blank line after a scene heading", () => {
+    for (const heading of ["INT. ROOF", "INT. ROOF - DAY", ".LATER"]) {
+      expect(getSmartEnterPlan(heading, heading.length)).toMatchObject({
+        kind: "scene-heading",
+        insert: "\n\n",
+        cursor: heading.length + 2,
+        openCompletion: false,
+      });
+    }
+    expect(getSmartEnterPlan("INT. ROOF - DAY", 4)).toBeNull();
+  });
+
   it("keeps the normal Enter elsewhere", () => {
     expect(getSmartEnterPlan("BLAKE", 5)).toBeNull();
     expect(getSmartEnterPlan("BLAKE\nHello.", 9)).toBeNull();
     expect(getSmartEnterPlan("BLAKE\n(quietly)", 15)).toBeNull();
     expect(getSmartEnterPlan("She runs.", 9)).toBeNull();
-    expect(getSmartEnterPlan("INT. ROOF", 9)).toBeNull();
   });
 });

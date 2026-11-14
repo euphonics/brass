@@ -235,7 +235,8 @@ export function getSmartTabPlan(
 /**
  * Smart Enter: at the end of a transition, the same as Smart Tab (new
  * slugline); at the end of a dialogue line, a blank line and the character
- * list for the next speaker. Anything else keeps the normal Enter.
+ * list for the next speaker; at the end of a scene heading, a blank line
+ * for the action. Anything else keeps the normal Enter.
  */
 export function getSmartEnterPlan(
   source: string,
@@ -244,13 +245,15 @@ export function getSmartEnterPlan(
 ): SmartTabPlan | null {
   const plan = getSmartTabPlan(source, cursorOffset, knownTimes);
   if (plan?.kind === "transition") return plan;
-  if (plan?.kind !== "dialogue") return null;
+  if (plan?.kind !== "dialogue" && plan?.kind !== "scene-heading") {
+    return null;
+  }
   return {
-    kind: "dialogue",
+    kind: plan.kind,
     at: plan.at,
     insert: "\n\n",
     cursor: plan.at + 2,
-    openCompletion: true,
+    openCompletion: plan.kind === "dialogue",
   };
 }
 
