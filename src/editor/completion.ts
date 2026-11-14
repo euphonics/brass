@@ -31,7 +31,11 @@ import type FirstDraftPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
 import { buildScreenplayIndex } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
-import { getSmartTabPlan, isForcedTransition } from "./smartTab";
+import {
+  getSmartTabPlan,
+  isForcedTransition,
+  type SmartTabPlan,
+} from "./smartTab";
 import {
   getScreenplayCompletionPlan,
   type CompletionCandidate,
@@ -98,14 +102,12 @@ export function createScreenplayCompletionExtension(
 
   // Tab accepts an open suggestion; otherwise Smart Tab may insert the next
   // Fountain element. Returning false keeps Obsidian's normal Tab.
-  const tab = (view: EditorView): boolean => {
-    if (completionStatus(view.state) === "active")
-      return acceptCompletion(view);
-    if (!plugin.settings.smartTabEnabled) return false;
+  const smartPlan = (view: EditorView): SmartTabPlan | null => {
+    if (!plugin.settings.smartTabEnabled) return null;
     const file = view.state.field(editorInfoField, false)?.file ?? null;
-    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    if (file === null || !plugin.isScreenplayFile(file)) return null;
     const { selection } = view.state;
-    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    if (selection.ranges.length > 1 || !selection.main.empty) return null;
 
     const source = view.state.doc.toString();
     const knownTimes = [
@@ -114,8 +116,25 @@ export function createScreenplayCompletionExtension(
         (usage) => usage.value,
       ),
     ];
-    const plan = getSmartTabPlan(source, selection.main.head, knownTimes);
-    if (plan === null) return false;
+    return getSmartTabPlan(source, selection.main.head, knownTimes);
+  };
+
+  const tab = (view: EditorView): boolean => {
+    if (completionStatus(view.state) === "active")
+      return acceptCompletion(view);
+    const plan = smartPlan(view);
+    return plan !== null && applySmartPlan(view, plan);
+  };
+
+  // Enter at the end of a transition behaves like Tab: new slugline. An open
+  // suggestion menu keeps Enter for accepting.
+  const enter = (view: EditorView): boolean => {
+    if (completionStatus(view.state) === "active") return false;
+    const plan = smartPlan(view);
+    return plan?.kind === "transition" && applySmartPlan(view, plan);
+  };
+
+  const applySmartPlan = (view: EditorView, plan: SmartTabPlan): boolean => {
     if (plan.insert) {
       view.dispatch({
         changes: {
@@ -158,6 +177,11 @@ export function createScreenplayCompletionExtension(
       maxRenderedOptions: 20,
     }),
     EditorState.languageData.of(() => [{ autocomplete: source }]),
-    Prec.highest(keymap.of([{ key: "Tab", run: tab }])),
+    Prec.highest(
+      keymap.of([
+        { key: "Tab", run: tab },
+        { key: "Enter", run: enter },
+      ]),
+    ),
   ];
 }
