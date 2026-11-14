@@ -68,6 +68,19 @@ export function parseSceneHeadingParts(text: string): SceneHeadingParts | null {
   };
 }
 
+// Forced scene headings without a scene type, e.g. ".BEDROOM - NIGHT".
+// Kept separate from parseSceneHeadingParts so scene editing keeps its INT./EXT. contract.
+function forcedSceneHeadingParts(text: string): SceneHeadingParts | null {
+  const withoutNumber = text.trim().replace(SCENE_NUMBER, "");
+  if (!/^\.[\p{L}\p{N}]/u.test(withoutNumber)) return null;
+  const remainder = withoutNumber.slice(1).trim();
+  const parts = remainder.split(/\s+-\s+/u);
+  if (parts.length < 2)
+    return { type: "", location: remainder, timeOfDay: null };
+  const timeOfDay = parts.pop()?.trim() ?? null;
+  return { type: "", location: parts.join(" - ").trim(), timeOfDay };
+}
+
 export function buildScreenplayIndex(
   document: ScreenplayDocument,
 ): ScreenplayIndex {
@@ -82,7 +95,9 @@ export function buildScreenplayIndex(
       addUsage(characters, element.text, element.line);
     }
     if (element.type === "scene-heading") {
-      const parts = parseSceneHeadingParts(element.text);
+      const parts =
+        parseSceneHeadingParts(element.text) ??
+        forcedSceneHeadingParts(element.text);
       if (!parts) continue;
       addUsage(locations, parts.location, element.line);
       if (parts.timeOfDay) {

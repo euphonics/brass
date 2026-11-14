@@ -123,4 +123,59 @@ describe("screenplay completion engine", () => {
       "MILLER",
     );
   });
+
+  it("lists known locations after a forced scene heading dot", () => {
+    const source = `${screenplay}
+.ROOFTOP - NIGHT
+
+JANE
+Up here.
+
+.`;
+    const plan = getScreenplayCompletionPlan(
+      source,
+      source.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+    );
+
+    expect(plan?.kind).toBe("scene-location");
+    expect(plan?.from).toBe(source.length);
+    const labels = plan?.candidates.map((candidate) => candidate.label);
+    expect(labels).toContain("MILITARY BASE - WARD");
+    expect(labels).toContain("ROOFTOP");
+  });
+
+  it("filters forced-heading locations and then offers times", () => {
+    const filtered = `${screenplay}
+.MILITARY BASE - W`;
+    const locationPlan = getScreenplayCompletionPlan(
+      filtered,
+      filtered.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+    );
+    expect(locationPlan?.candidates[0]?.applyText).toBe(
+      "MILITARY BASE - WARD - ",
+    );
+
+    const timed = `${screenplay}
+.MILITARY BASE - WARD - `;
+    const timePlan = getScreenplayCompletionPlan(
+      timed,
+      timed.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+    );
+    expect(timePlan?.kind).toBe("scene-time");
+  });
+
+  it("does not treat a leading ellipsis as a forced heading", () => {
+    const source = `${screenplay}
+..`;
+    expect(
+      getScreenplayCompletionPlan(
+        source,
+        source.length,
+        DEFAULT_COMPLETION_PREFERENCES,
+      ),
+    ).toBeNull();
+  });
 });

@@ -50,6 +50,8 @@ export interface CompletionPreferences {
 }
 
 const SCENE_LINE = new RegExp(`^(${SCENE_TYPE_SOURCE})\\s+(.+)$`, "iu");
+// Fountain forced scene heading: a single leading "." (not "..", which is an ellipsis).
+const FORCED_SCENE_LINE = /^\.(?![.\s])(.*)$/u;
 const POSSIBLE_CHARACTER = /^[\p{Lu}\p{N} ._'’-]+$/u;
 
 function lineContext(
@@ -112,11 +114,27 @@ function scenePlan(
   index: ReturnType<typeof buildScreenplayIndex>,
   preferences: CompletionPreferences,
 ): ScreenplayCompletionPlan | null {
+  let value: string;
+  let valueFrom: number;
   const match = SCENE_LINE.exec(before);
-  if (!match) return null;
-  const sceneType = match[1] ?? "";
-  const value = match[2] ?? "";
-  const valueFrom = lineFrom + sceneType.length + 1;
+  if (match) {
+    const sceneType = match[1] ?? "";
+    value = match[2] ?? "";
+    valueFrom = lineFrom + sceneType.length + 1;
+  } else {
+    const forced = FORCED_SCENE_LINE.exec(before);
+    if (!forced) return null;
+    const forcedBody = forced[1] ?? "";
+    // ".INT. KITCHEN" is a forced heading that still carries a scene type.
+    const typed = SCENE_LINE.exec(forcedBody);
+    if (typed) {
+      value = typed[2] ?? "";
+      valueFrom = lineFrom + 1 + (typed[1] ?? "").length + 1;
+    } else {
+      value = forcedBody;
+      valueFrom = lineFrom + 1;
+    }
+  }
   const normalizedValue = value.toLocaleUpperCase();
   const canContinueLocation = index.locations.some((usage) =>
     usage.value.toLocaleUpperCase().startsWith(normalizedValue),
