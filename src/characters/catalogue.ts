@@ -94,9 +94,19 @@ export function characterTitle(cue: string): string {
  * or " screenplay" ("TIGHTER fountain pages" -> "TIGHTER").
  */
 export function characterProjectName(titleOrBasename: string): string {
-  return titleOrBasename
-    .replace(/\s*\(project\)\s*$/iu, "")
-    .replace(/\s+(?:fountain\s+)?(?:pages|script|draft|screenplay)\s*$/iu, "")
+  return sanitizeProjectName(
+    titleOrBasename
+      .replace(/\s*\(project\)\s*$/iu, "")
+      .replace(
+        /\s+(?:fountain\s+)?(?:pages|script|draft|screenplay)\s*$/iu,
+        "",
+      ),
+  );
+}
+
+/** A title made safe for file names, without guessing: "The Rough Draft" stays. */
+export function sanitizeProjectName(title: string): string {
+  return title
     .replace(UNSAFE_FILENAME_CHARACTERS, " ")
     .replace(/\s+/gu, " ")
     .trim();

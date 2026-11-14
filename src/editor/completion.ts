@@ -139,7 +139,8 @@ export function createScreenplayCompletionExtension(
     if (selection.ranges.length > 1 || !selection.main.empty) return null;
 
     const source = view.state.doc.toString();
-    const knownTimes = [
+    // Only scene headings need the script's times; parse lazily.
+    const knownTimes = () => [
       ...plugin.settings.preferredTimesOfDay,
       ...buildScreenplayIndex(parseFountain(source)).timesOfDay.map(
         (usage) => usage.value,

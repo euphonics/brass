@@ -259,3 +259,37 @@ describe("Smart Enter", () => {
     expect(getSmartEnterPlan("She runs.", 9)).toBeNull();
   });
 });
+
+describe("review fixes", () => {
+  it("keeps Enter plain in the middle of a speech", () => {
+    const source = "JEN\nI'm fine.\nReally.";
+    expect(getSmartEnterPlan(source, "JEN\nI'm fine.".length)).toBeNull();
+    expect(getSmartEnterPlan(source, source.length)?.insert).toBe("\n\n");
+  });
+
+  it("does not treat callouts as transitions", () => {
+    expect(getSmartTabPlan("> [!note] fix this", 18)).toBeNull();
+    expect(getSmartEnterPlan("> [!note] fix this", 18)).toBeNull();
+    const source = "She runs.\n\n> [!";
+    expect(
+      getScreenplayCompletionPlan(
+        source,
+        source.length,
+        DEFAULT_COMPLETION_PREFERENCES,
+      ),
+    ).toBeNull();
+  });
+
+  it("only computes known times for scene headings", () => {
+    let calls = 0;
+    const times = () => {
+      calls += 1;
+      return ["DUSK"];
+    };
+    getSmartEnterPlan("JEN\nHi.", 7, times);
+    getSmartTabPlan("She runs.", 9, times);
+    expect(calls).toBe(0);
+    expect(getSmartTabPlan("EXT. ROOF - DUSK", 16, times)?.insert).toBe("\n\n");
+    expect(calls).toBe(1);
+  });
+});

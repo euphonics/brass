@@ -144,7 +144,8 @@ function transitionPlan(
   preferences: CompletionPreferences,
 ): ScreenplayCompletionPlan | null {
   const match = /^(\s*)>\s*([^<]*)$/u.exec(before);
-  if (!match) return null;
+  // "> [!note]" is an Obsidian callout, not a transition.
+  if (!match || /^\s*\[!/u.test(match[2] ?? "")) return null;
 
   // Transitions used in the script first, then the common ones.
   const usages = new Map<string, Usage>();

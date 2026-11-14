@@ -22,6 +22,7 @@ import {
   characterPageFromFrontmatter,
   characterPageTemplate,
   characterProjectName,
+  sanitizeProjectName,
   characterTitle,
   normalizeCharacterName,
   renderCharacterTemplate,
@@ -184,7 +185,8 @@ export async function screenplayProjectName(
   const title: unknown =
     app.metadataCache.getFileCache(owner)?.frontmatter?.title;
   if (typeof title === "string" && title.trim()) {
-    return characterProjectName(title);
+    // An explicit title is used as written, only made safe for file names.
+    return sanitizeProjectName(title);
   }
   const guessed = characterProjectName(owner.basename);
   if (owner.extension === "md" && guessed) {

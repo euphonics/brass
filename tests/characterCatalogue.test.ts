@@ -19,6 +19,7 @@ import {
   characterFilename,
   characterFirstName,
   characterProjectName,
+  sanitizeProjectName,
   renderCharacterTemplate,
   characterPageFromFrontmatter,
   characterPageTemplate,
@@ -69,6 +70,9 @@ describe("character catalogue", () => {
     expect(characterProjectName("TIGHTER fountain pages")).toBe("TIGHTER");
     expect(characterProjectName("ARACHNID script")).toBe("ARACHNID");
     expect(characterProjectName("Pages of Fire")).toBe("Pages of Fire");
+    // An explicit title is kept as written.
+    expect(sanitizeProjectName("The Rough Draft")).toBe("The Rough Draft");
+    expect(sanitizeProjectName("Act: One")).toBe("Act One");
     expect(characterFilename("JEN", "TIGHTER")).toBe(
       "Jen (Character in TIGHTER)",
     );

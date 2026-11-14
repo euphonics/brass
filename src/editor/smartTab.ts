@@ -60,11 +60,21 @@ function isBlank(line: string | undefined): boolean {
   return (line ?? "").trim() === "";
 }
 
-/** Forced transition line: "> CUT TO:" (not centered "> THE END <"). */
+/**
+ * Forced transition line: "> CUT TO:". Not centered text ("> THE END <")
+ * and not an Obsidian callout ("> [!note]").
+ */
 export function isForcedTransition(text: string): boolean {
   const trimmed = text.trim();
-  return trimmed.startsWith(">") && !trimmed.endsWith("<");
+  return (
+    trimmed.startsWith(">") &&
+    !trimmed.endsWith("<") &&
+    !/^>\s*\[!/u.test(trimmed)
+  );
 }
+
+/** Known times, or a function that computes them only when needed. */
+export type KnownTimes = readonly string[] | (() => readonly string[]);
 
 export function isTransitionText(text: string): boolean {
   if (isForcedTransition(text)) return true;
@@ -121,8 +131,8 @@ export function classifySmartTabLine(
   // Empty line after a blank line: where a new cue or slugline goes.
   if (!text) return startsBlock ? "new-block" : null;
   if (isMarkdownHeading(text)) return "heading";
-  // Leave notes, boneyard, tags and synopses alone.
-  if (/^(?:\/\*|\*\/|\[\[|#|=)/u.test(text)) return null;
+  // Leave notes, boneyard, tags, synopses and callouts alone.
+  if (/^(?:\/\*|\*\/|\[\[|#|=|>\s*\[!)/u.test(text)) return null;
   if (isSceneHeading(text)) return "scene-heading";
   if (isTransitionText(text)) return "transition";
   if (isInDialogueBlock(lines, index)) {
@@ -144,7 +154,7 @@ function hasTimeOfDay(heading: string, knownTimes: readonly string[]): boolean {
 export function getSmartTabPlan(
   source: string,
   cursorOffset: number,
-  knownTimes: readonly string[] = DEFAULT_TIMES_OF_DAY,
+  knownTimes: KnownTimes = DEFAULT_TIMES_OF_DAY,
 ): SmartTabPlan | null {
   const lineStart = source.lastIndexOf("\n", Math.max(0, cursorOffset - 1)) + 1;
   const nextBreak = source.indexOf("\n", cursorOffset);
@@ -201,7 +211,9 @@ export function getSmartTabPlan(
       // New line with "()" and the cursor between the parentheses.
       return { kind, at, insert: "\n()", cursor: at + 2, openCompletion: true };
     case "scene-heading": {
-      if (hasTimeOfDay(line, knownTimes)) {
+      const times =
+        typeof knownTimes === "function" ? knownTimes() : knownTimes;
+      if (hasTimeOfDay(line, times)) {
         return {
           kind,
           at,
@@ -241,12 +253,25 @@ export function getSmartTabPlan(
 export function getSmartEnterPlan(
   source: string,
   cursorOffset: number,
-  knownTimes: readonly string[] = DEFAULT_TIMES_OF_DAY,
+  knownTimes: KnownTimes = DEFAULT_TIMES_OF_DAY,
 ): SmartTabPlan | null {
   const plan = getSmartTabPlan(source, cursorOffset, knownTimes);
   if (plan?.kind === "transition") return plan;
   if (plan?.kind !== "dialogue" && plan?.kind !== "scene-heading") {
     return null;
+  }
+  // Mid-speech (more dialogue on the next line), Enter stays a plain line
+  // break so the speech isn't split.
+  if (plan.kind === "dialogue") {
+    const lineEnd = source.indexOf("\n", plan.at);
+    if (lineEnd !== -1) {
+      const nextEnd = source.indexOf("\n", lineEnd + 1);
+      const nextLine = source.slice(
+        lineEnd + 1,
+        nextEnd === -1 ? source.length : nextEnd,
+      );
+      if (nextLine.trim() !== "") return null;
+    }
   }
   return {
     kind: plan.kind,
