@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-import { applyScreenplayFont } from "../editor/screenplayFont";
+import {
+  COURIER_FONTS,
+  OTHER_FONTS,
+  installedFonts,
+  screenplayFontOptions,
+} from "../editor/screenplayFont";
 import { PluginSettingTab } from "obsidian";
 import type { App, SettingDefinitionItem } from "obsidian";
 import type FirstDraftPlugin from "../main";
@@ -43,6 +48,7 @@ export interface FirstDraftSettings {
   editorLayout: EditorLayout;
   bottomTypingMargin: number;
   screenplayFont: string;
+  screenplayFontCustom: string;
   renderFountainCodeBlocks: boolean;
   sceneTypeMinimumLetters: number;
   sceneTypeMatchCase: boolean;
@@ -156,7 +162,8 @@ export const DEFAULT_SETTINGS: FirstDraftSettings = {
   smartTabEnabled: true,
   editorLayout: "screenplay",
   bottomTypingMargin: 40,
-  screenplayFont: "",
+  screenplayFont: "Courier Prime",
+  screenplayFontCustom: "",
   renderFountainCodeBlocks: false,
   sceneTypeMinimumLetters: 2,
   sceneTypeMatchCase: false,
@@ -311,12 +318,25 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       },
       {
         name: "Screenplay font",
-        desc: 'Font for screenplay notes in the editor (both layouts) and for rendered Fountain code blocks. Use a font installed on this device; list fallbacks with commas, e.g. "Courier Prime, Courier New, monospace". Leave empty for the default: Courier Prime in the screenplay layout, your normal Obsidian font in plain Fountain text. PDF export and the page preview always use Courier.',
+        desc: "Font for screenplay notes in the editor (both layouts) and for rendered Fountain code blocks. Lists the fonts found on this device. PDF export and the page preview always use Courier.",
+        control: {
+          type: "dropdown",
+          key: "screenplayFont",
+          options: screenplayFontOptions(
+            installedFonts([...COURIER_FONTS, ...OTHER_FONTS]),
+            this.plugin.settings.screenplayFont,
+          ),
+          defaultValue: DEFAULT_SETTINGS.screenplayFont,
+        },
+      },
+      {
+        name: "Custom screenplay font",
+        desc: 'Used when Screenplay font is "Custom…". A font installed on this device; list fallbacks with commas, e.g. "Courier Prime, Courier New, monospace".',
         control: {
           type: "text",
-          key: "screenplayFont",
+          key: "screenplayFontCustom",
           placeholder: "Courier Prime",
-          defaultValue: DEFAULT_SETTINGS.screenplayFont,
+          defaultValue: DEFAULT_SETTINGS.screenplayFontCustom,
         },
       },
       {
@@ -532,10 +552,10 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       const folder = value.trim().replace(/\/+$/gu, "");
       if (!folder || folder === "/") return;
       this.plugin.settings.characterFolder = folder;
-    } else if (key === "screenplayFont") {
+    } else if (key === "screenplayFont" || key === "screenplayFontCustom") {
       if (typeof value !== "string") return;
-      this.plugin.settings.screenplayFont = value.trim();
-      applyScreenplayFont(this.plugin.settings.screenplayFont);
+      this.plugin.settings[key] = value.trim();
+      this.plugin.applyScreenplayFont();
     } else if (key === "characterTemplate") {
       if (typeof value !== "string") return;
       this.plugin.settings.characterTemplate = value.trim();

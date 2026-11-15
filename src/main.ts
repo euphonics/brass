@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { applyScreenplayFont } from "./editor/screenplayFont";
+import {
+  applyScreenplayFont,
+  screenplayFontCss,
+} from "./editor/screenplayFont";
 import { createBottomMarginExtension } from "./editor/bottomMargin";
 import { createScreenplayLayoutExtension } from "./editor/screenplayLayout";
 import { MarkdownView, Plugin, getFrontMatterInfo, parseYaml } from "obsidian";
@@ -74,7 +77,7 @@ export default class FirstDraftPlugin extends Plugin {
 
   async onload(): Promise<void> {
     await this.loadSettings();
-    applyScreenplayFont(this.settings.screenplayFont);
+    this.applyScreenplayFont();
     this.registerExtensions(["fountain"], "markdown");
     this.statusBarItem = this.addStatusBarItem();
     this.statusBarItem.addClass("firstdraft-status");
@@ -395,7 +398,7 @@ export default class FirstDraftPlugin extends Plugin {
   }
 
   onunload(): void {
-    applyScreenplayFont("");
+    applyScreenplayFont(null);
     if (this.refreshTimer !== null) window.clearTimeout(this.refreshTimer);
     this.clearProjectViewClasses();
   }
@@ -404,6 +407,16 @@ export default class FirstDraftPlugin extends Plugin {
     const stored =
       (await this.loadData()) as Partial<FirstDraftSettings> | null;
     this.settings = { ...DEFAULT_SETTINGS, ...(stored ?? {}) };
+  }
+
+  /** Apply the "Screenplay font" setting to the app window. */
+  applyScreenplayFont(): void {
+    applyScreenplayFont(
+      screenplayFontCss(
+        this.settings.screenplayFont,
+        this.settings.screenplayFontCustom,
+      ),
+    );
   }
 
   async saveSettings(): Promise<void> {

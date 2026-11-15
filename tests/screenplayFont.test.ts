@@ -15,7 +15,11 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { screenplayFontFamily } from "../src/editor/screenplayFont";
+import {
+  screenplayFontCss,
+  screenplayFontFamily,
+  screenplayFontOptions,
+} from "../src/editor/screenplayFont";
 
 describe("screenplay font", () => {
   it("quotes font names and keeps generic families", () => {
@@ -30,5 +34,35 @@ describe("screenplay font", () => {
       '"Evil body display none x"',
     );
     expect(screenplayFontFamily("A, ;, B")).toBe('"A", "B"');
+  });
+
+  it("builds the CSS for each kind of choice", () => {
+    expect(screenplayFontCss("", "x")).toBe("var(--font-text)");
+    expect(screenplayFontCss("Courier Prime", "")).toBe(
+      '"Courier Prime", var(--font-text)',
+    );
+    expect(screenplayFontCss("custom", "Menlo, monospace")).toBe(
+      '"Menlo", monospace, var(--font-text)',
+    );
+    expect(screenplayFontCss("custom", ";")).toBe("var(--font-text)");
+  });
+
+  it("lists Obsidian default, then Courier fonts, then others, then Custom", () => {
+    const options = screenplayFontOptions(
+      ["Georgia", "Courier New", "Courier Prime"],
+      "Courier Prime",
+    );
+    expect(Object.values(options)).toEqual([
+      "Obsidian default",
+      "Courier Prime",
+      "Courier New",
+      "Georgia",
+      "Custom…",
+    ]);
+    expect(Object.keys(options)[0]).toBe("");
+    // A saved font missing on this device stays selectable.
+    expect(screenplayFontOptions([], "Courier Prime")).toMatchObject({
+      "Courier Prime": "Courier Prime (not found)",
+    });
   });
 });
