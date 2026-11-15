@@ -40,6 +40,7 @@ export interface FirstDraftSettings {
   autocompleteEnabled: boolean;
   smartTabEnabled: boolean;
   editorLayout: EditorLayout;
+  renderFountainCodeBlocks: boolean;
   sceneTypeMinimumLetters: number;
   sceneTypeMatchCase: boolean;
   recentItemsWeighting: number;
@@ -151,6 +152,7 @@ export const DEFAULT_SETTINGS: FirstDraftSettings = {
   autocompleteEnabled: true,
   smartTabEnabled: true,
   editorLayout: "screenplay",
+  renderFountainCodeBlocks: false,
   sceneTypeMinimumLetters: 2,
   sceneTypeMatchCase: false,
   recentItemsWeighting: 0.65,
@@ -300,6 +302,15 @@ export class FirstDraftSettingTab extends PluginSettingTab {
             plain: "Plain Fountain text",
           },
           defaultValue: DEFAULT_SETTINGS.editorLayout,
+        },
+      },
+      {
+        name: "Render Fountain code blocks",
+        desc: "Display ```fountain code blocks with screenplay formatting (indented characters, dialogue, transitions) in all notes, not only in screenplay-mode files. When off, Fountain code blocks display as plain code. Re-open affected notes after changing.",
+        control: {
+          type: "toggle",
+          key: "renderFountainCodeBlocks",
+          defaultValue: DEFAULT_SETTINGS.renderFountainCodeBlocks,
         },
       },
       {
@@ -541,6 +552,7 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       case "activateFrontmatter":
       case "autocompleteEnabled":
       case "smartTabEnabled":
+      case "renderFountainCodeBlocks":
       case "sceneTypeMatchCase":
       case "statusBarEnabled":
       case "showEstimatedPages":

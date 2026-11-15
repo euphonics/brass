@@ -35,6 +35,7 @@ import { openParenthetical } from "./commands/parenthetical";
 import { previewScreenplay } from "./commands/previewScreenplay";
 import { openTransition } from "./commands/transition";
 import { createScreenplayCompletionExtension } from "./editor/completion";
+import { registerFountainCodeBlockProcessor } from "./editor/fountainCodeBlock";
 import { isCharacterFrontmatter } from "./characters/catalogue";
 import {
   loadScreenplayContext,
@@ -78,6 +79,7 @@ export default class FirstDraftPlugin extends Plugin {
     this.addSettingTab(new FirstDraftSettingTab(this.app, this));
     this.registerEditorExtension(createScreenplayCompletionExtension(this));
     this.registerEditorExtension(createScreenplayLayoutExtension(this));
+    registerFountainCodeBlockProcessor(this);
     this.registerView(
       FIRST_DRAFT_PALETTE_VIEW_TYPE,
       (leaf) => new FirstDraftPaletteView(leaf, this),
