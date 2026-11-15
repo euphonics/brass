@@ -15,7 +15,9 @@
  */
 
 import { StateEffect, StateField } from "@codemirror/state";
+import { isSceneHeading } from "../screenplay/parser";
 import type { LayoutLineKind } from "./layoutClassifier";
+import { isForcedTransition } from "./smartTab";
 
 /** The cursor's line, laid out as a chosen element. */
 export interface LineKindOverride {
@@ -45,8 +47,17 @@ export const lineKindField = StateField.define<LineKindOverride | null>({
     }
     if (next === null) return null;
     const { doc, selection } = tr.state;
-    return doc.lineAt(selection.main.head).from === doc.lineAt(next.from).from
-      ? next
-      : null;
+    const line = doc.lineAt(next.from);
+    if (doc.lineAt(selection.main.head).from !== line.from) return null;
+    // Typing a slugline or transition on the line overrides the choice.
+    const text = line.text.trim();
+    if (
+      next.kind !== "scene-heading" &&
+      next.kind !== "transition" &&
+      (isSceneHeading(text) || isForcedTransition(text))
+    ) {
+      return null;
+    }
+    return next;
   },
 });
