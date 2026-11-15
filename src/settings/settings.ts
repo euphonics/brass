@@ -328,8 +328,43 @@ export class FirstDraftSettingTab extends PluginSettingTab {
           },
         ],
       },
+      {
+        type: "group",
+        heading: "Hotkeys",
+        items: [
+          {
+            name: "Set hotkeys",
+            desc: 'Open Settings > Hotkeys showing only this plugin\'s commands, e.g. "Set line 1: Scene heading".',
+            aliases: ["keyboard", "shortcut", "keys"],
+            action: () => this.openPluginHotkeys(),
+          },
+        ],
+      },
       ...groupSettings(this.flatDefinitions()),
     ];
+  }
+
+  /** Open Settings > Hotkeys filtered to this plugin's commands. */
+  private openPluginHotkeys(): void {
+    const setting = (
+      this.app as unknown as {
+        setting?: {
+          openTabById(id: string): unknown;
+        };
+      }
+    ).setting;
+    const tab = setting?.openTabById("hotkeys") as
+      | {
+          searchComponent?: {
+            setValue(value: string): void;
+            inputEl?: HTMLInputElement;
+          };
+        }
+      | undefined;
+    const search = tab?.searchComponent;
+    if (!search) return;
+    search.setValue(this.plugin.manifest.name);
+    search.inputEl?.dispatchEvent(new Event("input"));
   }
 
   /** Current text in the settings search box. */

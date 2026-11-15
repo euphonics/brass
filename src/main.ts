@@ -41,7 +41,6 @@ import { activateScreenplayNote } from "./commands/activateScreenplay";
 import { openNewScene } from "./commands/newScene";
 import { openParenthetical } from "./commands/parenthetical";
 import { previewScreenplay } from "./commands/previewScreenplay";
-import { openTransition } from "./commands/transition";
 import {
   createScreenplayCompletionExtension,
   forceElement,
@@ -159,12 +158,14 @@ export default class FirstDraftPlugin extends Plugin {
     });
 
     const forceCommands: [ForcedElement, string, string][] = [
-      ["scene-heading", "set-line-scene-heading", "Set line to scene heading"],
-      ["action", "set-line-action", "Set line to action"],
-      ["character", "set-line-character", "Set line to character"],
-      ["parenthetical", "set-line-parenthetical", "Set line to parenthetical"],
-      ["transition", "set-line-transition", "Set line to transition"],
-      ["centered", "set-line-centered", "Set line to centered text"],
+      // Numbered so Settings > Hotkeys lists them in this order. The ids
+      // stay the same, so assigned hotkeys keep working.
+      ["scene-heading", "set-line-scene-heading", "Set line 1: Scene heading"],
+      ["action", "set-line-action", "Set line 2: Action"],
+      ["character", "set-line-character", "Set line 3: Character"],
+      ["parenthetical", "set-line-parenthetical", "Set line 4: Parenthetical"],
+      ["transition", "set-line-transition", "Set line 5: Transition"],
+      ["centered", "set-line-centered", "Set line 6: Centered text"],
     ];
     for (const [element, id, name] of forceCommands) {
       this.addCommand({
@@ -254,15 +255,6 @@ export default class FirstDraftPlugin extends Plugin {
       editorCheckCallback: (checking, editor, context) => {
         if (!this.isScreenplayFile(context.file)) return false;
         if (!checking) openParenthetical(this, editor);
-        return true;
-      },
-    });
-    this.addCommand({
-      id: "screenplay-transition",
-      name: "Screenplay: Transition",
-      editorCheckCallback: (checking, editor, context) => {
-        if (!this.isScreenplayFile(context.file)) return false;
-        if (!checking) openTransition(this, editor);
         return true;
       },
     });
