@@ -157,7 +157,7 @@ export function unwrapWikilinks(text: string): string {
 }
 
 /** Marks where something was removed, so the spacing can be fixed after. */
-const GAP = "\u0000";
+const GAP = "\uE000";
 
 /**
  * Close the gaps left by removed elements: one space between words, none
@@ -167,7 +167,7 @@ const GAP = "\u0000";
  */
 export function closeGaps(text: string): string {
   return text.replace(
-    /([ \t]*)\u0000+([ \t]*)/gu,
+    /([ \t]*)\uE000+([ \t]*)/gu,
     (match: string, before: string, after: string, offset: number) => {
       const previous = text.slice(0, offset);
       const next = text.slice(offset + match.length);
