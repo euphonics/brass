@@ -83,7 +83,7 @@ describe("Smart Tab", () => {
       " (FLASHBACK)",
     ]);
     // Typing "(" narrows it.
-    expect(labels("EXT. HIGHWAY - DAY (dr", false)).toEqual([
+    expect(labels("EXT. HIGHWAY - DAY (dre", false)).toEqual([
       ["DREAM", "(DREAM)"],
     ]);
     // Modifiers used in the script are offered too.

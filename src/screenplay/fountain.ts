@@ -41,6 +41,7 @@ export const DEFAULT_SLUG_MODIFIERS = [
   "PRESENT",
   "DREAM",
   "REALITY",
+  "DRIVING",
 ];
 
 /**
