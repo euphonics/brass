@@ -40,6 +40,7 @@ export interface FirstDraftSettings {
   autocompleteEnabled: boolean;
   smartTabEnabled: boolean;
   editorLayout: EditorLayout;
+  bottomTypingMargin: number;
   renderFountainCodeBlocks: boolean;
   sceneTypeMinimumLetters: number;
   sceneTypeMatchCase: boolean;
@@ -152,6 +153,7 @@ export const DEFAULT_SETTINGS: FirstDraftSettings = {
   autocompleteEnabled: true,
   smartTabEnabled: true,
   editorLayout: "screenplay",
+  bottomTypingMargin: 40,
   renderFountainCodeBlocks: false,
   sceneTypeMinimumLetters: 2,
   sceneTypeMatchCase: false,
@@ -302,6 +304,19 @@ export class FirstDraftSettingTab extends PluginSettingTab {
             plain: "Plain Fountain text",
           },
           defaultValue: DEFAULT_SETTINGS.editorLayout,
+        },
+      },
+      {
+        name: "Bottom typing margin",
+        desc: "Keep the line you are typing this many pixels above the bottom of the editor in screenplay notes, so the status bar never covers it. 0 turns it off.",
+        control: {
+          type: "slider",
+          key: "bottomTypingMargin",
+          min: 0,
+          max: 200,
+          step: 10,
+          defaultValue: DEFAULT_SETTINGS.bottomTypingMargin,
+          displayFormat: (value) => `${value} px`,
         },
       },
       {
@@ -573,6 +588,12 @@ export class FirstDraftSettingTab extends PluginSettingTab {
         break;
       case "sceneTypeMinimumLetters":
         this.plugin.settings[key] = Math.max(1, Math.round(value));
+        break;
+      case "bottomTypingMargin":
+        this.plugin.settings[key] = Math.min(
+          200,
+          Math.max(0, Math.round(value)),
+        );
     }
   }
 }

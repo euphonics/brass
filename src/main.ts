@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { createBottomMarginExtension } from "./editor/bottomMargin";
 import { createScreenplayLayoutExtension } from "./editor/screenplayLayout";
 import { MarkdownView, Plugin, getFrontMatterInfo, parseYaml } from "obsidian";
 import type { TFile } from "obsidian";
@@ -79,6 +80,7 @@ export default class FirstDraftPlugin extends Plugin {
     this.addSettingTab(new FirstDraftSettingTab(this.app, this));
     this.registerEditorExtension(createScreenplayCompletionExtension(this));
     this.registerEditorExtension(createScreenplayLayoutExtension(this));
+    this.registerEditorExtension(createBottomMarginExtension(this));
     registerFountainCodeBlockProcessor(this);
     this.registerView(
       FIRST_DRAFT_PALETTE_VIEW_TYPE,
