@@ -422,6 +422,7 @@
   .cm-editor.firstdraft-screenplay-layout
   .cm-line.firstdraft-sp-centered {
   text-align: center;
+  font-weight: var(--font-bold);
 }
 
 .markdown-source-view.mod-cm6
@@ -487,6 +488,7 @@
 
 .firstdraft-fountain-codeblock .firstdraft-sp-centered {
   text-align: center;
+  font-weight: var(--font-bold);
 }
 
 .firstdraft-fountain-codeblock .firstdraft-sp-lyric {
@@ -518,4 +520,14 @@
   .cm-editor.firstdraft-screenplay-editor
   .cm-scroller {
   font-family: var(--firstdraft-screenplay-font);
+}
+
+/* "> THE END <" and "> CUT TO:" are Fountain, not quotes: no quote bar. */
+.markdown-source-view.mod-cm6
+  .cm-editor.firstdraft-screenplay-layout
+  .cm-line.HyperMD-quote:is(
+    .firstdraft-sp-centered,
+    .firstdraft-sp-transition
+  )::before {
+  display: none;
 }

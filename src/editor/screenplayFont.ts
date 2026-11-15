@@ -107,7 +107,7 @@ export function screenplayFontCss(font: string, custom: string): string {
 
 /** Fonts installed on this device, out of `candidates`, in the same order. */
 export function installedFonts(candidates: readonly string[]): string[] {
-  const context = activeDocument.createElement("canvas").getContext("2d");
+  const context = createEl("canvas").getContext("2d");
   if (!context) return [...candidates];
   const sample = "mmmmmmmmmmlli WW 0123456789";
   const width = (family: string): number => {

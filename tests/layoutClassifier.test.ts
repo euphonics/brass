@@ -15,7 +15,10 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { classifyLayoutLines } from "../src/editor/layoutClassifier";
+import {
+  centeredMarkers,
+  classifyLayoutLines,
+} from "../src/editor/layoutClassifier";
 
 const classify = (text: string, cursorLine?: number) =>
   classifyLayoutLines(text.split("\n"), cursorLine);
@@ -96,5 +99,29 @@ describe("editor screenplay layout", () => {
     expect(
       classify("#Character in TIGHTER\n\n> [!note] x\n\n%%\nhidden\n%%"),
     ).toEqual([null, null, null, null, "note", "note", "note"]);
+  });
+
+  it("centres the next cue and the dialogue line while they are typed", () => {
+    // After a speech, the empty line where the next cue goes.
+    expect(classify("BLAKE\nYou sure?\n\n", 3)[3]).toBe("character");
+    // Not after action, and not when the cursor is elsewhere.
+    expect(classify("She runs.\n\n", 2)[2]).toBeNull();
+    expect(classify("BLAKE\nYou sure?\n\n")[3]).toBeNull();
+    // A cue just picked, cursor on the empty line under it.
+    const picked = classify("BLAKE\nYou sure?\n\nJEN\n", 4);
+    expect(picked[3]).toBe("character");
+    expect(picked[4]).toBe("dialogue");
+  });
+
+  it("finds the markers to hide on centred text", () => {
+    expect(centeredMarkers("> TIGHTER <")).toEqual([
+      [0, 2],
+      [9, 11],
+    ]);
+    expect(centeredMarkers(">THE END<")).toEqual([
+      [0, 1],
+      [8, 9],
+    ]);
+    expect(centeredMarkers("TIGHTER")).toBeNull();
   });
 });

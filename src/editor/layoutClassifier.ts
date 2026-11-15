@@ -80,6 +80,20 @@ export function classifyLayoutLines(
     }
 
     if (text === "") {
+      // The empty line being typed on: right under a cue it is the dialogue
+      // line; after a speech and a blank line it is where the next cue goes.
+      // Placing the cursor there keeps the suggestion list in that column.
+      if (index === cursorLine) {
+        const previous = kinds[index - 1];
+        const beforeBlank = kinds[index - 2];
+        if (previous === "character") kinds[index] = "dialogue";
+        else if (
+          isBlank(lines[index - 1]) &&
+          (beforeBlank === "dialogue" || beforeBlank === "parenthetical")
+        ) {
+          kinds[index] = "character";
+        }
+      }
       inDialogue = false;
       continue;
     }
@@ -130,7 +144,11 @@ export function classifyLayoutLines(
     if (
       startsBlock &&
       looksLikeCharacterCue(text) &&
-      (!isBlank(lines[index + 1]) || index === cursorLine)
+      // A cue just picked, with the cursor on it or on the empty line below,
+      // counts as a cue before its dialogue is typed.
+      (!isBlank(lines[index + 1]) ||
+        index === cursorLine ||
+        index + 1 === cursorLine)
     ) {
       kinds[index] = "character";
       inDialogue = true;
@@ -139,4 +157,27 @@ export function classifyLayoutLines(
     kinds[index] = "action";
   }
   return kinds;
+}
+
+/**
+ * The "> " and " <" around centred text ("> THE END <") as [from, to]
+ * offsets in the line, or null when the line is not centred text.
+ */
+export function centeredMarkers(
+  text: string,
+): [[number, number], [number, number]] | null {
+  const match = /^(\s*>\s*)\S.*?(\s*<\s*)$/u.exec(text);
+  if (!match) return null;
+  const open = match[1] ?? "";
+  const close = match[2] ?? "";
+  return [
+    [0, open.length],
+    [text.length - close.length, text.length],
+  ];
+}
+
+/** Offset of the "." that forces a scene heading, or -1. */
+export function forcedHeadingDot(text: string): number {
+  const match = /^\s*\.(?=[\p{L}\p{N}])/u.exec(text);
+  return match ? match[0].length - 1 : -1;
 }

@@ -24,7 +24,12 @@ import {
 } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
 import type FirstDraftPlugin from "../main";
-import { classifyLayoutLines, type LayoutLineKind } from "./layoutClassifier";
+import {
+  centeredMarkers,
+  classifyLayoutLines,
+  forcedHeadingDot,
+  type LayoutLineKind,
+} from "./layoutClassifier";
 
 /** Class on the editor root while the screenplay layout is shown. */
 export const SCREENPLAY_LAYOUT_CLASS = "firstdraft-screenplay-layout";
@@ -48,6 +53,8 @@ const LINE_DECORATIONS = new Map<LayoutLineKind, Decoration>(
     Decoration.line({ attributes: { class: `firstdraft-sp-${kind}` } }),
   ]),
 );
+
+const HIDDEN = Decoration.replace({});
 
 /**
  * Screenplay layout for the editor: indents and aligns each Fountain element
@@ -128,6 +135,26 @@ export function createScreenplayLayoutExtension(
             if (decoration && line.number > lastLine) {
               builder.add(line.from, line.from, decoration);
               lastLine = line.number;
+              // Forced slugline ".LATER": hide the "." unless the cursor is
+              // on that line, so it reads like any other scene heading.
+              const dot = forcedHeadingDot(line.text);
+              if (
+                kind === "scene-heading" &&
+                dot !== -1 &&
+                line.number - 1 !== this.cursorLine
+              ) {
+                builder.add(line.from + dot, line.from + dot + 1, HIDDEN);
+              }
+              // Centred text "> THE END <": hide both markers off the cursor line.
+              const markers =
+                kind === "centered" && line.number - 1 !== this.cursorLine
+                  ? centeredMarkers(line.text)
+                  : null;
+              if (markers) {
+                for (const [start, end] of markers) {
+                  builder.add(line.from + start, line.from + end, HIDDEN);
+                }
+              }
             }
             position = line.to + 1;
           }
