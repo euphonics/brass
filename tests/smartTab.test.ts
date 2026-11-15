@@ -340,6 +340,16 @@ describe("review fixes", () => {
     expect(getSmartEnterPlan(source, source.length)?.insert).toBe("\n\n");
   });
 
+  it("starts a new speaker when a heading follows the speech directly", () => {
+    const speech = "JEN\n(laughs)\nRenting for a while.";
+    const source = `${speech}\n### Going to Bathroom, Sees George`;
+    expect(getSmartEnterPlan(source, speech.length)).toMatchObject({
+      kind: "dialogue",
+      insert: "\n\n",
+      openCompletion: true,
+    });
+  });
+
   it("does not treat callouts as transitions", () => {
     expect(getSmartTabPlan("> [!note] fix this", 18)).toBeNull();
     expect(getSmartEnterPlan("> [!note] fix this", 18)).toBeNull();

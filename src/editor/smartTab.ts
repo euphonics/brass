@@ -345,7 +345,15 @@ export function getSmartEnterPlan(
         lineEnd + 1,
         nextEnd === -1 ? source.length : nextEnd,
       );
-      if (nextLine.trim() !== "") return null;
+      // A "# heading", scene heading or transition right below still ends
+      // the block: that line is not more of it.
+      const next = nextLine.trim();
+      const endsBlock =
+        next === "" ||
+        isMarkdownHeading(next) ||
+        isSceneHeading(next) ||
+        isForcedTransition(next);
+      if (!endsBlock) return null;
     }
   }
   const enterPlan: SmartTabPlan = {
