@@ -275,8 +275,13 @@ function headingHasTime(
   preferences: CompletionPreferences,
 ): boolean {
   const parts = heading.trim().split(/\s+-\s+/u);
-  if (parts.length < 2) return false;
-  const last = (parts[parts.length - 1] ?? "").trim().toLocaleUpperCase();
+  // ".LATER": a forced heading that is only a time.
+  const forced = parts.length === 1 && /^\.[^.\s]/u.test(parts[0] ?? "");
+  if (parts.length < 2 && !forced) return false;
+  const last = (parts[parts.length - 1] ?? "")
+    .trim()
+    .replace(/^\./u, "")
+    .toLocaleUpperCase();
   return preferredAndRecentTimes(index, preferences.preferredTimesOfDay).some(
     (usage) => usage.value.toLocaleUpperCase() === last,
   );
@@ -545,9 +550,12 @@ export function getScreenplayCompletionPlan(
   const matchCase = preferences.sceneTypeMatchCase ?? false;
   const lastContentLine = source.slice(0, from).trimEnd().split("\n").pop();
   // After a "# heading" or a transition, a slugline comes next.
+  // After a "# heading", a transition or centred text (a title), a
+  // slugline comes next.
   const afterHeading =
     isMarkdownHeading(lastContentLine ?? "") ||
-    isTransitionText((lastContentLine ?? "").trim());
+    isTransitionText((lastContentLine ?? "").trim()) ||
+    /^>.*<$/u.test((lastContentLine ?? "").trim());
   const wantsSceneTypes =
     plausiblePosition &&
     !/\s/u.test(query) &&

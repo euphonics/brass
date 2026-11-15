@@ -36,6 +36,8 @@ export type SmartTabLineKind =
   | "dialogue"
   | "parenthetical"
   | "scene-heading"
+  | "under-speech"
+  | "under-block"
   | "action";
 
 export interface SmartTabPlan {
@@ -145,8 +147,29 @@ export function classifySmartTabLine(
   const firstContentLine = frontmatterEnd(lines) + 1;
   const startsBlock = index === firstContentLine || isBlank(lines[index - 1]);
   // Empty line after a blank line: where a new cue or slugline goes.
-  if (!text) return startsBlock ? "new-block" : null;
+  if (!text) {
+    if (startsBlock) return "new-block";
+    // Right under a cue or speech: a wryly goes here. Right under anything
+    // else (action, a slugline): start a new block.
+    const above = (lines[index - 1] ?? "").trim();
+    const aboveStartsBlock =
+      index - 1 === firstContentLine || isBlank(lines[index - 2]);
+    if (
+      isInDialogueBlock(lines, index - 1) ||
+      (aboveStartsBlock && looksLikeCharacterCue(above))
+    ) {
+      return "under-speech";
+    }
+    if (/^(?:\/\*|\*\/|\[\[|#|=|>\s*\[!|[-*+]\s|\d+[.)]\s)/u.test(above)) {
+      return null;
+    }
+    return "under-block";
+  }
   if (isMarkdownHeading(text)) return "heading";
+  // Centred text ("> THE END <", a title): like a heading, a slugline next.
+  if (/^>.*<$/u.test(text)) return "heading";
+  // Markdown list items and tasks keep Obsidian's own Tab (indent).
+  if (/^(?:[-*+]|\d+[.)])\s/u.test(text)) return null;
   // Leave notes, boneyard, tags, synopses and callouts alone.
   if (/^(?:\/\*|\*\/|\[\[|#|=|>\s*\[!)/u.test(text)) return null;
   if (isSceneHeading(text)) return "scene-heading";
@@ -160,6 +183,21 @@ export function classifySmartTabLine(
 
 /** A heading is complete when its last " - " part is a known time of day. */
 function hasTimeOfDay(heading: string, knownTimes: readonly string[]): boolean {
+  // ".LATER": a forced heading that is only a time.
+  const forced = /^\.([^.\s].*)$/u.exec(heading.trim());
+  if (
+    forced &&
+    knownTimes.some(
+      (time) =>
+        time.toLocaleUpperCase() ===
+        (forced[1] ?? "")
+          .replace(/\s+#[^#]*#$/u, "")
+          .trim()
+          .toLocaleUpperCase(),
+    )
+  ) {
+    return true;
+  }
   const parts = heading.trim().split(/\s+-\s+/u);
   if (parts.length < 2) return false;
   const last = (parts[parts.length - 1] ?? "").replace(/\s+#[^#]*#$/u, "");
@@ -249,6 +287,12 @@ export function getSmartTabPlan(
       // Nothing to insert: open the character list (scene types after a
       // # heading).
       return { kind, at, insert: "", cursor: at, openCompletion: true };
+    case "under-speech":
+      // "()" with the cursor inside, for a wryly.
+      return { kind, at, insert: "()", cursor: at + 1, openCompletion: true };
+    case "under-block":
+      // The blank line a new block needs, then the character list.
+      return { kind, at, insert: "\n", cursor: at + 1, openCompletion: true };
     case "transition": {
       // Uppercase the transition, then a blank line and the scene types.
       const text = `${line.trimEnd().toLocaleUpperCase()}\n\n`;
@@ -326,6 +370,14 @@ export function getSmartEnterPlan(
   knownTimes: KnownTimes = DEFAULT_TIMES_OF_DAY,
 ): SmartTabPlan | null {
   const plan = getSmartTabPlan(source, cursorOffset, knownTimes);
+  // Lyrics ("~...") run line after line: plain Enter.
+  const lineStartForEnter =
+    source.lastIndexOf("\n", Math.max(0, cursorOffset - 1)) + 1;
+  if (
+    source.slice(lineStartForEnter, cursorOffset).trimStart().startsWith("~")
+  ) {
+    return null;
+  }
   // The mid-speech wryly split is Tab only; Enter there is a plain break.
   const lineEnd = source.indexOf("\n", cursorOffset);
   const rest = source.slice(
@@ -376,9 +428,22 @@ export function getSmartEnterPlan(
     cursor: plan.at + 2,
     openCompletion: plan.kind === "dialogue",
   };
-  return plan.kind === "scene-heading"
-    ? uppercaseHeading(source, enterPlan)
-    : enterPlan;
+  if (plan.kind === "scene-heading") {
+    // A heading left at "INT. CAR - " drops the dangling " - ".
+    const typed = source.slice(lineStartForEnter, plan.at);
+    const trimmed = typed.replace(/\s*-\s*$/u, "");
+    if (trimmed !== typed) {
+      const insert = `${trimmed.toLocaleUpperCase()}\n\n`;
+      return {
+        ...enterPlan,
+        replaceFrom: lineStartForEnter,
+        insert,
+        cursor: lineStartForEnter + insert.length,
+      };
+    }
+    return uppercaseHeading(source, enterPlan);
+  }
+  return enterPlan;
 }
 
 /** Character name from a cue line: "@jen (V.O.) ^" -> "JEN". */

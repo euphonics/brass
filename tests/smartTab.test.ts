@@ -136,9 +136,12 @@ describe("Smart Tab", () => {
     expect(start?.cursor).toBe(5);
   });
 
-  it("leaves Tab alone right under dialogue and in parentheticals", () => {
-    // Empty line straight under dialogue, with no blank line yet.
-    expect(getSmartTabPlan(`${opening}\n`, opening.length + 1)).toBeNull();
+  it("adds a wryly right under dialogue; leaves parentheticals alone", () => {
+    // Empty line straight under dialogue: a wryly goes there.
+    expect(getSmartTabPlan(`${opening}\n`, opening.length + 1)).toMatchObject({
+      kind: "under-speech",
+      insert: "()",
+    });
     // Mid-parenthetical.
     expect(
       getSmartTabPlan(`${opening}\n(beat)`, opening.length + 3),
@@ -420,5 +423,48 @@ describe("capitalize line starts", () => {
     expect(capitalizeLineStart("", "(")).toBeNull();
     expect(capitalizeLineStart("(", "b")).toBeNull();
     expect(capitalizeLineStart("", "ab")).toBeNull();
+  });
+});
+
+describe("key matrix fixes", () => {
+  const apply = (source: string, plan: ReturnType<typeof getSmartTabPlan>) =>
+    plan
+      ? source.slice(0, plan.replaceFrom ?? plan.at) +
+        plan.insert +
+        source.slice(plan.at)
+      : null;
+
+  it("centred text: Tab starts a slugline", () => {
+    const source = "> THE END <";
+    expect(apply(source, getSmartTabPlan(source, source.length))).toBe(
+      "> THE END <\n\n",
+    );
+  });
+
+  it("list items and tasks keep Obsidian's Tab", () => {
+    expect(getSmartTabPlan("- buy milk", 10)).toBeNull();
+    expect(getSmartTabPlan("- [ ] fix act two", 17)).toBeNull();
+  });
+
+  it("an empty line right under action gets its blank line first", () => {
+    const source = "She runs.\n";
+    expect(apply(source, getSmartTabPlan(source, source.length))).toBe(
+      "She runs.\n\n",
+    );
+  });
+
+  it(".LATER counts as a complete heading", () => {
+    expect(getSmartTabPlan(".LATER", 6)).toMatchObject({
+      insert: "",
+      openCompletion: true,
+    });
+  });
+
+  it("Enter drops a dangling separator and keeps lyrics plain", () => {
+    const source = "INT. CAR - ";
+    expect(apply(source, getSmartEnterPlan(source, source.length))).toBe(
+      "INT. CAR\n\n",
+    );
+    expect(getSmartEnterPlan("~la la", 6)).toBeNull();
   });
 });
