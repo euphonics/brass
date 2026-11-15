@@ -256,7 +256,22 @@ describe("Smart Enter", () => {
     expect(getSmartEnterPlan("BLAKE", 5)).toBeNull();
     expect(getSmartEnterPlan("BLAKE\nHello.", 9)).toBeNull();
     expect(getSmartEnterPlan("BLAKE\n(quietly)", 15)).toBeNull();
-    expect(getSmartEnterPlan("She runs.", 9)).toBeNull();
+  });
+
+  it("adds a blank line after action", () => {
+    expect(getSmartEnterPlan("She runs.", 9)).toMatchObject({
+      kind: "action",
+      insert: "\n\n",
+      cursor: 11,
+      openCompletion: false,
+    });
+    // Mid-line, mid-paragraph and list items keep the normal Enter.
+    expect(getSmartEnterPlan("She runs.", 4)).toBeNull();
+    expect(getSmartEnterPlan("She runs.\nFast.", 9)).toBeNull();
+    expect(getSmartEnterPlan("She runs.\n\nFast.", 9)?.insert).toBe("\n\n");
+    expect(getSmartEnterPlan("- a list item", 13)).toBeNull();
+    expect(getSmartEnterPlan("- [ ] a task", 12)).toBeNull();
+    expect(getSmartEnterPlan("1. first", 8)).toBeNull();
   });
 });
 

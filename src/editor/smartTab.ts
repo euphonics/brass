@@ -257,12 +257,23 @@ export function getSmartEnterPlan(
 ): SmartTabPlan | null {
   const plan = getSmartTabPlan(source, cursorOffset, knownTimes);
   if (plan?.kind === "transition") return plan;
-  if (plan?.kind !== "dialogue" && plan?.kind !== "scene-heading") {
+  if (
+    plan?.kind !== "dialogue" &&
+    plan?.kind !== "scene-heading" &&
+    plan?.kind !== "action"
+  ) {
     return null;
   }
-  // Mid-speech (more dialogue on the next line), Enter stays a plain line
-  // break so the speech isn't split.
-  if (plan.kind === "dialogue") {
+  // Markdown list items and tasks keep Obsidian's own Enter (list continuation).
+  if (plan.kind === "action") {
+    const lineStart = source.lastIndexOf("\n", plan.at - 1) + 1;
+    if (/^\s*(?:[-*+]|\d+[.)])\s/u.test(source.slice(lineStart, plan.at))) {
+      return null;
+    }
+  }
+  // Mid-speech or mid-paragraph (more text on the next line), Enter stays a
+  // plain line break so the block isn't split.
+  if (plan.kind === "dialogue" || plan.kind === "action") {
     const lineEnd = source.indexOf("\n", plan.at);
     if (lineEnd !== -1) {
       const nextEnd = source.indexOf("\n", lineEnd + 1);

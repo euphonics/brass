@@ -362,7 +362,7 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       },
       {
         name: "Smart Tab and Enter",
-        desc: 'At the end of a line, Tab inserts the next Fountain element: after a character or dialogue line, a new () line; after a scene heading, " - " and times of day, or a blank line once complete; after action, a blank line and the character list. Enter after dialogue starts a new speaker, Enter after a transition starts a slugline, Enter after a scene heading adds a blank line, and Shift+Enter is a plain line break.',
+        desc: 'At the end of a line, Tab inserts the next Fountain element: after a character or dialogue line, a new () line; after a scene heading, " - " and times of day, or a blank line once complete; after action, a blank line and the character list. Enter after dialogue starts a new speaker, Enter after a transition starts a slugline, Enter after a scene heading or at the end of an action paragraph adds a blank line, and Shift+Enter is a plain line break.',
         control: {
           type: "toggle",
           key: "smartTabEnabled",
