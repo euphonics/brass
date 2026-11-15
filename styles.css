@@ -545,3 +545,37 @@
 .firstdraft-settings-search-row .search-input-container {
   width: 100%;
 }
+
+/* Dual dialogue side by side (screenplay layout, cursor outside the pair). */
+/* Beats Obsidian's ".cm-content > *" block rule and theme line widths. */
+.markdown-source-view.mod-cm6
+  .cm-editor.firstdraft-screenplay-layout
+  .cm-contentContainer
+  > .cm-content
+  > .firstdraft-dual {
+  display: flex;
+  gap: 2ch;
+  width: auto;
+  max-width: none;
+  margin-inline: 0;
+  cursor: text;
+  white-space: pre-wrap;
+}
+
+.firstdraft-dual-column {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.firstdraft-dual-cue {
+  padding-inline-start: 30%;
+}
+
+.firstdraft-dual-parenthetical {
+  padding-inline-start: 12%;
+  padding-inline-end: 8%;
+}
+
+.firstdraft-dual-dialogue {
+  padding-inline-end: 4%;
+}

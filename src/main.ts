@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { createDualDialogueExtension } from "./editor/dualDialogueView";
 import { EditorView } from "@codemirror/view";
 import { estimateCurrentPage } from "./screenplay/currentPage";
 import type { ScreenplayStatistics } from "./screenplay/model";
@@ -91,6 +92,7 @@ export default class FirstDraftPlugin extends Plugin {
     this.addSettingTab(new FirstDraftSettingTab(this.app, this));
     this.registerEditorExtension(createScreenplayCompletionExtension(this));
     this.registerEditorExtension(createScreenplayLayoutExtension(this));
+    this.registerEditorExtension(createDualDialogueExtension(this));
     this.registerEditorExtension(createBottomMarginExtension(this));
     this.registerEditorExtension(
       EditorView.updateListener.of((update) => {
