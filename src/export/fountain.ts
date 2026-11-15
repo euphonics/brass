@@ -156,21 +156,45 @@ export function unwrapWikilinks(text: string): string {
   });
 }
 
+/** Marks where something was removed, so the spacing can be fixed after. */
+const GAP = "\u0000";
+
+/**
+ * Close the gaps left by removed elements: one space between words, none
+ * before punctuation or at the start/end of the text, and the line's own
+ * indentation kept. "Look ![[x]] here." -> "Look here."; "runs [^1]." ->
+ * "runs.".
+ */
+export function closeGaps(text: string): string {
+  return text.replace(
+    /([ \t]*)\u0000+([ \t]*)/gu,
+    (match: string, before: string, after: string, offset: number) => {
+      const previous = text.slice(0, offset);
+      const next = text.slice(offset + match.length);
+      if (previous.trim() === "") return before;
+      if (next === "" || /^[.,;:!?)\]}"'’”]/u.test(next)) return "";
+      if (/[([{"'‘“]$/u.test(previous)) return "";
+      return before || after ? " " : "";
+    },
+  );
+}
+
 function cleanInline(line: string, options: CleanExportOptions): string {
   let text = line;
-  if (options.removeEmbeds) text = text.replace(EMBED, "");
+  if (options.removeEmbeds) text = text.replace(EMBED, GAP);
   if (options.wikilinks === "unwrap") text = unwrapWikilinks(text);
-  if (options.wikilinks === "remove") text = text.replace(WIKILINK, "");
+  if (options.wikilinks === "remove") text = text.replace(WIKILINK, GAP);
   if (options.markdownLinks === "unwrap") {
     text = text.replace(MARKDOWN_LINK, "$1");
   }
-  if (options.markdownLinks === "remove")
-    text = text.replace(MARKDOWN_LINK, "");
-  if (options.removeFootnotes) text = text.replace(FOOTNOTE_REFERENCE, "");
-  if (options.removeBlockIds) text = text.replace(BLOCK_ID, "");
+  if (options.markdownLinks === "remove") {
+    text = text.replace(MARKDOWN_LINK, GAP);
+  }
+  if (options.removeFootnotes) text = text.replace(FOOTNOTE_REFERENCE, GAP);
+  if (options.removeBlockIds) text = text.replace(BLOCK_ID, GAP);
   if (options.removeHighlights) text = text.replace(HIGHLIGHT, "$1");
-  if (options.removeTags) text = text.replace(TAG, "$1");
-  return text;
+  if (options.removeTags) text = text.replace(TAG, `$1${GAP}`);
+  return text.includes(GAP) ? closeGaps(text) : text;
 }
 
 /**
@@ -236,7 +260,7 @@ export function cleanFountainSource(
             kept += rest;
             break;
           }
-          kept += rest.slice(0, marker);
+          kept += rest.slice(0, marker) + GAP;
           rest = rest.slice(marker + 2);
           inComment = true;
         }
@@ -264,6 +288,7 @@ export function cleanFountainSource(
     }
 
     let cleaned = cleanInline(line, options);
+    if (cleaned.includes(GAP)) cleaned = closeGaps(cleaned);
     if (cleaned !== line) {
       removed = true;
       // Don't leave trailing spaces where a tag or ID was removed.

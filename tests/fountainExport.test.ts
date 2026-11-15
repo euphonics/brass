@@ -138,7 +138,7 @@ Hello.
         "She runs. %%cut?%% Fast.",
         on({ removeComments: true }),
       ),
-    ).toBe("She runs.  Fast.");
+    ).toBe("She runs. Fast.");
     expect(
       cleanFountainSource(
         "A\n%%\nhidden\nnotes\n%%\nB",
@@ -172,7 +172,7 @@ Hello.
         "Look ![[photo.png]] here",
         on({ removeEmbeds: true }),
       ),
-    ).toBe("Look  here");
+    ).toBe("Look here");
     expect(
       cleanFountainSource("She runs #idea/later", on({ removeTags: true })),
     ).toBe("She runs");
@@ -198,7 +198,7 @@ Hello.
       "Meet Jen at the barn.",
     );
     expect(cleanFountainSource(text, options("remove", "remove"))).toBe(
-      "Meet  at .",
+      "Meet at.",
     );
   });
 
@@ -228,5 +228,25 @@ Hello.
     expect(
       normalizeCleanExportOptions({ wikilinks: "remove", codeBlocks: "bogus" }),
     ).toMatchObject({ wikilinks: "remove", codeBlocks: "remove" });
+  });
+
+  it("closes the gaps left by removed elements", () => {
+    const clean = (text: string) =>
+      cleanFountainSource(text, {
+        ...DEFAULT_CLEAN_EXPORT_OPTIONS,
+        wikilinks: "remove",
+        markdownLinks: "remove",
+        removeTags: true,
+      });
+    expect(clean("Look ![[photo.png]] here.")).toBe("Look here.");
+    expect(clean("She runs [^1].")).toBe("She runs.");
+    expect(clean("She runs %%cut%% fast")).toBe("She runs fast");
+    expect(clean("#idea She runs")).toBe("She runs");
+    expect(clean("(see [[Note]]) ok")).toBe("(see) ok");
+    expect(clean("[[Note]] opens the door")).toBe("opens the door");
+    // Indentation the line already had is kept.
+    expect(clean("    Centered [[x]] text")).toBe("    Centered text");
+    // Untouched lines keep their spacing exactly.
+    expect(clean("Two  spaces stay.")).toBe("Two  spaces stay.");
   });
 });
