@@ -53,6 +53,11 @@ const PAGE_METRICS: Record<PageSize, PageMetrics> = {
   },
 };
 
+/** Formatted lines on one page for a page size. */
+export function linesPerPage(pageSize: PageSize): number {
+  return PAGE_METRICS[pageSize].linesPerPage;
+}
+
 function roundedPageCount(value: number): number {
   if (value === 0) return 0;
   return Math.max(0.1, Math.round(value * 10) / 10);

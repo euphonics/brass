@@ -531,3 +531,17 @@
   )::before {
   display: none;
 }
+
+/* Settings search (top of the First Draft settings tab). */
+.firstdraft-hidden {
+  display: none !important;
+}
+
+.firstdraft-settings-search-row .setting-item-control {
+  flex: 1 1 auto;
+  justify-content: stretch;
+}
+
+.firstdraft-settings-search-row .search-input-container {
+  width: 100%;
+}

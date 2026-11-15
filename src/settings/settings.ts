@@ -21,7 +21,7 @@ import {
   screenplayFontOptions,
 } from "../editor/screenplayFont";
 import { PluginSettingTab } from "obsidian";
-import type { App, SettingDefinitionItem } from "obsidian";
+import type { App, SettingDefinitionItem, SettingGroupItem } from "obsidian";
 import type FirstDraftPlugin from "../main";
 import {
   DEFAULT_CLEAN_EXPORT_OPTIONS,
@@ -58,6 +58,7 @@ export interface FirstDraftSettings {
   preferredTimesOfDay: string[];
   statusBarEnabled: boolean;
   showEstimatedPages: boolean;
+  showCurrentPage: boolean;
   showEstimatedRuntime: boolean;
   showWordCount: boolean;
   showSceneCount: boolean;
@@ -173,6 +174,7 @@ export const DEFAULT_SETTINGS: FirstDraftSettings = {
   preferredTimesOfDay: DEFAULT_TIMES_OF_DAY,
   statusBarEnabled: true,
   showEstimatedPages: true,
+  showCurrentPage: true,
   showEstimatedRuntime: true,
   showWordCount: true,
   showSceneCount: true,
@@ -196,6 +198,101 @@ function isSettingKey(key: string): key is keyof FirstDraftSettings {
   return key in DEFAULT_SETTINGS;
 }
 
+/** Settings sections, in order, by control key. */
+const SETTING_GROUPS: { heading: string; keys: string[] }[] = [
+  {
+    heading: "Screenplay mode",
+    keys: ["activateFountainFiles", "activateFrontmatter"],
+  },
+  {
+    heading: "Editor",
+    keys: [
+      "editorLayout",
+      "screenplayFont",
+      "screenplayFontCustom",
+      "bottomTypingMargin",
+      "smartTabEnabled",
+      "renderFountainCodeBlocks",
+    ],
+  },
+  {
+    heading: "Autocomplete",
+    keys: [
+      "autocompleteEnabled",
+      "recentItemsWeighting",
+      "sceneTypeMinimumLetters",
+      "sceneTypeMatchCase",
+      "maximumSuggestions",
+      "preferredSceneTypes",
+      "preferredTimesOfDay",
+    ],
+  },
+  {
+    heading: "Status bar",
+    keys: [
+      "statusBarEnabled",
+      "showEstimatedPages",
+      "showCurrentPage",
+      "showEstimatedRuntime",
+      "showWordCount",
+      "showSceneCount",
+    ],
+  },
+  {
+    heading: "Pages, runtime and PDF",
+    keys: ["pageSize", "minutesPerPage", "pdfLanguage"],
+  },
+  {
+    heading: "Character pages",
+    keys: ["characterFolder", "characterTemplate"],
+  },
+];
+
+function definitionKey(item: SettingDefinitionItem): string | undefined {
+  const control = (item as { control?: { key?: string } }).control;
+  return control?.key;
+}
+
+/**
+ * Sort flat setting definitions into headed groups. Existing groups (such
+ * as Clean Fountain export) are kept as they are, and anything not listed in
+ * SETTING_GROUPS lands in an "Other" group so no setting is lost.
+ */
+export function groupSettings(
+  items: SettingDefinitionItem[],
+): SettingDefinitionItem[] {
+  const byKey = new Map<string, SettingDefinitionItem>();
+  const groups: SettingDefinitionItem[] = [];
+  const other: SettingDefinitionItem[] = [];
+  for (const item of items) {
+    const key = definitionKey(item);
+    if ("type" in item && (item.type === "group" || item.type === "list")) {
+      groups.push(item);
+    } else if (key !== undefined) {
+      byKey.set(key, item);
+    } else {
+      other.push(item);
+    }
+  }
+  const grouped = SETTING_GROUPS.map(({ heading, keys }) => ({
+    type: "group" as const,
+    heading,
+    items: keys.flatMap((key) => {
+      const item = byKey.get(key);
+      byKey.delete(key);
+      return item ? [item as SettingGroupItem] : [];
+    }),
+  })).filter((group) => group.items.length > 0);
+  const rest = [...byKey.values(), ...other] as SettingGroupItem[];
+  return [
+    ...grouped,
+    ...groups,
+    ...(rest.length > 0
+      ? [{ type: "group" as const, heading: "Other", items: rest }]
+      : []),
+  ];
+}
+
 export class FirstDraftSettingTab extends PluginSettingTab {
   constructor(
     app: App,
@@ -205,6 +302,64 @@ export class FirstDraftSettingTab extends PluginSettingTab {
   }
 
   getSettingDefinitions(): SettingDefinitionItem[] {
+    return [
+      {
+        type: "group",
+        cls: "firstdraft-settings-search",
+        items: [
+          {
+            name: "Search settings",
+            searchable: false,
+            render: (setting) => {
+              setting.settingEl.addClass("firstdraft-settings-search-row");
+              setting.infoEl.remove();
+              setting.addSearch((search) => {
+                search.setPlaceholder("Type to find a setting…");
+                search.setValue(this.query);
+                search.onChange((value) => {
+                  this.query = value;
+                  this.filterSettings();
+                });
+                search.inputEl.addClass("firstdraft-settings-search-input");
+              });
+              // Reapply the search after each re-render of the tab.
+              window.setTimeout(() => this.filterSettings(), 0);
+            },
+          },
+        ],
+      },
+      ...groupSettings(this.flatDefinitions()),
+    ];
+  }
+
+  /** Current text in the settings search box. */
+  private query = "";
+
+  /** Hide settings (and whole groups) that do not match the search text. */
+  private filterSettings(): void {
+    const words = this.query.toLocaleLowerCase().split(/\s+/u).filter(Boolean);
+    for (const group of Array.from(
+      this.containerEl.querySelectorAll<HTMLElement>(".setting-group"),
+    )) {
+      if (group.hasClass("firstdraft-settings-search")) continue;
+      let shown = 0;
+      for (const item of Array.from(
+        group.querySelectorAll<HTMLElement>(".setting-items > .setting-item"),
+      )) {
+        const heading = group.querySelector(
+          ".setting-group-heading, .setting-item-heading",
+        );
+        const text =
+          `${heading?.textContent ?? ""} ${item.textContent ?? ""}`.toLocaleLowerCase();
+        const match = words.every((word) => text.includes(word));
+        item.toggleClass("firstdraft-hidden", !match);
+        if (match) shown += 1;
+      }
+      group.toggleClass("firstdraft-hidden", shown === 0);
+    }
+  }
+
+  private flatDefinitions(): SettingDefinitionItem[] {
     const templatesFolder = coreTemplatesFolder(this.app);
     return [
       {
@@ -241,6 +396,15 @@ export class FirstDraftSettingTab extends PluginSettingTab {
           type: "toggle",
           key: "showEstimatedPages",
           defaultValue: DEFAULT_SETTINGS.showEstimatedPages,
+        },
+      },
+      {
+        name: "Show current page",
+        desc: 'Show roughly which page the cursor is on, e.g. "p. 34 of ~77". Estimated for this note, the same way as the page count.',
+        control: {
+          type: "toggle",
+          key: "showCurrentPage",
+          defaultValue: DEFAULT_SETTINGS.showCurrentPage,
         },
       },
       {
@@ -587,6 +751,7 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       key === "activateFrontmatter" ||
       key === "statusBarEnabled" ||
       key === "showEstimatedPages" ||
+      key === "showCurrentPage" ||
       key === "showEstimatedRuntime" ||
       key === "showWordCount" ||
       key === "showSceneCount" ||
@@ -610,6 +775,7 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       case "sceneTypeMatchCase":
       case "statusBarEnabled":
       case "showEstimatedPages":
+      case "showCurrentPage":
       case "showEstimatedRuntime":
       case "showWordCount":
       case "showSceneCount":

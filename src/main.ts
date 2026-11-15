@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import { EditorView } from "@codemirror/view";
+import { estimateCurrentPage } from "./screenplay/currentPage";
+import type { ScreenplayStatistics } from "./screenplay/model";
 import {
   applyScreenplayFont,
   screenplayFontCss,
@@ -86,6 +89,11 @@ export default class FirstDraftPlugin extends Plugin {
     this.registerEditorExtension(createScreenplayCompletionExtension(this));
     this.registerEditorExtension(createScreenplayLayoutExtension(this));
     this.registerEditorExtension(createBottomMarginExtension(this));
+    this.registerEditorExtension(
+      EditorView.updateListener.of((update) => {
+        if (update.selectionSet && !update.docChanged) this.onCursorMoved();
+      }),
+    );
     registerFountainCodeBlockProcessor(this);
     this.registerView(
       FIRST_DRAFT_PALETTE_VIEW_TYPE,
@@ -544,8 +552,46 @@ export default class FirstDraftPlugin extends Plugin {
       (projectForFile(this.app, file) === null && !this.isScreenplayFile(file))
     )
       return;
-    const status = formatScreenplayStatus(statistics, {
+    this.lastStatus = { file, statistics };
+    this.renderStatus(view);
+  }
+
+  /** Statistics from the last full refresh, reused when only the cursor moves. */
+  private lastStatus: {
+    file: TFile;
+    statistics: ScreenplayStatistics;
+  } | null = null;
+  private cursorTimer: number | null = null;
+
+  /** The cursor moved: update the current page without recounting. */
+  onCursorMoved(): void {
+    if (!this.settings.statusBarEnabled || !this.settings.showCurrentPage) {
+      return;
+    }
+    if (this.cursorTimer !== null) window.clearTimeout(this.cursorTimer);
+    this.cursorTimer = window.setTimeout(() => {
+      this.cursorTimer = null;
+      const view = this.activeMarkdownView();
+      if (view !== null && view.file === this.lastStatus?.file) {
+        this.renderStatus(view);
+      }
+    }, 150);
+  }
+
+  private renderStatus(view: MarkdownView): void {
+    const last = this.lastStatus;
+    if (last === null || view.file !== last.file) return;
+    const currentPage =
+      this.settings.showCurrentPage && this.isScreenplayFile(last.file)
+        ? estimateCurrentPage(
+            view.editor.getValue(),
+            view.editor.posToOffset(view.editor.getCursor()),
+            this.settings.pageSize,
+          )
+        : null;
+    const status = formatScreenplayStatus(last.statistics, {
       estimatedPages: this.settings.showEstimatedPages,
+      currentPage,
       estimatedRuntime: this.settings.showEstimatedRuntime,
       words: this.settings.showWordCount,
       scenes: this.settings.showSceneCount,

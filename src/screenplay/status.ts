@@ -18,6 +18,8 @@ import type { ScreenplayStatistics } from "./model";
 
 export interface StatusBarFields {
   estimatedPages: boolean;
+  /** Estimated page the cursor is on, when known. */
+  currentPage?: number | null;
   estimatedRuntime: boolean;
   words: boolean;
   scenes: boolean;
@@ -39,8 +41,15 @@ export function formatScreenplayStatus(
 ): string {
   const parts = ["Screenplay"];
 
-  if (fields.estimatedPages) {
-    parts.push(`~${formatEstimatedPages(statistics.estimatedPages)} pages`);
+  const total = `~${formatEstimatedPages(statistics.estimatedPages)}`;
+  if (fields.currentPage != null) {
+    parts.push(
+      fields.estimatedPages
+        ? `p. ${fields.currentPage} of ${total}`
+        : `p. ${fields.currentPage}`,
+    );
+  } else if (fields.estimatedPages) {
+    parts.push(`${total} pages`);
   }
   if (fields.estimatedRuntime) {
     parts.push(
