@@ -19,6 +19,7 @@ import type { App, SettingDefinitionItem } from "obsidian";
 import type FirstDraftPlugin from "../main";
 import {
   DEFAULT_CLEAN_EXPORT_OPTIONS,
+  normalizeCleanExportOptions,
   type CleanExportOptions,
 } from "../export/fountain";
 import { coreTemplatesFolder, isTemplateCandidate } from "../characters/vault";
@@ -56,10 +57,18 @@ export interface FirstDraftSettings {
 }
 
 /** Clean Fountain export toggles, in the order shown in settings. */
+const LINK_CHOICES = {
+  keep: "Keep as written",
+  unwrap: "Keep the text only",
+  remove: "Remove entirely",
+};
+
 const CLEAN_EXPORT_SETTINGS: {
   option: keyof CleanExportOptions;
   name: string;
   desc: string;
+  /** Dropdown choices; options without them are toggles. */
+  choices?: Record<string, string>;
 }[] = [
   {
     option: "removeTasks",
@@ -67,9 +76,10 @@ const CLEAN_EXPORT_SETTINGS: {
     desc: "- [ ] and - [x] lines.",
   },
   {
-    option: "unwrapWikilinks",
-    name: "Unwrap wikilinks",
-    desc: "[[Note|alias]] becomes alias; [[Note]] becomes Note. Note: Fountain notes use the same [[ ]] syntax and are unwrapped too.",
+    option: "wikilinks",
+    name: "Wikilinks",
+    desc: "[[Note|alias]]: keep it, keep only alias (or Note), or remove it. Fountain notes use the same [[ ]] syntax and are handled the same way.",
+    choices: LINK_CHOICES,
   },
   {
     option: "removeEmbeds",
@@ -77,9 +87,20 @@ const CLEAN_EXPORT_SETTINGS: {
     desc: "![[image.png]] and ![alt](image.png).",
   },
   {
-    option: "unwrapMarkdownLinks",
-    name: "Unwrap Markdown links",
-    desc: "[text](https://...) becomes text.",
+    option: "markdownLinks",
+    name: "Markdown links",
+    desc: "[text](https://...): keep it, keep only text, or remove it.",
+    choices: LINK_CHOICES,
+  },
+  {
+    option: "codeBlocks",
+    name: "Code blocks",
+    desc: "Fenced ``` or ~~~ blocks: keep them, keep only their content (fence lines removed), or remove them.",
+    choices: {
+      keep: "Keep as written",
+      unwrap: "Keep the content only",
+      remove: "Remove entirely",
+    },
   },
   {
     option: "removeHeadings",
@@ -360,15 +381,26 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       {
         type: "group",
         heading: "Clean Fountain export",
-        items: CLEAN_EXPORT_SETTINGS.map(({ option, name, desc }) => ({
-          name,
-          desc,
-          control: {
-            type: "toggle" as const,
-            key: `${CLEAN_EXPORT_PREFIX}${option}`,
-            defaultValue: DEFAULT_CLEAN_EXPORT_OPTIONS[option],
-          },
-        })),
+        items: CLEAN_EXPORT_SETTINGS.map(({ option, name, desc, choices }) => {
+          const key = `${CLEAN_EXPORT_PREFIX}${option}`;
+          const defaultValue = DEFAULT_CLEAN_EXPORT_OPTIONS[option];
+          return {
+            name,
+            desc,
+            control: choices
+              ? {
+                  type: "dropdown" as const,
+                  key,
+                  options: choices,
+                  defaultValue: String(defaultValue),
+                }
+              : {
+                  type: "toggle" as const,
+                  key,
+                  defaultValue: defaultValue === true,
+                },
+          };
+        }),
       },
       {
         name: "Preferred scene types",
@@ -402,8 +434,11 @@ export class FirstDraftSettingTab extends PluginSettingTab {
   getControlValue(key: string): unknown {
     if (key.startsWith(CLEAN_EXPORT_PREFIX)) {
       const option = key.slice(CLEAN_EXPORT_PREFIX.length);
-      return option in DEFAULT_CLEAN_EXPORT_OPTIONS
-        ? this.plugin.settings.cleanExport[option as keyof CleanExportOptions]
+      const options = normalizeCleanExportOptions(
+        this.plugin.settings.cleanExport as unknown as Record<string, unknown>,
+      );
+      return option in options
+        ? options[option as keyof CleanExportOptions]
         : undefined;
     }
     if (!isSettingKey(key)) return undefined;
@@ -414,15 +449,17 @@ export class FirstDraftSettingTab extends PluginSettingTab {
   async setControlValue(key: string, value: unknown): Promise<void> {
     if (key.startsWith(CLEAN_EXPORT_PREFIX)) {
       const option = key.slice(CLEAN_EXPORT_PREFIX.length);
-      if (
-        !(option in DEFAULT_CLEAN_EXPORT_OPTIONS) ||
-        typeof value !== "boolean"
-      )
-        return;
-      this.plugin.settings.cleanExport = {
-        ...this.plugin.settings.cleanExport,
+      if (!(option in DEFAULT_CLEAN_EXPORT_OPTIONS)) return;
+      const updated = normalizeCleanExportOptions({
+        ...normalizeCleanExportOptions(
+          this.plugin.settings.cleanExport as unknown as Record<
+            string,
+            unknown
+          >,
+        ),
         [option]: value,
-      };
+      });
+      this.plugin.settings.cleanExport = updated;
       await this.plugin.saveSettings();
       return;
     }

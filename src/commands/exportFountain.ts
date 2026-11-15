@@ -19,8 +19,8 @@ import type { MarkdownView } from "obsidian";
 import type FirstDraftPlugin from "../main";
 import {
   cleanFountainSource,
-  DEFAULT_CLEAN_EXPORT_OPTIONS,
   fountainExportPath,
+  normalizeCleanExportOptions,
 } from "../export/fountain";
 import { loadScreenplayContext } from "../projects/vault";
 
@@ -44,10 +44,12 @@ export async function exportFountain(
   );
   const path = fountainExportPath(context.owner.path, existingPaths);
   const content = clean
-    ? cleanFountainSource(context.source, {
-        ...DEFAULT_CLEAN_EXPORT_OPTIONS,
-        ...plugin.settings.cleanExport,
-      })
+    ? cleanFountainSource(
+        context.source,
+        normalizeCleanExportOptions(
+          plugin.settings.cleanExport as unknown as Record<string, unknown>,
+        ),
+      )
     : context.source;
 
   try {

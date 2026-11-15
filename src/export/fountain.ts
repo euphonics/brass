@@ -51,15 +51,22 @@ export function fountainExportPath(
   return candidate;
 }
 
+/** Keep links as written, keep only their text, or remove them. */
+export type LinkHandling = "keep" | "unwrap" | "remove";
+/** Keep code blocks, keep only their content (no fences), or remove them. */
+export type CodeBlockHandling = "keep" | "unwrap" | "remove";
+
 export interface CleanExportOptions {
   /** `- [ ] task` / `- [x] done` lines. */
   removeTasks: boolean;
-  /** `[[target|alias]]` -> `alias`, `[[target]]` -> `target`. */
-  unwrapWikilinks: boolean;
+  /** `[[target|alias]]`: keep, unwrap to `alias` / `target`, or remove. */
+  wikilinks: LinkHandling;
   /** `![[image.png]]` and `![alt](image.png)`. */
   removeEmbeds: boolean;
-  /** `[text](https://...)` -> `text`. */
-  unwrapMarkdownLinks: boolean;
+  /** `[text](https://...)`: keep, unwrap to `text`, or remove. */
+  markdownLinks: LinkHandling;
+  /** ```` ``` ```` / `~~~` fenced code blocks. */
+  codeBlocks: CodeBlockHandling;
   /** `# Heading` lines (also Fountain sections). */
   removeHeadings: boolean;
   /** `%% comment %%`, inline or across lines. */
@@ -78,9 +85,10 @@ export interface CleanExportOptions {
 
 export const DEFAULT_CLEAN_EXPORT_OPTIONS: CleanExportOptions = {
   removeTasks: true,
-  unwrapWikilinks: true,
+  wikilinks: "unwrap",
   removeEmbeds: true,
-  unwrapMarkdownLinks: true,
+  markdownLinks: "unwrap",
+  codeBlocks: "remove",
   removeHeadings: false,
   removeComments: true,
   removeCallouts: true,
@@ -104,6 +112,42 @@ const HIGHLIGHT = /==([^=\n]+)==/gu;
 // "#tag" or "#nested/tag" with at least one letter; not "#12#" scene numbers.
 const TAG = /(^|\s)#(?=[\p{L}\p{N}_/-]*\p{L})[\p{L}\p{N}_/-]+(?!#)/gu;
 
+const LINK_HANDLING: readonly LinkHandling[] = ["keep", "unwrap", "remove"];
+
+/**
+ * Clean export options from stored settings, filling gaps with defaults and
+ * migrating the old `unwrapWikilinks` / `unwrapMarkdownLinks` toggles.
+ */
+export function normalizeCleanExportOptions(
+  stored: Record<string, unknown> | undefined,
+): CleanExportOptions {
+  const options: CleanExportOptions = { ...DEFAULT_CLEAN_EXPORT_OPTIONS };
+  if (!stored) return options;
+  for (const key of Object.keys(options) as (keyof CleanExportOptions)[]) {
+    const value = stored[key];
+    if (typeof value === typeof options[key]) {
+      (options as unknown as Record<string, unknown>)[key] = value;
+    }
+  }
+  const linkValue = (value: unknown, legacy: unknown): LinkHandling | null =>
+    LINK_HANDLING.includes(value as LinkHandling)
+      ? (value as LinkHandling)
+      : typeof legacy === "boolean"
+        ? legacy
+          ? "unwrap"
+          : "keep"
+        : null;
+  options.wikilinks =
+    linkValue(stored.wikilinks, stored.unwrapWikilinks) ?? options.wikilinks;
+  options.markdownLinks =
+    linkValue(stored.markdownLinks, stored.unwrapMarkdownLinks) ??
+    options.markdownLinks;
+  if (!LINK_HANDLING.includes(options.codeBlocks)) {
+    options.codeBlocks = DEFAULT_CLEAN_EXPORT_OPTIONS.codeBlocks;
+  }
+  return options;
+}
+
 /** `[[target|alias]]` -> `alias`, `[[target]]` -> `target`. Embeds stay. */
 export function unwrapWikilinks(text: string): string {
   return text.replace(WIKILINK, (_match, inner: string) => {
@@ -115,8 +159,13 @@ export function unwrapWikilinks(text: string): string {
 function cleanInline(line: string, options: CleanExportOptions): string {
   let text = line;
   if (options.removeEmbeds) text = text.replace(EMBED, "");
-  if (options.unwrapWikilinks) text = unwrapWikilinks(text);
-  if (options.unwrapMarkdownLinks) text = text.replace(MARKDOWN_LINK, "$1");
+  if (options.wikilinks === "unwrap") text = unwrapWikilinks(text);
+  if (options.wikilinks === "remove") text = text.replace(WIKILINK, "");
+  if (options.markdownLinks === "unwrap") {
+    text = text.replace(MARKDOWN_LINK, "$1");
+  }
+  if (options.markdownLinks === "remove")
+    text = text.replace(MARKDOWN_LINK, "");
   if (options.removeFootnotes) text = text.replace(FOOTNOTE_REFERENCE, "");
   if (options.removeBlockIds) text = text.replace(BLOCK_ID, "");
   if (options.removeHighlights) text = text.replace(HIGHLIGHT, "$1");
@@ -137,10 +186,38 @@ export function cleanFountainSource(
   let removedSinceLastLine = false;
   let inComment = false;
   let inCallout = false;
+  let fence: string | null = null;
 
   for (const rawLine of source.replaceAll("\r\n", "\n").split("\n")) {
     let line = rawLine;
     let removed = false;
+
+    // Fenced code blocks: content is code, so no other cleanup applies.
+    const fenceMatch = /^\s*(`{3,}|~{3,})/u.exec(line);
+    if (fence === null && fenceMatch && !inComment) {
+      fence = fenceMatch[1] ?? "```";
+      if (options.codeBlocks === "keep") output.push(line);
+      else removedSinceLastLine = true;
+      continue;
+    }
+    if (fence !== null) {
+      const closes =
+        fenceMatch !== null &&
+        (fenceMatch[1] ?? "").startsWith(fence.charAt(0)) &&
+        (fenceMatch[1] ?? "").length >= fence.length &&
+        line.trim() === fenceMatch[1];
+      if (closes) fence = null;
+      if (
+        options.codeBlocks === "keep" ||
+        (options.codeBlocks === "unwrap" && !closes)
+      ) {
+        output.push(line);
+        removedSinceLastLine = false;
+      } else {
+        removedSinceLastLine = true;
+      }
+      continue;
+    }
 
     if (options.removeComments) {
       let kept = "";
