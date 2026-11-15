@@ -108,6 +108,10 @@ export function classifyLayoutLines(
 
     const startsBlock = index === firstContentLine || isBlank(lines[index - 1]);
 
+    // A "# heading" always ends a speech and stays at the left margin, even
+    // with no blank line before it.
+    if (inDialogue && isMarkdownHeading(text)) inDialogue = false;
+
     if (inDialogue) {
       kinds[index] =
         text.startsWith("(") && text.endsWith(")")

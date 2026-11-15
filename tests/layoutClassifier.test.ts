@@ -121,6 +121,12 @@ describe("editor screenplay layout", () => {
     expect(classifyLayoutLines(typed, 3, 3)[3]).toBe("action");
   });
 
+  it("keeps a # heading right after dialogue at the left margin", () => {
+    expect(
+      classify("BLAKE\nBest daughter ever.\n## Driving Up to the Ranch\nText"),
+    ).toEqual(["character", "dialogue", null, "action"]);
+  });
+
   it("finds the markers to hide on centred text", () => {
     expect(centeredMarkers("> TIGHTER <")).toEqual([
       [0, 2],
