@@ -109,8 +109,30 @@ describe("Smart Tab", () => {
     expect(result?.plan.openCompletion).toBe(true);
   });
 
-  it("leaves Tab alone mid-line, right under dialogue and in parentheticals", () => {
-    expect(getSmartTabPlan(opening, opening.length - 3)).toBeNull();
+  it("splits a speech around a new wryly when Tab is pressed mid-dialogue", () => {
+    const apply = (source: string, cursor: number) => {
+      const plan = getSmartTabPlan(source, cursor);
+      if (!plan) return null;
+      const text =
+        source.slice(0, plan.replaceFrom ?? plan.at) +
+        plan.insert +
+        source.slice(plan.at);
+      return { text, cursor: plan.cursor, open: plan.openCompletion };
+    };
+    const source = "HELIOS\nThey want to tie you down. They don't mean to.";
+    const result = apply(source, source.indexOf(" They don't"));
+    expect(result?.text).toBe(
+      "HELIOS\nThey want to tie you down.\n()\nThey don't mean to.",
+    );
+    expect(result?.text.slice(0, result.cursor).endsWith("(")).toBe(true);
+    expect(result?.open).toBe(true);
+    // At the very start of a dialogue line, the wryly goes above it.
+    const start = apply("JEN\nHi.", 4);
+    expect(start?.text).toBe("JEN\n()\nHi.");
+    expect(start?.cursor).toBe(5);
+  });
+
+  it("leaves Tab alone right under dialogue and in parentheticals", () => {
     // Empty line straight under dialogue, with no blank line yet.
     expect(getSmartTabPlan(`${opening}\n`, opening.length + 1)).toBeNull();
     // Mid-parenthetical.

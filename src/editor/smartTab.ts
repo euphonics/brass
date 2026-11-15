@@ -206,6 +206,28 @@ export function getSmartTabPlan(
     };
   }
 
+  // Mid-speech: split the dialogue around a new "()" line, cursor inside,
+  // so a wryly can go in the middle of a long speech.
+  if (kind === "dialogue" && cursorOffset < textEnd) {
+    let from = cursorOffset;
+    while (from > lineStart && /[ \t]/u.test(source.charAt(from - 1))) {
+      from -= 1;
+    }
+    let to = cursorOffset;
+    while (to < textEnd && /[ \t]/u.test(source.charAt(to))) to += 1;
+    const atLineStart = source.slice(lineStart, from).trim() === "";
+    const insert = atLineStart ? "()\n" : "\n()\n";
+    const replaceFrom = atLineStart ? lineStart : from;
+    return {
+      kind,
+      at: to,
+      replaceFrom,
+      insert,
+      cursor: replaceFrom + insert.indexOf(")"),
+      openCompletion: true,
+    };
+  }
+
   // Otherwise only act with the cursor at the end of the line's text.
   if (cursorOffset < textEnd) return null;
   const at = cursorOffset;
@@ -291,6 +313,13 @@ export function getSmartEnterPlan(
   knownTimes: KnownTimes = DEFAULT_TIMES_OF_DAY,
 ): SmartTabPlan | null {
   const plan = getSmartTabPlan(source, cursorOffset, knownTimes);
+  // The mid-speech wryly split is Tab only; Enter there is a plain break.
+  const lineEnd = source.indexOf("\n", cursorOffset);
+  const rest = source.slice(
+    cursorOffset,
+    lineEnd === -1 ? source.length : lineEnd,
+  );
+  if (plan?.kind === "dialogue" && rest.trim() !== "") return null;
   if (plan?.kind === "transition") return plan;
   if (
     plan?.kind !== "dialogue" &&
