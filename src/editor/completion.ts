@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { setLineKind } from "./lineKindOverride";
 import { forceElementPlan, type ForcedElement } from "./forceElement";
 import {
   acceptCompletion,
@@ -87,7 +88,16 @@ export function forceElement(view: EditorView, element: ForcedElement): void {
   const { state } = view;
   const line = state.doc.lineAt(state.selection.main.head);
   const plan = forceElementPlan(line.text, element);
-  if (plan === null) return;
+  // On a blank line, also lay the line out as the element right away, so
+  // the cursor moves to its column (a slugline at the left margin).
+  const layout =
+    line.text.trim() === ""
+      ? setLineKind.of({ from: line.from, kind: element })
+      : null;
+  if (plan === null) {
+    if (layout) view.dispatch({ effects: layout });
+    return;
+  }
   const forced =
     plan.complete === "scene-type" || plan.complete === "character"
       ? plan.complete
@@ -98,7 +108,9 @@ export function forceElement(view: EditorView, element: ForcedElement): void {
         ? undefined
         : { from: line.from, to: line.to, insert: plan.text },
     selection: { anchor: line.from + plan.cursor },
-    effects: setForcedList.of(forced),
+    effects: layout
+      ? [setForcedList.of(forced), layout]
+      : setForcedList.of(forced),
     scrollIntoView: true,
     userEvent: "input",
   });

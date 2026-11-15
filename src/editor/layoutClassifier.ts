@@ -56,7 +56,7 @@ function frontmatterEnd(lines: readonly string[]): number {
 export function classifyLayoutLines(
   lines: readonly string[],
   cursorLine = -1,
-  actionLine = -1,
+  forced: { line: number; kind: LayoutLineKind } | null = null,
 ): (LayoutLineKind | null)[] {
   const kinds: (LayoutLineKind | null)[] = new Array<LayoutLineKind | null>(
     lines.length,
@@ -80,10 +80,13 @@ export function classifyLayoutLines(
       continue;
     }
 
-    // A line the writer turned back into action (Shift+Tab).
-    if (index === actionLine) {
-      kinds[index] = "action";
-      inDialogue = false;
+    // A line the writer set to an element (Shift+Tab, "Set line to …").
+    if (forced !== null && index === forced.line) {
+      kinds[index] = forced.kind;
+      if (forced.kind === "character") inDialogue = true;
+      else if (forced.kind !== "parenthetical" && forced.kind !== "dialogue") {
+        inDialogue = false;
+      }
       continue;
     }
 

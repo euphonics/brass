@@ -115,10 +115,18 @@ describe("editor screenplay layout", () => {
 
   it("lays out a line turned back into action (Shift+Tab) as action", () => {
     const lines = "BLAKE\nYou sure?\n\n".split("\n");
-    expect(classifyLayoutLines(lines, 3, 3)[3]).toBe("action");
+    expect(classifyLayoutLines(lines, 3, { line: 3, kind: "action" })[3]).toBe(
+      "action",
+    );
     // Typing in caps there stays action rather than becoming a cue.
     const typed = "BLAKE\nYou sure?\n\nBANG\n".split("\n");
-    expect(classifyLayoutLines(typed, 3, 3)[3]).toBe("action");
+    expect(classifyLayoutLines(typed, 3, { line: 3, kind: "action" })[3]).toBe(
+      "action",
+    );
+    // A blank pending-cue line set to a scene heading sits at the margin.
+    expect(
+      classifyLayoutLines(lines, 3, { line: 3, kind: "scene-heading" })[3],
+    ).toBe("scene-heading");
   });
 
   it("keeps a # heading right after dialogue at the left margin", () => {

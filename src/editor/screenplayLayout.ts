@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
+import { lineKindField, setLineKind } from "./lineKindOverride";
 import { closeCompletion } from "@codemirror/autocomplete";
-import {
-  Prec,
-  RangeSetBuilder,
-  StateEffect,
-  StateField,
-  type Extension,
-} from "@codemirror/state";
+import { Prec, RangeSetBuilder, type Extension } from "@codemirror/state";
 import {
   Decoration,
   EditorView,
@@ -64,28 +59,6 @@ const LINE_DECORATIONS = new Map<LayoutLineKind, Decoration>(
 
 const HIDDEN = Decoration.replace({});
 
-/** Turn the cursor's line back into action (Shift+Tab on a pending cue). */
-const setActionLine = StateEffect.define<number | null>();
-
-/**
- * Start of the line the writer turned back into action, or null. Cleared
- * once the cursor leaves that line.
- */
-const actionLineField = StateField.define<number | null>({
-  create: () => null,
-  update(value, tr) {
-    let next = value === null ? null : tr.changes.mapPos(value);
-    for (const effect of tr.effects) {
-      if (effect.is(setActionLine)) next = effect.value;
-    }
-    if (next === null) return null;
-    const { doc, selection } = tr.state;
-    return doc.lineAt(selection.main.head).from === doc.lineAt(next).from
-      ? next
-      : null;
-  },
-});
-
 /**
  * Screenplay layout for the editor: indents and aligns each Fountain element
  * the way it prints (centered cues, narrow dialogue, right-aligned
@@ -113,8 +86,8 @@ export function createScreenplayLayoutExtension(
         const reclassify =
           update.docChanged ||
           cursorLine !== this.cursorLine ||
-          update.startState.field(actionLineField, false) !==
-            update.state.field(actionLineField, false) ||
+          update.startState.field(lineKindField, false) !==
+            update.state.field(lineKindField, false) ||
           update.startState.field(editorInfoField, false)?.file !==
             update.state.field(editorInfoField, false)?.file;
         const wasActive = this.active;
@@ -154,11 +127,13 @@ export function createScreenplayLayoutExtension(
         if (reclassify || this.kinds.length !== doc.lines) {
           const lines: string[] = [];
           for (const line of doc.iterLines()) lines.push(line);
-          const actionLine = view.state.field(actionLineField, false);
+          const forced = view.state.field(lineKindField, false) ?? null;
           this.kinds = classifyLayoutLines(
             lines,
             this.cursorLine,
-            actionLine == null ? -1 : doc.lineAt(actionLine).number - 1,
+            forced === null
+              ? null
+              : { line: doc.lineAt(forced.from).number - 1, kind: forced.kind },
           );
         }
         const builder = new RangeSetBuilder<Decoration>();
@@ -219,12 +194,14 @@ export function createScreenplayLayoutExtension(
     if (line.text.trim() !== "") return false;
     if (layout.kinds[line.number - 1] !== "character") return false;
     closeCompletion(view);
-    view.dispatch({ effects: setActionLine.of(line.from) });
+    view.dispatch({
+      effects: setLineKind.of({ from: line.from, kind: "action" }),
+    });
     return true;
   };
 
   return [
-    actionLineField,
+    lineKindField,
     layoutPlugin,
     Prec.highest(keymap.of([{ key: "Shift-Tab", run: shiftTab }])),
   ];
