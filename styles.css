@@ -362,12 +362,22 @@
 .markdown-source-view.mod-cm6
   .cm-editor.firstdraft-screenplay-layout
   .cm-sizer {
-  max-width: 62ch;
+  /* 60 characters, plus a little room so a full line is not wrapped early. */
+  max-width: 60.5ch;
   margin-inline: auto;
 }
 
-.markdown-source-view.mod-cm6 .cm-editor.firstdraft-screenplay-layout .cm-line {
+/* Themes can size lines on their own (e.g. Minimal's --line-width and
+   --max-width: 88%); the layout needs exactly the 60-character column. */
+.markdown-source-view.mod-cm6
+  .cm-editor.firstdraft-screenplay-layout
+  .cm-contentContainer
+  > .cm-content
+  > .cm-line {
   box-sizing: border-box;
+  width: auto;
+  max-width: none;
+  margin-inline: 0;
 }
 
 .markdown-source-view.mod-cm6
@@ -379,21 +389,21 @@
 .markdown-source-view.mod-cm6
   .cm-editor.firstdraft-screenplay-layout
   .cm-line.firstdraft-sp-character {
-  padding-inline-start: 36.5%;
+  padding-inline-start: 36.667%;
 }
 
 .markdown-source-view.mod-cm6
   .cm-editor.firstdraft-screenplay-layout
   .cm-line.firstdraft-sp-dialogue {
-  padding-inline-start: 16.5%;
+  padding-inline-start: 16.667%;
   padding-inline-end: 25%;
 }
 
 .markdown-source-view.mod-cm6
   .cm-editor.firstdraft-screenplay-layout
   .cm-line.firstdraft-sp-parenthetical {
-  padding-inline-start: 26.5%;
-  padding-inline-end: 31.5%;
+  padding-inline-start: 26.667%;
+  padding-inline-end: 31.667%;
 }
 
 .markdown-source-view.mod-cm6
@@ -412,7 +422,7 @@
   .cm-editor.firstdraft-screenplay-layout
   .cm-line.firstdraft-sp-lyric {
   font-style: italic;
-  padding-inline-start: 16.5%;
+  padding-inline-start: 16.667%;
 }
 
 .markdown-source-view.mod-cm6
