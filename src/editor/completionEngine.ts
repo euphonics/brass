@@ -581,7 +581,9 @@ export function getScreenplayCompletionPlan(
   const characterQuery = explicit ? query.toLocaleUpperCase() : query;
   const characterCandidates =
     !plausiblePosition ||
-    (!explicit && query.length === 0) ||
+    // Typing needs two capitals ("JE"): one is just a capitalized action
+    // line ("S" for "She runs").
+    (!explicit && query.length < 2) ||
     (query.length > 0 && !POSSIBLE_CHARACTER.test(characterQuery))
       ? []
       : orderByTurn(

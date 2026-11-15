@@ -76,6 +76,19 @@ export function isForcedTransition(text: string): boolean {
   );
 }
 
+/**
+ * The capital to use when `typed` is the first character on its line
+ * (`before` is the line up to it), or null to leave it as typed.
+ */
+export function capitalizeLineStart(
+  before: string,
+  typed: string,
+): string | null {
+  if (before.trim() !== "" || [...typed].length !== 1) return null;
+  const upper = typed.toLocaleUpperCase();
+  return upper !== typed && upper.length === typed.length ? upper : null;
+}
+
 /** Known times, or a function that computes them only when needed. */
 export type KnownTimes = readonly string[] | (() => readonly string[]);
 

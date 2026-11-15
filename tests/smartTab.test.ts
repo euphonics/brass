@@ -15,7 +15,11 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { getSmartEnterPlan, getSmartTabPlan } from "../src/editor/smartTab";
+import {
+  capitalizeLineStart,
+  getSmartEnterPlan,
+  getSmartTabPlan,
+} from "../src/editor/smartTab";
 import {
   DEFAULT_COMPLETION_PREFERENCES,
   getScreenplayCompletionPlan,
@@ -404,5 +408,17 @@ describe("uppercase sluglines", () => {
     expect(apply(source, getSmartEnterPlan(source, source.length))).toBe(
       "INT. CAR - DAY\n\n",
     );
+  });
+});
+
+describe("capitalize line starts", () => {
+  it("capitalizes only the first letter typed on a line", () => {
+    expect(capitalizeLineStart("", "s")).toBe("S");
+    expect(capitalizeLineStart("  ", "s")).toBe("S");
+    expect(capitalizeLineStart("S", "h")).toBeNull();
+    expect(capitalizeLineStart("", "S")).toBeNull();
+    expect(capitalizeLineStart("", "(")).toBeNull();
+    expect(capitalizeLineStart("(", "b")).toBeNull();
+    expect(capitalizeLineStart("", "ab")).toBeNull();
   });
 });

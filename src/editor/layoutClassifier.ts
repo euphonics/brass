@@ -162,7 +162,9 @@ export function classifyLayoutLines(
       // A cue just picked, with the cursor on it or on the empty line below,
       // counts as a cue before its dialogue is typed.
       (!isBlank(lines[index + 1]) ||
-        index === cursorLine ||
+        // Two letters at least, so the auto-capital starting an action
+        // line ("S") does not jump to the middle.
+        (index === cursorLine && text.replace(/^@/u, "").length > 1) ||
         index + 1 === cursorLine)
     ) {
       kinds[index] = "character";

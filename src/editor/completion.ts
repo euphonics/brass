@@ -33,6 +33,7 @@ import {
   StateEffect,
   StateField,
   type Extension,
+  type Text,
 } from "@codemirror/state";
 import { keymap, type EditorView } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
@@ -44,6 +45,7 @@ import { ScreenplayIndexCache, textOutsideLine } from "./indexCache";
 import {
   getSmartEnterPlan,
   getSmartTabPlan,
+  capitalizeLineStart,
   isForcedTransition,
   type SmartTabPlan,
 } from "./smartTab";
@@ -295,6 +297,19 @@ export function createScreenplayCompletionExtension(
   };
 
   // Transitions are all caps: typing on a "> ..." line is uppercased.
+  // Line numbers are 1-based; frontmatter is "---" ... "---" at the top.
+  const inFrontmatter = (doc: Text, lineNumber: number): boolean => {
+    if (doc.line(1).text.trim() !== "---") return false;
+    for (
+      let number = 2;
+      number <= Math.min(doc.lines, lineNumber);
+      number += 1
+    ) {
+      if (doc.line(number).text.trim() === "---") return lineNumber <= number;
+    }
+    return true;
+  };
+
   const uppercaseTransitions = EditorState.transactionFilter.of((tr) => {
     if (!tr.docChanged || !tr.isUserEvent("input.type")) return tr;
     const file = tr.startState.field(editorInfoField, false)?.file ?? null;
@@ -302,9 +317,22 @@ export function createScreenplayCompletionExtension(
     const fixes: { from: number; to: number; insert: string }[] = [];
     tr.changes.iterChanges((_fromA, _toA, fromB, toB, inserted) => {
       const text = inserted.toString();
+      const line = tr.newDoc.lineAt(fromB);
+      // Capitalize the first letter typed on a line (setting), outside
+      // the frontmatter.
+      if (plugin.settings.capitalizeLineStarts) {
+        const capital = capitalizeLineStart(
+          tr.newDoc.sliceString(line.from, fromB),
+          text,
+        );
+        if (capital !== null && !inFrontmatter(tr.newDoc, line.number)) {
+          fixes.push({ from: fromB, to: toB, insert: capital });
+          return;
+        }
+      }
       const upper = text.toLocaleUpperCase();
       if (upper === text || upper.length !== text.length) return;
-      if (!isForcedTransition(tr.newDoc.lineAt(fromB).text)) return;
+      if (!isForcedTransition(line.text)) return;
       fixes.push({ from: fromB, to: toB, insert: upper });
     });
     return fixes.length === 0 ? tr : [tr, { changes: fixes, sequential: true }];

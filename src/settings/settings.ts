@@ -46,6 +46,7 @@ export interface FirstDraftSettings {
   activateFrontmatter: boolean;
   autocompleteEnabled: boolean;
   smartTabEnabled: boolean;
+  capitalizeLineStarts: boolean;
   editorLayout: EditorLayout;
   bottomTypingMargin: number;
   screenplayFont: string;
@@ -163,6 +164,7 @@ export const DEFAULT_SETTINGS: FirstDraftSettings = {
   activateFrontmatter: true,
   autocompleteEnabled: true,
   smartTabEnabled: true,
+  capitalizeLineStarts: true,
   editorLayout: "screenplay",
   bottomTypingMargin: 40,
   screenplayFont: "Courier Prime",
@@ -215,6 +217,7 @@ const SETTING_GROUPS: { heading: string; keys: string[] }[] = [
       "screenplayFontCustom",
       "bottomTypingMargin",
       "smartTabEnabled",
+      "capitalizeLineStarts",
       "renderFountainCodeBlocks",
     ],
   },
@@ -623,6 +626,16 @@ export class FirstDraftSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Capitalize the first letter of each line",
+        desc: 'In screenplay notes, the first letter typed on a line becomes a capital ("she runs" becomes "She runs"). Lines that start with a symbol, like a wryly\'s "(", are left alone.',
+        aliases: ["capital", "uppercase", "auto capitalize"],
+        control: {
+          type: "toggle",
+          key: "capitalizeLineStarts",
+          defaultValue: DEFAULT_SETTINGS.capitalizeLineStarts,
+        },
+      },
+      {
         name: "Smart Tab and Enter",
         desc: 'At the end of a line, Tab inserts the next Fountain element: after a character or dialogue line, a new () line; after a scene heading, " - " and times of day, or a blank line once complete; after action, a blank line and the character list. Enter after dialogue starts a new speaker, Enter after a transition starts a slugline, Enter after a scene heading or at the end of an action paragraph adds a blank line, and Shift+Enter is a plain line break.',
         control: {
@@ -827,6 +840,7 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       case "activateFrontmatter":
       case "autocompleteEnabled":
       case "smartTabEnabled":
+      case "capitalizeLineStarts":
       case "renderFountainCodeBlocks":
       case "sceneTypeMatchCase":
       case "statusBarEnabled":
