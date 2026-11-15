@@ -15,7 +15,12 @@
  */
 
 import { lineKindField, setLineKind } from "./lineKindOverride";
-import { closeCompletion } from "@codemirror/autocomplete";
+import {
+  closeCompletion,
+  completionStatus,
+  currentCompletions,
+} from "@codemirror/autocomplete";
+import type { EditorState } from "@codemirror/state";
 import { Prec, RangeSetBuilder, type Extension } from "@codemirror/state";
 import {
   Decoration,
@@ -30,6 +35,7 @@ import type FirstDraftPlugin from "../main";
 import {
   centeredMarkers,
   classifyLayoutLines,
+  menuLineKind,
   forcedHeadingDot,
   type LayoutLineKind,
 } from "./layoutClassifier";
@@ -59,6 +65,14 @@ const LINE_DECORATIONS = new Map<LayoutLineKind, Decoration>(
 
 const HIDDEN = Decoration.replace({});
 
+/** Element of the open suggestion list on an empty cursor line, or null. */
+function openMenuKind(state: EditorState): LayoutLineKind | null {
+  if (completionStatus(state) !== "active") return null;
+  const line = state.doc.lineAt(state.selection.main.head);
+  if (line.text.trim() !== "") return null;
+  return menuLineKind(currentCompletions(state)[0]?.detail);
+}
+
 /**
  * Screenplay layout for the editor: indents and aligns each Fountain element
  * the way it prints (centered cues, narrow dialogue, right-aligned
@@ -74,6 +88,7 @@ export function createScreenplayLayoutExtension(
       active = false;
       kinds: (LayoutLineKind | null)[] = [];
       private cursorLine = -1;
+      private menuKind: LayoutLineKind | null = null;
 
       constructor(view: EditorView) {
         this.active = this.isActive(view);
@@ -86,6 +101,7 @@ export function createScreenplayLayoutExtension(
         const reclassify =
           update.docChanged ||
           cursorLine !== this.cursorLine ||
+          openMenuKind(update.state) !== this.menuKind ||
           update.startState.field(lineKindField, false) !==
             update.state.field(lineKindField, false) ||
           update.startState.field(editorInfoField, false)?.file !==
@@ -128,12 +144,17 @@ export function createScreenplayLayoutExtension(
           const lines: string[] = [];
           for (const line of doc.iterLines()) lines.push(line);
           const forced = view.state.field(lineKindField, false) ?? null;
+          // An open suggestion list on an empty line puts the cursor in its
+          // element's column (the character list centres it).
+          this.menuKind = openMenuKind(view.state);
           this.kinds = classifyLayoutLines(
             lines,
             this.cursorLine,
-            forced === null
-              ? null
-              : { line: doc.lineAt(forced.from).number - 1, kind: forced.kind },
+            forced !== null
+              ? { line: doc.lineAt(forced.from).number - 1, kind: forced.kind }
+              : this.menuKind !== null
+                ? { line: this.cursorLine, kind: this.menuKind }
+                : null,
           );
         }
         const builder = new RangeSetBuilder<Decoration>();

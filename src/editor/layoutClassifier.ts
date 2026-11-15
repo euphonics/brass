@@ -196,3 +196,21 @@ export function forcedHeadingDot(text: string): number {
   const match = /^\s*\.(?=[\p{L}\p{N}])/u.exec(text);
   return match ? match[0].length - 1 : -1;
 }
+
+/**
+ * The element a suggestion list is for, from its first suggestion: the
+ * character list centres an empty line like a cue, scene parts keep it at
+ * the left margin, and so on.
+ */
+export function menuLineKind(
+  detail: string | undefined,
+): LayoutLineKind | null {
+  if (!detail) return null;
+  if (/dialogue blocks?$/u.test(detail)) return "character";
+  if (["Scene type", "Location", "Time", "Slug modifier"].includes(detail)) {
+    return "scene-heading";
+  }
+  if (detail === "Transition") return "transition";
+  if (detail === "Parenthetical") return "parenthetical";
+  return null;
+}

@@ -17,6 +17,7 @@
 import { describe, expect, it } from "vitest";
 import {
   centeredMarkers,
+  menuLineKind,
   classifyLayoutLines,
 } from "../src/editor/layoutClassifier";
 
@@ -145,5 +146,13 @@ describe("editor screenplay layout", () => {
       [8, 9],
     ]);
     expect(centeredMarkers("TIGHTER")).toBeNull();
+  });
+
+  it("knows which element a suggestion list is for", () => {
+    expect(menuLineKind("12 dialogue blocks")).toBe("character");
+    expect(menuLineKind("1 dialogue block")).toBe("character");
+    expect(menuLineKind("Scene type")).toBe("scene-heading");
+    expect(menuLineKind("Transition")).toBe("transition");
+    expect(menuLineKind("Character extension")).toBeNull();
   });
 });
