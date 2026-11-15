@@ -42,7 +42,11 @@ import { openNewScene } from "./commands/newScene";
 import { openParenthetical } from "./commands/parenthetical";
 import { previewScreenplay } from "./commands/previewScreenplay";
 import { openTransition } from "./commands/transition";
-import { createScreenplayCompletionExtension } from "./editor/completion";
+import {
+  createScreenplayCompletionExtension,
+  forceElement,
+} from "./editor/completion";
+import type { ForcedElement } from "./editor/forceElement";
 import { registerFountainCodeBlockProcessor } from "./editor/fountainCodeBlock";
 import { isCharacterFrontmatter } from "./characters/catalogue";
 import {
@@ -153,6 +157,28 @@ export default class FirstDraftPlugin extends Plugin {
       name: "Open screenplay cheat sheet",
       callback: () => new CheatSheetModal(this.app).open(),
     });
+
+    const forceCommands: [ForcedElement, string, string][] = [
+      ["scene-heading", "set-line-scene-heading", "Set line to scene heading"],
+      ["action", "set-line-action", "Set line to action"],
+      ["character", "set-line-character", "Set line to character"],
+      ["parenthetical", "set-line-parenthetical", "Set line to parenthetical"],
+      ["transition", "set-line-transition", "Set line to transition"],
+      ["centered", "set-line-centered", "Set line to centered text"],
+    ];
+    for (const [element, id, name] of forceCommands) {
+      this.addCommand({
+        id: `screenplay-${id}`,
+        name: `Screenplay: ${name}`,
+        editorCheckCallback: (checking, editor, context) => {
+          if (!this.isScreenplayFile(context.file)) return false;
+          const cm = (editor as { cm?: unknown }).cm;
+          if (!(cm instanceof EditorView)) return false;
+          if (!checking) forceElement(cm, element);
+          return true;
+        },
+      });
+    }
 
     this.addCommand({
       id: "screenplay-new-scene",

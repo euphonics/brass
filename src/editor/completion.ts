@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { forceElementPlan, type ForcedElement } from "./forceElement";
 import {
   acceptCompletion,
   autocompletion,
@@ -24,7 +25,13 @@ import {
   type CompletionContext,
   type CompletionResult,
 } from "@codemirror/autocomplete";
-import { EditorState, Prec, type Extension } from "@codemirror/state";
+import {
+  EditorState,
+  Prec,
+  StateEffect,
+  StateField,
+  type Extension,
+} from "@codemirror/state";
 import { keymap, type EditorView } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
 import type FirstDraftPlugin from "../main";
@@ -42,6 +49,61 @@ import {
   getScreenplayCompletionPlan,
   type CompletionCandidate,
 } from "./completionEngine";
+
+/** A suggestion list asked for by a "Set line to …" command. */
+const setForcedList = StateEffect.define<"scene-type" | "character" | null>();
+
+/**
+ * The forced list and the line it is for. It lasts while the cursor stays
+ * on that line and the line has no space yet (a scene type or a name).
+ */
+const forcedListField = StateField.define<{
+  kind: "scene-type" | "character";
+  line: number;
+} | null>({
+  create: () => null,
+  update(value, tr) {
+    for (const effect of tr.effects) {
+      if (effect.is(setForcedList)) {
+        const head = tr.state.selection.main.head;
+        return effect.value === null
+          ? null
+          : { kind: effect.value, line: tr.state.doc.lineAt(head).from };
+      }
+    }
+    if (value === null) return null;
+    const line = tr.changes.mapPos(value.line);
+    const current = tr.state.doc.lineAt(tr.state.selection.main.head);
+    if (current.from !== line) return null;
+    return /\s/u.test(current.text.trim()) ? null : { ...value, line };
+  },
+});
+
+/**
+ * Turn the cursor's line into `element` (a "Set line to …" command): see
+ * forceElementPlan. Opens the element's suggestion list on a blank line.
+ */
+export function forceElement(view: EditorView, element: ForcedElement): void {
+  const { state } = view;
+  const line = state.doc.lineAt(state.selection.main.head);
+  const plan = forceElementPlan(line.text, element);
+  if (plan === null) return;
+  const forced =
+    plan.complete === "scene-type" || plan.complete === "character"
+      ? plan.complete
+      : null;
+  view.dispatch({
+    changes:
+      plan.text === line.text
+        ? undefined
+        : { from: line.from, to: line.to, insert: plan.text },
+    selection: { anchor: line.from + plan.cursor },
+    effects: setForcedList.of(forced),
+    scrollIntoView: true,
+    userEvent: "input",
+  });
+  if (plan.complete !== null) startCompletion(view);
+}
 
 function applyCandidate(
   view: EditorView,
@@ -103,6 +165,7 @@ export function createScreenplayCompletionExtension(
       );
       return buildScreenplayIndex(screenplay.document);
     });
+    const forced = context.state.field(forcedListField, false) ?? null;
     const plan = getScreenplayCompletionPlan(
       editorSource,
       context.pos,
@@ -110,6 +173,7 @@ export function createScreenplayCompletionExtension(
       context.explicit,
       undefined,
       index,
+      forced?.kind,
     );
     if (!plan) return null;
 
@@ -212,6 +276,7 @@ export function createScreenplayCompletionExtension(
   });
 
   return [
+    forcedListField,
     uppercaseTransitions,
     autocompletion({
       activateOnTyping: true,

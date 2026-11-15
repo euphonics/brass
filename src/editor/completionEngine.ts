@@ -361,11 +361,35 @@ export function getScreenplayCompletionPlan(
   projectDocument?: ScreenplayDocument,
   /** A ready-made index (smart rebuild cache); skips building one. */
   precomputedIndex?: ScreenplayIndex,
+  /** A list asked for by a "Set line to …" command, whatever the context. */
+  force?: "scene-type" | "character",
 ): ScreenplayCompletionPlan | null {
   const { before, from, indexSource, previousLine } = lineContext(
     source,
     cursorOffset,
   );
+  if (force === "scene-type") {
+    const query = before.trimStart();
+    if (/\s/u.test(query)) return null;
+    const candidates = (preferences.preferredSceneTypes ?? DEFAULT_SCENE_TYPES)
+      .filter((type) =>
+        type.toLocaleUpperCase().startsWith(query.toLocaleUpperCase()),
+      )
+      .map((type) => ({
+        label: type,
+        applyText: `${type} `,
+        detail: "Scene type",
+      }));
+    return candidates.length === 0
+      ? null
+      : {
+          kind: "scene-type",
+          from: from + (before.length - query.length),
+          to: cursorOffset,
+          candidates,
+        };
+  }
+  if (force === "character") explicit = true;
   const index =
     precomputedIndex ??
     buildScreenplayIndex(projectDocument ?? parseFountain(indexSource));
@@ -400,7 +424,8 @@ export function getScreenplayCompletionPlan(
 
   const query = before.trimStart();
   const leadingWhitespace = before.length - query.length;
-  const plausiblePosition = from === 0 || previousLine.trim() === "";
+  const plausiblePosition =
+    force === "character" || from === 0 || previousLine.trim() === "";
 
   // Scene types: after Tab on a "# heading" or transition, or when a block
   // starts with a scene type prefix ("in", "EXT"). A minimum number of
