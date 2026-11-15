@@ -462,9 +462,9 @@ export function getScreenplayCompletionPlan(
     source,
     cursorOffset,
   );
-  if (force === "scene-type") {
-    const query = before.trimStart();
-    if (/\s/u.test(query)) return null;
+  const forcedQuery = before.trimStart();
+  if (force === "scene-type" && !/\s/u.test(forcedQuery)) {
+    const query = forcedQuery;
     const candidates = (preferences.preferredSceneTypes ?? DEFAULT_SCENE_TYPES)
       .filter((type) =>
         type.toLocaleUpperCase().startsWith(query.toLocaleUpperCase()),
@@ -474,14 +474,14 @@ export function getScreenplayCompletionPlan(
         applyText: `${type} `,
         detail: "Scene type",
       }));
-    return candidates.length === 0
-      ? null
-      : {
-          kind: "scene-type",
-          from: from + (before.length - query.length),
-          to: cursorOffset,
-          candidates,
-        };
+    if (candidates.length > 0) {
+      return {
+        kind: "scene-type",
+        from: from + (before.length - query.length),
+        to: cursorOffset,
+        candidates,
+      };
+    }
   }
   if (force === "character") explicit = true;
   const index =

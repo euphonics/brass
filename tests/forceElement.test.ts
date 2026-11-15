@@ -91,4 +91,18 @@ describe("force element", () => {
       "INT.",
     );
   });
+
+  it("a forced scene-type list hands over to locations after the type", () => {
+    const source = "INT. ROOF - DAY\n\nText.\n\nINT. ";
+    const plan = getScreenplayCompletionPlan(
+      source,
+      source.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+      true,
+      undefined,
+      undefined,
+      "scene-type",
+    );
+    expect(plan?.kind).toBe("scene-location");
+  });
 });

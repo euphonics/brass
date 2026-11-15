@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { setLineKind } from "./lineKindOverride";
+import { lineKindField, setLineKind } from "./lineKindOverride";
 import { forceElementPlan, type ForcedElement } from "./forceElement";
 import {
   acceptCompletion,
+  closeCompletion,
   autocompletion,
   completionStatus,
   pickedCompletion,
@@ -88,6 +89,9 @@ export function forceElement(view: EditorView, element: ForcedElement): void {
   const { state } = view;
   const line = state.doc.lineAt(state.selection.main.head);
   const plan = forceElementPlan(line.text, element);
+  // Whatever list is open belongs to the old element: close it. The new
+  // element's own list (if it has one) opens below.
+  closeCompletion(view);
   // On a blank line, also lay the line out as the element right away, so
   // the cursor moves to its column (a slugline at the left margin).
   const layout =
@@ -177,7 +181,26 @@ export function createScreenplayCompletionExtension(
       );
       return buildScreenplayIndex(screenplay.document);
     });
-    const forced = context.state.field(forcedListField, false) ?? null;
+    // A line set to an element (Set line, Shift+Tab) only gets that
+    // element's list: none for action or centred text, scene parts at the
+    // left margin, characters in the middle.
+    const lineKind = context.state.field(lineKindField, false) ?? null;
+    const onSetLine =
+      lineKind !== null &&
+      context.state.doc.lineAt(lineKind.from).from === line.from;
+    if (
+      onSetLine &&
+      (lineKind.kind === "action" || lineKind.kind === "centered")
+    ) {
+      return null;
+    }
+    const forced =
+      context.state.field(forcedListField, false) ??
+      (onSetLine && lineKind.kind === "scene-heading"
+        ? { kind: "scene-type" as const }
+        : onSetLine && lineKind.kind === "character"
+          ? { kind: "character" as const }
+          : null);
     const plan = getScreenplayCompletionPlan(
       editorSource,
       context.pos,
