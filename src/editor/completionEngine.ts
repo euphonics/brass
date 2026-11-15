@@ -106,23 +106,27 @@ function lineContext(
 }
 
 function extensionPlan(
+  source: string,
   before: string,
   lineFrom: number,
   cursorOffset: number,
   characters: readonly string[],
 ): ScreenplayCompletionPlan | null {
-  const match = /^(.+?)\s+\(([^)]*)$/u.exec(before);
+  // "JEN (" or "JEN(" both open the list.
+  const match = /^(.+?)(\s*)\(([^)]*)$/u.exec(before);
   if (!match) return null;
   const character = match[1]?.replace(/^@/u, "").trim().toLocaleUpperCase();
   if (!character || !characters.includes(character)) return null;
 
-  const query = match[2]?.toLocaleUpperCase() ?? "";
+  const query = match[3]?.toLocaleUpperCase() ?? "";
   const openParenthesis = before.lastIndexOf("(");
+  // "JEN(" gets its space back: "JEN (V.O.)".
+  const space = match[2] ? "" : " ";
   const candidates = CHARACTER_EXTENSIONS.filter((extension) =>
     extension.slice(1).toLocaleUpperCase().startsWith(query),
   ).map((extension) => ({
     label: extension,
-    applyText: extension,
+    applyText: `${space}${extension}`,
     detail: "Character extension",
   }));
 
@@ -131,7 +135,9 @@ function extensionPlan(
     : {
         kind: "character-extension",
         from: lineFrom + openParenthesis,
-        to: cursorOffset,
+        // Cover an auto-inserted ")" right after the cursor.
+        to:
+          source.charAt(cursorOffset) === ")" ? cursorOffset + 1 : cursorOffset,
         candidates,
       };
 }
@@ -485,7 +491,13 @@ export function getScreenplayCompletionPlan(
     usage.value.toLocaleUpperCase(),
   );
 
-  const extensions = extensionPlan(before, from, cursorOffset, characterNames);
+  const extensions = extensionPlan(
+    source,
+    before,
+    from,
+    cursorOffset,
+    characterNames,
+  );
   if (extensions) return extensions;
 
   const transition = transitionPlan(

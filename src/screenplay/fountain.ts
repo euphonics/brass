@@ -65,7 +65,6 @@ export function splitSlugModifier(text: string): {
 export const CHARACTER_EXTENSIONS = [
   "(O.S.)",
   "(V.O.)",
-  "(CONT'D)",
   "(ON RADIO)",
   "(ON PHONE)",
 ];

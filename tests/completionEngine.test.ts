@@ -92,10 +92,31 @@ describe("screenplay completion engine", () => {
     expect(plan?.candidates.map((candidate) => candidate.label)).toEqual([
       "(O.S.)",
       "(V.O.)",
-      "(CONT'D)",
       "(ON RADIO)",
       "(ON PHONE)",
     ]);
+  });
+
+  it("opens character extensions right after the name, too", () => {
+    const source = `${screenplay}\nJANE(`;
+    const plan = getScreenplayCompletionPlan(
+      source,
+      source.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+    );
+    expect(plan?.kind).toBe("character-extension");
+    // The space comes back: "JANE (V.O.)".
+    expect(plan?.candidates[1]?.applyText).toBe(" (V.O.)");
+    expect(plan?.from).toBe(source.length - 1);
+    // An auto-closed ")" is replaced too.
+    const closed = `${screenplay}\nJANE()`;
+    expect(
+      getScreenplayCompletionPlan(
+        closed,
+        closed.length - 1,
+        DEFAULT_COMPLETION_PREFERENCES,
+      )?.to,
+    ).toBe(closed.length);
   });
 
   it("does not activate character completion in ordinary action", () => {
