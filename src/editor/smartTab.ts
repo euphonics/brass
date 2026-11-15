@@ -37,6 +37,7 @@ export type SmartTabLineKind =
   | "parenthetical"
   | "scene-heading"
   | "under-speech"
+  | "none"
   | "under-block"
   | "action";
 
@@ -225,6 +226,11 @@ export function uppercaseHeading(
   };
 }
 
+/** A plan that changes nothing (Tab swallowed). */
+function noop(at: number): SmartTabPlan {
+  return { kind: "none", at, insert: "", cursor: at, openCompletion: false };
+}
+
 export function getSmartTabPlan(
   source: string,
   cursorOffset: number,
@@ -243,9 +249,25 @@ export function getSmartTabPlan(
   if (kind === "parenthetical") {
     // "(scoffs)": Tab goes to a new dialogue line. Also works with the
     // cursor just inside the closing ")", and closes an unclosed "(scoffs".
+    // An empty "()": Tab drops it and goes back to the line above.
+    if (line.trim() === "()") {
+      const from = lineStart > 0 ? lineStart - 1 : lineStart;
+      const to = lineStart > 0 ? lineEnd : Math.min(source.length, lineEnd + 1);
+      return {
+        kind,
+        at: to,
+        replaceFrom: from,
+        insert: "",
+        cursor: from,
+        openCompletion: false,
+      };
+    }
     const closed = line.trimEnd().endsWith(")");
     const insideClose = closed && cursorOffset === textEnd - 1;
-    if (cursorOffset < textEnd && !insideClose) return null;
+    // Mid-wryly: Tab does nothing (no tab character in the script).
+    if (cursorOffset < textEnd && !insideClose) {
+      return noop(cursorOffset);
+    }
     const insert = closed ? "\n" : ")\n";
     return {
       kind,
@@ -280,7 +302,9 @@ export function getSmartTabPlan(
   }
 
   // Otherwise only act with the cursor at the end of the line's text.
-  if (cursorOffset < textEnd) return null;
+  // Mid-line: Tab does nothing, rather than put a tab character into the
+  // script and break the layout.
+  if (cursorOffset < textEnd) return noop(cursorOffset);
   const at = cursorOffset;
   switch (kind) {
     case "new-block":
@@ -293,6 +317,8 @@ export function getSmartTabPlan(
     case "under-block":
       // The blank line a new block needs, then the character list.
       return { kind, at, insert: "\n", cursor: at + 1, openCompletion: true };
+    case "none":
+      return null;
     case "transition": {
       // Uppercase the transition, then a blank line and the scene types.
       const text = `${line.trimEnd().toLocaleUpperCase()}\n\n`;
@@ -386,6 +412,9 @@ export function getSmartEnterPlan(
   );
   if (plan?.kind === "dialogue" && rest.trim() !== "") return null;
   if (plan?.kind === "transition") return plan;
+  // After a "# heading" (or centred text): a blank line and the slugline
+  // list, like Tab.
+  if (plan?.kind === "heading") return plan;
   if (
     plan?.kind !== "dialogue" &&
     plan?.kind !== "scene-heading" &&

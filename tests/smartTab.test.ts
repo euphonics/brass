@@ -142,10 +142,46 @@ describe("Smart Tab", () => {
       kind: "under-speech",
       insert: "()",
     });
-    // Mid-parenthetical.
+    // Mid-parenthetical: Tab does nothing (no tab character).
     expect(
       getSmartTabPlan(`${opening}\n(beat)`, opening.length + 3),
-    ).toBeNull();
+    ).toMatchObject({ kind: "none", insert: "" });
+  });
+
+  it("swallows Tab mid-line instead of inserting a tab character", () => {
+    for (const [source, cursor] of [
+      ["She| runs.", 3],
+      ["INT. C|AR - DAY", 6],
+      ["> CUT| TO:", 5],
+      ["# Act| One", 5],
+    ] as const) {
+      const text = source.replace("|", "");
+      expect(getSmartTabPlan(text, cursor)).toMatchObject({
+        kind: "none",
+        insert: "",
+      });
+      // Enter there stays a plain line break.
+      expect(getSmartEnterPlan(text, cursor)).toBeNull();
+    }
+  });
+
+  it("Tab in an empty () drops it and goes back to the line above", () => {
+    const source = "JEN\nHi.\n()";
+    const plan = getSmartTabPlan(source, source.length - 1);
+    const text =
+      source.slice(0, plan?.replaceFrom ?? 0) +
+      (plan?.insert ?? "") +
+      source.slice(plan?.at ?? 0);
+    expect(text).toBe("JEN\nHi.");
+    expect(plan?.cursor).toBe("JEN\nHi.".length);
+  });
+
+  it("Enter after a # heading starts a slugline like Tab", () => {
+    expect(getSmartEnterPlan("# Act One", 9)).toMatchObject({
+      kind: "heading",
+      insert: "\n\n",
+      openCompletion: true,
+    });
   });
 
   it("moves to a new dialogue line after a parenthetical", () => {
