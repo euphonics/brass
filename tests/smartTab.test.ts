@@ -346,3 +346,31 @@ describe("review fixes", () => {
     expect(calls).toBe(1);
   });
 });
+
+describe("uppercase sluglines", () => {
+  const apply = (source: string, plan: ReturnType<typeof getSmartTabPlan>) =>
+    plan
+      ? source.slice(0, plan.replaceFrom ?? plan.at) +
+        plan.insert +
+        source.slice(plan.at)
+      : null;
+
+  it("uppercases the typed parts when Tab moves on", () => {
+    const source = "INT. car";
+    const plan = getSmartTabPlan(source, source.length);
+    expect(apply(source, plan)).toBe("INT. CAR - ");
+    expect(plan?.cursor).toBe("INT. CAR - ".length);
+    expect(apply(".car", getSmartTabPlan(".car", 4))).toBe(".CAR - ");
+    const timed = "INT. car - day";
+    expect(apply(timed, getSmartTabPlan(timed, timed.length, ["DAY"]))).toBe(
+      "INT. CAR - DAY",
+    );
+  });
+
+  it("uppercases the heading when Enter starts the action", () => {
+    const source = "int. car - day";
+    expect(apply(source, getSmartEnterPlan(source, source.length))).toBe(
+      "INT. CAR - DAY\n\n",
+    );
+  });
+});

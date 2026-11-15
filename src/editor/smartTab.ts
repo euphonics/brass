@@ -154,6 +154,26 @@ function hasTimeOfDay(heading: string, knownTimes: readonly string[]): boolean {
   return knownTimes.some((time) => time.toLocaleUpperCase() === normalized);
 }
 
+/**
+ * Sluglines are all caps: when Tab or Enter moves on from a scene heading,
+ * the part already typed ("INT. car") is uppercased along with the insert.
+ */
+export function uppercaseHeading(
+  source: string,
+  plan: SmartTabPlan,
+): SmartTabPlan {
+  const lineStart = source.lastIndexOf("\n", Math.max(0, plan.at - 1)) + 1;
+  const typed = source.slice(lineStart, plan.at);
+  const upper = typed.toLocaleUpperCase();
+  if (upper === typed || upper.length !== typed.length) return plan;
+  return {
+    ...plan,
+    replaceFrom: lineStart,
+    insert: upper + plan.insert,
+    cursor: lineStart + upper.length + (plan.cursor - plan.at),
+  };
+}
+
 export function getSmartTabPlan(
   source: string,
   cursorOffset: number,
@@ -219,17 +239,23 @@ export function getSmartTabPlan(
       // After a slug modifier "(FLASHBACK)": start the action.
       const { base, modifier } = splitSlugModifier(line);
       if (modifier !== null && hasTimeOfDay(base, times)) {
-        return {
+        return uppercaseHeading(source, {
           kind,
           at,
           insert: "\n\n",
           cursor: at + 2,
           openCompletion: false,
-        };
+        });
       }
       // After the time of day: the slug modifier list (Enter skips it).
       if (hasTimeOfDay(line, times)) {
-        return { kind, at, insert: "", cursor: at, openCompletion: true };
+        return uppercaseHeading(source, {
+          kind,
+          at,
+          insert: "",
+          cursor: at,
+          openCompletion: true,
+        });
       }
       // Complete the " - " separator, whatever part of it is already typed.
       const trimmed = line.trimEnd();
@@ -240,13 +266,13 @@ export function getSmartTabPlan(
         : line.endsWith(" ")
           ? "- "
           : " - ";
-      return {
+      return uppercaseHeading(source, {
         kind,
         at,
         insert,
         cursor: at + insert.length,
         openCompletion: true,
-      };
+      });
     }
     case "action":
       return { kind, at, insert: "\n\n", cursor: at + 2, openCompletion: true };
@@ -293,13 +319,16 @@ export function getSmartEnterPlan(
       if (nextLine.trim() !== "") return null;
     }
   }
-  return {
+  const enterPlan: SmartTabPlan = {
     kind: plan.kind,
     at: plan.at,
     insert: "\n\n",
     cursor: plan.at + 2,
     openCompletion: plan.kind === "dialogue",
   };
+  return plan.kind === "scene-heading"
+    ? uppercaseHeading(source, enterPlan)
+    : enterPlan;
 }
 
 /** Character name from a cue line: "@jen (V.O.) ^" -> "JEN". */
