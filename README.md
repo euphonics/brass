@@ -25,6 +25,9 @@ remain available.
 The current build provides:
 
 - screenplay mode for `.fountain` files;
+- an optional screenplay layout in the editor that indents and aligns each
+  element as it prints, display only (Settings > Editor layout, or plain
+  Fountain text);
 - screenplay mode for Markdown notes with `screenplay: true` frontmatter;
 - Fountain-aware scene and character parsing;
 - a debounced status item with word and scene counts;

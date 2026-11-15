@@ -1,0 +1,100 @@
+/*
+ * Copyright 2026 Christian Grobmeier
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { describe, expect, it } from "vitest";
+import { classifyLayoutLines } from "../src/editor/layoutClassifier";
+
+const classify = (text: string, cursorLine?: number) =>
+  classifyLayoutLines(text.split("\n"), cursorLine);
+
+describe("editor screenplay layout", () => {
+  it("classifies each Fountain element", () => {
+    const source = [
+      "---",
+      "screenplay: true",
+      "---",
+      "# Act One",
+      "",
+      "INT. KITCHEN - NIGHT",
+      "",
+      "Jen stirs a pot.",
+      "",
+      "JEN (O.S.)",
+      "(quietly)",
+      "I'm fine.",
+      "Really.",
+      "",
+      "> CUT TO:",
+      "",
+      "> THE END <",
+      "",
+      "===",
+      "~La la la",
+      "",
+      "[[note to self]]",
+      "/* cut",
+      "this */",
+      ".LATER",
+    ].join("\n");
+    expect(classify(source)).toEqual([
+      null,
+      null,
+      null,
+      null,
+      null,
+      "scene-heading",
+      null,
+      "action",
+      null,
+      "character",
+      "parenthetical",
+      "dialogue",
+      "dialogue",
+      null,
+      "transition",
+      null,
+      "centered",
+      null,
+      "page-break",
+      "lyric",
+      null,
+      "note",
+      "note",
+      "note",
+      "scene-heading",
+    ]);
+  });
+
+  it("treats an all-caps line without dialogue as action, unless being typed", () => {
+    expect(classify("Text.\n\nBANG!\n\nMore.")[2]).toBe("action");
+    expect(classify("Text.\n\nJEN", 2)[2]).toBe("character");
+    expect(classify("Text.\n\nJEN")[2]).toBe("action");
+  });
+
+  it("needs a blank line before a cue", () => {
+    expect(classify("She runs.\nJEN\nHi.")).toEqual([
+      "action",
+      "action",
+      "action",
+    ]);
+  });
+
+  it("leaves tags, callouts and Obsidian comments alone or muted", () => {
+    expect(
+      classify("#Character in TIGHTER\n\n> [!note] x\n\n%%\nhidden\n%%"),
+    ).toEqual([null, null, null, null, "note", "note", "note"]);
+  });
+});

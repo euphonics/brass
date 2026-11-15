@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { createScreenplayLayoutExtension } from "./editor/screenplayLayout";
 import { MarkdownView, Plugin, getFrontMatterInfo, parseYaml } from "obsidian";
 import type { TFile } from "obsidian";
 import { openCharacterPicker } from "./commands/character";
@@ -76,6 +77,7 @@ export default class FirstDraftPlugin extends Plugin {
     this.statusBarItem.hide();
     this.addSettingTab(new FirstDraftSettingTab(this.app, this));
     this.registerEditorExtension(createScreenplayCompletionExtension(this));
+    this.registerEditorExtension(createScreenplayLayoutExtension(this));
     this.registerView(
       FIRST_DRAFT_PALETTE_VIEW_TYPE,
       (leaf) => new FirstDraftPaletteView(leaf, this),

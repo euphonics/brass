@@ -347,3 +347,83 @@
     padding: var(--size-4-2);
   }
 }
+
+/*
+ * Editor screenplay layout (Settings > Editor layout). Display only.
+ * Indents are percentages of a 60-character line, so they match the printed
+ * page on desktop and shrink in proportion on a phone.
+ */
+.markdown-source-view.mod-cm6
+  .cm-editor.firstdraft-screenplay-layout
+  .cm-scroller {
+  font-family: "Courier Prime", "Courier New", Courier, var(--font-monospace);
+}
+
+.markdown-source-view.mod-cm6
+  .cm-editor.firstdraft-screenplay-layout
+  .cm-sizer {
+  max-width: 62ch;
+  margin-inline: auto;
+}
+
+.markdown-source-view.mod-cm6 .cm-editor.firstdraft-screenplay-layout .cm-line {
+  box-sizing: border-box;
+}
+
+.markdown-source-view.mod-cm6
+  .cm-editor.firstdraft-screenplay-layout
+  .cm-line.firstdraft-sp-scene-heading {
+  font-weight: var(--font-bold);
+}
+
+.markdown-source-view.mod-cm6
+  .cm-editor.firstdraft-screenplay-layout
+  .cm-line.firstdraft-sp-character {
+  padding-inline-start: 36.5%;
+}
+
+.markdown-source-view.mod-cm6
+  .cm-editor.firstdraft-screenplay-layout
+  .cm-line.firstdraft-sp-dialogue {
+  padding-inline-start: 16.5%;
+  padding-inline-end: 25%;
+}
+
+.markdown-source-view.mod-cm6
+  .cm-editor.firstdraft-screenplay-layout
+  .cm-line.firstdraft-sp-parenthetical {
+  padding-inline-start: 26.5%;
+  padding-inline-end: 31.5%;
+}
+
+.markdown-source-view.mod-cm6
+  .cm-editor.firstdraft-screenplay-layout
+  .cm-line.firstdraft-sp-transition {
+  text-align: end;
+}
+
+.markdown-source-view.mod-cm6
+  .cm-editor.firstdraft-screenplay-layout
+  .cm-line.firstdraft-sp-centered {
+  text-align: center;
+}
+
+.markdown-source-view.mod-cm6
+  .cm-editor.firstdraft-screenplay-layout
+  .cm-line.firstdraft-sp-lyric {
+  font-style: italic;
+  padding-inline-start: 16.5%;
+}
+
+.markdown-source-view.mod-cm6
+  .cm-editor.firstdraft-screenplay-layout
+  .cm-line.firstdraft-sp-page-break {
+  border-bottom: 1px dashed var(--background-modifier-border);
+  color: var(--text-faint);
+}
+
+.markdown-source-view.mod-cm6
+  .cm-editor.firstdraft-screenplay-layout
+  .cm-line.firstdraft-sp-note {
+  color: var(--text-muted);
+}

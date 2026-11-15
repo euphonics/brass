@@ -31,11 +31,15 @@ import {
   DEFAULT_TIMES_OF_DAY,
 } from "../screenplay/fountain";
 
+/** Editor look for screenplay notes. */
+export type EditorLayout = "screenplay" | "plain";
+
 export interface FirstDraftSettings {
   activateFountainFiles: boolean;
   activateFrontmatter: boolean;
   autocompleteEnabled: boolean;
   smartTabEnabled: boolean;
+  editorLayout: EditorLayout;
   sceneTypeMinimumLetters: number;
   sceneTypeMatchCase: boolean;
   recentItemsWeighting: number;
@@ -146,6 +150,7 @@ export const DEFAULT_SETTINGS: FirstDraftSettings = {
   activateFrontmatter: true,
   autocompleteEnabled: true,
   smartTabEnabled: true,
+  editorLayout: "screenplay",
   sceneTypeMinimumLetters: 2,
   sceneTypeMatchCase: false,
   recentItemsWeighting: 0.65,
@@ -282,6 +287,19 @@ export class FirstDraftSettingTab extends PluginSettingTab {
           step: 0.1,
           defaultValue: DEFAULT_SETTINGS.minutesPerPage,
           displayFormat: (value) => value.toFixed(1),
+        },
+      },
+      {
+        name: "Editor layout",
+        desc: "Screenplay layout indents and aligns each element as it prints (centered character names, narrow dialogue, right-aligned transitions) in a monospace font. Plain Fountain text keeps Obsidian's normal look. Display only: the note text is the same either way.",
+        control: {
+          type: "dropdown",
+          key: "editorLayout",
+          options: {
+            screenplay: "Screenplay layout",
+            plain: "Plain Fountain text",
+          },
+          defaultValue: DEFAULT_SETTINGS.editorLayout,
         },
       },
       {
@@ -481,6 +499,9 @@ export class FirstDraftSettingTab extends PluginSettingTab {
     } else if (key === "pageSize") {
       if (value !== "us-letter" && value !== "a4") return;
       this.plugin.settings.pageSize = value;
+    } else if (key === "editorLayout") {
+      if (value !== "screenplay" && value !== "plain") return;
+      this.plugin.settings.editorLayout = value;
     } else if (key === "pdfLanguage") {
       if (!isPdfLanguage(value)) return;
       this.plugin.settings.pdfLanguage = value;
@@ -495,6 +516,7 @@ export class FirstDraftSettingTab extends PluginSettingTab {
     }
 
     await this.plugin.saveSettings();
+    if (key === "editorLayout") this.app.workspace.updateOptions();
     if (
       key === "activateFountainFiles" ||
       key === "activateFrontmatter" ||

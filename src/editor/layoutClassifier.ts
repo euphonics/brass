@@ -1,0 +1,142 @@
+/*
+ * Copyright 2026 Christian Grobmeier
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { isSceneHeading } from "../screenplay/parser";
+import {
+  isForcedTransition,
+  isMarkdownHeading,
+  isTransitionText,
+  looksLikeCharacterCue,
+} from "./smartTab";
+
+/** How a line is laid out in the editor's screenplay layout. */
+export type LayoutLineKind =
+  | "scene-heading"
+  | "action"
+  | "character"
+  | "parenthetical"
+  | "dialogue"
+  | "transition"
+  | "centered"
+  | "lyric"
+  | "page-break"
+  | "note";
+
+function isBlank(line: string | undefined): boolean {
+  return line === undefined || line.trim() === "";
+}
+
+function frontmatterEnd(lines: readonly string[]): number {
+  if (lines[0]?.replace(/^\uFEFF/u, "").trim() !== "---") return -1;
+  for (let index = 1; index < lines.length; index += 1) {
+    if (lines[index]?.trim() === "---") return index;
+  }
+  return -1;
+}
+
+/**
+ * Lay out each line of a Fountain document for the editor. `null` means the
+ * line keeps Obsidian's normal look (blank lines, frontmatter, Markdown
+ * headings and tags). `cursorLine` (0-based) lets a character cue being typed
+ * show as a cue before its dialogue exists.
+ */
+export function classifyLayoutLines(
+  lines: readonly string[],
+  cursorLine = -1,
+): (LayoutLineKind | null)[] {
+  const kinds: (LayoutLineKind | null)[] = new Array<LayoutLineKind | null>(
+    lines.length,
+  ).fill(null);
+  const firstContentLine = frontmatterEnd(lines) + 1;
+  let inDialogue = false;
+  let inBoneyard = false;
+  let inComment = false;
+
+  for (let index = firstContentLine; index < lines.length; index += 1) {
+    const text = (lines[index] ?? "").trim();
+
+    // Boneyard /* ... */ and Obsidian %% ... %% comments can span lines.
+    if (inBoneyard || inComment || text.startsWith("/*") || text === "%%") {
+      kinds[index] = "note";
+      if (text.startsWith("/*") && !inBoneyard) inBoneyard = true;
+      else if (text === "%%" && !inComment) inComment = true;
+      else if (inComment && text.endsWith("%%")) inComment = false;
+      if (inBoneyard && text.endsWith("*/")) inBoneyard = false;
+      inDialogue = false;
+      continue;
+    }
+
+    if (text === "") {
+      inDialogue = false;
+      continue;
+    }
+
+    const startsBlock = index === firstContentLine || isBlank(lines[index - 1]);
+
+    if (inDialogue) {
+      kinds[index] =
+        text.startsWith("(") && text.endsWith(")")
+          ? "parenthetical"
+          : text.startsWith("(") && !text.includes(")")
+            ? "parenthetical"
+            : "dialogue";
+      continue;
+    }
+
+    if (/^={3,}$/u.test(text)) {
+      kinds[index] = "page-break";
+      continue;
+    }
+    // Markdown headings, Fountain sections and tag lines keep their look.
+    if (text.startsWith("#") || isMarkdownHeading(text)) continue;
+    if (/^=(?!=)/u.test(text) || /^\[\[.*\]\]$/u.test(text)) {
+      kinds[index] = "note";
+      continue;
+    }
+    if (/^>\s*\[!/u.test(text)) continue;
+    if (/^>.*<$/u.test(text)) {
+      kinds[index] = "centered";
+      continue;
+    }
+    if (text.startsWith("~")) {
+      kinds[index] = "lyric";
+      continue;
+    }
+    if (text.startsWith("!")) {
+      kinds[index] = "action";
+      continue;
+    }
+    if (isSceneHeading(text)) {
+      kinds[index] = "scene-heading";
+      continue;
+    }
+    if (isForcedTransition(text) || (startsBlock && isTransitionText(text))) {
+      kinds[index] = "transition";
+      continue;
+    }
+    if (
+      startsBlock &&
+      looksLikeCharacterCue(text) &&
+      (!isBlank(lines[index + 1]) || index === cursorLine)
+    ) {
+      kinds[index] = "character";
+      inDialogue = true;
+      continue;
+    }
+    kinds[index] = "action";
+  }
+  return kinds;
+}
