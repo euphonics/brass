@@ -113,6 +113,14 @@ describe("editor screenplay layout", () => {
     expect(picked[4]).toBe("dialogue");
   });
 
+  it("lays out a line turned back into action (Shift+Tab) as action", () => {
+    const lines = "BLAKE\nYou sure?\n\n".split("\n");
+    expect(classifyLayoutLines(lines, 3, 3)[3]).toBe("action");
+    // Typing in caps there stays action rather than becoming a cue.
+    const typed = "BLAKE\nYou sure?\n\nBANG\n".split("\n");
+    expect(classifyLayoutLines(typed, 3, 3)[3]).toBe("action");
+  });
+
   it("finds the markers to hide on centred text", () => {
     expect(centeredMarkers("> TIGHTER <")).toEqual([
       [0, 2],

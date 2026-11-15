@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-import { RangeSetBuilder, type Extension } from "@codemirror/state";
+import { closeCompletion } from "@codemirror/autocomplete";
+import {
+  Prec,
+  RangeSetBuilder,
+  StateEffect,
+  StateField,
+  type Extension,
+} from "@codemirror/state";
 import {
   Decoration,
   EditorView,
   ViewPlugin,
+  keymap,
   type DecorationSet,
   type ViewUpdate,
 } from "@codemirror/view";
@@ -56,6 +64,28 @@ const LINE_DECORATIONS = new Map<LayoutLineKind, Decoration>(
 
 const HIDDEN = Decoration.replace({});
 
+/** Turn the cursor's line back into action (Shift+Tab on a pending cue). */
+const setActionLine = StateEffect.define<number | null>();
+
+/**
+ * Start of the line the writer turned back into action, or null. Cleared
+ * once the cursor leaves that line.
+ */
+const actionLineField = StateField.define<number | null>({
+  create: () => null,
+  update(value, tr) {
+    let next = value === null ? null : tr.changes.mapPos(value);
+    for (const effect of tr.effects) {
+      if (effect.is(setActionLine)) next = effect.value;
+    }
+    if (next === null) return null;
+    const { doc, selection } = tr.state;
+    return doc.lineAt(selection.main.head).from === doc.lineAt(next).from
+      ? next
+      : null;
+  },
+});
+
 /**
  * Screenplay layout for the editor: indents and aligns each Fountain element
  * the way it prints (centered cues, narrow dialogue, right-aligned
@@ -69,7 +99,7 @@ export function createScreenplayLayoutExtension(
     class {
       decorations: DecorationSet = Decoration.none;
       active = false;
-      private kinds: (LayoutLineKind | null)[] = [];
+      kinds: (LayoutLineKind | null)[] = [];
       private cursorLine = -1;
 
       constructor(view: EditorView) {
@@ -83,6 +113,8 @@ export function createScreenplayLayoutExtension(
         const reclassify =
           update.docChanged ||
           cursorLine !== this.cursorLine ||
+          update.startState.field(actionLineField, false) !==
+            update.state.field(actionLineField, false) ||
           update.startState.field(editorInfoField, false)?.file !==
             update.state.field(editorInfoField, false)?.file;
         const wasActive = this.active;
@@ -122,7 +154,12 @@ export function createScreenplayLayoutExtension(
         if (reclassify || this.kinds.length !== doc.lines) {
           const lines: string[] = [];
           for (const line of doc.iterLines()) lines.push(line);
-          this.kinds = classifyLayoutLines(lines, this.cursorLine);
+          const actionLine = view.state.field(actionLineField, false);
+          this.kinds = classifyLayoutLines(
+            lines,
+            this.cursorLine,
+            actionLine == null ? -1 : doc.lineAt(actionLine).number - 1,
+          );
         }
         const builder = new RangeSetBuilder<Decoration>();
         let lastLine = 0;
@@ -170,5 +207,25 @@ export function createScreenplayLayoutExtension(
         ),
     },
   );
-  return layoutPlugin;
+  // Shift+Tab on the empty line where the next cue goes: close the
+  // character list and lay the line out as action instead.
+  const shiftTab = (view: EditorView): boolean => {
+    const layout = view.plugin(layoutPlugin);
+    if (!layout?.active) return false;
+    const { state } = view;
+    const selection = state.selection.main;
+    if (!selection.empty) return false;
+    const line = state.doc.lineAt(selection.head);
+    if (line.text.trim() !== "") return false;
+    if (layout.kinds[line.number - 1] !== "character") return false;
+    closeCompletion(view);
+    view.dispatch({ effects: setActionLine.of(line.from) });
+    return true;
+  };
+
+  return [
+    actionLineField,
+    layoutPlugin,
+    Prec.highest(keymap.of([{ key: "Shift-Tab", run: shiftTab }])),
+  ];
 }

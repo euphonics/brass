@@ -56,6 +56,7 @@ function frontmatterEnd(lines: readonly string[]): number {
 export function classifyLayoutLines(
   lines: readonly string[],
   cursorLine = -1,
+  actionLine = -1,
 ): (LayoutLineKind | null)[] {
   const kinds: (LayoutLineKind | null)[] = new Array<LayoutLineKind | null>(
     lines.length,
@@ -75,6 +76,13 @@ export function classifyLayoutLines(
       else if (text === "%%" && !inComment) inComment = true;
       else if (inComment && text.endsWith("%%")) inComment = false;
       if (inBoneyard && text.endsWith("*/")) inBoneyard = false;
+      inDialogue = false;
+      continue;
+    }
+
+    // A line the writer turned back into action (Shift+Tab).
+    if (index === actionLine) {
+      kinds[index] = "action";
       inDialogue = false;
       continue;
     }
