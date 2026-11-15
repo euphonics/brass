@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +16,7 @@
  */
 
 import type { Editor } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import { COMMON_PARENTHETICALS } from "../screenplay/fountain";
 import { buildScreenplayIndex, rankUsages } from "../screenplay/indexer";
 import {
@@ -41,7 +42,7 @@ function unique(values: readonly string[]): string[] {
 }
 
 export function openParenthetical(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   editor: Editor,
 ): void {
   const index = buildScreenplayIndex(parseFountain(editor.getValue()));

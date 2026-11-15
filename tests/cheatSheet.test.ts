@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +19,11 @@ import { describe, expect, it } from "vitest";
 import { CHEAT_SHEET_SECTIONS } from "../src/onboarding/cheatSheet";
 
 describe("screenplay cheat sheet", () => {
-  it("covers screenplay, Fountain, and First Draft terms", () => {
+  it("covers screenplay, Fountain, and Scribidian terms", () => {
     expect(CHEAT_SHEET_SECTIONS.map((section) => section.title)).toEqual([
       "Screenplay terms",
       "Fountain quick syntax",
-      "First Draft terms",
+      "Scribidian terms",
     ]);
     const terms = CHEAT_SHEET_SECTIONS.flatMap((section) =>
       section.entries.map((entry) => entry.term),

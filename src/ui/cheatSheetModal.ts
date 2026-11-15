@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,16 +26,16 @@ export class CheatSheetModal extends Modal {
 
   onOpen(): void {
     this.setTitle("Screenplay cheat sheet");
-    this.contentEl.addClass("firstdraft-cheat-sheet");
+    this.contentEl.addClass("scribidian-cheat-sheet");
     this.contentEl.createEl("p", {
-      cls: "firstdraft-palette-muted",
+      cls: "scribidian-palette-muted",
       text: "Examples are selectable. Use your normal copy shortcut after selecting the text you need.",
     });
 
     for (const section of CHEAT_SHEET_SECTIONS) {
       this.contentEl.createEl("h3", { text: section.title });
       this.contentEl.createEl("p", {
-        cls: "firstdraft-palette-muted",
+        cls: "scribidian-palette-muted",
         text: section.introduction,
       });
       const entries = this.contentEl.createEl("dl");
@@ -56,9 +57,9 @@ export class CheatSheetModal extends Modal {
     term: string,
     example: string,
   ): void {
-    const row = container.createDiv({ cls: "firstdraft-cheat-example" });
+    const row = container.createDiv({ cls: "scribidian-cheat-example" });
     const field = row.createEl("textarea", {
-      cls: "firstdraft-cheat-example-text",
+      cls: "scribidian-cheat-example-text",
       attr: {
         "aria-label": `${term} example`,
         readonly: "",

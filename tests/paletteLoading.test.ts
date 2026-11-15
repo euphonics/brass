@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +16,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type FirstDraftPlugin from "../src/main";
-import { renderFirstDraftPalette } from "../src/ui/palette/paletteRenderer";
+import type ScribidianPlugin from "../src/main";
+import { renderScribidianPalette } from "../src/ui/palette/paletteRenderer";
 import { renderScreenplayPalette } from "../src/ui/palette/screenplayPalette";
 import { renderProjectPalette } from "../src/ui/palette/projectPalette";
 import { renderCharacterPalette } from "../src/ui/palette/characterPalette";
@@ -64,8 +65,8 @@ function render(
     }),
     settings: { activateFrontmatter: true },
   };
-  renderFirstDraftPalette(
-    plugin as unknown as FirstDraftPlugin,
+  renderScribidianPalette(
+    plugin as unknown as ScribidianPlugin,
     element as unknown as HTMLElement,
     {
       getQuery: () => "",

@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +17,14 @@
 
 import { normalizePath, Notice } from "obsidian";
 import type { TFile } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import {
   availableExampleFolderName,
   exampleProjectFiles,
 } from "../onboarding/exampleProject";
 
 export async function createExampleScreenplay(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
 ): Promise<void> {
   const folder = availableExampleFolderName(
     (candidate) => plugin.app.vault.getAbstractFileByPath(candidate) !== null,

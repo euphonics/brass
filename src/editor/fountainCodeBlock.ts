@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +15,11 @@
  * limitations under the License.
  */
 
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import { classifyLayoutLines } from "./layoutClassifier";
 
 /** CSS class on the container of a rendered Fountain code block. */
-const BLOCK_CLASS = "firstdraft-fountain-codeblock";
+const BLOCK_CLASS = "scribidian-fountain-codeblock";
 
 /**
  * Register a markdown code block post-processor for `fountain` fenced code
@@ -31,7 +32,7 @@ const BLOCK_CLASS = "firstdraft-fountain-codeblock";
  * This applies to every note in the vault, not only to screenplay-mode notes.
  */
 export function registerFountainCodeBlockProcessor(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
 ): void {
   plugin.registerMarkdownCodeBlockProcessor("fountain", (source, el) => {
     if (!plugin.settings.renderFountainCodeBlocks) {
@@ -51,13 +52,13 @@ export function registerFountainCodeBlockProcessor(
       const line = lines[i] ?? "";
       const kind = kinds[i];
       const div = el.createDiv({
-        cls: kind ? `firstdraft-sp-${kind}` : undefined,
+        cls: kind ? `scribidian-sp-${kind}` : undefined,
       });
       if (line) {
         div.setText(line);
       } else {
         // Preserve blank-line height with a non-breaking space.
-        div.addClass("firstdraft-codeblock-blank");
+        div.addClass("scribidian-codeblock-blank");
         div.setText("\u00A0");
       }
     }

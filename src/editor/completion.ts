@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +38,7 @@ import {
 } from "@codemirror/state";
 import { keymap, type EditorView } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
 import { buildScreenplayIndex } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
@@ -149,7 +150,7 @@ function applyCandidate(
 }
 
 export function createScreenplayCompletionExtension(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
 ): Extension {
   // Smart rebuild: reuse the suggestion index while only the current line
   // changes. Edits to other notes (e.g. other project parts) clear it.

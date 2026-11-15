@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +23,12 @@ import {
 } from "../../characters/catalogue";
 import { characterDocumentUsage } from "../../characters/usage";
 import { openCharacterGraph } from "../../commands/characterGraph";
-import type FirstDraftPlugin from "../../main";
+import type ScribidianPlugin from "../../main";
 import { loadScreenplayContext } from "../../projects/vault";
 import { parseFountain } from "../../screenplay/parser";
 
 export function renderCharacterPalette(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   container: HTMLElement,
   file: TFile,
   isCurrent: () => boolean,
@@ -41,18 +42,18 @@ export function renderCharacterPalette(
   container.createEl("h3", { text: page.character });
   if (page.aliases.length > 0) {
     container.createEl("p", {
-      cls: "firstdraft-palette-muted",
+      cls: "scribidian-palette-muted",
       text: `Aliases: ${page.aliases.join(", ")}`,
     });
   }
   const graph = container.createEl("button", {
-    cls: "mod-cta firstdraft-character-graph",
+    cls: "mod-cta scribidian-character-graph",
     text: "Open local graph",
   });
   graph.addEventListener("click", () => void openCharacterGraph(plugin, file));
 
   const usage = container.createEl("p", {
-    cls: "firstdraft-palette-muted",
+    cls: "scribidian-palette-muted",
     text: "Calculating linked screenplay usage…",
   });
   void renderCharacterUsage(plugin, usage, page, isCurrent);
@@ -69,7 +70,7 @@ export function renderCharacterPalette(
 }
 
 async function renderCharacterUsage(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   element: HTMLElement,
   page: CharacterPage,
   isCurrent: () => boolean,
@@ -105,7 +106,7 @@ async function renderCharacterUsage(
 }
 
 async function renderCharacterAppearances(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   container: HTMLElement,
   page: CharacterPage,
   isCurrent: () => boolean,
@@ -138,10 +139,10 @@ async function renderCharacterAppearances(
   }
   if (!isCurrent() || appearances.length === 0) return;
   container.createEl("h3", { text: "Appearances" });
-  const list = container.createDiv({ cls: "firstdraft-palette-items" });
+  const list = container.createDiv({ cls: "scribidian-palette-items" });
   for (const appearance of appearances) {
     const button = list.createEl("button", {
-      cls: "firstdraft-palette-item",
+      cls: "scribidian-palette-item",
       text: `${appearance.label} · ${appearance.cues} cue${appearance.cues === 1 ? "" : "s"}`,
     });
     button.addEventListener(
@@ -152,7 +153,7 @@ async function renderCharacterAppearances(
 }
 
 function renderCharacterLinks(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   container: HTMLElement,
   heading: string,
   links: readonly string[],
@@ -161,16 +162,16 @@ function renderCharacterLinks(
   container.createEl("h3", { text: heading });
   if (links.length === 0) {
     container.createEl("p", {
-      cls: "firstdraft-palette-empty",
+      cls: "scribidian-palette-empty",
       text: `No ${heading.toLocaleLowerCase()} linked yet.`,
     });
     return;
   }
-  const list = container.createDiv({ cls: "firstdraft-palette-items" });
+  const list = container.createDiv({ cls: "scribidian-palette-items" });
   for (const link of links) {
     const target = wikiLinkTarget(link);
     const button = list.createEl("button", {
-      cls: "firstdraft-palette-item",
+      cls: "scribidian-palette-item",
       text: target.split("/").pop() ?? target,
     });
     button.addEventListener("click", () => {

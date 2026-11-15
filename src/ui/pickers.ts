@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +73,7 @@ export class TextInputModal extends Modal {
       .onChange((value) => {
         this.value = value;
       });
-    input.inputEl.addClass("firstdraft-prompt-input");
+    input.inputEl.addClass("scribidian-prompt-input");
     input.inputEl.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.isComposing) {
         event.preventDefault();

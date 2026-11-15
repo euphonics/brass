@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +16,7 @@
  */
 
 import type { Editor } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
 import { buildScreenplayIndex, rankUsages } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
@@ -45,12 +46,12 @@ function unique(values: readonly string[]): string[] {
   });
 }
 
-export function openNewScene(plugin: FirstDraftPlugin, editor: Editor): void {
+export function openNewScene(plugin: ScribidianPlugin, editor: Editor): void {
   void openNewSceneForContext(plugin, editor);
 }
 
 async function projectIndex(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   editor: Editor,
 ): Promise<ReturnType<typeof buildScreenplayIndex>> {
   const file = plugin.activeMarkdownView()?.file ?? null;
@@ -66,7 +67,7 @@ async function projectIndex(
 }
 
 async function openNewSceneForContext(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   editor: Editor,
 ): Promise<void> {
   const index = await projectIndex(plugin, editor);
@@ -80,7 +81,7 @@ async function openNewSceneForContext(
 }
 
 export function openNewSceneAtLocation(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   editor: Editor,
   location: string,
 ): void {
@@ -88,7 +89,7 @@ export function openNewSceneAtLocation(
 }
 
 async function openNewSceneAtLocationForContext(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   editor: Editor,
   location: string,
 ): Promise<void> {
@@ -104,7 +105,7 @@ async function openNewSceneAtLocationForContext(
 }
 
 function chooseLocation(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   editor: Editor,
   index: ReturnType<typeof buildScreenplayIndex>,
   sceneType: string,
@@ -137,7 +138,7 @@ function chooseLocation(
 }
 
 function chooseTime(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   editor: Editor,
   index: ReturnType<typeof buildScreenplayIndex>,
   sceneType: string,

@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +16,13 @@
  */
 
 import { Modal, Notice } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import { CJK_FONT_FILES, installCjkFontPack } from "../export/cjkFontPack";
 
-const installing = new WeakSet<FirstDraftPlugin>();
+const installing = new WeakSet<ScribidianPlugin>();
 
 export class CjkFontPackModal extends Modal {
-  constructor(private readonly plugin: FirstDraftPlugin) {
+  constructor(private readonly plugin: ScribidianPlugin) {
     super(plugin.app);
   }
 
@@ -33,7 +34,7 @@ export class CjkFontPackModal extends Modal {
     });
     const instructions = contentEl.createEl("a", {
       text: "Font files, licence and installation instructions",
-      href: "https://github.com/grobmeier/firstdraft/blob/main/docs/CJK_FONT_PACK.md",
+      href: "https://github.com/euphonics/scribidian/blob/main/docs/CJK_FONT_PACK.md",
     });
     instructions.setAttribute("target", "_blank");
     instructions.setAttribute("rel", "noopener noreferrer");

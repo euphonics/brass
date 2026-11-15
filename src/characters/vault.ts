@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +30,8 @@ import {
   matchingCharacterPages,
   type CharacterPage,
   wikiLinkTarget,
+  LEGACY_PAGE_KIND_KEY,
+  PAGE_KIND_KEY,
 } from "./catalogue";
 import type { VerifiableCharacterPage } from "./verification";
 
@@ -201,7 +204,7 @@ export async function screenplayProjectName(
   return guessed;
 }
 
-/** Add the properties First Draft uses to recognise a character page. */
+/** Add the properties Scribidian uses to recognise a character page. */
 async function markAsCharacterPage(
   app: App,
   file: TFile,
@@ -213,7 +216,10 @@ async function markAsCharacterPage(
   await app.fileManager.processFrontMatter(
     file,
     (frontmatter: Record<string, unknown>) => {
-      frontmatter.firstdraft = "character";
+      // A page already marked with First Draft's key keeps it as is.
+      if (frontmatter[LEGACY_PAGE_KIND_KEY] !== "character") {
+        frontmatter[PAGE_KIND_KEY] = "character";
+      }
       if (typeof frontmatter.character !== "string") {
         frontmatter.character = normalizeCharacterName(cue);
       }
@@ -254,7 +260,7 @@ export async function ensureCharacterPage(
 
   const projectName = await screenplayProjectName(app, owner);
 
-  // A page with the expected name may already exist without First Draft's
+  // A page with the expected name may already exist without Scribidian's
   // properties (written by hand, or moved). Adopt it instead of making
   // "Name (Character in X) 2".
   const existing = app.metadataCache.getFirstLinkpathDest(
@@ -301,7 +307,7 @@ export async function ensureCharacterPage(
     time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
   });
   const file = await app.vault.create(path, content);
-  // The user's template may lack the properties First Draft needs.
+  // The user's template may lack the properties Scribidian needs.
   await markAsCharacterPage(app, file, cue, owner, true);
   return file;
 }

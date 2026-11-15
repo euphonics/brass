@@ -1,6 +1,6 @@
 {
-  "name": "firstdraft",
-  "version": "0.13.1",
+  "name": "scribidian",
+  "version": "1.0.0",
   "description": "Screenplay-aware writing assistance for Obsidian, with portable Fountain source.",
   "type": "module",
   "main": "main.js",
@@ -25,7 +25,7 @@
     "screenplay",
     "screenwriting"
   ],
-  "author": "Christian Grobmeier",
+  "author": "arvn",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=22.12 <23 || >=24"

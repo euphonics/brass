@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +16,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type FirstDraftPlugin from "../src/main";
+import type ScribidianPlugin from "../src/main";
 import { CjkFontPackModal } from "../src/ui/cjkFontPackModal";
 import { CJK_FONT_FILES, installCjkFontPack } from "../src/export/cjkFontPack";
 import type * as FontPackModule from "../src/export/cjkFontPack";
@@ -65,8 +66,8 @@ function render() {
   const adapter = {};
   const modal = new CjkFontPackModal({
     app: { vault: { adapter } },
-    manifest: { dir: "custom/plugins/firstdraft" },
-  } as unknown as FirstDraftPlugin);
+    manifest: { dir: "custom/plugins/scribidian" },
+  } as unknown as ScribidianPlugin);
   modal.onOpen();
   const input = ui.elements.find((element) => element.tag === "input")!;
   const button = ui.elements.find((element) => element.tag === "button")!;
@@ -121,7 +122,7 @@ describe("font-pack file picker", () => {
     );
     expect(installCjkFontPack).toHaveBeenCalledWith(
       f.adapter,
-      "custom/plugins/firstdraft",
+      "custom/plugins/scribidian",
       { regular: new Uint8Array(1), bold: new Uint8Array(1) },
     );
     expect(f.button.disabled).toBe(false);

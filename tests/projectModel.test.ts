@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +29,7 @@ describe("screenplay projects", () => {
   it("parses ordered wiki links and the character folder override", () => {
     expect(
       screenplayProjectFromFrontmatter("Films/Night/Project.md", {
-        firstdraft: "screenplay-project",
+        scribidian: "screenplay-project",
         title: "The Long Night",
         parts: ["[[Parts/01 - Opening]]", "[[Elsewhere/02 - Ward|Ward]]"],
         "character-folder": "People",

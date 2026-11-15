@@ -1,6 +1,6 @@
 # PDF preview and export compatibility
 
-First Draft adds a local, read-only screenplay preview and
+Scribidian adds a local, read-only screenplay preview and
 non-destructive PDF export for standalone screenplays and ordered multi-file
 projects.
 
@@ -8,12 +8,12 @@ projects.
 
 - Scene headings, action, character cues, character extensions,
   parentheticals, dialogue, and transitions.
-- US Letter and A4, using the page size selected under Settings → First Draft.
+- US Letter and A4, using the page size selected under Settings → Scribidian.
 - Courier-style 12-point typography, screenplay margins, deterministic line
   wrapping, page breaks, and page numbers.
 - Combined project output in the explicit order of the project note's `parts`
   property.
-- Numbered filenames when an export already exists. First Draft never
+- Numbered filenames when an export already exists. Scribidian never
   overwrites an existing PDF.
 
 The source Fountain or Markdown files remain authoritative and unchanged. PDF
@@ -49,7 +49,7 @@ and right-to-left/complex-script layout is not guaranteed.
 
 - Horizontal output for representative Simplified/Traditional Chinese,
   Japanese kana/kanji and Korean Hangul. Mixed Latin text is supported.
-- Choose **Settings → First Draft → PDF language** to select regional Han
+- Choose **Settings → Scribidian → PDF language** to select regional Han
   character forms. The default is Simplified Chinese; select Japanese for a
   Japanese screenplay, Korean for Korean, or Traditional Chinese for Taiwan
   forms. This does not translate text; Hong Kong-specific forms are not included

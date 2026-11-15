@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +16,7 @@
  */
 
 import { MarkdownView, TFile } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import {
   loadScreenplayContext,
   projectMembershipIssue,
@@ -40,9 +41,9 @@ export interface SceneWorkspace {
   activePath: string;
   activeLine: number;
 }
-const busy = new WeakSet<FirstDraftPlugin>();
+const busy = new WeakSet<ScribidianPlugin>();
 
-function editors(plugin: FirstDraftPlugin, path: string): MarkdownView[] {
+function editors(plugin: ScribidianPlugin, path: string): MarkdownView[] {
   return plugin.app.workspace
     .getLeavesOfType("markdown")
     .flatMap((leaf) =>
@@ -51,14 +52,14 @@ function editors(plugin: FirstDraftPlugin, path: string): MarkdownView[] {
         : [],
     );
 }
-function fileFor(plugin: FirstDraftPlugin, path: string): TFile {
+function fileFor(plugin: ScribidianPlugin, path: string): TFile {
   const file = plugin.app.vault.getAbstractFileByPath(path);
   if (!(file instanceof TFile))
     throw new Error(`The file is no longer available: ${path}`);
   return file;
 }
 async function sourceFor(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   path: string,
 ): Promise<string> {
   const open = editors(plugin, path);
@@ -70,7 +71,7 @@ async function sourceFor(
   return values[0] ?? plugin.app.vault.read(fileFor(plugin, path));
 }
 export async function loadSceneWorkspace(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
 ): Promise<SceneWorkspace> {
   const view = plugin.activeMarkdownView();
   if (
@@ -109,7 +110,7 @@ export async function loadSceneWorkspace(
   };
 }
 export async function jumpToScene(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   file: SceneFile,
   scene: Scene,
 ): Promise<void> {
@@ -131,10 +132,10 @@ export async function jumpToScene(
   }
 }
 
-function recoveryPath(plugin: FirstDraftPlugin): string {
+function recoveryPath(plugin: ScribidianPlugin): string {
   return `${plugin.manifest.dir ?? `${plugin.app.vault.configDir}/plugins/${plugin.manifest.id}`}/scene-recovery.json`;
 }
-function diskPort(plugin: FirstDraftPlugin): SceneWritePort {
+function diskPort(plugin: ScribidianPlugin): SceneWritePort {
   return {
     read: async (path) => {
       const source = await plugin.app.vault.read(fileFor(plugin, path));
@@ -175,7 +176,7 @@ function diskPort(plugin: FirstDraftPlugin): SceneWritePort {
 }
 
 export async function readSceneRecovery(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
 ): Promise<SceneRecovery | null> {
   const path = recoveryPath(plugin);
   if (!(await plugin.app.vault.adapter.exists(path))) return null;
@@ -195,7 +196,7 @@ export async function readSceneRecovery(
 }
 
 async function exclusive(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   task: () => Promise<void>,
 ): Promise<void> {
   if (busy.has(plugin))
@@ -208,7 +209,7 @@ async function exclusive(
   }
 }
 export async function applySceneChanges(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   changes: SceneChange[],
 ): Promise<void> {
   await exclusive(plugin, async () => {
@@ -285,7 +286,7 @@ export async function applySceneChanges(
   });
 }
 export async function restoreLastSceneMove(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   record: SceneRecovery,
 ): Promise<void> {
   await exclusive(plugin, async () => {

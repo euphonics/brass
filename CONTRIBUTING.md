@@ -1,6 +1,6 @@
 # Contributing
 
-First Draft is being prepared for open-source community development.
+Scribidian welcomes issues and pull requests.
 
 ## Before opening a change
 

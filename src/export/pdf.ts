@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,8 +63,8 @@ export async function serializePdf(
 ): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   pdf.setTitle(options.title);
-  pdf.setCreator("First Draft for Obsidian");
-  pdf.setProducer("First Draft for Obsidian");
+  pdf.setCreator("Scribidian");
+  pdf.setProducer("Scribidian");
   const cjk =
     Object.values(document.titlePage ?? {}).some(hasCjkText) ||
     document.elements.some((element) =>

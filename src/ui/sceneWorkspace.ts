@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +16,7 @@
  */
 
 import { MarkdownView, Modal, Notice, Setting } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import {
   sceneFile,
   filterScenes,
@@ -68,7 +69,7 @@ function action(
 }
 
 export async function renderSceneWorkspace(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   container: HTMLElement,
   filters: SceneFilters,
   isCurrent: () => boolean,
@@ -76,7 +77,7 @@ export async function renderSceneWorkspace(
 ): Promise<void> {
   container.empty();
   container.createEl("h2", { text: "Scenes" });
-  const bar = container.createDiv({ cls: "firstdraft-scene-actions" });
+  const bar = container.createDiv({ cls: "scribidian-scene-actions" });
   action(bar, "Writing actions", () => {
     plugin.sceneWorkspaceMode = false;
     refresh();
@@ -95,7 +96,7 @@ export async function renderSceneWorkspace(
     ];
     if (issues.length)
       container.createEl("p", {
-        cls: "firstdraft-scene-warning",
+        cls: "scribidian-scene-warning",
         text: issues.join("\n"),
       });
     const canWrite = workspace.issues.length === 0;
@@ -122,7 +123,7 @@ export async function renderSceneWorkspace(
           () => {},
         ),
     );
-    const controls = container.createDiv({ cls: "firstdraft-scene-filters" });
+    const controls = container.createDiv({ cls: "scribidian-scene-filters" });
     const search = controls.createEl("input", {
       type: "search",
       placeholder: "Find scenes or synopses",
@@ -155,7 +156,7 @@ export async function renderSceneWorkspace(
         values: all.map((scene) => scene.time),
       },
     ];
-    const list = container.createDiv({ cls: "firstdraft-scene-list" });
+    const list = container.createDiv({ cls: "scribidian-scene-list" });
     const renderList = (): void => {
       list.empty();
       const visible = filterScenes(all, filters);
@@ -166,13 +167,13 @@ export async function renderSceneWorkspace(
             : "No scenes yet. Choose New scene to begin.",
         });
       list.createEl("p", {
-        cls: "firstdraft-palette-muted",
+        cls: "scribidian-palette-muted",
         text: `${visible.length} of ${all.length} scenes · page positions are approximate`,
       });
       for (const scene of visible) {
         const file = workspace.files.find((item) => item.path === scene.path);
         if (!file) continue;
-        const card = list.createDiv({ cls: "firstdraft-scene-card" });
+        const card = list.createDiv({ cls: "scribidian-scene-card" });
         const active =
           scene.path === workspace.activePath &&
           workspace.activeLine >= scene.line &&
@@ -187,23 +188,23 @@ export async function renderSceneWorkspace(
           `${index + 1}. ${scene.heading}`,
           () => void report(() => jumpToScene(plugin, file, scene), refresh),
         );
-        heading.addClass("firstdraft-scene-heading");
+        heading.addClass("scribidian-scene-heading");
         if (active) heading.setAttribute("aria-current", "true");
         card.createEl("p", {
-          cls: "firstdraft-palette-muted",
+          cls: "scribidian-palette-muted",
           text: `${scene.path} · ~p. ${scene.page.toFixed(1)}`,
         });
         if (scene.synopsis)
           card.createEl("p", {
-            cls: "firstdraft-scene-synopsis",
+            cls: "scribidian-scene-synopsis",
             text: scene.synopsis,
           });
         if (scene.characters.length)
           card.createEl("p", {
-            cls: "firstdraft-palette-muted",
+            cls: "scribidian-palette-muted",
             text: scene.characters.join(", "),
           });
-        const buttons = card.createDiv({ cls: "firstdraft-scene-actions" });
+        const buttons = card.createDiv({ cls: "scribidian-scene-actions" });
         const disabled = !canWrite || Boolean(file.issue);
         action(
           buttons,
@@ -315,7 +316,7 @@ class SceneEditModal extends Modal {
   private synopsis = "";
   private submitting = false;
   constructor(
-    private plugin: FirstDraftPlugin,
+    private plugin: ScribidianPlugin,
     private workspace: SceneWorkspace,
     private scene: Scene | null,
     private mode: "create" | "move" | "synopsis",
@@ -463,7 +464,7 @@ class SceneEditModal extends Modal {
         text: "Confirm the destination before moving. Cross-file moves save a local recovery copy; save both notes first. A new cross-file move replaces the previous recovery copy.",
       });
     const error = this.contentEl.createEl("p", {
-      cls: "firstdraft-scene-warning",
+      cls: "scribidian-scene-warning",
     });
     const button = action(
       this.contentEl,
@@ -549,7 +550,7 @@ class SceneEditModal extends Modal {
 
 class RecoveryModal extends Modal {
   constructor(
-    private plugin: FirstDraftPlugin,
+    private plugin: ScribidianPlugin,
     private record: SceneRecovery,
     private refresh: () => void,
   ) {

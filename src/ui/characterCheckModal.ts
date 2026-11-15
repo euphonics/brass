@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +38,7 @@ export class CharacterCheckModal extends Modal {
 
   onOpen(): void {
     this.setTitle("Character check");
-    this.contentEl.addClass("firstdraft-character-check");
+    this.contentEl.addClass("scribidian-character-check");
     if (this.issues.length === 0) {
       this.contentEl.createEl("p", {
         text: "No deterministic character-page issues were found.",
@@ -52,13 +53,13 @@ export class CharacterCheckModal extends Modal {
         text: `${LABELS[severity]} (${issues.length})`,
       });
       const list = this.contentEl.createEl("ul", {
-        cls: `firstdraft-character-check-${severity}`,
+        cls: `scribidian-character-check-${severity}`,
       });
       for (const issue of issues) {
         const item = list.createEl("li");
         if (issue.path) {
           const button = item.createEl("button", {
-            cls: "clickable-icon firstdraft-character-check-link",
+            cls: "clickable-icon scribidian-character-check-link",
             text: issue.message,
           });
           button.addEventListener(

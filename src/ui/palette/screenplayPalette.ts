@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +26,7 @@ import { openNewScene } from "../../commands/newScene";
 import { openParenthetical } from "../../commands/parenthetical";
 import { previewScreenplay } from "../../commands/previewScreenplay";
 import { openTransition } from "../../commands/transition";
-import type FirstDraftPlugin from "../../main";
+import type ScribidianPlugin from "../../main";
 import {
   loadScreenplayContext,
   openAdjacentProjectPart,
@@ -44,7 +45,7 @@ const ACTION_LABELS: Record<PaletteAction, string> = {
 };
 
 export function renderScreenplayPalette(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   container: HTMLElement,
   editor: Editor,
   file: TFile,
@@ -55,7 +56,7 @@ export function renderScreenplayPalette(
   renderActions(plugin, container, editor, file, source, cursorOffset);
   renderProjectNavigation(plugin, container, file);
   const loading = container.createEl("p", {
-    cls: "firstdraft-palette-muted",
+    cls: "scribidian-palette-muted",
     text: "Loading screenplay project…",
   });
   void renderRecentContext(
@@ -70,7 +71,7 @@ export function renderScreenplayPalette(
 }
 
 async function renderRecentContext(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   container: HTMLElement,
   loading: HTMLElement,
   editor: Editor,
@@ -102,7 +103,7 @@ async function renderRecentContext(
 }
 
 function renderActions(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   container: HTMLElement,
   editor: Editor,
   screenplay: TFile,
@@ -110,11 +111,11 @@ function renderActions(
   cursorOffset: number,
 ): void {
   container.createEl("h3", { text: "Actions" });
-  const actions = container.createDiv({ cls: "firstdraft-palette-actions" });
+  const actions = container.createDiv({ cls: "scribidian-palette-actions" });
 
   for (const action of orderPaletteActions(source, cursorOffset)) {
     const button = actions.createEl("button", {
-      cls: "firstdraft-palette-action",
+      cls: "scribidian-palette-action",
       text: ACTION_LABELS[action],
     });
     button.addEventListener("click", () =>
@@ -122,14 +123,14 @@ function renderActions(
     );
   }
   const check = actions.createEl("button", {
-    cls: "firstdraft-palette-action firstdraft-palette-check",
+    cls: "scribidian-palette-action scribidian-palette-check",
     text: "Check characters",
   });
   check.addEventListener("click", () =>
     checkCharacters(plugin, editor, screenplay),
   );
   const preview = actions.createEl("button", {
-    cls: "firstdraft-palette-action",
+    cls: "scribidian-palette-action",
     text: "Preview",
   });
   preview.addEventListener("click", () => {
@@ -137,7 +138,7 @@ function renderActions(
     if (view) void previewScreenplay(plugin, view);
   });
   const pdf = actions.createEl("button", {
-    cls: "firstdraft-palette-action",
+    cls: "scribidian-palette-action",
     text: "Export PDF",
   });
   pdf.addEventListener("click", () => {
@@ -147,21 +148,21 @@ function renderActions(
 }
 
 function renderProjectNavigation(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   container: HTMLElement,
   file: TFile,
 ): void {
   const project = projectForPart(plugin.app, file);
   if (project === null) return;
   const navigation = container.createDiv({
-    cls: "firstdraft-palette-actions",
+    cls: "scribidian-palette-actions",
   });
   for (const [label, offset] of [
     ["Previous Part", -1],
     ["Next Part", 1],
   ] as const) {
     const button = navigation.createEl("button", {
-      cls: "firstdraft-palette-action",
+      cls: "scribidian-palette-action",
       text: label,
     });
     button.addEventListener(
@@ -170,7 +171,7 @@ function renderProjectNavigation(
     );
   }
   const projectButton = navigation.createEl("button", {
-    cls: "firstdraft-palette-action",
+    cls: "scribidian-palette-action",
     text: "Project note",
   });
   projectButton.addEventListener(
@@ -180,7 +181,7 @@ function renderProjectNavigation(
 }
 
 function runAction(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   action: PaletteAction,
   editor: Editor,
   screenplay: TFile,

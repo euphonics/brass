@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +15,7 @@
  * limitations under the License.
  */
 
-export const EXAMPLE_FOLDER_NAME = "First Draft Example";
+export const EXAMPLE_FOLDER_NAME = "Scribidian Example";
 
 export interface ExampleProjectFile {
   path: string;
@@ -43,11 +44,11 @@ export function exampleProjectFiles(folder: string): ExampleProjectFile[] {
       path: "Start Here.md",
       content: `# Start Here
 
-Welcome to First Draft. This removable example is a small, complete screenplay project.
+Welcome to Scribidian. This removable example is a small, complete screenplay project.
 
 1. Open [[Screenplay Project]] and review its ordered parts.
 2. Open [[Parts/01 - Arrival]] and continue the scene in Fountain syntax.
-3. Open the First Draft Palette for writing actions, project navigation, and the cheat sheet.
+3. Open the Scribidian Palette for writing actions, project navigation, and the cheat sheet.
 4. Try **Screenplay: Show Statistics** and **Screenplay: Check Characters**.
 5. Export the project to Fountain or Final Draft FDX; the source notes remain unchanged.
 
@@ -57,17 +58,17 @@ The character dossiers are [[Characters/Mara]] and [[Characters/Elias]]. Delete 
     {
       path: "Screenplay Project.md",
       content: `---
-firstdraft: screenplay-project
-title: First Draft Example
+scribidian: screenplay-project
+title: Scribidian Example
 parts:
   - "[[Parts/01 - Arrival]]"
   - "[[Parts/02 - Choice]]"
 character-folder: Characters
 ---
 
-# First Draft Example
+# Scribidian Example
 
-The project note owns the screenplay's reading order. Open the First Draft Palette to navigate, inspect, and export the whole screenplay.
+The project note owns the screenplay's reading order. Open the Scribidian Palette to navigate, inspect, and export the whole screenplay.
 `,
     },
     {
@@ -116,7 +117,7 @@ FADE TO BLACK:
     {
       path: "Characters/Mara.md",
       content: `---
-firstdraft: character
+scribidian: character
 character: "MARA"
 aliases: []
 screenplays:
@@ -143,7 +144,7 @@ She came to the station to make a choice.
     {
       path: "Characters/Elias.md",
       content: `---
-firstdraft: character
+scribidian: character
 character: "ELIAS"
 aliases: []
 screenplays:

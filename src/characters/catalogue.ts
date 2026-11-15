@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,10 +36,22 @@ function stringValues(value: unknown): string[] {
     .filter(Boolean);
 }
 
+/** Frontmatter key that marks a note as a Scribidian page. */
+export const PAGE_KIND_KEY = "scribidian";
+/** Key used by First Draft, still read so older notes keep working. */
+export const LEGACY_PAGE_KIND_KEY = "firstdraft";
+
+/** The page kind ("character", "screenplay-project"), new key first. */
+export function pageKind(
+  frontmatter: Record<string, unknown> | undefined,
+): unknown {
+  return frontmatter?.[PAGE_KIND_KEY] ?? frontmatter?.[LEGACY_PAGE_KIND_KEY];
+}
+
 export function isCharacterFrontmatter(
   frontmatter: Record<string, unknown> | undefined,
 ): boolean {
-  return frontmatter?.firstdraft === "character";
+  return pageKind(frontmatter) === "character";
 }
 
 export function characterPageFromFrontmatter(
@@ -206,7 +219,7 @@ export function characterPageTemplate(
     ? `\n#Character in ${projectLink(projectName)}\n`
     : "";
   return `---
-firstdraft: character
+scribidian: character
 character: ${yamlString(character)}
 aliases:
   - ${yamlString(characterFirstName(character))}

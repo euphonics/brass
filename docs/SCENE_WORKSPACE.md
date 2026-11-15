@@ -1,6 +1,6 @@
 # Scene workspace
 
-Open a screenplay or its project note, then click **Scenes** in the First Draft
+Open a screenplay or its project note, then click **Scenes** in the Scribidian
 palette. Alternatively, use Cmd/Ctrl+P and search **Open scene workspace**.
 **Writing actions** takes you back to the existing tools.
 
@@ -59,7 +59,7 @@ Refresh a stale workspace before retrying.
 
 ## Desktop acceptance checklist
 
-Use only the isolated **First Draft Test Vault**. Reload the plugin after installing
+Use only the isolated **Scribidian Test Vault**. Reload the plugin after installing
 a new build. Open `Scene Workspace Demo/Project`, then open the scene workspace.
 
 1. Confirm four scenes in part order. Click each heading; check its original

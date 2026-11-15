@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +22,7 @@ import { exportFdx } from "../../commands/exportFdx";
 import { exportFountain } from "../../commands/exportFountain";
 import { exportPdf } from "../../commands/exportPdf";
 import { previewScreenplay } from "../../commands/previewScreenplay";
-import type FirstDraftPlugin from "../../main";
+import type ScribidianPlugin from "../../main";
 import {
   loadScreenplayContext,
   projectMembershipIssue,
@@ -31,21 +32,21 @@ import { StatisticsModal } from "../statisticsModal";
 import { renderRecentPalette, type PaletteRenderState } from "./recentPalette";
 
 export function renderProjectPalette(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   container: HTMLElement,
   editor: Editor,
   file: TFile,
   state: PaletteRenderState,
 ): void {
   const loading = container.createEl("p", {
-    cls: "firstdraft-palette-muted",
+    cls: "scribidian-palette-muted",
     text: "Loading screenplay project…",
   });
   void renderProjectContext(plugin, container, loading, editor, file, state);
 }
 
 async function renderProjectContext(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   container: HTMLElement,
   loading: HTMLElement,
   editor: Editor,
@@ -67,17 +68,17 @@ async function renderProjectContext(
   }
   if (issues.length > 0) {
     const warning = container.createEl("ul", {
-      cls: "firstdraft-palette-empty",
+      cls: "scribidian-palette-empty",
     });
     for (const issue of issues) warning.createEl("li", { text: issue });
   }
   container.createEl("h3", { text: "Parts" });
   const parts = container.createDiv({
-    cls: "firstdraft-palette-items firstdraft-project-parts",
+    cls: "scribidian-palette-items scribidian-project-parts",
   });
   for (const [index, part] of context.project.parts.entries()) {
     const button = parts.createEl("button", {
-      cls: "firstdraft-palette-item",
+      cls: "scribidian-palette-item",
       text: `${index + 1}. ${part.file?.basename ?? part.link}`,
     });
     button.disabled = part.file === null;
@@ -91,7 +92,7 @@ async function renderProjectContext(
   }
   renderProjectActions(plugin, container, editor, file, context.document);
   container.createEl("p", {
-    cls: "firstdraft-palette-muted",
+    cls: "scribidian-palette-muted",
     text: `Character pages: ${context.characterFolder}`,
   });
   renderRecentPalette(
@@ -110,16 +111,16 @@ async function renderProjectContext(
 }
 
 function renderProjectActions(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   container: HTMLElement,
   editor: Editor,
   file: TFile,
   document: Parameters<typeof calculateStatistics>[0],
 ): void {
-  const actions = container.createDiv({ cls: "firstdraft-palette-actions" });
+  const actions = container.createDiv({ cls: "scribidian-palette-actions" });
   const addAction = (label: string, action: () => void): void => {
     const button = actions.createEl("button", {
-      cls: "firstdraft-palette-action",
+      cls: "scribidian-palette-action",
       text: label,
     });
     button.addEventListener("click", action);

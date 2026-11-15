@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,13 +62,13 @@ import { calculateStatistics } from "./screenplay/statistics";
 import { formatScreenplayStatus } from "./screenplay/status";
 import {
   DEFAULT_SETTINGS,
-  FirstDraftSettingTab,
-  type FirstDraftSettings,
+  ScribidianSettingTab,
+  type ScribidianSettings,
 } from "./settings/settings";
 import {
   FIRST_DRAFT_PALETTE_VIEW_TYPE,
-  FirstDraftPaletteView,
-} from "./ui/firstDraftPaletteView";
+  ScribidianPaletteView,
+} from "./ui/scribidianPaletteView";
 import { CheatSheetModal } from "./ui/cheatSheetModal";
 import { StatisticsModal } from "./ui/statisticsModal";
 import { ContinuityInspectorModal } from "./ui/continuityInspectorModal";
@@ -75,9 +76,9 @@ import { NoteContext, resolveNoteProperties } from "./ui/noteContext";
 import type { NoteProperties } from "./ui/noteContext";
 import { CjkFontPackModal } from "./ui/cjkFontPackModal";
 
-export default class FirstDraftPlugin extends Plugin {
+export default class ScribidianPlugin extends Plugin {
   sceneWorkspaceMode = false;
-  settings: FirstDraftSettings = { ...DEFAULT_SETTINGS };
+  settings: ScribidianSettings = { ...DEFAULT_SETTINGS };
   private statusBarItem: HTMLElement | null = null;
   private refreshTimer: number | null = null;
   private readonly noteContext = new NoteContext<TFile, MarkdownView>();
@@ -87,9 +88,9 @@ export default class FirstDraftPlugin extends Plugin {
     this.applyScreenplayFont();
     this.registerExtensions(["fountain"], "markdown");
     this.statusBarItem = this.addStatusBarItem();
-    this.statusBarItem.addClass("firstdraft-status");
+    this.statusBarItem.addClass("scribidian-status");
     this.statusBarItem.hide();
-    this.addSettingTab(new FirstDraftSettingTab(this.app, this));
+    this.addSettingTab(new ScribidianSettingTab(this.app, this));
     this.registerEditorExtension(createScreenplayCompletionExtension(this));
     this.registerEditorExtension(createScreenplayLayoutExtension(this));
     this.registerEditorExtension(createDualDialogueExtension(this));
@@ -102,9 +103,9 @@ export default class FirstDraftPlugin extends Plugin {
     registerFountainCodeBlockProcessor(this);
     this.registerView(
       FIRST_DRAFT_PALETTE_VIEW_TYPE,
-      (leaf) => new FirstDraftPaletteView(leaf, this),
+      (leaf) => new ScribidianPaletteView(leaf, this),
     );
-    this.addRibbonIcon("clapperboard", "Open First Draft palette", () => {
+    this.addRibbonIcon("clapperboard", "Open Scribidian palette", () => {
       void this.openPalette();
     });
 
@@ -433,7 +434,7 @@ export default class FirstDraftPlugin extends Plugin {
 
   async loadSettings(): Promise<void> {
     const stored =
-      (await this.loadData()) as Partial<FirstDraftSettings> | null;
+      (await this.loadData()) as Partial<ScribidianSettings> | null;
     this.settings = { ...DEFAULT_SETTINGS, ...(stored ?? {}) };
   }
 
@@ -619,7 +620,7 @@ export default class FirstDraftPlugin extends Plugin {
     this.statusBarItem?.setText(status);
     this.statusBarItem?.setAttribute(
       "aria-label",
-      `First Draft screenplay statistics: ${status}`,
+      `Scribidian screenplay statistics: ${status}`,
     );
     this.statusBarItem?.show();
   }
@@ -663,7 +664,7 @@ export default class FirstDraftPlugin extends Plugin {
       direct,
       this.app.workspace.getActiveFile(),
       views,
-      this.app.workspace.getActiveViewOfType(FirstDraftPaletteView) !== null,
+      this.app.workspace.getActiveViewOfType(ScribidianPaletteView) !== null,
     );
   }
 
@@ -677,7 +678,7 @@ export default class FirstDraftPlugin extends Plugin {
     for (const leaf of this.app.workspace.getLeavesOfType(
       FIRST_DRAFT_PALETTE_VIEW_TYPE,
     )) {
-      if (leaf.view instanceof FirstDraftPaletteView) leaf.view.refresh();
+      if (leaf.view instanceof ScribidianPaletteView) leaf.view.refresh();
     }
   }
 
@@ -685,7 +686,7 @@ export default class FirstDraftPlugin extends Plugin {
     for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
       if (leaf.view instanceof MarkdownView) {
         leaf.view.containerEl.classList.toggle(
-          "firstdraft-project-note",
+          "scribidian-project-note",
           this.isProjectFile(leaf.view.file),
         );
       }
@@ -695,7 +696,7 @@ export default class FirstDraftPlugin extends Plugin {
   private clearProjectViewClasses(): void {
     for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
       if (leaf.view instanceof MarkdownView) {
-        leaf.view.containerEl.classList.remove("firstdraft-project-note");
+        leaf.view.containerEl.classList.remove("scribidian-project-note");
       }
     }
   }

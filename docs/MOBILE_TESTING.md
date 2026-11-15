@@ -1,6 +1,6 @@
 # Mobile testing
 
-First Draft uses browser-compatible Obsidian APIs and declares mobile support,
+Scribidian uses browser-compatible Obsidian APIs and declares mobile support,
 but physical-device acceptance remains outstanding. Record it before claiming
 verified mobile support; if a release proceeds without a device, disclose the
 untested layout/performance in its release notes.
@@ -15,7 +15,7 @@ removing its beta tracking; do not rely on Obsidian's prerelease comparison.
 
 ## Alternative: select an exact release with BRAT
 
-This path works on both Android and iOS/iPadOS once the First Draft repository
+This path works on both Android and iOS/iPadOS once the Scribidian repository
 is public and has a GitHub release.
 
 1. Install the **BRAT** community plugin in the mobile test vault.
@@ -23,22 +23,22 @@ is public and has a GitHub release.
 3. Enter `grobmeier/firstdraft` and select the intended test release. For the
    activated-note palette and bundle-size fixes, select `0.13.1` explicitly;
    the old stable `0.13.0` release does not include them.
-4. Enable **First Draft** under **Settings → Community plugins**.
+4. Enable **Scribidian** under **Settings → Community plugins**.
 5. Open the project fixture and complete the checklist below.
 
-BRAT is only a release-candidate installation aid. First Draft itself does not
+BRAT is only a release-candidate installation aid. Scribidian itself does not
 depend on BRAT and does not access the network.
 
 ## Android: direct local installation
 
 For testing before a public release, build on the development computer and copy
-these files into `<test-vault>/.obsidian/plugins/firstdraft/` on the device:
+these files into `<test-vault>/.obsidian/plugins/scribidian/` on the device:
 
 - `main.js`
 - `manifest.json`
 - `styles.css`
 
-Restart Obsidian, then enable First Draft under **Settings → Community
+Restart Obsidian, then enable Scribidian under **Settings → Community
 plugins**. Android file access varies by device; USB transfer or an existing
 vault sync method can be used. Do not point the development build at an
 everyday vault.
@@ -52,10 +52,10 @@ BRAT release-candidate path is the practical option there.
 
 For the palette-context fix, repeat these checks on the iPad in a disposable
 vault. The public 0.13.0 release does not contain this fix; use the matching test
-build, then restart Obsidian or disable/re-enable First Draft.
+build, then restart Obsidian or disable/re-enable Scribidian.
 
 1. Open an existing Markdown screenplay with boolean `screenplay: true`.
-2. Open the First Draft Palette, focus its controls, close/reopen the sidebar
+2. Open the Scribidian Palette, focus its controls, close/reopen the sidebar
    repeatedly, and switch between editing and reading views. Writing controls
    should remain available without asking you to activate the note again.
 3. Create a project, open its parts, and return to the original screenplay.
@@ -78,7 +78,7 @@ iPad acceptance.
 
 - Open a `.fountain` file and a Markdown note with `screenplay: true`.
 - Confirm autocomplete works with the on-screen keyboard.
-- Open the First Draft Palette and use its common actions.
+- Open the Scribidian Palette and use its common actions.
 - Create and open a character dossier.
 - Open a multi-part screenplay project and navigate between parts.
 - View project statistics and character checks.
@@ -97,7 +97,7 @@ iPad acceptance.
   [font-pack instructions](CJK_FONT_PACK.md). Verify cancelled selection, retry
   after interrupted installation and reinstall on each device; do not assume
   auxiliary font chunks are transferred by Obsidian Sync.
-- Change First Draft settings, restart Obsidian, and confirm they persist.
+- Change Scribidian settings, restart Obsidian, and confirm they persist.
 - Lock and resume the device, then confirm the active screenplay still works.
 
 Record the Obsidian version, operating system version, and device type with the

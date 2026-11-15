@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +30,7 @@ import { PDFDocument } from "pdf-lib";
 
 function fixture() {
   const files = new Map<string, ArrayBuffer>();
-  const root = "custom-config/plugins/firstdraft";
+  const root = "custom-config/plugins/scribidian";
   const directories = new Set([root]);
   const store = {
     exists: vi.fn(

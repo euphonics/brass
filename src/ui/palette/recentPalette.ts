@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +22,7 @@ import { openCharacterDossier } from "../../commands/characterPage";
 import { openNewSceneAtLocation } from "../../commands/newScene";
 import { insertParenthetical } from "../../commands/parenthetical";
 import { insertTransition } from "../../commands/transition";
-import type FirstDraftPlugin from "../../main";
+import type ScribidianPlugin from "../../main";
 import { buildScreenplayIndex, rankUsages } from "../../screenplay/indexer";
 import type { ScreenplayDocument } from "../../screenplay/model";
 
@@ -40,7 +41,7 @@ interface RecentSection {
 }
 
 export function renderRecentPalette(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   container: HTMLElement,
   editor: Editor,
   screenplay: TFile,
@@ -89,12 +90,12 @@ export function renderRecentPalette(
 
   container.createEl("h3", { text: "Recent" });
   const search = container.createEl("input", {
-    cls: "firstdraft-palette-search",
+    cls: "scribidian-palette-search",
     type: "search",
     placeholder: "Filter recent items",
     value: state.getQuery(),
   });
-  const recent = container.createDiv({ cls: "firstdraft-palette-recent" });
+  const recent = container.createDiv({ cls: "scribidian-palette-recent" });
   const renderSections = (): void => {
     recent.empty();
     const query = state.getQuery().trim().toLocaleLowerCase();
@@ -105,20 +106,20 @@ export function renderRecentPalette(
       );
       if (values.length === 0) continue;
       matches += values.length;
-      const group = recent.createDiv({ cls: "firstdraft-palette-section" });
+      const group = recent.createDiv({ cls: "scribidian-palette-section" });
       group.createEl("h4", { text: section.title });
-      const list = group.createDiv({ cls: "firstdraft-palette-items" });
+      const list = group.createDiv({ cls: "scribidian-palette-items" });
       for (const value of values) {
-        const item = list.createDiv({ cls: "firstdraft-palette-item-row" });
+        const item = list.createDiv({ cls: "scribidian-palette-item-row" });
         const button = item.createEl("button", {
-          cls: "firstdraft-palette-item",
+          cls: "scribidian-palette-item",
           text: value,
           attr: { title: `Insert ${value}` },
         });
         button.addEventListener("click", () => section.insert(value));
         if (section.secondary && section.secondaryLabel) {
           const secondary = item.createEl("button", {
-            cls: "firstdraft-palette-item-secondary",
+            cls: "scribidian-palette-item-secondary",
             text: section.secondaryLabel(value),
           });
           secondary.addEventListener("click", () => section.secondary?.(value));
@@ -127,7 +128,7 @@ export function renderRecentPalette(
     }
     if (matches === 0) {
       recent.createEl("p", {
-        cls: "firstdraft-palette-empty",
+        cls: "scribidian-palette-empty",
         text: query
           ? "No recent items match this filter."
           : "Recent items appear here as the screenplay grows.",

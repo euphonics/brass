@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +17,20 @@
 
 import { createExampleScreenplay } from "../../commands/createExample";
 import { activateScreenplayNote } from "../../commands/activateScreenplay";
-import type FirstDraftPlugin from "../../main";
+import type ScribidianPlugin from "../../main";
 import { CheatSheetModal } from "../cheatSheetModal";
 import { renderCharacterPalette } from "./characterPalette";
 import { renderProjectPalette } from "./projectPalette";
 import type { PaletteRenderState } from "./recentPalette";
 import { renderScreenplayPalette } from "./screenplayPalette";
 
-export function renderFirstDraftPalette(
-  plugin: FirstDraftPlugin,
+export function renderScribidianPalette(
+  plugin: ScribidianPlugin,
   container: HTMLElement,
   state: PaletteRenderState,
 ): void {
   container.empty();
-  container.createEl("h2", { text: "First Draft" });
+  container.createEl("h2", { text: "Scribidian" });
   renderGlobalActions(plugin, container);
 
   const view = plugin.activeMarkdownView();
@@ -39,7 +40,7 @@ export function renderFirstDraftPalette(
     plugin.notePropertiesForFile(view.file).state === "loading"
   ) {
     container.createEl("p", {
-      cls: "firstdraft-palette-empty",
+      cls: "scribidian-palette-empty",
       text: "Waiting for this note’s properties. If this persists, reopen the note and check its property block.",
     });
     return;
@@ -65,26 +66,26 @@ export function renderFirstDraftPalette(
 }
 
 function renderGlobalActions(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   container: HTMLElement,
 ): void {
   const actions = container.createDiv({
-    cls: "firstdraft-palette-global-actions",
+    cls: "scribidian-palette-global-actions",
   });
   const scenes = actions.createEl("button", {
-    cls: "firstdraft-palette-action",
+    cls: "scribidian-palette-action",
     text: "Scenes",
   });
   scenes.addEventListener("click", () => {
     void plugin.openSceneWorkspace();
   });
   const inspect = actions.createEl("button", {
-    cls: "firstdraft-palette-action",
+    cls: "scribidian-palette-action",
     text: "Inspect continuity",
   });
   inspect.addEventListener("click", () => plugin.openContinuityInspector());
   const cheatSheet = actions.createEl("button", {
-    cls: "firstdraft-palette-action",
+    cls: "scribidian-palette-action",
     text: "Cheat sheet",
   });
   cheatSheet.addEventListener("click", () => {
@@ -93,7 +94,7 @@ function renderGlobalActions(
 }
 
 function renderEmptyPalette(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   container: HTMLElement,
 ): void {
   const file = plugin.activeMarkdownView()?.file;
@@ -102,23 +103,23 @@ function renderEmptyPalette(
     !plugin.isCharacterFile(file) &&
     !plugin.isProjectFile(file);
   container.createEl("p", {
-    cls: "firstdraft-palette-empty",
+    cls: "scribidian-palette-empty",
     text: eligible
       ? "Use this note as a screenplay to unlock writing actions. This adds screenplay: true to its properties; your text is not converted or reformatted."
       : "Open a Markdown note to enable screenplay mode, or try an example below.",
   });
   const actions = container.createDiv({
-    cls: "firstdraft-palette-actions firstdraft-palette-onboarding-actions",
+    cls: "scribidian-palette-actions scribidian-palette-onboarding-actions",
   });
   if (eligible) {
     const activate = actions.createEl("button", {
-      cls: "firstdraft-palette-action",
+      cls: "scribidian-palette-action",
       text: "Use this note as a screenplay",
     });
     activate.disabled = !plugin.settings.activateFrontmatter;
     if (activate.disabled) {
       container.createEl("p", {
-        text: 'In First Draft settings, enable "use screenplay frontmatter" to use this action.',
+        text: 'In Scribidian settings, enable "use screenplay frontmatter" to use this action.',
       });
     }
     activate.addEventListener("click", () => {
@@ -126,7 +127,7 @@ function renderEmptyPalette(
     });
   }
   const example = actions.createEl("button", {
-    cls: "firstdraft-palette-action",
+    cls: "scribidian-palette-action",
     text: "Create example screenplay",
   });
   example.addEventListener("click", () => void createExampleScreenplay(plugin));

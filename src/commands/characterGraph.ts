@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +16,10 @@
  */
 
 import type { TFile } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 
 export async function openCharacterGraph(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   characterFile: TFile,
 ): Promise<void> {
   const existing = plugin.app.workspace.getLeavesOfType("localgraph")[0];

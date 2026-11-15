@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +18,11 @@
 import type { Extension } from "@codemirror/state";
 import { EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 
-const BOTTOM_MARGIN_CLASS = "firstdraft-bottom-margin";
+const BOTTOM_MARGIN_CLASS = "scribidian-bottom-margin";
 /** Class on the editor root of every screenplay note (font setting). */
-const SCREENPLAY_EDITOR_CLASS = "firstdraft-screenplay-editor";
+const SCREENPLAY_EDITOR_CLASS = "scribidian-screenplay-editor";
 
 /**
  * Marks screenplay editors, and in them ends the scrolling area `bottomTypingMargin`
@@ -29,7 +30,7 @@ const SCREENPLAY_EDITOR_CLASS = "firstdraft-screenplay-editor";
  * page estimate) never covers text. Display only: the note is not changed.
  */
 export function createBottomMarginExtension(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
 ): Extension {
   return ViewPlugin.fromClass(
     class {
@@ -65,7 +66,7 @@ export function createBottomMarginExtension(
             return margin > 0
               ? {
                   class: `${SCREENPLAY_EDITOR_CLASS} ${BOTTOM_MARGIN_CLASS}`,
-                  style: `--firstdraft-bottom-margin: ${margin}px`,
+                  style: `--scribidian-bottom-margin: ${margin}px`,
                 }
               : { class: SCREENPLAY_EDITOR_CLASS };
           },

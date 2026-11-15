@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +28,7 @@ import {
   type DecorationSet,
 } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import {
   findDualDialogue,
   type DualDialogue,
@@ -46,7 +47,7 @@ class DualDialogueWidget extends WidgetType {
   }
 
   toDOM(view: EditorView): HTMLElement {
-    const root = createDiv({ cls: "firstdraft-dual" });
+    const root = createDiv({ cls: "scribidian-dual" });
     for (const speech of [this.pair.left, this.pair.right]) {
       this.column(root, speech);
     }
@@ -61,14 +62,14 @@ class DualDialogueWidget extends WidgetType {
   }
 
   private column(parent: HTMLElement, speech: DualSide): void {
-    const column = parent.createDiv({ cls: "firstdraft-dual-column" });
-    column.createDiv({ cls: "firstdraft-dual-cue", text: speech.cue });
+    const column = parent.createDiv({ cls: "scribidian-dual-column" });
+    column.createDiv({ cls: "scribidian-dual-cue", text: speech.cue });
     for (const line of speech.lines) {
       column.createDiv({
         cls:
           line.kind === "parenthetical"
-            ? "firstdraft-dual-parenthetical"
-            : "firstdraft-dual-dialogue",
+            ? "scribidian-dual-parenthetical"
+            : "scribidian-dual-dialogue",
         text: line.text,
       });
     }
@@ -90,7 +91,7 @@ interface DualState {
  * written (with "^") while the cursor is inside it. Display only.
  */
 export function createDualDialogueExtension(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
 ): Extension {
   const isActive = (state: EditorState): boolean => {
     if (plugin.settings.editorLayout !== "screenplay") return false;

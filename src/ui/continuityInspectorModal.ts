@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +16,14 @@
  */
 
 import { Modal, Notice } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import { loadInspector, openInspectorEvidence } from "../continuity/vault";
 import type { Evidence } from "../continuity/model";
 
 export class ContinuityInspectorModal extends Modal {
   private generation = 0;
   private guards: ReadonlyMap<string, string> = new Map();
-  constructor(private plugin: FirstDraftPlugin) {
+  constructor(private plugin: ScribidianPlugin) {
     super(plugin.app);
   }
   onOpen(): void {
@@ -101,7 +102,7 @@ export class ContinuityInspectorModal extends Modal {
   }
   private link(evidence: Evidence, label = evidence.text): void {
     const button = this.contentEl.createEl("button", {
-      cls: "firstdraft-inspector-evidence",
+      cls: "scribidian-inspector-evidence",
       text: `${label} · ${evidence.path}:${evidence.line + 1}`,
     });
     button.addEventListener("click", () => {

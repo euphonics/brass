@@ -1,16 +1,22 @@
-# First Draft
+# Scribidian
 
-First Draft is an Obsidian community plugin for writing screenplays efficiently
-in plain-text [Fountain](https://fountain.io/) syntax.
+Scribidian is an Obsidian plugin for writing screenplays efficiently in
+plain-text [Fountain](https://fountain.io/) syntax.
 
-The guiding principle is simple: think about the movie, not the syntax. First
-Draft adds screenplay-aware assistance while keeping every document portable,
-human-readable, and useful when the plugin is not installed.
+The guiding principle is simple: think about the movie, not the syntax.
+Scribidian adds screenplay-aware assistance while keeping every document
+portable, human-readable, and useful when the plugin is not installed.
 
-![First Draft preview and PDF export](docs/images/firstdraft-demo.gif)
+Scribidian is derived from [First Draft](https://github.com/grobmeier/firstdraft)
+by Christian Grobmeier, used under the Apache License 2.0. See
+[Credits](#credits).
 
-Install First Draft from **Settings → Community plugins → Browse** in Obsidian.
-Search for **First Draft**, install it, and enable it. See the
+![Preview and PDF export](docs/images/firstdraft-demo.gif)
+
+Scribidian is not in the community plugin store. Install it by copying
+`main.js`, `manifest.json` and `styles.css` from a build or release into
+`.obsidian/plugins/scribidian/` in your vault, then enable it in
+**Settings → Community plugins**. See the
 [visual feature tour](docs/FEATURE_TOUR.md) for the complete workflow.
 
 ## Features
@@ -43,7 +49,7 @@ The current build provides:
   multi-file projects;
 - local, non-destructive PDF export in US Letter or A4 with screenplay margins,
   Courier typography, page breaks, and page numbers;
-- a dockable First Draft Palette with contextual actions and recent screenplay
+- a dockable Scribidian Palette with contextual actions and recent screenplay
   elements;
 - a scene workspace with project-wide navigation, filters, portable synopses,
   scene creation and conflict-checked rearranging, including cross-part recovery;
@@ -91,7 +97,7 @@ universal Unicode support; see the PDF compatibility guide.
 The plugin also supports horizontal Chinese, Japanese and Korean
 PDFs with an [optional offline Noto font pack](docs/CJK_FONT_PACK.md) and measured
 wrapping. Run **Install offline CJK PDF fonts** once on each device that needs
-CJK PDFs. Select **PDF language** in First Draft settings for regional character
+CJK PDFs. Select **PDF language** in Scribidian settings for regional character
 forms. The core bundle is approximately 3.34 MB and its build enforces a 5 MB
 release-asset limit. Preview pagination is approximate; inspect the exported
 PDF. Physical-phone font installation and export testing remain important.
@@ -161,24 +167,24 @@ discovery hint and an ordinary Obsidian backlink.
 ### Get started with an example
 
 To use your own Markdown note, open it and click the clapperboard ribbon icon.
-In the First Draft Palette, choose **Use this note as a screenplay**. This adds
+In the Scribidian Palette, choose **Use this note as a screenplay**. This adds
 `screenplay: true` to its properties without converting your text or changing
 other properties. Writing actions appear once Obsidian updates the note's
 metadata. Remove that property to return to ordinary-note mode. If the button
-is disabled, enable **Use screenplay frontmatter** in Settings → First Draft.
+is disabled, enable **Use screenplay frontmatter** in Settings → Scribidian.
 You can also press **Cmd+P** (Ctrl+P on Windows/Linux) and choose
-**First Draft: Use this note as a screenplay** while an ordinary Markdown note
+**Scribidian: Use this note as a screenplay** while an ordinary Markdown note
 is open.
 
-Run `First Draft: Create Example Screenplay` from the command palette, or use
-**Create Example Screenplay** in the First Draft Palette while no screenplay is
-open. First Draft creates a new, self-contained `First Draft Example` folder and
+Run `Scribidian: Create Example Screenplay` from the command palette, or use
+**Create Example Screenplay** in the Scribidian Palette while no screenplay is
+open. Scribidian creates a new, self-contained `Scribidian Example` folder and
 opens its `Start Here.md` tour. If that folder already exists, a numbered folder
 is used; existing vault content is never overwritten.
 
-Open **Cheat Sheet** in the First Draft Palette—or run
-`First Draft: Open Screenplay Cheat Sheet`—for quick screenplay terminology,
-selectable Fountain examples, and First Draft project concepts. The cheat sheet
+Open **Cheat Sheet** in the Scribidian Palette—or run
+`Scribidian: Open Screenplay Cheat Sheet`—for quick screenplay terminology,
+selectable Fountain examples, and Scribidian project concepts. The cheat sheet
 is bundled with the plugin, works offline, and does not create a vault note or
 access the system clipboard.
 
@@ -200,14 +206,14 @@ Run `npm run dev` for a watch build.
 ## Test safely in Obsidian
 
 Never develop against your everyday vault. Build and install into the ignored,
-repository-local `First Draft Test Vault` directory:
+repository-local `Scribidian Test Vault` directory:
 
 ```bash
 npm run test-vault
 ```
 
-Then open the visible `First Draft Test Vault` directory as a separate Obsidian
-vault, enable or reload **First Draft** in Settings → Community plugins, and
+Then open the visible `Scribidian Test Vault` directory as a separate Obsidian
+vault, enable or reload **Scribidian** in Settings → Community plugins, and
 open `Long Night/Screenplay Project.md` for project testing or `Milestone 4.md`
 for the standalone-screenplay checks.
 
@@ -225,14 +231,14 @@ Expected result:
   `Long Night/People`; a leading slash makes the override vault-relative;
 
 - click the clapperboard ribbon icon or run
-  `Screenplay: Open First Draft Palette`; the panel opens in the right sidebar;
+  `Screenplay: Open Scribidian Palette`; the panel opens in the right sidebar;
 - move the caret between a character cue, dialogue, and a blank line and confirm
   the highlighted first action changes appropriately;
 - click a recent character, parenthetical, or transition to insert it, or click
   a recent location to start a New Scene using that location;
 - use **Open page** beside JANE or MILLER, then confirm the dossier shows linked
   screenplay usage, relationships, and an **Open Local Graph** action;
-- use **Create page** beside REEVES and confirm First Draft creates
+- use **Create page** beside REEVES and confirm Scribidian creates
   `Characters/Reeves.md` without modifying the screenplay;
 - before creating REEVES, run `Screenplay: Check Characters` and confirm it is
   reported as missing; run it again afterwards to clear that warning;
@@ -246,10 +252,10 @@ Expected result:
   common or custom direction;
 - run `Screenplay: Transition` on a blank line and choose a common or custom
   transition;
-- run `Screenplay: Export to Fountain`; First Draft opens a new sibling
+- run `Screenplay: Export to Fountain`; Scribidian opens a new sibling
   `.fountain` file with the Obsidian frontmatter removed, leaving the original
   note untouched;
-- run `Screenplay: Export to Final Draft FDX`; First Draft creates a new sibling
+- run `Screenplay: Export to Final Draft FDX`; Scribidian creates a new sibling
   `.fdx` file without changing the source. Open that file in Final Draft and
   confirm the scene heading, action, character extension, parenthetical,
   dialogue, and transition retain their element types;
@@ -260,7 +266,7 @@ Expected result:
   matches the configured Letter/A4 size, and a second export uses a numbered
   filename rather than overwriting the first;
 - switch page size, minutes per page, or individual status fields under
-  Settings → First Draft and confirm the display updates;
+  Settings → Scribidian and confirm the display updates;
 - use `Milestone 3 Settings Demo.md` when comparing Letter/A4 or runtime ratios;
   its length makes the differences visible without editing the fixture;
 - type `JA` on the final blank line: choose `JANE` with Tab or Enter and start
@@ -299,16 +305,14 @@ harness is possible, but it would be platform-specific and more brittle than
 the model-level tests. The remaining acceptance check is therefore a short run
 in the isolated Obsidian vault; see [FDX compatibility](docs/FDX_COMPATIBILITY.md).
 
-First Draft keeps mobile support enabled. Before the public release, follow the
+Scribidian keeps mobile support enabled. Before the public release, follow the
 [mobile testing checklist](docs/MOBILE_TESTING.md) on at least one physical
 device and record the Obsidian and operating-system versions used.
 
 ## Security and privacy
 
-This section covers this fork, **First Draft (arvn)** (plugin ID
-`firstdraft-arvn`), a personal fork of
-[grobmeier/firstdraft](https://github.com/grobmeier/firstdraft). The original
-plugin's [PRIVACY.md](PRIVACY.md) also applies.
+This section covers **Scribidian** (plugin ID `scribidian`). See also
+[PRIVACY.md](PRIVACY.md).
 
 ### What the plugin does not do
 
@@ -346,7 +350,7 @@ undone with Ctrl+Z or recovered from Obsidian's file history:
 - **Turning a note into a screenplay**, or **opening a character page**, adds a
   `title` property to the screenplay note if it has none.
 - **Opening a character page** creates the page, or, when a page with the
-  expected name already exists, adds the properties First Draft needs
+  expected name already exists, adds the properties Scribidian needs
   (`firstdraft`, `character`, `aliases`, `screenplays`, `related`) to its
   frontmatter. The page's text is not changed.
 - **Moving a scene between files** (an original First Draft feature) saves the
@@ -363,13 +367,17 @@ The installed plugin bundles four libraries for PDF export: `pdf-lib`,
 vulnerabilities in them. Build and test tools (Vite, Vitest, ESLint, esbuild)
 run only on the developer's machine and are not part of the installed plugin.
 
-### Changes from the original plugin
+### Relationship to First Draft
 
-Nothing from the original repository reaches this fork automatically. Upstream
-changes arrive only when they are deliberately merged here, and can be
-reviewed then. This fork uses a different plugin ID, so community-store
-updates to the original First Draft never replace it. Do not enable both
-plugins at the same time.
+Scribidian is an independent project. Nothing from First Draft reaches it
+automatically; changes from First Draft arrive only when they are deliberately
+merged here, and can be reviewed then. Scribidian uses its own plugin ID, so
+updates to First Draft never replace it. Do not enable both plugins at the
+same time.
+
+Scribidian marks character and project notes with a `scribidian:` frontmatter
+property. Notes marked with First Draft's `firstdraft:` property keep working
+and are not rewritten.
 
 ### What you are trusting
 
@@ -384,11 +392,9 @@ that publishes it. The source is open; review it, or build it yourself with
 
 Report suspected vulnerabilities privately, not in a public issue:
 
-- **Problems in this fork's own features**: use
-  [private vulnerability reporting](https://github.com/euphonics/firstdraft/security)
-  on this repository.
-- **Problems that also affect the original plugin**: follow
-  [SECURITY.md](SECURITY.md) to report them to the original author.
+- **Problems in Scribidian**: follow [SECURITY.md](SECURITY.md).
+- **Problems that also affect First Draft**: report them to its author through
+  [First Draft's security page](https://github.com/grobmeier/firstdraft/security).
 
 Never attach real screenplay content, credentials or other personal data to a
 report.
@@ -402,9 +408,19 @@ Release history is recorded in the [changelog](CHANGELOG.md). Security issues
 must be submitted through the private process in [SECURITY.md](SECURITY.md), not
 through a public issue.
 
+## Credits
+
+Scribidian is derived from [First Draft](https://github.com/grobmeier/firstdraft),
+Copyright 2026 Christian Grobmeier, licensed under the Apache License 2.0. The
+screenplay parser, exports, palette, character and project features, and much
+else come from First Draft. Scribidian adds the screenplay editor layout, smart
+Tab and Enter, element hotkeys, dual dialogue, slug modifiers, font and margin
+settings and more. "First Draft" is Christian Grobmeier's project name; this
+project is not affiliated with or endorsed by him.
+
 ## Licence
 
-[Apache License 2.0](LICENSE)
+[Apache License 2.0](LICENSE). See [NOTICE](NOTICE).
 
 Third-party licences are recorded in
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

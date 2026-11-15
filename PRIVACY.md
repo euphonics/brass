@@ -1,6 +1,6 @@
 # Privacy
 
-First Draft processes screenplay text locally inside Obsidian.
+Scribidian processes screenplay text locally inside Obsidian.
 
 - It does not include telemetry or analytics.
 - It does not send screenplay text or usage data over the network.
@@ -34,4 +34,4 @@ First Draft processes screenplay text locally inside Obsidian.
   Single-file scene edits do not create a recovery copy.
 
 Obsidian, installed third-party plugins, sync providers, and the operating
-system are outside First Draft's control and have their own privacy behaviour.
+system are outside Scribidian's control and have their own privacy behaviour.

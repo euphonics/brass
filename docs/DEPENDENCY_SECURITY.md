@@ -5,7 +5,7 @@ Obsidian lint plugin. [Dependabot alert 1](https://github.com/grobmeier/firstdra
 reports GHSA-4p3w-j4w9-5jqw, patched in Moment 2.31.0.
 
 `package.json` narrowly overrides Moment to **2.31.0** and the lockfile resolves
-all development copies to that version. Moment is not a First Draft runtime
+all development copies to that version. Moment is not a Scribidian runtime
 dependency; this does not update the Moment version inside users' Obsidian apps.
 Remove the override only after upstream tooling requests a patched release and
 the complete dependency tree remains clean.

@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +25,9 @@ const projectRoot = path.resolve(
   "..",
 );
 const vaultRoot = path.resolve(
-  process.argv[2] ?? path.join(projectRoot, "First Draft Test Vault"),
+  process.argv[2] ?? path.join(projectRoot, "Scribidian Test Vault"),
 );
-const pluginRoot = path.join(vaultRoot, ".obsidian", "plugins", "firstdraft");
+const pluginRoot = path.join(vaultRoot, ".obsidian", "plugins", "scribidian");
 const characterRoot = path.join(vaultRoot, "Characters");
 const projectRootFolder = path.join(vaultRoot, "Long Night");
 const projectPartsFolder = path.join(projectRootFolder, "Parts");
@@ -53,7 +54,7 @@ const sceneDemoFolder = path.join(vaultRoot, "Scene Workspace Demo");
 await mkdir(path.join(sceneDemoFolder, "Elsewhere"), { recursive: true });
 const sceneDemoFiles = {
   "Project.md": `---
-firstdraft: screenplay-project
+scribidian: screenplay-project
 title: The Last Train
 parts:
   - "[[01 - Arrival]]"
@@ -120,7 +121,7 @@ const inspectorRoot = path.join(vaultRoot, "Continuity Inspector Demo");
 await mkdir(path.join(inspectorRoot, "Characters"), { recursive: true });
 const inspectorFiles = {
   "Project.md": `---
-firstdraft: screenplay-project
+scribidian: screenplay-project
 title: Inspector demo
 parts:
   - "[[Opening]]"
@@ -160,7 +161,7 @@ screenplay-project: "[[Continuity Inspector Demo/Project]]"
 出発しましょう。
 `,
   "Characters/Elise.md": `---
-firstdraft: character
+scribidian: character
 character: ELISE
 aliases:
   - ÉLISE
@@ -171,7 +172,7 @@ screenplays:
 # Elise
 `,
   "Characters/Miller.md": `---
-firstdraft: character
+scribidian: character
 character: MILLER
 screenplays:
   - "[[Continuity Inspector Demo/Project]]"
@@ -206,7 +207,7 @@ await copyFile(
 await writeFile(
   path.join(projectRootFolder, "Screenplay Project.md"),
   `---
-firstdraft: screenplay-project
+scribidian: screenplay-project
 title: The Long Night
 parts:
   - "[[Parts/01 - Opening]]"
@@ -311,7 +312,7 @@ await writeFile(
 await writeFile(
   path.join(characterRoot, "Jane.md"),
   `---
-firstdraft: character
+scribidian: character
 character: JANE
 aliases:
   - DR. JANE MORROW
@@ -344,7 +345,7 @@ Jane works at the military base.
 await writeFile(
   path.join(characterRoot, "Miller.md"),
   `---
-firstdraft: character
+scribidian: character
 character: MILLER
 aliases: []
 screenplays:
@@ -372,4 +373,4 @@ related:
   if (error?.code !== "EEXIST") throw error;
 });
 
-console.log(`Installed First Draft in test vault: ${vaultRoot}`);
+console.log(`Installed Scribidian in test vault: ${vaultRoot}`);

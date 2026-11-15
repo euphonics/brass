@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +17,7 @@
 
 import { Notice } from "obsidian";
 import type { MarkdownView } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import {
   cleanFountainSource,
   fountainExportPath,
@@ -25,7 +26,7 @@ import {
 import { loadScreenplayContext } from "../projects/vault";
 
 export async function exportFountain(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   view: MarkdownView,
   clean = false,
 ): Promise<void> {
@@ -57,7 +58,7 @@ export async function exportFountain(
     new Notice(`Exported screenplay to ${path}`);
     await plugin.app.workspace.getLeaf(false).openFile(exported);
   } catch (error) {
-    console.error("First Draft could not export Fountain", error);
-    new Notice("First Draft could not export the screenplay.");
+    console.error("Scribidian could not export Fountain", error);
+    new Notice("Scribidian could not export the screenplay.");
   }
 }

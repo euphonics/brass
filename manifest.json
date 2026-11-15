@@ -1,9 +1,10 @@
 {
-  "id": "firstdraft-arvn",
-  "name": "First Draft (arvn)",
-  "version": "0.13.1",
+  "id": "scribidian",
+  "name": "Scribidian",
+  "version": "1.0.0",
   "minAppVersion": "1.13.7",
-  "description": "Personal fork of First Draft: write screenplays efficiently in portable Fountain text.",
-  "author": "Christian Grobmeier",
+  "description": "Write screenplays efficiently in portable Fountain text. Derived from First Draft by Christian Grobmeier.",
+  "author": "arvn",
+  "authorUrl": "https://github.com/euphonics",
   "isDesktopOnly": false
 }

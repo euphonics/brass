@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +23,14 @@ import {
 
 describe("example screenplay project", () => {
   it("chooses a conflict-safe numbered folder", () => {
-    const existing = new Set(["First Draft Example", "First Draft Example 2"]);
+    const existing = new Set(["Scribidian Example", "Scribidian Example 2"]);
     expect(availableExampleFolderName((name) => existing.has(name))).toBe(
-      "First Draft Example 3",
+      "Scribidian Example 3",
     );
   });
 
   it("provides a complete portable project", () => {
-    const files = exampleProjectFiles("First Draft Example 2");
+    const files = exampleProjectFiles("Scribidian Example 2");
     expect(files.map((file) => file.path)).toEqual([
       "Start Here.md",
       "Screenplay Project.md",
@@ -43,11 +44,11 @@ describe("example screenplay project", () => {
     ).toContain('  - "[[Parts/01 - Arrival]]"');
     expect(
       files.find((file) => file.path === "Characters/Mara.md")?.content,
-    ).toContain('"[[First Draft Example 2/Screenplay Project]]"');
+    ).toContain('"[[Scribidian Example 2/Screenplay Project]]"');
     expect(
       files.find((file) => file.path === "Parts/01 - Arrival.md")?.content,
     ).toContain(
-      'screenplay-project: "[[First Draft Example 2/Screenplay Project]]"',
+      'screenplay-project: "[[Scribidian Example 2/Screenplay Project]]"',
     );
     expect(
       files.find((file) => file.path === "Parts/01 - Arrival.md")?.content,

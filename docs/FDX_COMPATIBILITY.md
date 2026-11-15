@@ -1,6 +1,6 @@
 # FDX compatibility
 
-First Draft exports a deliberately small Final Draft XML document containing
+Scribidian exports a deliberately small Final Draft XML document containing
 the screenplay content needed for ordinary interchange:
 
 - Scene Heading

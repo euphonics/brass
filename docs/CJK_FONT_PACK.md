@@ -1,6 +1,6 @@
 # Optional offline CJK PDF fonts
 
-First Draft's core plugin is under 5 MB. Chinese, Japanese and Korean writing,
+Scribidian's core plugin is under 5 MB. Chinese, Japanese and Korean writing,
 autocomplete, scene planning, preview and Fountain/FDX export do not need a font
 pack. **Only CJK PDF export needs these additional fonts.** Latin PDF export
 keeps its built-in Courier-compatible fonts.
@@ -9,7 +9,7 @@ keeps its built-in Courier-compatible fonts.
 
 1. Obtain the official files below (or unpack the optional font-pack ZIP in your
    device's Files app). Keep their exact filenames. The two files total 23.4 MB.
-2. In Obsidian's command palette, run **First Draft: Install offline CJK PDF fonts**.
+2. In Obsidian's command palette, run **Scribidian: Install offline CJK PDF fonts**.
 3. Choose **both** `NotoSansCJK-Regular.woff` and `NotoSansCJK-Bold.woff` in the
    file picker, then choose **Install selected fonts**.
 4. Wait for the installed message and retry PDF export. Set **PDF language** to
@@ -33,7 +33,7 @@ sizes and SHA-256 hashes before writing anything. It does not scan your device,
 access the network, read the clipboard, or send screenplay text anywhere.
 
 The verified fonts are stored as six binary chunks, each at most 4,000,000 bytes,
-under `<vault-config>/plugins/firstdraft/fonts/cjk-2.004/`. Export reads only these
+under `<vault-config>/plugins/scribidian/fonts/cjk-2.004/`. Export reads only these
 known paths and checks completeness and hashes again. Interrupted installs can
 be retried. Missing/corrupt fonts stop PDF export with instructions; the source
 screenplay is unchanged. No fonts are retained in an unbounded memory cache.

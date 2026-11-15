@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +23,7 @@ import {
 } from "../editor/screenplayFont";
 import { PluginSettingTab } from "obsidian";
 import type { App, SettingDefinitionItem, SettingGroupItem } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import {
   DEFAULT_CLEAN_EXPORT_OPTIONS,
   normalizeCleanExportOptions,
@@ -41,7 +42,7 @@ import {
 /** Editor look for screenplay notes. */
 export type EditorLayout = "screenplay" | "plain";
 
-export interface FirstDraftSettings {
+export interface ScribidianSettings {
   activateFountainFiles: boolean;
   activateFrontmatter: boolean;
   autocompleteEnabled: boolean;
@@ -159,7 +160,7 @@ const CLEAN_EXPORT_SETTINGS: {
 
 const CLEAN_EXPORT_PREFIX = "cleanExport.";
 
-export const DEFAULT_SETTINGS: FirstDraftSettings = {
+export const DEFAULT_SETTINGS: ScribidianSettings = {
   activateFountainFiles: true,
   activateFrontmatter: true,
   autocompleteEnabled: true,
@@ -199,7 +200,7 @@ function valuesFromText(value: string): string[] {
     .filter(Boolean);
 }
 
-function isSettingKey(key: string): key is keyof FirstDraftSettings {
+function isSettingKey(key: string): key is keyof ScribidianSettings {
   return key in DEFAULT_SETTINGS;
 }
 
@@ -300,10 +301,10 @@ export function groupSettings(
   ];
 }
 
-export class FirstDraftSettingTab extends PluginSettingTab {
+export class ScribidianSettingTab extends PluginSettingTab {
   constructor(
     app: App,
-    private readonly plugin: FirstDraftPlugin,
+    private readonly plugin: ScribidianPlugin,
   ) {
     super(app, plugin);
   }
@@ -312,13 +313,13 @@ export class FirstDraftSettingTab extends PluginSettingTab {
     return [
       {
         type: "group",
-        cls: "firstdraft-settings-search",
+        cls: "scribidian-settings-search",
         items: [
           {
             name: "Search settings",
             searchable: false,
             render: (setting) => {
-              setting.settingEl.addClass("firstdraft-settings-search-row");
+              setting.settingEl.addClass("scribidian-settings-search-row");
               setting.infoEl.remove();
               setting.addSearch((search) => {
                 search.setPlaceholder("Type to find a setting…");
@@ -327,7 +328,7 @@ export class FirstDraftSettingTab extends PluginSettingTab {
                   this.query = value;
                   this.filterSettings();
                 });
-                search.inputEl.addClass("firstdraft-settings-search-input");
+                search.inputEl.addClass("scribidian-settings-search-input");
               });
               // Reapply the search after each re-render of the tab.
               window.setTimeout(() => this.filterSettings(), 0);
@@ -383,7 +384,7 @@ export class FirstDraftSettingTab extends PluginSettingTab {
     for (const group of Array.from(
       this.containerEl.querySelectorAll<HTMLElement>(".setting-group"),
     )) {
-      if (group.hasClass("firstdraft-settings-search")) continue;
+      if (group.hasClass("scribidian-settings-search")) continue;
       let shown = 0;
       for (const item of Array.from(
         group.querySelectorAll<HTMLElement>(".setting-items > .setting-item"),
@@ -394,10 +395,10 @@ export class FirstDraftSettingTab extends PluginSettingTab {
         const text =
           `${heading?.textContent ?? ""} ${item.textContent ?? ""}`.toLocaleLowerCase();
         const match = words.every((word) => text.includes(word));
-        item.toggleClass("firstdraft-hidden", !match);
+        item.toggleClass("scribidian-hidden", !match);
         if (match) shown += 1;
       }
-      group.toggleClass("firstdraft-hidden", shown === 0);
+      group.toggleClass("scribidian-hidden", shown === 0);
     }
   }
 
@@ -406,7 +407,7 @@ export class FirstDraftSettingTab extends PluginSettingTab {
     return [
       {
         name: "Open .fountain files in screenplay mode",
-        desc: "Automatically activate First Draft for Fountain files.",
+        desc: "Automatically activate Scribidian for Fountain files.",
         control: {
           type: "toggle",
           key: "activateFountainFiles",
@@ -415,7 +416,7 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       },
       {
         name: "Use screenplay frontmatter",
-        desc: "Activate First Draft for Markdown notes with screenplay: true.",
+        desc: "Activate Scribidian for Markdown notes with screenplay: true.",
         control: {
           type: "toggle",
           key: "activateFrontmatter",
@@ -614,7 +615,7 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       },
       {
         name: "Maximum autocomplete suggestions",
-        desc: "Limit the number of First Draft suggestions shown at once.",
+        desc: "Limit the number of Scribidian suggestions shown at once.",
         control: {
           type: "slider",
           key: "maximumSuggestions",
@@ -832,7 +833,7 @@ export class FirstDraftSettingTab extends PluginSettingTab {
   }
 
   private setBooleanSetting(
-    key: keyof FirstDraftSettings,
+    key: keyof ScribidianSettings,
     value: boolean,
   ): void {
     switch (key) {
@@ -853,7 +854,7 @@ export class FirstDraftSettingTab extends PluginSettingTab {
     }
   }
 
-  private setNumberSetting(key: keyof FirstDraftSettings, value: number): void {
+  private setNumberSetting(key: keyof ScribidianSettings, value: number): void {
     switch (key) {
       case "recentItemsWeighting":
       case "maximumSuggestions":

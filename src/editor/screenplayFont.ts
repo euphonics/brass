@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -148,8 +149,8 @@ export function screenplayFontOptions(
 }
 
 /** Body class while the screenplay font applies. */
-export const CUSTOM_FONT_CLASS = "firstdraft-custom-screenplay-font";
-const FONT_VARIABLE = "--firstdraft-screenplay-font";
+export const CUSTOM_FONT_CLASS = "scribidian-custom-screenplay-font";
+const FONT_VARIABLE = "--scribidian-screenplay-font";
 
 /** Apply the screenplay font for the app window, or clear it (`null`). */
 export function applyScreenplayFont(css: string | null): void {

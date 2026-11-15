@@ -1,4 +1,4 @@
-# Releasing First Draft
+# Releasing Scribidian
 
 Releases are built by GitHub Actions from an exact semantic-version tag. The
 tag must not have a `v` prefix because Obsidian requires it to match the version
@@ -42,7 +42,7 @@ Create and push an annotated tag whose name exactly matches the manifest
 version:
 
 ```bash
-git tag -a <version> -m "First Draft <version>"
+git tag -a <version> -m "Scribidian <version>"
 git push origin <version>
 ```
 

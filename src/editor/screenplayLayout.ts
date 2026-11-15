@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +32,7 @@ import {
   type ViewUpdate,
 } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import {
   centeredMarkers,
   classifyLayoutLines,
@@ -41,7 +42,7 @@ import {
 } from "./layoutClassifier";
 
 /** Class on the editor root while the screenplay layout is shown. */
-export const SCREENPLAY_LAYOUT_CLASS = "firstdraft-screenplay-layout";
+export const SCREENPLAY_LAYOUT_CLASS = "scribidian-screenplay-layout";
 
 const LINE_DECORATIONS = new Map<LayoutLineKind, Decoration>(
   (
@@ -59,7 +60,7 @@ const LINE_DECORATIONS = new Map<LayoutLineKind, Decoration>(
     ] as const
   ).map((kind) => [
     kind,
-    Decoration.line({ attributes: { class: `firstdraft-sp-${kind}` } }),
+    Decoration.line({ attributes: { class: `scribidian-sp-${kind}` } }),
   ]),
 );
 
@@ -80,7 +81,7 @@ function openMenuKind(state: EditorState): LayoutLineKind | null {
  * changed. Off when the "Editor layout" setting is "Plain Fountain text".
  */
 export function createScreenplayLayoutExtension(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
 ): Extension {
   const layoutPlugin = ViewPlugin.fromClass(
     class {

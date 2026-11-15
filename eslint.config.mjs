@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +24,7 @@ export default tseslint.config(
     ignores: [
       "main.js",
       "node_modules",
-      "First Draft Test Vault",
+      "Scribidian Test Vault",
       "graphify-out",
       "output",
     ],
@@ -64,7 +65,7 @@ export default tseslint.config(
         "warn",
         {
           brands: [
-            "First Draft",
+            "Scribidian",
             "Final Draft",
             "Fountain",
             "Chinese",

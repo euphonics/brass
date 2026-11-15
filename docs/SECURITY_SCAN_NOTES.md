@@ -3,7 +3,7 @@
 ## Runtime base64
 
 Starting with 0.13.1, bundled Liberation Mono fonts are embedded as literal
-byte arrays at build time. First Draft no longer calls browser `atob()` or
+byte arrays at build time. Scribidian no longer calls browser `atob()` or
 `btoa()` to decode fonts. The production build rejects these calls and release
 assets at or above 5,000,000 bytes.
 

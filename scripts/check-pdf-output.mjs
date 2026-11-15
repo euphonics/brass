@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +22,7 @@ import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { fontBytesEsbuildPlugin } from "./font-bytes.mjs";
 
-const temporary = await mkdtemp(join(tmpdir(), "firstdraft-pdf-"));
+const temporary = await mkdtemp(join(tmpdir(), "scribidian-pdf-"));
 const output = resolve("output/pdf");
 const engine = join(temporary, "engine.mjs");
 try {

@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +17,12 @@
 
 import { Notice } from "obsidian";
 import type { MarkdownView } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import { fdxExportPath, serializeFdx } from "../export/fdx";
 import { loadScreenplayContext } from "../projects/vault";
 
 export async function exportFdx(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   view: MarkdownView,
 ): Promise<void> {
   const file = view.file;
@@ -44,7 +45,7 @@ export async function exportFdx(
     await plugin.app.vault.create(path, content);
     new Notice(`Exported Final Draft FDX to ${path}`);
   } catch (error) {
-    console.error("First Draft could not export Final Draft FDX", error);
-    new Notice("First Draft could not export the Final Draft FDX file.");
+    console.error("Scribidian could not export Final Draft FDX", error);
+    new Notice("Scribidian could not export the Final Draft FDX file.");
   }
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +89,7 @@ export const CHEAT_SHEET_SECTIONS: CheatSheetSection[] = [
   {
     title: "Fountain quick syntax",
     introduction:
-      "These are the six core element types First Draft recognises and exports to FDX.",
+      "These are the six core element types Scribidian recognises and exports to FDX.",
     entries: [
       {
         term: "Scene heading",
@@ -123,8 +124,8 @@ export const CHEAT_SHEET_SECTIONS: CheatSheetSection[] = [
     ],
   },
   {
-    title: "First Draft terms",
-    introduction: "How First Draft organises portable screenplay material.",
+    title: "Scribidian terms",
+    introduction: "How Scribidian organises portable screenplay material.",
     entries: [
       {
         term: "Screenplay mode",

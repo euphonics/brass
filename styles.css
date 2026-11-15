@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,55 +15,55 @@
  * limitations under the License.
  */
 
-.firstdraft-prompt-input {
+.scribidian-prompt-input {
   width: 100%;
 }
 
-.firstdraft-statistics-summary {
+.scribidian-statistics-summary {
   display: grid;
   grid-template-columns: minmax(10rem, 1fr) auto;
   gap: 0.4rem 1.5rem;
 }
 
-.firstdraft-statistics-summary dt {
+.scribidian-statistics-summary dt {
   color: var(--text-muted);
 }
 
-.firstdraft-statistics-summary dd {
+.scribidian-statistics-summary dd {
   margin: 0;
   text-align: right;
 }
 
-.firstdraft-character-statistics {
+.scribidian-character-statistics {
   width: 100%;
 }
 
-.firstdraft-character-statistics th:last-child,
-.firstdraft-character-statistics td:last-child {
+.scribidian-character-statistics th:last-child,
+.scribidian-character-statistics td:last-child {
   text-align: right;
 }
 
-.firstdraft-palette {
+.scribidian-palette {
   padding: var(--size-4-3);
 }
 
-.firstdraft-palette h2,
-.firstdraft-palette h3,
-.firstdraft-palette h4 {
+.scribidian-palette h2,
+.scribidian-palette h3,
+.scribidian-palette h4 {
   margin-block: var(--size-4-3) var(--size-4-2);
 }
 
-.firstdraft-palette-actions {
+.scribidian-palette-actions {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(8rem, 100%), 1fr));
   gap: var(--size-4-2);
 }
 
-.firstdraft-palette-onboarding-actions {
+.scribidian-palette-onboarding-actions {
   grid-template-columns: minmax(0, 1fr);
 }
 
-.firstdraft-palette .firstdraft-palette-action {
+.scribidian-palette .scribidian-palette-action {
   min-width: 0;
   max-width: 100%;
   height: auto;
@@ -73,93 +74,93 @@
   text-align: center;
 }
 
-.firstdraft-palette-global-actions {
+.scribidian-palette-global-actions {
   display: flex;
   justify-content: flex-end;
   margin-bottom: var(--size-4-2);
 }
 
-.firstdraft-palette-action:first-child {
+.scribidian-palette-action:first-child {
   color: var(--text-on-accent);
   background: var(--interactive-accent);
 }
 
-.firstdraft-palette-search {
+.scribidian-palette-search {
   width: 100%;
   margin-bottom: var(--size-4-2);
 }
 
-.firstdraft-palette-items {
+.scribidian-palette-items {
   display: flex;
   flex-wrap: wrap;
   gap: var(--size-2-3);
 }
 
-.firstdraft-project-parts {
+.scribidian-project-parts {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
 }
 
-.firstdraft-project-parts .firstdraft-palette-item {
+.scribidian-project-parts .scribidian-palette-item {
   width: 100%;
   text-align: start;
 }
 
-.firstdraft-project-note
+.scribidian-project-note
   .metadata-property[data-property-key="parts"]
   .multi-select-container {
   flex-direction: column;
   align-items: flex-start;
 }
 
-.firstdraft-project-note
+.scribidian-project-note
   .metadata-property[data-property-key="parts"]
   .multi-select-pill {
   max-width: 100%;
 }
 
-.firstdraft-palette-item-row {
+.scribidian-palette-item-row {
   display: inline-flex;
   max-width: 100%;
 }
 
-.firstdraft-palette-item-row .firstdraft-palette-item {
+.scribidian-palette-item-row .scribidian-palette-item {
   border-start-end-radius: 0;
   border-end-end-radius: 0;
 }
 
-.firstdraft-palette-item-secondary {
+.scribidian-palette-item-secondary {
   color: var(--text-muted);
   border-inline-start: 1px solid var(--background-modifier-border);
   border-start-start-radius: 0;
   border-end-start-radius: 0;
 }
 
-.firstdraft-palette-item {
+.scribidian-palette-item {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.firstdraft-palette-empty {
+.scribidian-palette-empty {
   color: var(--text-muted);
 }
 
-.firstdraft-palette-muted {
+.scribidian-palette-muted {
   color: var(--text-muted);
 }
 
-.firstdraft-character-graph {
+.scribidian-character-graph {
   width: 100%;
 }
 
-.firstdraft-palette-check {
+.scribidian-palette-check {
   color: var(--text-normal);
   background: var(--interactive-normal);
 }
 
-.firstdraft-character-check-link {
+.scribidian-character-check-link {
   width: auto;
   height: auto;
   padding: 0;
@@ -167,30 +168,30 @@
   text-align: start;
 }
 
-.firstdraft-cheat-sheet {
+.scribidian-cheat-sheet {
   max-height: min(75vh, 48rem);
   overflow-y: auto;
 }
 
-.firstdraft-cheat-sheet dl {
+.scribidian-cheat-sheet dl {
   margin-block: var(--size-4-2) var(--size-4-5);
 }
 
-.firstdraft-cheat-sheet dt {
+.scribidian-cheat-sheet dt {
   margin-top: var(--size-4-3);
   font-weight: var(--font-semibold);
 }
 
-.firstdraft-cheat-sheet dd {
+.scribidian-cheat-sheet dd {
   margin-inline-start: 0;
   color: var(--text-muted);
 }
 
-.firstdraft-cheat-example {
+.scribidian-cheat-example {
   margin-top: var(--size-4-1);
 }
 
-.firstdraft-cheat-example-text {
+.scribidian-cheat-example-text {
   width: 100%;
   padding: var(--size-4-2);
   overflow-x: auto;
@@ -203,16 +204,16 @@
   resize: none;
 }
 
-.firstdraft-preview-modal {
+.scribidian-preview-modal {
   width: min(94vw, 960px);
   max-width: 960px;
 }
 
-.firstdraft-preview {
+.scribidian-preview {
   padding-bottom: var(--size-4-6);
 }
 
-.firstdraft-preview-toolbar {
+.scribidian-preview-toolbar {
   position: sticky;
   top: 0;
   z-index: 2;
@@ -225,12 +226,12 @@
   background: var(--background-primary);
 }
 
-.firstdraft-preview-toolbar p {
+.scribidian-preview-toolbar p {
   margin: 0;
   color: var(--text-muted);
 }
 
-.firstdraft-preview-pages {
+.scribidian-preview-pages {
   display: grid;
   justify-items: center;
   gap: var(--size-4-6);
@@ -239,7 +240,7 @@
   border-radius: var(--radius-m);
 }
 
-.firstdraft-preview-page {
+.scribidian-preview-page {
   position: relative;
   container-type: inline-size;
   width: min(100%, 816px);
@@ -249,7 +250,7 @@
   box-shadow: 0 4px 18px rgb(0 0 0 / 18%);
 }
 
-.firstdraft-preview-block {
+.scribidian-preview-block {
   position: absolute;
   margin: 0;
   white-space: pre-wrap;
@@ -258,38 +259,38 @@
   line-height: 1;
 }
 
-.firstdraft-scene-actions {
+.scribidian-scene-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-block: 8px;
 }
-.firstdraft-scene-actions button {
+.scribidian-scene-actions button {
   height: auto;
   min-height: 28px;
   white-space: normal;
 }
-.firstdraft-scene-filters {
+.scribidian-scene-filters {
   display: grid;
   gap: 8px;
   margin-block: 12px;
 }
-.firstdraft-scene-filters input,
-.firstdraft-scene-filters select {
+.scribidian-scene-filters input,
+.scribidian-scene-filters select {
   width: 100%;
   min-width: 0;
 }
-.firstdraft-scene-card {
+.scribidian-scene-card {
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   padding: 10px;
   margin-block: 10px;
   overflow-wrap: anywhere;
 }
-.firstdraft-scene-card.is-active {
+.scribidian-scene-card.is-active {
   border-color: var(--interactive-accent);
 }
-.firstdraft-scene-heading {
+.scribidian-scene-heading {
   display: block;
   width: 100%;
   text-align: left;
@@ -297,18 +298,18 @@
   height: auto;
   min-height: 32px;
 }
-.firstdraft-scene-card p {
+.scribidian-scene-card p {
   margin-block: 6px;
 }
-.firstdraft-scene-synopsis,
-.firstdraft-scene-warning {
+.scribidian-scene-synopsis,
+.scribidian-scene-warning {
   white-space: pre-wrap;
 }
-.firstdraft-scene-warning {
+.scribidian-scene-warning {
   color: var(--text-warning);
 }
 
-.firstdraft-inspector-evidence {
+.scribidian-inspector-evidence {
   display: block;
   width: 100%;
   height: auto;
@@ -319,12 +320,12 @@
   margin-block: 6px;
 }
 
-.firstdraft-preview-scene-heading,
-.firstdraft-preview-character {
+.scribidian-preview-scene-heading,
+.scribidian-preview-character {
   font-weight: 700;
 }
 
-.firstdraft-preview-page-number {
+.scribidian-preview-page-number {
   position: absolute;
   right: 11.75%;
   bottom: 3.4%;
@@ -334,15 +335,15 @@
 }
 
 @media (max-width: 600px) {
-  .firstdraft-preview-modal {
+  .scribidian-preview-modal {
     width: 100vw;
   }
 
-  .firstdraft-preview-toolbar {
+  .scribidian-preview-toolbar {
     align-items: flex-start;
   }
 
-  .firstdraft-preview-pages {
+  .scribidian-preview-pages {
     gap: var(--size-4-3);
     padding: var(--size-4-2);
   }
@@ -354,10 +355,10 @@
  * page on desktop and shrink in proportion on a phone.
  */
 .markdown-source-view.mod-cm6
-  .cm-editor.firstdraft-screenplay-layout
+  .cm-editor.scribidian-screenplay-layout
   .cm-scroller {
   font-family: var(
-    --firstdraft-screenplay-font,
+    --scribidian-screenplay-font,
     "Courier Prime",
     "Courier New",
     Courier,
@@ -366,7 +367,7 @@
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.firstdraft-screenplay-layout
+  .cm-editor.scribidian-screenplay-layout
   .cm-sizer {
   /* 60 characters, plus a little room so a full line is not wrapped early. */
   max-width: 60.5ch;
@@ -376,7 +377,7 @@
 /* Themes can size lines on their own (e.g. Minimal's --line-width and
    --max-width: 88%); the layout needs exactly the 60-character column. */
 .markdown-source-view.mod-cm6
-  .cm-editor.firstdraft-screenplay-layout
+  .cm-editor.scribidian-screenplay-layout
   .cm-contentContainer
   > .cm-content
   > .cm-line {
@@ -387,61 +388,61 @@
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.firstdraft-screenplay-layout
-  .cm-line.firstdraft-sp-scene-heading {
+  .cm-editor.scribidian-screenplay-layout
+  .cm-line.scribidian-sp-scene-heading {
   font-weight: var(--font-bold);
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.firstdraft-screenplay-layout
-  .cm-line.firstdraft-sp-character {
+  .cm-editor.scribidian-screenplay-layout
+  .cm-line.scribidian-sp-character {
   padding-inline-start: 36.667%;
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.firstdraft-screenplay-layout
-  .cm-line.firstdraft-sp-dialogue {
+  .cm-editor.scribidian-screenplay-layout
+  .cm-line.scribidian-sp-dialogue {
   padding-inline-start: 16.667%;
   padding-inline-end: 25%;
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.firstdraft-screenplay-layout
-  .cm-line.firstdraft-sp-parenthetical {
+  .cm-editor.scribidian-screenplay-layout
+  .cm-line.scribidian-sp-parenthetical {
   padding-inline-start: 26.667%;
   padding-inline-end: 31.667%;
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.firstdraft-screenplay-layout
-  .cm-line.firstdraft-sp-transition {
+  .cm-editor.scribidian-screenplay-layout
+  .cm-line.scribidian-sp-transition {
   text-align: end;
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.firstdraft-screenplay-layout
-  .cm-line.firstdraft-sp-centered {
+  .cm-editor.scribidian-screenplay-layout
+  .cm-line.scribidian-sp-centered {
   text-align: center;
   font-weight: var(--font-bold);
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.firstdraft-screenplay-layout
-  .cm-line.firstdraft-sp-lyric {
+  .cm-editor.scribidian-screenplay-layout
+  .cm-line.scribidian-sp-lyric {
   font-style: italic;
   padding-inline-start: 16.667%;
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.firstdraft-screenplay-layout
-  .cm-line.firstdraft-sp-page-break {
+  .cm-editor.scribidian-screenplay-layout
+  .cm-line.scribidian-sp-page-break {
   border-bottom: 1px dashed var(--background-modifier-border);
   color: var(--text-faint);
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.firstdraft-screenplay-layout
-  .cm-line.firstdraft-sp-note {
+  .cm-editor.scribidian-screenplay-layout
+  .cm-line.scribidian-sp-note {
   color: var(--text-muted);
 }
 
@@ -450,9 +451,9 @@
  * Applies screenplay indentation to ```fountain fenced blocks in any note.
  * Mirrors the editor screenplay-layout percentages so the two look alike.
  */
-.firstdraft-fountain-codeblock {
+.scribidian-fountain-codeblock {
   font-family: var(
-    --firstdraft-screenplay-font,
+    --scribidian-screenplay-font,
     "Courier Prime",
     "Courier New",
     Courier,
@@ -464,95 +465,95 @@
   line-height: 1.5;
 }
 
-.firstdraft-fountain-codeblock .firstdraft-sp-scene-heading {
+.scribidian-fountain-codeblock .scribidian-sp-scene-heading {
   font-weight: var(--font-bold);
 }
 
-.firstdraft-fountain-codeblock .firstdraft-sp-character {
+.scribidian-fountain-codeblock .scribidian-sp-character {
   padding-inline-start: 36.667%;
 }
 
-.firstdraft-fountain-codeblock .firstdraft-sp-dialogue {
+.scribidian-fountain-codeblock .scribidian-sp-dialogue {
   padding-inline-start: 16.667%;
   padding-inline-end: 25%;
 }
 
-.firstdraft-fountain-codeblock .firstdraft-sp-parenthetical {
+.scribidian-fountain-codeblock .scribidian-sp-parenthetical {
   padding-inline-start: 26.667%;
   padding-inline-end: 31.667%;
 }
 
-.firstdraft-fountain-codeblock .firstdraft-sp-transition {
+.scribidian-fountain-codeblock .scribidian-sp-transition {
   text-align: end;
 }
 
-.firstdraft-fountain-codeblock .firstdraft-sp-centered {
+.scribidian-fountain-codeblock .scribidian-sp-centered {
   text-align: center;
   font-weight: var(--font-bold);
 }
 
-.firstdraft-fountain-codeblock .firstdraft-sp-lyric {
+.scribidian-fountain-codeblock .scribidian-sp-lyric {
   font-style: italic;
   padding-inline-start: 16.667%;
 }
 
-.firstdraft-fountain-codeblock .firstdraft-sp-page-break {
+.scribidian-fountain-codeblock .scribidian-sp-page-break {
   border-bottom: 1px dashed var(--background-modifier-border);
   color: var(--text-faint);
 }
 
-.firstdraft-fountain-codeblock .firstdraft-sp-note {
+.scribidian-fountain-codeblock .scribidian-sp-note {
   color: var(--text-muted);
 }
 
-.firstdraft-fountain-codeblock .firstdraft-codeblock-blank {
+.scribidian-fountain-codeblock .scribidian-codeblock-blank {
   min-height: 1.5em;
 }
 
 /* Bottom typing margin (Settings > Bottom typing margin). */
-.markdown-source-view.mod-cm6 .cm-editor.firstdraft-bottom-margin .cm-scroller {
-  margin-bottom: var(--firstdraft-bottom-margin);
+.markdown-source-view.mod-cm6 .cm-editor.scribidian-bottom-margin .cm-scroller {
+  margin-bottom: var(--scribidian-bottom-margin);
 }
 
 /* Screenplay font (Settings > Screenplay font), also in plain Fountain text. */
-.firstdraft-custom-screenplay-font
+.scribidian-custom-screenplay-font
   .markdown-source-view.mod-cm6
-  .cm-editor.firstdraft-screenplay-editor
+  .cm-editor.scribidian-screenplay-editor
   .cm-scroller {
-  font-family: var(--firstdraft-screenplay-font);
+  font-family: var(--scribidian-screenplay-font);
 }
 
 /* "> THE END <" and "> CUT TO:" are Fountain, not quotes: no quote bar. */
 .markdown-source-view.mod-cm6
-  .cm-editor.firstdraft-screenplay-layout
+  .cm-editor.scribidian-screenplay-layout
   .cm-line.HyperMD-quote:is(
-    .firstdraft-sp-centered,
-    .firstdraft-sp-transition
+    .scribidian-sp-centered,
+    .scribidian-sp-transition
   )::before {
   display: none;
 }
 
-/* Settings search (top of the First Draft settings tab). */
-.firstdraft-hidden {
+/* Settings search (top of the Scribidian settings tab). */
+.scribidian-hidden {
   display: none !important;
 }
 
-.firstdraft-settings-search-row .setting-item-control {
+.scribidian-settings-search-row .setting-item-control {
   flex: 1 1 auto;
   justify-content: stretch;
 }
 
-.firstdraft-settings-search-row .search-input-container {
+.scribidian-settings-search-row .search-input-container {
   width: 100%;
 }
 
 /* Dual dialogue side by side (screenplay layout, cursor outside the pair). */
 /* Beats Obsidian's ".cm-content > *" block rule and theme line widths. */
 .markdown-source-view.mod-cm6
-  .cm-editor.firstdraft-screenplay-layout
+  .cm-editor.scribidian-screenplay-layout
   .cm-contentContainer
   > .cm-content
-  > .firstdraft-dual {
+  > .scribidian-dual {
   display: flex;
   gap: 2ch;
   width: auto;
@@ -562,20 +563,20 @@
   white-space: pre-wrap;
 }
 
-.firstdraft-dual-column {
+.scribidian-dual-column {
   flex: 1 1 0;
   min-width: 0;
 }
 
-.firstdraft-dual-cue {
+.scribidian-dual-cue {
   padding-inline-start: 30%;
 }
 
-.firstdraft-dual-parenthetical {
+.scribidian-dual-parenthetical {
   padding-inline-start: 12%;
   padding-inline-end: 8%;
 }
 
-.firstdraft-dual-dialogue {
+.scribidian-dual-dialogue {
   padding-inline-end: 4%;
 }

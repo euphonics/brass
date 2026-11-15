@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +16,7 @@
  */
 
 import type { ScreenplayDocument } from "../screenplay/model";
-import { wikiLinkTarget } from "../characters/catalogue";
+import { pageKind, wikiLinkTarget } from "../characters/catalogue";
 
 export const SCREENPLAY_PROJECT_KIND = "screenplay-project";
 
@@ -41,7 +42,7 @@ function parentPath(path: string): string {
 export function isScreenplayProjectFrontmatter(
   frontmatter: Record<string, unknown> | undefined,
 ): boolean {
-  return frontmatter?.firstdraft === SCREENPLAY_PROJECT_KIND;
+  return pageKind(frontmatter) === SCREENPLAY_PROJECT_KIND;
 }
 
 export function screenplayProjectLinksFromFrontmatter(

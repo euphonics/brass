@@ -1,6 +1,6 @@
-# First Draft feature tour
+# Scribidian feature tour
 
-First Draft keeps Fountain or Markdown as the source of truth and adds a
+Scribidian keeps Fountain or Markdown as the source of truth and adds a
 screenplay-aware workspace around it. Everything shown below runs locally in
 Obsidian.
 
@@ -10,11 +10,11 @@ workflow introduced in earlier releases. All captures use an isolated demo vault
 
 ## Write with the quick-access palette
 
-The dockable First Draft palette keeps context-sensitive writing commands,
+The dockable Scribidian palette keeps context-sensitive writing commands,
 character pages, project navigation, recent characters, locations,
 parentheticals, and transitions beside the editor.
 
-![Screenplay editor and First Draft palette](images/quick-access-palette.png)
+![Screenplay editor and Scribidian palette](images/quick-access-palette.png)
 
 Autocomplete and keyboard-first commands cover scene headings, known
 locations, times of day, character cues, character extensions,
@@ -62,7 +62,7 @@ elements and intentional production-pagination boundary.
 ## Keep character context in normal Markdown
 
 Character dossiers hold background, wants, voice, relationships, and
-continuity notes. First Draft derives appearances and dialogue usage from the
+continuity notes. Scribidian derives appearances and dialogue usage from the
 screenplay and offers the normal Obsidian Local Graph for relationships.
 
 ![Character dossier and derived screenplay context](images/character-workspace.png)
@@ -97,9 +97,9 @@ copy shortcut; the plugin itself does not access the clipboard.
 
 ## Try it safely
 
-Run **Create example screenplay** from the First Draft palette or command
+Run **Create example screenplay** from the Scribidian palette or command
 palette. It creates a self-contained tour with a project, parts, and character
 dossiers. Existing vault content is never overwritten.
 
-The 13-second [preview and PDF demo](images/firstdraft-demo.mp4) is also
+The 13-second [preview and PDF demo](images/scribidian-demo.mp4) is also
 available as a compact video.

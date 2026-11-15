@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +16,13 @@
  */
 
 import type { MarkdownView } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
 import { ScreenplayPreviewModal } from "../ui/screenplayPreviewModal";
 import { exportPdf } from "./exportPdf";
 
 export async function previewScreenplay(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   view: MarkdownView,
 ): Promise<void> {
   const file = view.file;

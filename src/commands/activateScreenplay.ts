@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +17,11 @@
 
 import { Notice } from "obsidian";
 import type { TFile } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import { activateScreenplay } from "../onboarding/activateScreenplay";
 
 export async function activateScreenplayNote(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   file: TFile,
 ): Promise<void> {
   try {
@@ -43,7 +44,7 @@ export async function activateScreenplayNote(
       plugin.refreshStatus();
     } else if (result === "disabled") {
       new Notice(
-        'In First Draft settings, enable "use screenplay frontmatter" first.',
+        'In Scribidian settings, enable "use screenplay frontmatter" first.',
       );
     } else if (result === "unavailable") {
       new Notice("The note changed. Open an ordinary note and try again.");

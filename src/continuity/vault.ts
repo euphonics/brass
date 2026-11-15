@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +16,7 @@
  */
 
 import { MarkdownView, TFile } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import { loadSceneWorkspace } from "../scenes/vault";
 import { loadScreenplayContext } from "../projects/vault";
 import { verifiableCharacterPages } from "../characters/vault";
@@ -31,7 +32,7 @@ export interface InspectorSnapshot {
   guards: Map<string, string>;
 }
 async function currentSource(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   path: string,
 ): Promise<string> {
   const file = plugin.app.vault.getAbstractFileByPath(path);
@@ -51,7 +52,7 @@ async function currentSource(
   return buffers[0] ?? plugin.app.vault.read(file);
 }
 export async function loadInspector(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
 ): Promise<InspectorSnapshot> {
   const view = plugin.activeMarkdownView();
   if (!view?.file) throw new Error("Open a screenplay or project first.");
@@ -93,7 +94,7 @@ export async function loadInspector(
   };
 }
 export async function openInspectorEvidence(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   evidence: Evidence,
   guards: ReadonlyMap<string, string> = new Map(),
 ): Promise<void> {

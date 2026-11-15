@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +17,21 @@
 
 import { ItemView } from "obsidian";
 import type { IconName, WorkspaceLeaf } from "obsidian";
-import type FirstDraftPlugin from "../main";
-import { renderFirstDraftPalette } from "./palette/paletteRenderer";
+import type ScribidianPlugin from "../main";
+import { renderScribidianPalette } from "./palette/paletteRenderer";
 import { renderSceneWorkspace } from "./sceneWorkspace";
 import { EMPTY_SCENE_FILTERS } from "../scenes/model";
 
-export const FIRST_DRAFT_PALETTE_VIEW_TYPE = "firstdraft-palette";
+export const FIRST_DRAFT_PALETTE_VIEW_TYPE = "scribidian-palette";
 
-export class FirstDraftPaletteView extends ItemView {
+export class ScribidianPaletteView extends ItemView {
   private query = "";
   private renderGeneration = 0;
   private sceneFilters = { ...EMPTY_SCENE_FILTERS };
 
   constructor(
     leaf: WorkspaceLeaf,
-    private readonly plugin: FirstDraftPlugin,
+    private readonly plugin: ScribidianPlugin,
   ) {
     super(leaf);
   }
@@ -40,7 +41,7 @@ export class FirstDraftPaletteView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "First Draft palette";
+    return "Scribidian palette";
   }
 
   getIcon(): IconName {
@@ -48,7 +49,7 @@ export class FirstDraftPaletteView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
-    this.contentEl.addClass("firstdraft-palette");
+    this.contentEl.addClass("scribidian-palette");
     this.refresh();
   }
 
@@ -68,7 +69,7 @@ export class FirstDraftPaletteView extends ItemView {
       );
       return;
     }
-    renderFirstDraftPalette(this.plugin, this.contentEl, {
+    renderScribidianPalette(this.plugin, this.contentEl, {
       getQuery: () => this.query,
       setQuery: (query) => {
         this.query = query;

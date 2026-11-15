@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +17,7 @@
 
 import { Notice } from "obsidian";
 import type { MarkdownView } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import {
   pdfExportPath,
   serializePdf,
@@ -26,10 +27,10 @@ import { loadScreenplayContext } from "../projects/vault";
 import { ScreenplayLayoutError } from "../export/screenplayLayout";
 import { CjkFontPackError, loadCjkFontPack } from "../export/cjkFontPack";
 
-const activeExports = new WeakSet<FirstDraftPlugin>();
+const activeExports = new WeakSet<ScribidianPlugin>();
 
 export async function exportPdf(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   view: MarkdownView,
 ): Promise<void> {
   const file = view.file;
@@ -83,8 +84,8 @@ export async function exportPdf(
       new Notice(error.message, 15000);
       return;
     }
-    console.error("First Draft could not export PDF", error);
-    new Notice("First Draft could not export the screenplay PDF.");
+    console.error("Scribidian could not export PDF", error);
+    new Notice("Scribidian could not export the screenplay PDF.");
   } finally {
     progress.hide();
     activeExports.delete(plugin);

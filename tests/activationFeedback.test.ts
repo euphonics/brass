@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +17,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TFile } from "obsidian";
-import type FirstDraftPlugin from "../src/main";
+import type ScribidianPlugin from "../src/main";
 import { activateScreenplayNote } from "../src/commands/activateScreenplay";
 import { activateScreenplay } from "../src/onboarding/activateScreenplay";
 
@@ -43,7 +44,7 @@ describe("activation feedback", () => {
     async (result) => {
       vi.mocked(activateScreenplay).mockResolvedValue(result);
       const refreshStatus = vi.fn();
-      const plugin = { refreshStatus } as unknown as FirstDraftPlugin;
+      const plugin = { refreshStatus } as unknown as ScribidianPlugin;
       const file = new TFile();
       await activateScreenplayNote(plugin, file);
       expect(refreshStatus).toHaveBeenCalledOnce();
@@ -59,7 +60,7 @@ describe("activation feedback", () => {
     vi.mocked(activateScreenplay).mockResolvedValue("unavailable");
     const refreshStatus = vi.fn();
     await activateScreenplayNote(
-      { refreshStatus } as unknown as FirstDraftPlugin,
+      { refreshStatus } as unknown as ScribidianPlugin,
       new TFile(),
     );
     expect(refreshStatus).not.toHaveBeenCalled();

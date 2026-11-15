@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,7 +155,7 @@ This is the first draft.
     const pdf = await PDFDocument.load(bytes);
     expect(pdf.getPageCount()).toBe(1);
     expect(pdf.getTitle()).toBe("The Long Night");
-    expect(pdf.getCreator()).toBe("First Draft for Obsidian");
+    expect(pdf.getCreator()).toBe("Scribidian");
   });
 
   it("uses A4 dimensions when configured", async () => {

@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,11 +63,11 @@ export class StatisticsModal extends Modal {
 
   onOpen(): void {
     const { contentEl } = this;
-    contentEl.addClass("firstdraft-statistics");
+    contentEl.addClass("scribidian-statistics");
     contentEl.createEl("h2", { text: "Screenplay statistics" });
 
     const summary = contentEl.createEl("dl", {
-      cls: "firstdraft-statistics-summary",
+      cls: "scribidian-statistics-summary",
     });
     for (const row of statisticRows(this.statistics)) {
       summary.createEl("dt", { text: row.label });
@@ -76,7 +77,7 @@ export class StatisticsModal extends Modal {
     if (this.statistics.characters.length > 0) {
       contentEl.createEl("h3", { text: "Dialogue by character" });
       const table = contentEl.createEl("table", {
-        cls: "firstdraft-character-statistics",
+        cls: "scribidian-character-statistics",
       });
       const header = table.createEl("thead").createEl("tr");
       header.createEl("th", { text: "Character" });

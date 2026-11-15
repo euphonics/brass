@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +32,7 @@ describe("character catalogue", () => {
   it("parses portable character frontmatter", () => {
     expect(
       characterPageFromFrontmatter("Characters/Jane.md", {
-        firstdraft: "character",
+        scribidian: "character",
         character: "Jane",
         aliases: ["Dr. Jane Morrow"],
         screenplays: ["[[Milestone 4]]"],
@@ -46,9 +47,18 @@ describe("character catalogue", () => {
     });
   });
 
+  it("still reads First Draft's firstdraft key", () => {
+    expect(
+      characterPageFromFrontmatter("Characters/Jane.md", {
+        firstdraft: "character",
+        character: "Jane",
+      })?.character,
+    ).toBe("JANE");
+  });
+
   it("matches canonical cues and aliases without changing screenplay text", () => {
     const page = characterPageFromFrontmatter("Characters/Jane.md", {
-      firstdraft: "character",
+      scribidian: "character",
       character: "JANE",
       aliases: ["DR. JANE MORROW"],
     });

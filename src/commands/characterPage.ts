@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +17,7 @@
 
 import { Notice } from "obsidian";
 import type { Editor, TFile } from "obsidian";
-import type FirstDraftPlugin from "../main";
+import type ScribidianPlugin from "../main";
 import {
   characterPagesForScope,
   ensureCharacterPage,
@@ -28,7 +29,7 @@ import { buildScreenplayIndex, rankUsages } from "../screenplay/indexer";
 import { PickerModal } from "../ui/pickers";
 
 export function openCharacterDossier(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   editor: Editor,
   screenplay: TFile,
   preferredCue?: string,
@@ -44,7 +45,7 @@ export function openCharacterDossier(
 }
 
 async function openDossierPicker(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   editor: Editor,
   screenplay: TFile,
 ): Promise<void> {
@@ -76,7 +77,7 @@ async function openDossierPicker(
 }
 
 async function ensureAndOpen(
-  plugin: FirstDraftPlugin,
+  plugin: ScribidianPlugin,
   screenplay: TFile,
   currentSource: string,
   cue: string,

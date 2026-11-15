@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,11 +39,11 @@ export class ScreenplayPreviewModal extends Modal {
 
   onOpen(): void {
     this.setTitle(`${this.screenplayTitle} - screenplay preview`);
-    this.modalEl.addClass("firstdraft-preview-modal");
-    this.contentEl.addClass("firstdraft-preview");
+    this.modalEl.addClass("scribidian-preview-modal");
+    this.contentEl.addClass("scribidian-preview");
 
     const toolbar = this.contentEl.createDiv({
-      cls: "firstdraft-preview-toolbar",
+      cls: "scribidian-preview-toolbar",
     });
     const cjk =
       Object.values(this.screenplay.titlePage ?? {}).some(hasCjkText) ||
@@ -78,14 +79,14 @@ export class ScreenplayPreviewModal extends Modal {
       return;
     }
     const pages = this.contentEl.createDiv({
-      cls: "firstdraft-preview-pages",
+      cls: "scribidian-preview-pages",
     });
     for (const [pageIndex, layoutPage] of layout.pages.entries()) {
-      const page = pages.createDiv({ cls: "firstdraft-preview-page" });
+      const page = pages.createDiv({ cls: "scribidian-preview-page" });
       page.style.aspectRatio = `${layout.dimensions.width} / ${layout.dimensions.height}`;
       for (const block of layoutPage.blocks) {
         const element = page.createDiv({
-          cls: `firstdraft-preview-block firstdraft-preview-${block.type}`,
+          cls: `scribidian-preview-block scribidian-preview-${block.type}`,
           text: block.lines.join("\n"),
         });
         element.style.left = `${(block.left / layout.dimensions.width) * 100}%`;
@@ -96,7 +97,7 @@ export class ScreenplayPreviewModal extends Modal {
       }
       if (!layoutPage.titlePage)
         page.createDiv({
-          cls: "firstdraft-preview-page-number",
+          cls: "scribidian-preview-page-number",
           text: String(pageIndex + 1 - (this.screenplay.titlePage ? 1 : 0)),
         });
     }
