@@ -356,7 +356,13 @@
 .markdown-source-view.mod-cm6
   .cm-editor.firstdraft-screenplay-layout
   .cm-scroller {
-  font-family: "Courier Prime", "Courier New", Courier, var(--font-monospace);
+  font-family: var(
+    --firstdraft-screenplay-font,
+    "Courier Prime",
+    "Courier New",
+    Courier,
+    var(--font-monospace)
+  );
 }
 
 .markdown-source-view.mod-cm6
@@ -444,7 +450,13 @@
  * Mirrors the editor screenplay-layout percentages so the two look alike.
  */
 .firstdraft-fountain-codeblock {
-  font-family: "Courier Prime", "Courier New", Courier, var(--font-monospace);
+  font-family: var(
+    --firstdraft-screenplay-font,
+    "Courier Prime",
+    "Courier New",
+    Courier,
+    var(--font-monospace)
+  );
   max-width: 60.5ch;
   margin-inline: auto;
   padding: var(--size-4-4);
@@ -498,4 +510,12 @@
 /* Bottom typing margin (Settings > Bottom typing margin). */
 .markdown-source-view.mod-cm6 .cm-editor.firstdraft-bottom-margin .cm-scroller {
   margin-bottom: var(--firstdraft-bottom-margin);
+}
+
+/* Screenplay font (Settings > Screenplay font), also in plain Fountain text. */
+.firstdraft-custom-screenplay-font
+  .markdown-source-view.mod-cm6
+  .cm-editor.firstdraft-screenplay-editor
+  .cm-scroller {
+  font-family: var(--firstdraft-screenplay-font);
 }

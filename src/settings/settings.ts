@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { applyScreenplayFont } from "../editor/screenplayFont";
 import { PluginSettingTab } from "obsidian";
 import type { App, SettingDefinitionItem } from "obsidian";
 import type FirstDraftPlugin from "../main";
@@ -41,6 +42,7 @@ export interface FirstDraftSettings {
   smartTabEnabled: boolean;
   editorLayout: EditorLayout;
   bottomTypingMargin: number;
+  screenplayFont: string;
   renderFountainCodeBlocks: boolean;
   sceneTypeMinimumLetters: number;
   sceneTypeMatchCase: boolean;
@@ -154,6 +156,7 @@ export const DEFAULT_SETTINGS: FirstDraftSettings = {
   smartTabEnabled: true,
   editorLayout: "screenplay",
   bottomTypingMargin: 40,
+  screenplayFont: "",
   renderFountainCodeBlocks: false,
   sceneTypeMinimumLetters: 2,
   sceneTypeMatchCase: false,
@@ -304,6 +307,16 @@ export class FirstDraftSettingTab extends PluginSettingTab {
             plain: "Plain Fountain text",
           },
           defaultValue: DEFAULT_SETTINGS.editorLayout,
+        },
+      },
+      {
+        name: "Screenplay font",
+        desc: 'Font for screenplay notes in the editor (both layouts) and for rendered Fountain code blocks. Use a font installed on this device; list fallbacks with commas, e.g. "Courier Prime, Courier New, monospace". Leave empty for the default: Courier Prime in the screenplay layout, your normal Obsidian font in plain Fountain text. PDF export and the page preview always use Courier.',
+        control: {
+          type: "text",
+          key: "screenplayFont",
+          placeholder: "Courier Prime",
+          defaultValue: DEFAULT_SETTINGS.screenplayFont,
         },
       },
       {
@@ -519,6 +532,10 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       const folder = value.trim().replace(/\/+$/gu, "");
       if (!folder || folder === "/") return;
       this.plugin.settings.characterFolder = folder;
+    } else if (key === "screenplayFont") {
+      if (typeof value !== "string") return;
+      this.plugin.settings.screenplayFont = value.trim();
+      applyScreenplayFont(this.plugin.settings.screenplayFont);
     } else if (key === "characterTemplate") {
       if (typeof value !== "string") return;
       this.plugin.settings.characterTemplate = value.trim();

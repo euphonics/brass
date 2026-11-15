@@ -20,9 +20,11 @@ import { editorInfoField } from "obsidian";
 import type FirstDraftPlugin from "../main";
 
 const BOTTOM_MARGIN_CLASS = "firstdraft-bottom-margin";
+/** Class on the editor root of every screenplay note (font setting). */
+const SCREENPLAY_EDITOR_CLASS = "firstdraft-screenplay-editor";
 
 /**
- * In screenplay notes, end the editor's scrolling area `bottomTypingMargin`
+ * Marks screenplay editors, and in them ends the scrolling area `bottomTypingMargin`
  * pixels above the bottom of the pane, so a floating status bar (word count,
  * page estimate) never covers text. Display only: the note is not changed.
  */
@@ -50,20 +52,23 @@ export function createBottomMarginExtension(
       }
 
       private isActive(view: EditorView): boolean {
-        if (plugin.settings.bottomTypingMargin <= 0) return false;
         const file = view.state.field(editorInfoField, false)?.file ?? null;
         return file !== null && plugin.isScreenplayFile(file);
       }
     },
     {
       provide: (self) =>
-        EditorView.editorAttributes.of((view) =>
-          view.plugin(self)?.active
-            ? {
-                class: BOTTOM_MARGIN_CLASS,
-                style: `--firstdraft-bottom-margin: ${plugin.settings.bottomTypingMargin}px`,
-              }
-            : null,
+        EditorView.editorAttributes.of(
+          (view): Record<string, string> | null => {
+            if (!view.plugin(self)?.active) return null;
+            const margin = plugin.settings.bottomTypingMargin;
+            return margin > 0
+              ? {
+                  class: `${SCREENPLAY_EDITOR_CLASS} ${BOTTOM_MARGIN_CLASS}`,
+                  style: `--firstdraft-bottom-margin: ${margin}px`,
+                }
+              : { class: SCREENPLAY_EDITOR_CLASS };
+          },
         ),
     },
   );

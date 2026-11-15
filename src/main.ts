@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { applyScreenplayFont } from "./editor/screenplayFont";
 import { createBottomMarginExtension } from "./editor/bottomMargin";
 import { createScreenplayLayoutExtension } from "./editor/screenplayLayout";
 import { MarkdownView, Plugin, getFrontMatterInfo, parseYaml } from "obsidian";
@@ -73,6 +74,7 @@ export default class FirstDraftPlugin extends Plugin {
 
   async onload(): Promise<void> {
     await this.loadSettings();
+    applyScreenplayFont(this.settings.screenplayFont);
     this.registerExtensions(["fountain"], "markdown");
     this.statusBarItem = this.addStatusBarItem();
     this.statusBarItem.addClass("firstdraft-status");
@@ -393,6 +395,7 @@ export default class FirstDraftPlugin extends Plugin {
   }
 
   onunload(): void {
+    applyScreenplayFont("");
     if (this.refreshTimer !== null) window.clearTimeout(this.refreshTimer);
     this.clearProjectViewClasses();
   }
