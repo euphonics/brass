@@ -15,6 +15,7 @@
  */
 
 import {
+  DEFAULT_SLUG_MODIFIERS,
   CHARACTER_EXTENSIONS,
   COMMON_PARENTHETICALS,
   COMMON_TRANSITIONS,
@@ -24,10 +25,11 @@ import {
 } from "../screenplay/fountain";
 import {
   buildScreenplayIndex,
+  preferredAndRecent,
   preferredAndRecentTimes,
   rankUsages,
 } from "../screenplay/indexer";
-import { parseFountain } from "../screenplay/parser";
+import { isSceneHeading, parseFountain } from "../screenplay/parser";
 import type {
   ScreenplayDocument,
   ScreenplayIndex,
@@ -46,6 +48,7 @@ export type ScreenplayCompletionKind =
   | "parenthetical"
   | "transition"
   | "scene-type"
+  | "slug-modifier"
   | "scene-location"
   | "scene-time";
 
@@ -71,6 +74,8 @@ export interface CompletionPreferences {
   sceneTypeMinimumLetters?: number;
   /** Scene type suggestions require the typed letters' case to match. */
   sceneTypeMatchCase?: boolean;
+  /** Slug modifiers offered after the time of day. */
+  preferredSlugModifiers?: readonly string[];
 }
 
 const SCENE_LINE = new RegExp(`^(${SCENE_TYPE_SOURCE})\\s+(.*)$`, "iu");
@@ -186,6 +191,89 @@ function transitionPlan(
         to: cursorOffset,
         candidates,
       };
+}
+
+/**
+ * Slug modifiers after the time of day: typing "(" after it
+ * ("EXT. HIGHWAY - DAY (FL"), or asking for the list (Tab) at the end of a
+ * heading that has a time and no modifier yet.
+ */
+function slugModifierPlan(
+  source: string,
+  before: string,
+  lineFrom: number,
+  cursorOffset: number,
+  index: ScreenplayIndex,
+  preferences: CompletionPreferences,
+  explicit: boolean,
+): ScreenplayCompletionPlan | null {
+  if (!isSceneHeading(before.trim())) return null;
+  // Later preferred values count as more recent, so reverse the list to
+  // offer it in the order written in settings (FLASHBACK first).
+  const modifiers = preferredAndRecent(
+    index.slugModifiers,
+    [
+      ...(preferences.preferredSlugModifiers ?? DEFAULT_SLUG_MODIFIERS),
+    ].reverse(),
+  );
+  const typed = /^(.*\S)(\s*)\(([^()]*)$/u.exec(before);
+  if (typed) {
+    const base = typed[1] ?? "";
+    if (!headingHasTime(base, index, preferences)) return null;
+    const query = typed[3] ?? "";
+    const from = lineFrom + base.length + (typed[2] ?? "").length;
+    // Cover an auto-inserted ")" right after the cursor.
+    const to =
+      source.charAt(cursorOffset) === ")" ? cursorOffset + 1 : cursorOffset;
+    const candidates = rankUsages(
+      modifiers,
+      query,
+      preferences.recentItemsWeighting,
+      preferences.maximumSuggestions,
+    ).map((usage) => ({
+      label: usage.value,
+      applyText: `(${usage.value})`,
+      detail: "Slug modifier",
+    }));
+    return candidates.length === 0
+      ? null
+      : { kind: "slug-modifier", from, to, candidates };
+  }
+  if (!explicit || before.trimEnd().endsWith(")")) return null;
+  if (!headingHasTime(before, index, preferences)) return null;
+  const space = before.endsWith(" ") ? "" : " ";
+  const candidates = rankUsages(
+    modifiers,
+    "",
+    preferences.recentItemsWeighting,
+    preferences.maximumSuggestions,
+  ).map((usage) => ({
+    label: usage.value,
+    applyText: `${space}(${usage.value})`,
+    detail: "Slug modifier",
+  }));
+  return candidates.length === 0
+    ? null
+    : {
+        kind: "slug-modifier",
+        from: cursorOffset,
+        to: cursorOffset,
+        candidates,
+      };
+}
+
+/** Whether a scene heading ends with a known time of day. */
+function headingHasTime(
+  heading: string,
+  index: ScreenplayIndex,
+  preferences: CompletionPreferences,
+): boolean {
+  const parts = heading.trim().split(/\s+-\s+/u);
+  if (parts.length < 2) return false;
+  const last = (parts[parts.length - 1] ?? "").trim().toLocaleUpperCase();
+  return preferredAndRecentTimes(index, preferences.preferredTimesOfDay).some(
+    (usage) => usage.value.toLocaleUpperCase() === last,
+  );
 }
 
 function scenePlan(
@@ -408,6 +496,17 @@ export function getScreenplayCompletionPlan(
     preferences,
   );
   if (transition) return transition;
+
+  const modifier = slugModifierPlan(
+    source,
+    before,
+    from,
+    cursorOffset,
+    index,
+    preferences,
+    explicit,
+  );
+  if (modifier) return modifier;
 
   const scene = scenePlan(before, from, cursorOffset, index, preferences);
   if (scene) return scene;

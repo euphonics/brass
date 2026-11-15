@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import { DEFAULT_TIMES_OF_DAY, SCENE_TYPE_SOURCE } from "./fountain";
+import {
+  splitSlugModifier,
+  DEFAULT_TIMES_OF_DAY,
+  SCENE_TYPE_SOURCE,
+} from "./fountain";
 import type { ScreenplayDocument, ScreenplayIndex, Usage } from "./model";
 
 const SCENE_PARTS = new RegExp(`^\\.?(${SCENE_TYPE_SOURCE})\\s+(.+)$`, "iu");
@@ -92,16 +96,16 @@ export function buildScreenplayIndex(
   );
   for (const element of document.elements) {
     if (element.type !== "scene-heading") continue;
-    const time = (
-      parseSceneHeadingParts(element.text) ??
-      forcedSceneHeadingParts(element.text)
-    )?.timeOfDay;
+    const { base } = splitSlugModifier(element.text);
+    const time = (parseSceneHeadingParts(base) ?? forcedSceneHeadingParts(base))
+      ?.timeOfDay;
     if (time) knownTimes.add(time.toLocaleUpperCase());
   }
   const standaloneTimes = new Map<string, Usage>();
   const characters = new Map<string, Usage>();
   const locations = new Map<string, Usage>();
   const timesOfDay = new Map<string, Usage>();
+  const slugModifiers = new Map<string, Usage>();
   const parentheticals = new Map<string, Usage>();
   const transitions = new Map<string, Usage>();
 
@@ -110,9 +114,10 @@ export function buildScreenplayIndex(
       addUsage(characters, element.text, element.line);
     }
     if (element.type === "scene-heading") {
+      const { base, modifier } = splitSlugModifier(element.text);
+      if (modifier) addUsage(slugModifiers, modifier, element.line);
       const parts =
-        parseSceneHeadingParts(element.text) ??
-        forcedSceneHeadingParts(element.text);
+        parseSceneHeadingParts(base) ?? forcedSceneHeadingParts(base);
       if (!parts) continue;
       if (
         parts.type === "" &&
@@ -141,6 +146,7 @@ export function buildScreenplayIndex(
     locations: [...locations.values()],
     timesOfDay: [...timesOfDay.values()],
     standaloneTimes: [...standaloneTimes.values()],
+    slugModifiers: [...slugModifiers.values()],
     parentheticals: [...parentheticals.values()],
     transitions: [...transitions.values()],
   };
@@ -184,16 +190,24 @@ export function preferredAndRecentTimes(
   index: ScreenplayIndex,
   preferred: readonly string[] = DEFAULT_TIMES_OF_DAY,
 ): Usage[] {
+  return preferredAndRecent(index.timesOfDay, preferred);
+}
+
+/** Preferred values (in order) merged with the ones used in the script. */
+export function preferredAndRecent(
+  used: readonly Usage[],
+  preferred: readonly string[],
+): Usage[] {
   const combined = new Map<string, Usage>();
   const maximumPosition = Math.max(
     0,
-    ...index.timesOfDay.map((usage) => usage.lastUsedPosition),
+    ...used.map((usage) => usage.lastUsedPosition),
   );
 
   for (const [offset, value] of preferred.entries()) {
     addUsage(combined, value, maximumPosition - preferred.length + offset);
   }
-  for (const usage of index.timesOfDay) {
+  for (const usage of used) {
     const existing = combined.get(usage.value.toLocaleUpperCase());
     if (existing) {
       existing.count += usage.count;

@@ -35,6 +35,32 @@ export const DEFAULT_TIMES_OF_DAY = [
   "MOMENTS LATER",
 ];
 
+/** Slug modifiers after the time of day: "EXT. HIGHWAY - DAY (FLASHBACK)". */
+export const DEFAULT_SLUG_MODIFIERS = [
+  "FLASHBACK",
+  "PRESENT",
+  "DREAM",
+  "REALITY",
+];
+
+/**
+ * A scene heading split into its main part and a trailing slug modifier:
+ * "EXT. HIGHWAY - DAY (FLASHBACK) #12#" -> { base: "EXT. HIGHWAY - DAY #12#",
+ * modifier: "FLASHBACK" }. A scene number stays with the base.
+ */
+export function splitSlugModifier(text: string): {
+  base: string;
+  modifier: string | null;
+} {
+  const match = /^(.*?\S)\s*\(([^()]*)\)\s*(#[^#]*#)?\s*$/u.exec(text.trim());
+  if (!match || !(match[2] ?? "").trim()) return { base: text, modifier: null };
+  const number = match[3] ? ` ${match[3]}` : "";
+  return {
+    base: `${match[1] ?? ""}${number}`,
+    modifier: (match[2] ?? "").trim(),
+  };
+}
+
 export const CHARACTER_EXTENSIONS = [
   "(O.S.)",
   "(V.O.)",

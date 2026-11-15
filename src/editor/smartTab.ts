@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { DEFAULT_TIMES_OF_DAY } from "../screenplay/fountain";
+import {
+  splitSlugModifier,
+  DEFAULT_TIMES_OF_DAY,
+} from "../screenplay/fountain";
 import { isSceneHeading } from "../screenplay/parser";
 
 /*
@@ -213,7 +216,9 @@ export function getSmartTabPlan(
     case "scene-heading": {
       const times =
         typeof knownTimes === "function" ? knownTimes() : knownTimes;
-      if (hasTimeOfDay(line, times)) {
+      // After a slug modifier "(FLASHBACK)": start the action.
+      const { base, modifier } = splitSlugModifier(line);
+      if (modifier !== null && hasTimeOfDay(base, times)) {
         return {
           kind,
           at,
@@ -221,6 +226,10 @@ export function getSmartTabPlan(
           cursor: at + 2,
           openCompletion: false,
         };
+      }
+      // After the time of day: the slug modifier list (Enter skips it).
+      if (hasTimeOfDay(line, times)) {
+        return { kind, at, insert: "", cursor: at, openCompletion: true };
       }
       // Complete the " - " separator, whatever part of it is already typed.
       const trimmed = line.trimEnd();

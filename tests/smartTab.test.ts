@@ -60,10 +60,46 @@ describe("Smart Tab", () => {
     expect(tabAtEnd(".ROOFTOP")?.text).toBe(".ROOFTOP - ");
   });
 
-  it("starts the action after a complete heading", () => {
-    const result = tabAtEnd("EXT. ROOF - DUSK", ["DUSK"]);
-    expect(result?.text).toBe("EXT. ROOF - DUSK\n\n");
-    expect(result?.plan.openCompletion).toBe(false);
+  it("opens slug modifiers after the time, then starts the action", () => {
+    const afterTime = tabAtEnd("EXT. ROOF - DUSK", ["DUSK"]);
+    expect(afterTime?.text).toBe("EXT. ROOF - DUSK");
+    expect(afterTime?.plan.openCompletion).toBe(true);
+    const afterModifier = tabAtEnd("EXT. ROOF - DUSK (FLASHBACK)", ["DUSK"]);
+    expect(afterModifier?.text).toBe("EXT. ROOF - DUSK (FLASHBACK)\n\n");
+    expect(afterModifier?.plan.openCompletion).toBe(false);
+  });
+
+  it("suggests slug modifiers after the time of day", () => {
+    const labels = (source: string, explicit: boolean) =>
+      getScreenplayCompletionPlan(
+        source,
+        source.length,
+        DEFAULT_COMPLETION_PREFERENCES,
+        explicit,
+      )?.candidates.map((candidate) => [candidate.label, candidate.applyText]);
+    // Tab at the end of a heading with a time: the whole list.
+    expect(labels("EXT. HIGHWAY - DAY", true)).toContainEqual([
+      "FLASHBACK",
+      " (FLASHBACK)",
+    ]);
+    // Typing "(" narrows it.
+    expect(labels("EXT. HIGHWAY - DAY (dr", false)).toEqual([
+      ["DREAM", "(DREAM)"],
+    ]);
+    // Modifiers used in the script are offered too.
+    const script =
+      "EXT. ROAD - NIGHT (MONTAGE)\n\nShe drives.\n\nEXT. HIGHWAY - DAY (";
+    expect(labels(script, false)?.map(([label]) => label)).toContain("MONTAGE");
+    // Not without a time, and not after a modifier.
+    expect(labels("EXT. HIGHWAY", true)?.[0]?.[0]).not.toBe("FLASHBACK");
+    expect(
+      getScreenplayCompletionPlan(
+        "EXT. HIGHWAY - DAY (DREAM)",
+        26,
+        DEFAULT_COMPLETION_PREFERENCES,
+        true,
+      )?.kind,
+    ).not.toBe("slug-modifier");
   });
 
   it("opens a new character block after action", () => {
@@ -304,7 +340,9 @@ describe("review fixes", () => {
     getSmartEnterPlan("JEN\nHi.", 7, times);
     getSmartTabPlan("She runs.", 9, times);
     expect(calls).toBe(0);
-    expect(getSmartTabPlan("EXT. ROOF - DUSK", 16, times)?.insert).toBe("\n\n");
+    expect(getSmartTabPlan("EXT. ROOF - DUSK", 16, times)?.openCompletion).toBe(
+      true,
+    );
     expect(calls).toBe(1);
   });
 });

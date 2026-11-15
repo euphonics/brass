@@ -33,6 +33,7 @@ import type { PageSize } from "../screenplay/model";
 import { isPdfLanguage, PDF_LANGUAGES } from "../export/pdfLanguage";
 import type { PdfLanguage } from "../export/pdfLanguage";
 import {
+  DEFAULT_SLUG_MODIFIERS,
   DEFAULT_SCENE_TYPES,
   DEFAULT_TIMES_OF_DAY,
 } from "../screenplay/fountain";
@@ -56,6 +57,7 @@ export interface FirstDraftSettings {
   maximumSuggestions: number;
   preferredSceneTypes: string[];
   preferredTimesOfDay: string[];
+  preferredSlugModifiers: string[];
   statusBarEnabled: boolean;
   showEstimatedPages: boolean;
   showCurrentPage: boolean;
@@ -172,6 +174,7 @@ export const DEFAULT_SETTINGS: FirstDraftSettings = {
   maximumSuggestions: 8,
   preferredSceneTypes: DEFAULT_SCENE_TYPES,
   preferredTimesOfDay: DEFAULT_TIMES_OF_DAY,
+  preferredSlugModifiers: DEFAULT_SLUG_MODIFIERS,
   statusBarEnabled: true,
   showEstimatedPages: true,
   showCurrentPage: true,
@@ -225,6 +228,7 @@ const SETTING_GROUPS: { heading: string; keys: string[] }[] = [
       "maximumSuggestions",
       "preferredSceneTypes",
       "preferredTimesOfDay",
+      "preferredSlugModifiers",
     ],
   },
   {
@@ -704,6 +708,19 @@ export class FirstDraftSettingTab extends PluginSettingTab {
               : "Enter at least one time of day.",
         },
       },
+      {
+        name: "Preferred slug modifiers",
+        desc: 'Comma-separated values offered after the time of day, as in "EXT. HIGHWAY - DAY (FLASHBACK)". Tab after the time opens the list; modifiers used in the script are added.',
+        control: {
+          type: "textarea",
+          key: "preferredSlugModifiers",
+          rows: 2,
+          validate: (value) =>
+            valuesFromText(value).length > 0
+              ? undefined
+              : "Enter at least one slug modifier.",
+        },
+      },
     ];
   }
 
@@ -741,7 +758,11 @@ export class FirstDraftSettingTab extends PluginSettingTab {
     }
     if (!isSettingKey(key)) return;
 
-    if (key === "preferredSceneTypes" || key === "preferredTimesOfDay") {
+    if (
+      key === "preferredSceneTypes" ||
+      key === "preferredTimesOfDay" ||
+      key === "preferredSlugModifiers"
+    ) {
       if (typeof value !== "string") return;
       const values = valuesFromText(value);
       if (values.length === 0) return;

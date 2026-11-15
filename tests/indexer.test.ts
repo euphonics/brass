@@ -82,4 +82,17 @@ Ready.
     expect(rankUsages(usages, "JA", 0, 8)[0]?.value).toBe("JANE");
     expect(rankUsages(usages, "JA", 1, 8)[0]?.value).toBe("JACKSON");
   });
+
+  it("indexes slug modifiers apart from the time of day", () => {
+    const index = buildScreenplayIndex(
+      parseFountain(
+        "EXT. HIGHWAY - DAY (FLASHBACK) #4#" + String.fromCharCode(10),
+      ),
+    );
+    expect(index.slugModifiers.map((usage) => usage.value)).toEqual([
+      "FLASHBACK",
+    ]);
+    expect(index.timesOfDay.map((usage) => usage.value)).toEqual(["DAY"]);
+    expect(index.locations.map((usage) => usage.value)).toEqual(["HIGHWAY"]);
+  });
 });

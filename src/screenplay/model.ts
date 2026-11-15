@@ -79,6 +79,8 @@ export interface ScreenplayIndex {
   timesOfDay: Usage[];
   /** Times used as a whole forced heading, e.g. ".LATER". */
   standaloneTimes: Usage[];
+  /** Slug modifiers, e.g. FLASHBACK in "EXT. HIGHWAY - DAY (FLASHBACK)". */
+  slugModifiers: Usage[];
   parentheticals: Usage[];
   transitions: Usage[];
 }
