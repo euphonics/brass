@@ -19,15 +19,18 @@ copy `main.js`, `manifest.json` and `styles.css` from the
 [latest release](https://github.com/euphonics/scribidian/releases/latest) into
 `.obsidian/plugins/scribidian/` in your vault, then enable it in
 **Settings → Community plugins**. Coming from First Draft? See the
-[1.0.0 release notes](docs/releases/1.0.0.md). See the
+[0.1.0 release notes](docs/releases/0.1.0.md). See the
 [visual feature tour](docs/FEATURE_TOUR.md) for the complete workflow.
 
 ## Features
 
-**1.0.0** is the first Scribidian release. It builds on First Draft 0.13.1
+**0.1.0** is the first Scribidian release, and a beta: so far it has been
+tested by one writer, so keep backups and please
+[report problems](https://github.com/euphonics/scribidian/issues). It builds on
+First Draft 0.13.1
 and adds an optional screenplay layout in the editor, smart Tab and Enter,
 "Set line to …" commands, dual dialogue, slug modifiers, font and margin
-settings and more. See the [release notes](docs/releases/1.0.0.md).
+settings and more. See the [release notes](docs/releases/0.1.0.md).
 
 The current build provides:
 
