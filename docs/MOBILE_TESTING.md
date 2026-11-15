@@ -20,7 +20,7 @@ is public and has a GitHub release.
 
 1. Install the **BRAT** community plugin in the mobile test vault.
 2. In BRAT, choose **Add Beta plugin**.
-3. Enter `grobmeier/firstdraft` and select the intended test release. For the
+3. Enter `euphonics/scribidian` and select the intended test release. For the
    activated-note palette and bundle-size fixes, select `0.13.1` explicitly;
    the old stable `0.13.0` release does not include them.
 4. Enable **Scribidian** under **Settings → Community plugins**.

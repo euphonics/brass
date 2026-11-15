@@ -60,7 +60,7 @@ jobs:
           VERSION: ${{ github.ref_name }}
         run: |
           release_flags=()
-          release_title="First Draft $VERSION"
+          release_title="Scribidian $VERSION"
           if [[ "$VERSION" == *-beta.* ]]; then
             release_flags+=(--prerelease --latest=false)
             release_title="$VERSION"

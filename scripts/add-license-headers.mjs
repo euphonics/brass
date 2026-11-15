@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +22,7 @@ import process from "node:process";
 
 const HEADER = `/*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +54,18 @@ const ROOT_FILES = [
 ];
 const SOURCE_DIRECTORIES = ["scripts", "src", "tests"];
 const checkOnly = process.argv.includes("--check");
+
+// Files from First Draft may carry the original header without the
+// modifications line; both forms are accepted.
+const MODIFICATIONS_LINE = " * Modifications copyright 2026 arvn\n";
+
+function hasHeader(source) {
+  const text = sourceWithoutShebang(source.replace(/\r\n/g, "\n"));
+  return (
+    text.startsWith(HEADER) ||
+    text.startsWith(HEADER.replace(MODIFICATIONS_LINE, ""))
+  );
+}
 
 function sourceWithoutShebang(source) {
   if (!source.startsWith("#!")) return source;
@@ -93,7 +107,7 @@ for (const directory of SOURCE_DIRECTORIES) {
 const missing = [];
 for (const file of files.sort()) {
   const source = await readFile(file, "utf8");
-  if (sourceWithoutShebang(source).startsWith(HEADER)) continue;
+  if (hasHeader(source)) continue;
 
   missing.push(file);
   if (!checkOnly) {

@@ -13,20 +13,21 @@ by Christian Grobmeier, used under the Apache License 2.0. See
 
 ![Preview and PDF export](docs/images/firstdraft-demo.gif)
 
-Scribidian is not in the community plugin store. Install it by copying
-`main.js`, `manifest.json` and `styles.css` from a build or release into
+Install Scribidian from **Settings → Community plugins → Browse** in Obsidian:
+search for **Scribidian**, install it, and enable it. To install by hand,
+copy `main.js`, `manifest.json` and `styles.css` from the
+[latest release](https://github.com/euphonics/scribidian/releases/latest) into
 `.obsidian/plugins/scribidian/` in your vault, then enable it in
-**Settings → Community plugins**. See the
+**Settings → Community plugins**. Coming from First Draft? See the
+[1.0.0 release notes](docs/releases/1.0.0.md). See the
 [visual feature tour](docs/FEATURE_TOUR.md) for the complete workflow.
 
 ## Features
 
-**0.13.1** fixes the oversized plugin bundle and activated-note palette context,
-and removes native base64 decoding for bundled PDF fonts. CJK PDF export now
-uses a separately installed offline font pack. See the
-[release notes](docs/releases/0.13.1.md) for upgrade instructions and validation
-boundaries. The scene workspace and continuity inspector introduced in 0.13.0
-remain available.
+**1.0.0** is the first Scribidian release. It builds on First Draft 0.13.1
+and adds an optional screenplay layout in the editor, smart Tab and Enter,
+"Set line to …" commands, dual dialogue, slug modifiers, font and margin
+settings and more. See the [release notes](docs/releases/1.0.0.md).
 
 The current build provides:
 

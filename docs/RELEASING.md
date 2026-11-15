@@ -67,7 +67,7 @@ version unless the tag never produced a public release.
 5. Verify the downloaded assets' provenance with:
 
    ```bash
-   gh attestation verify main.js -R grobmeier/firstdraft
-   gh attestation verify manifest.json -R grobmeier/firstdraft
-   gh attestation verify styles.css -R grobmeier/firstdraft
+   gh attestation verify main.js -R euphonics/scribidian
+   gh attestation verify manifest.json -R euphonics/scribidian
+   gh attestation verify styles.css -R euphonics/scribidian
    ```
