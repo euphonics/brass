@@ -23,15 +23,19 @@ import {
 
 describe("force element", () => {
   it("scene heading: opens scene types, leaves sluglines, forces with .", () => {
-    expect(forceElementPlan("", "scene-heading")).toEqual({
+    expect(forceElementPlan("", "scene-heading")).toMatchObject({
       text: "",
       cursor: 0,
       complete: "scene-type",
     });
     expect(forceElementPlan("INT. ROOF - DAY", "scene-heading")).toBeNull();
     expect(forceElementPlan(".LATER", "scene-heading")).toBeNull();
-    expect(forceElementPlan("the rooftop", "scene-heading")?.text).toBe(
-      ".the rooftop",
+    expect(forceElementPlan("the rooftop", "scene-heading")).toMatchObject({
+      text: ".THE ROOFTOP",
+      spaced: true,
+    });
+    expect(forceElementPlan("int. roof", "scene-heading")?.text).toBe(
+      "INT. ROOF",
     );
     expect(forceElementPlan("!BANG", "scene-heading")?.text).toBe(".BANG");
   });

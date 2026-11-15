@@ -37,6 +37,8 @@ export interface ForceElementPlan {
   cursor: number;
   /** Suggestion list to open, if any. */
   complete: ForcedCompletion | null;
+  /** Needs a blank line above and below (sluglines, transitions). */
+  spaced?: boolean;
 }
 
 /** Line text without the Fountain markers that force another element. */
@@ -71,10 +73,15 @@ export function forceElementPlan(
   const content = withoutMarkers(line);
 
   switch (element) {
-    case "scene-heading":
-      if (blank) return plan("", "scene-type");
-      if (isSceneHeading(trimmed)) return null;
-      return plan(`.${content}`);
+    case "scene-heading": {
+      // Sluglines are all caps and stand apart from the lines around them.
+      if (blank) return { ...plan("", "scene-type"), spaced: true };
+      if (isSceneHeading(trimmed)) {
+        const upper = trimmed.toLocaleUpperCase();
+        return upper === trimmed ? null : { ...plan(upper), spaced: true };
+      }
+      return { ...plan(`.${content.toLocaleUpperCase()}`), spaced: true };
+    }
 
     case "character":
       if (blank) return plan("", "character");
@@ -92,9 +99,9 @@ export function forceElementPlan(
       }
 
     case "transition":
-      if (blank) return plan("> ", "transition");
+      if (blank) return { ...plan("> ", "transition"), spaced: true };
       if (isTransitionText(trimmed)) return null;
-      return plan(`> ${content.toLocaleUpperCase()}`);
+      return { ...plan(`> ${content.toLocaleUpperCase()}`), spaced: true };
 
     case "parenthetical":
       if (blank) return plan("()", "parenthetical", 1);

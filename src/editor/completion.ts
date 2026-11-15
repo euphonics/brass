@@ -108,15 +108,23 @@ export function forceElement(view: EditorView, element: ForcedElement): void {
     plan.complete === "scene-type" || plan.complete === "character"
       ? plan.complete
       : null;
+  // Sluglines and transitions get a blank line above and below, if missing.
+  const { doc } = state;
+  const blankAt = (number: number) =>
+    number < 1 || number > doc.lines || doc.line(number).text.trim() === "";
+  const above = plan.spaced && !blankAt(line.number - 1) ? "\n" : "";
+  const below = plan.spaced && !blankAt(line.number + 1) ? "\n" : "";
+  const insert = `${above}${plan.text}${below}`;
+  const lineStart = line.from + above.length;
+  const effects: StateEffect<unknown>[] = [setForcedList.of(forced)];
+  if (layout) effects.push(setLineKind.of({ from: lineStart, kind: element }));
   view.dispatch({
     changes:
-      plan.text === line.text
+      insert === line.text
         ? undefined
-        : { from: line.from, to: line.to, insert: plan.text },
-    selection: { anchor: line.from + plan.cursor },
-    effects: layout
-      ? [setForcedList.of(forced), layout]
-      : setForcedList.of(forced),
+        : { from: line.from, to: line.to, insert },
+    selection: { anchor: lineStart + plan.cursor },
+    effects,
     scrollIntoView: true,
     userEvent: "input",
   });
