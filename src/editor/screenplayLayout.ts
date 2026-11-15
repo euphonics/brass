@@ -221,9 +221,22 @@ export function createScreenplayLayoutExtension(
     return true;
   };
 
+  // Escape closing the character list on the empty next-cue line: the
+  // writer chose not to add a cue, so the line becomes action (as with
+  // Shift+Tab) instead of staying centred until they type. Observed, not
+  // handled, so the list's own Escape still runs.
+  const escape = EditorView.domEventObservers({
+    keydown(event, view) {
+      if (event.key !== "Escape") return;
+      if (completionStatus(view.state) !== "active") return;
+      window.setTimeout(() => shiftTab(view), 0);
+    },
+  });
+
   return [
     lineKindField,
     layoutPlugin,
+    escape,
     Prec.highest(keymap.of([{ key: "Shift-Tab", run: shiftTab }])),
   ];
 }
