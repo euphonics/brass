@@ -308,7 +308,7 @@ export class FirstDraftSettingTab extends PluginSettingTab {
       },
       {
         name: "Bottom typing margin",
-        desc: "Keep the line you are typing this many pixels above the bottom of the editor in screenplay notes, so the status bar never covers it. 0 turns it off.",
+        desc: "Leave this much empty space at the bottom of the editor in screenplay notes, so the status bar never covers text. 0 turns it off.",
         control: {
           type: "slider",
           key: "bottomTypingMargin",
@@ -542,7 +542,9 @@ export class FirstDraftSettingTab extends PluginSettingTab {
     }
 
     await this.plugin.saveSettings();
-    if (key === "editorLayout") this.app.workspace.updateOptions();
+    if (key === "editorLayout" || key === "bottomTypingMargin") {
+      this.app.workspace.updateOptions();
+    }
     if (
       key === "activateFountainFiles" ||
       key === "activateFrontmatter" ||

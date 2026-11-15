@@ -494,3 +494,8 @@
 .firstdraft-fountain-codeblock .firstdraft-codeblock-blank {
   min-height: 1.5em;
 }
+
+/* Bottom typing margin (Settings > Bottom typing margin). */
+.markdown-source-view.mod-cm6 .cm-editor.firstdraft-bottom-margin .cm-scroller {
+  margin-bottom: var(--firstdraft-bottom-margin);
+}
