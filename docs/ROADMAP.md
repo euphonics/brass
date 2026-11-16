@@ -238,6 +238,60 @@ Found on 2026-11-15 by testing Fountain edge cases, the plugins in this vault, a
   themes), 64 (Ctrl/Cmd+S with Linter), 73 (First Draft and Scribidian
   together), 74 (Smart Tab with a selection, Undo).
 
+## Internal inconsistencies
+
+Found on 2026-11-15 by reading the code and docs and by testing the parser and the editor layout side by side. Nothing here is fixed yet.
+
+### Fountain rules: the editor layout and the parser disagree
+
+The editor layout uses its own line classifier. Suggestions, statistics, character checks and PDF/FDX export use the parser. Found with a side-by-side test on 2026-11-15.
+
+| #   | Inconsistency                                                                                                                                                                                                                                                                                     | Effort |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 76  | A cue with a lowercase extension (`JANE (v.o.)`): the layout shows a character, the parser reads action, so JANE is missing from suggestions and statistics.                                                                                                                                      | S      |
+| 77  | `CUT TO:` followed straight by the next line: the layout shows a transition, the parser reads a character named "CUT TO:", which then appears in character suggestions.                                                                                                                           | S      |
+| 78  | Centered text (`> THE END <`): the layout centres it; the parser has no centered element and reads action with the markers, so PDF export would print `> THE END <`.                                                                                                                              | S–M    |
+| 79  | Page break (`===`): the layout draws a page break; the parser reads action `===` (counted, and printed in PDF).                                                                                                                                                                                   | S      |
+| 80  | Sections (`# ACT ONE`) and note lines (`[[...]]`): the layout leaves them out of the script; the parser reads them as action (counted, printed).                                                                                                                                                  | S      |
+| 81  | An unclosed parenthetical on its own line (`(whispering`): the layout shows a parenthetical, the parser reads dialogue.                                                                                                                                                                           | S      |
+| 82  | A Markdown heading inside a speech: the layout ends the speech, the parser keeps it as dialogue.                                                                                                                                                                                                  | S      |
+| 83  | Character cues and transitions are decided in four places (parser, layout classifier, Smart Tab, cue checker), and they disagree: `FADE OUT.` is a cue for Smart Tab but not for the cue checker. Front matter is also found four different ways. One shared line classifier would remove #76–83. | M–L    |
+
+### Typing behaviour across elements
+
+| #   | Inconsistency                                                                                                                                                                                                                                                                | Effort |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 84  | Scene headings and `>` transitions are uppercased as you type, but character names aren't. Worse, first-letter capitalization turns `jane` into `Jane`, which is no longer read as a character. Natural transitions (`cut to:`) aren't uppercased either; only `>` ones are. | S–M    |
+| 85  | The per-mode text-change settings only cover typing. Smart Tab, Smart Enter, suggestions and the Set line commands still uppercase headings and names in both modes, whatever those settings say.                                                                            | S–M    |
+| 86  | Shift+Tab and Escape (turn the empty next-cue line into action) only work in script mode and only on that one line. The command "Smart Tab back" sounds like the reverse of Smart Tab, but in plain mode it runs Obsidian's outdent.                                         | S      |
+| 87  | Pickers are uneven: commands exist for Character, Parenthetical and Character extension; the Transition picker is only in the palette; scene headings only through New scene.                                                                                                | S      |
+
+### Names and settings
+
+| #   | Inconsistency                                                                                                                                                                                                                                                                                         | Effort |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 88  | "Screenplay mode" (a note counts as a screenplay: the settings group, `isScreenplayMode()`) and "script mode" (the editor display) are near-identical names for different things.                                                                                                                     | S      |
+| 89  | Setting keys don't match their labels: `editorLayout` with values `screenplay`/`plain` is labelled Editor mode with script/plain mode; `smartTabEnabled` also switches Smart Enter.                                                                                                                   | S      |
+| 90  | Command names follow no single pattern: some start "Screenplay:", some "Screenplay project:" or "Character:", some nothing ("Open palette", "Inspect continuity"). "Export PDF" but "Export to Fountain". "Screenplay: Character" (a picker) sits beside "Set line 3: Character" (an element change). | S      |
+| 91  | First Draft names left in code and docs: `FIRST_DRAFT_PALETTE_VIEW_TYPE`, the command id `open-first-draft-palette`, and the changelog's "All notable changes to First Draft".                                                                                                                        | S      |
+| 92  | Two front matter conventions: screenplays use `screenplay: true`, character and project pages use `scribidian: character` / `scribidian: screenplay-project`.                                                                                                                                         | M      |
+
+### Docs and code
+
+| #   | Inconsistency                                                                                                                                                                                                         | Effort |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 93  | The README feature list still says the screenplay layout is "display only (Settings > Editor layout, or plain Fountain text)". The setting is now Editor mode, and script mode changes typing.                        | S      |
+| 94  | The README writes commands in Title Case ("Scribidian: Create Example Screenplay", "Open Screenplay Cheat Sheet"); the real names are sentence case.                                                                  | S      |
+| 95  | The roadmap plans wikilink options for export (#29), but clean Fountain export already has them (keep, unwrap or remove links, plus comments, tags, highlights and more). PDF and FDX export don't use those options. | S      |
+| 96  | The editor font is a setting, but PDF export and the page preview always use Courier.                                                                                                                                 | S      |
+
+### Code structure
+
+| #   | Inconsistency                                                                                                                                                                                        | Effort |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 97  | New files written for Scribidian (`pressTab.ts`, `vaultPaths.ts`, `settingsMigration.test.ts`) carry "Copyright 2026 Christian Grobmeier" because the header check demands his header on every file. | S      |
+| 98  | `main.ts` (about 790 lines) mixes commands, mode logic, settings loading and the status bar; `vaultPaths.ts` sits alone at the top of `src/` while other helpers live in folders.                    | M      |
+
 ## Deep backlog: export
 
 Not planned for the 0.1.x betas or 1.0.0.
