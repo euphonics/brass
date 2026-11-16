@@ -1,0 +1,65 @@
+/*
+ * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("obsidian", () => ({
+  App: class {},
+  Notice: class {},
+  PluginSettingTab: class {},
+  Setting: class {},
+  SettingGroup: class {},
+  normalizePath: (path: string) => path,
+  TFile: class {},
+  TFolder: class {},
+}));
+
+const { DEFAULT_SETTINGS, migrateSettings } =
+  await import("../src/settings/settings");
+
+describe("settings migration", () => {
+  it("turns text changes on in script mode and off in plain mode by default", () => {
+    const settings = migrateSettings(null);
+    expect(settings.capitalizeLineStartsScript).toBe(true);
+    expect(settings.uppercaseTransitionsScript).toBe(true);
+    expect(settings.capitalizeLineStartsPlain).toBe(false);
+    expect(settings.uppercaseTransitionsPlain).toBe(false);
+  });
+
+  it("moves the old single capitalize switch to script mode", () => {
+    const settings = migrateSettings({ capitalizeLineStarts: false });
+    expect(settings.capitalizeLineStartsScript).toBe(false);
+    expect(settings.capitalizeLineStartsPlain).toBe(false);
+    expect("capitalizeLineStarts" in settings).toBe(false);
+  });
+
+  it("keeps per-mode values once they are saved", () => {
+    const settings = migrateSettings({
+      capitalizeLineStarts: false,
+      capitalizeLineStartsScript: true,
+      capitalizeLineStartsPlain: true,
+    });
+    expect(settings.capitalizeLineStartsScript).toBe(true);
+    expect(settings.capitalizeLineStartsPlain).toBe(true);
+  });
+
+  it("keeps other stored settings", () => {
+    const settings = migrateSettings({ editorLayout: "plain" });
+    expect(settings.editorLayout).toBe("plain");
+    expect(settings.smartTabEnabled).toBe(DEFAULT_SETTINGS.smartTabEnabled);
+  });
+});

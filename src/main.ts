@@ -69,6 +69,7 @@ import { calculateStatistics } from "./screenplay/statistics";
 import { formatScreenplayStatus } from "./screenplay/status";
 import {
   DEFAULT_SETTINGS,
+  migrateSettings,
   ScribidianSettingTab,
   type ScribidianSettings,
 } from "./settings/settings";
@@ -135,6 +136,13 @@ export default class ScribidianPlugin extends Plugin {
       id: "inspect-continuity",
       name: "Inspect continuity",
       callback: () => this.openContinuityInspector(),
+    });
+
+    this.addCommand({
+      id: "toggle-editor-mode",
+      name: "Screenplay: Switch between script and plain mode",
+      icon: "file-type",
+      callback: () => void this.toggleEditorMode(),
     });
 
     this.addCommand({
@@ -461,9 +469,8 @@ export default class ScribidianPlugin extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    const stored =
-      (await this.loadData()) as Partial<ScribidianSettings> | null;
-    this.settings = { ...DEFAULT_SETTINGS, ...(stored ?? {}) };
+    const stored = (await this.loadData()) as Record<string, unknown> | null;
+    this.settings = migrateSettings(stored);
   }
 
   /** Apply the "Screenplay font" setting to the app window. */
@@ -511,6 +518,26 @@ export default class ScribidianPlugin extends Plugin {
    */
   isScriptMode(): boolean {
     return this.settings.editorLayout === "screenplay";
+  }
+
+  /** Whether a text change while typing is on in the current mode. */
+  typingChangeEnabled(
+    change: "capitalizeLineStarts" | "uppercaseTransitions",
+  ): boolean {
+    const mode = this.isScriptMode() ? "Script" : "Plain";
+    return this.settings[`${change}${mode}`];
+  }
+
+  /** Switch between script and plain mode, and say which one is on. */
+  async toggleEditorMode(): Promise<void> {
+    this.settings.editorLayout = this.isScriptMode() ? "plain" : "screenplay";
+    await this.saveSettings();
+    this.app.workspace.updateOptions();
+    new Notice(
+      this.isScriptMode()
+        ? "Scribidian: script mode (screenplay layout)"
+        : "Scribidian: plain mode (Fountain text)",
+    );
   }
 
   isScreenplayFile(file: TFile | null): boolean {

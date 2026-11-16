@@ -349,7 +349,7 @@ export function createScreenplayCompletionExtension(
       const line = tr.newDoc.lineAt(fromB);
       // Capitalize the first letter typed on a line (setting), outside
       // the frontmatter.
-      if (plugin.settings.capitalizeLineStarts) {
+      if (plugin.typingChangeEnabled("capitalizeLineStarts")) {
         const capital = capitalizeLineStart(
           tr.newDoc.sliceString(line.from, fromB),
           text,
@@ -365,6 +365,7 @@ export function createScreenplayCompletionExtension(
       }
       const upper = text.toLocaleUpperCase();
       if (upper === text || upper.length !== text.length) return;
+      if (!plugin.typingChangeEnabled("uppercaseTransitions")) return;
       if (!isForcedTransition(line.text)) return;
       fixes.push({ from: fromB, to: toB, insert: upper });
     });

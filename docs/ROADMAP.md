@@ -69,10 +69,10 @@ composing fix), clean Undo for every automatic change (#23), plugins that also
 use Enter and Tab (Outliner), and wrong guesses: every automatic change needs an
 obvious way back, such as Backspace undoing what was just added.
 
-**Open questions**
-
-- Should plain mode keep line-start capitalization and transition
-  uppercasing? Both change text as you type, but neither touches Enter.
+**Decided (2026-11-15):** every text change while typing gets a setting for
+each mode, on in script mode and off in plain mode by default. New strict-typing
+changes follow the same pattern. A command switches modes globally; a per-note
+switch is still planned (Phase 1).
 
 ## Possible issues
 

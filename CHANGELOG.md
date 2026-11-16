@@ -16,7 +16,12 @@ Scribidian changes since 0.1.0.
 
 ### Changed
 
-- Plain Fountain text mode no longer changes Enter: no Smart Enter, no
+- The editor layouts are now called script mode and plain mode. New command
+  **Screenplay: Switch between script and plain mode**.
+- Line-start capitalization and transition uppercasing have a setting for each
+  mode: on in script mode, off in plain mode by default. An existing
+  capitalization setting carries over to script mode.
+- Plain mode no longer changes Enter: no Smart Enter, no
   Shift+Enter override, and Enter closes an open suggestion list instead of
   accepting it. Suggestions and Smart Tab still work.
 

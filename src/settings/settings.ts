@@ -47,7 +47,11 @@ export interface ScribidianSettings {
   activateFrontmatter: boolean;
   autocompleteEnabled: boolean;
   smartTabEnabled: boolean;
-  capitalizeLineStarts: boolean;
+  /** Text changes while typing, set separately for script and plain mode. */
+  capitalizeLineStartsScript: boolean;
+  capitalizeLineStartsPlain: boolean;
+  uppercaseTransitionsScript: boolean;
+  uppercaseTransitionsPlain: boolean;
   editorLayout: EditorLayout;
   bottomTypingMargin: number;
   screenplayFont: string;
@@ -165,7 +169,10 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   activateFrontmatter: true,
   autocompleteEnabled: true,
   smartTabEnabled: true,
-  capitalizeLineStarts: true,
+  capitalizeLineStartsScript: true,
+  capitalizeLineStartsPlain: false,
+  uppercaseTransitionsScript: true,
+  uppercaseTransitionsPlain: false,
   editorLayout: "screenplay",
   bottomTypingMargin: 40,
   screenplayFont: "Courier Prime",
@@ -200,6 +207,27 @@ function valuesFromText(value: string): string[] {
     .filter(Boolean);
 }
 
+/**
+ * Settings as stored, brought up to date. Before 0.1.1 there was one
+ * "capitalizeLineStarts" switch for both modes; it now sets script mode only.
+ */
+export function migrateSettings(
+  stored: Record<string, unknown> | null,
+): ScribidianSettings {
+  const { capitalizeLineStarts, ...rest } = stored ?? {};
+  const settings = {
+    ...DEFAULT_SETTINGS,
+    ...(rest as Partial<ScribidianSettings>),
+  };
+  if (
+    typeof capitalizeLineStarts === "boolean" &&
+    typeof rest.capitalizeLineStartsScript !== "boolean"
+  ) {
+    settings.capitalizeLineStartsScript = capitalizeLineStarts;
+  }
+  return settings;
+}
+
 function isSettingKey(key: string): key is keyof ScribidianSettings {
   return key in DEFAULT_SETTINGS;
 }
@@ -218,8 +246,16 @@ const SETTING_GROUPS: { heading: string; keys: string[] }[] = [
       "screenplayFontCustom",
       "bottomTypingMargin",
       "smartTabEnabled",
-      "capitalizeLineStarts",
       "renderFountainCodeBlocks",
+    ],
+  },
+  {
+    heading: "Text changes while typing",
+    keys: [
+      "capitalizeLineStartsScript",
+      "uppercaseTransitionsScript",
+      "capitalizeLineStartsPlain",
+      "uppercaseTransitionsPlain",
     ],
   },
   {
@@ -511,14 +547,14 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Editor layout",
-        desc: "Screenplay layout indents and aligns each element as it prints (centered character names, narrow dialogue, right-aligned transitions) and adds typing help such as Smart Enter. Plain Fountain text keeps Obsidian's normal look and free typing: suggestions and Smart Tab still work, but Enter is always Obsidian's own. The note text is the same either way.",
+        name: "Editor mode",
+        desc: "Script mode lays each element out as it prints (centered character names, narrow dialogue, right-aligned transitions) and adds typing help such as Smart Enter. Plain mode keeps Obsidian's normal look and free typing: suggestions and Smart Tab still work, but Enter is always Obsidian's own. The note text is the same either way. Switch quickly with the command Screenplay: Switch between script and plain mode.",
         control: {
           type: "dropdown",
           key: "editorLayout",
           options: {
-            screenplay: "Screenplay layout",
-            plain: "Plain Fountain text",
+            screenplay: "Script mode (screenplay layout)",
+            plain: "Plain mode (Fountain text)",
           },
           defaultValue: DEFAULT_SETTINGS.editorLayout,
         },
@@ -627,18 +663,48 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Capitalize the first letter of each line",
-        desc: 'In screenplay notes, the first letter typed on a line becomes a capital ("she runs" becomes "She runs"). Lines that start with a symbol, like a wryly\'s "(", are left alone.',
+        name: "Script mode: capitalize the first letter of each line",
+        desc: 'The first letter typed on a line becomes a capital ("she runs" becomes "She runs"). Lines that start with a symbol, like a wryly\'s "(", and lines in code blocks are left alone.',
         aliases: ["capital", "uppercase", "auto capitalize"],
         control: {
           type: "toggle",
-          key: "capitalizeLineStarts",
-          defaultValue: DEFAULT_SETTINGS.capitalizeLineStarts,
+          key: "capitalizeLineStartsScript",
+          defaultValue: DEFAULT_SETTINGS.capitalizeLineStartsScript,
+        },
+      },
+      {
+        name: "Script mode: uppercase transitions as you type",
+        desc: 'Text typed on a forced transition line ("> cut to") becomes uppercase.',
+        aliases: ["capital", "uppercase", "transition"],
+        control: {
+          type: "toggle",
+          key: "uppercaseTransitionsScript",
+          defaultValue: DEFAULT_SETTINGS.uppercaseTransitionsScript,
+        },
+      },
+      {
+        name: "Plain mode: capitalize the first letter of each line",
+        desc: "The same as in script mode, for plain Fountain text. Off by default, so plain mode keeps free typing.",
+        aliases: ["capital", "uppercase", "auto capitalize"],
+        control: {
+          type: "toggle",
+          key: "capitalizeLineStartsPlain",
+          defaultValue: DEFAULT_SETTINGS.capitalizeLineStartsPlain,
+        },
+      },
+      {
+        name: "Plain mode: uppercase transitions as you type",
+        desc: "The same as in script mode, for plain Fountain text. Off by default.",
+        aliases: ["capital", "uppercase", "transition"],
+        control: {
+          type: "toggle",
+          key: "uppercaseTransitionsPlain",
+          defaultValue: DEFAULT_SETTINGS.uppercaseTransitionsPlain,
         },
       },
       {
         name: "Smart Tab and Enter",
-        desc: 'At the end of a line, Tab inserts the next Fountain element: after a character or dialogue line, a new () line; after a scene heading, " - " and times of day, or a blank line once complete; after action, a blank line and the character list. Enter after dialogue starts a new speaker, Enter after a transition starts a slugline, Enter after a scene heading or at the end of an action paragraph adds a blank line, and Shift+Enter is a plain line break.',
+        desc: 'At the end of a line, Tab inserts the next Fountain element: after a character or dialogue line, a new () line; after a scene heading, " - " and times of day, or a blank line once complete; after action, a blank line and the character list. In script mode only: Enter after dialogue starts a new speaker, Enter after a transition starts a slugline, Enter after a scene heading or at the end of an action paragraph adds a blank line, and Shift+Enter is a plain line break.',
         control: {
           type: "toggle",
           key: "smartTabEnabled",
@@ -841,7 +907,10 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "activateFrontmatter":
       case "autocompleteEnabled":
       case "smartTabEnabled":
-      case "capitalizeLineStarts":
+      case "capitalizeLineStartsScript":
+      case "capitalizeLineStartsPlain":
+      case "uppercaseTransitionsScript":
+      case "uppercaseTransitionsPlain":
       case "renderFountainCodeBlocks":
       case "sceneTypeMatchCase":
       case "statusBarEnabled":
