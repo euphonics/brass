@@ -178,14 +178,14 @@ export default class ScribidianPlugin extends Plugin {
     });
 
     const forceCommands: [ForcedElement, string, string][] = [
-      // Numbered so Settings > Hotkeys lists them in this order. The ids
-      // stay the same, so assigned hotkeys keep working.
-      ["scene-heading", "set-line-scene-heading", "Set line 1: Scene heading"],
-      ["action", "set-line-action", "Set line 2: Action"],
-      ["character", "set-line-character", "Set line 3: Character"],
-      ["parenthetical", "set-line-parenthetical", "Set line 4: Parenthetical"],
-      ["transition", "set-line-transition", "Set line 5: Transition"],
-      ["centered", "set-line-centered", "Set line 6: Centered text"],
+      // The ids stayed the same when the names lost their numbers, so
+      // assigned hotkeys keep working.
+      ["scene-heading", "set-line-scene-heading", "Set line to scene heading"],
+      ["action", "set-line-action", "Set line to action"],
+      ["character", "set-line-character", "Set line to character"],
+      ["parenthetical", "set-line-parenthetical", "Set line to parenthetical"],
+      ["transition", "set-line-transition", "Set line to transition"],
+      ["centered", "set-line-centered", "Set line to centered text"],
     ];
     for (const [element, id, name] of forceCommands) {
       this.addCommand({

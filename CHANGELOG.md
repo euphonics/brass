@@ -31,6 +31,8 @@ Scribidian changes since 0.1.0.
 
 - The editor layouts are now called script mode and plain mode. New command
   **Screenplay: Toggle script and plain mode**.
+- The Set line commands are named "Set line to action", "Set line to
+  character" and so on, without numbers. Assigned hotkeys keep working.
 - Line-start capitalization and transition uppercasing have a setting for each
   mode: on in script mode, off in plain mode by default. An existing
   capitalization setting carries over to script mode.

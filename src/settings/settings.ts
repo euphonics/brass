@@ -458,7 +458,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
         items: [
           {
             name: "Set hotkeys",
-            desc: 'Open Settings > Hotkeys showing only this plugin\'s commands, e.g. "Set line 1: Scene heading".',
+            desc: 'Open Settings > Hotkeys showing only this plugin\'s commands, e.g. "Set line to scene heading".',
             aliases: ["keyboard", "shortcut", "keys"],
             action: () => this.openPluginHotkeys(),
           },
