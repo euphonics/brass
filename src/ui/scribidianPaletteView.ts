@@ -22,7 +22,7 @@ import { renderScribidianPalette } from "./palette/paletteRenderer";
 import { renderSceneWorkspace } from "./sceneWorkspace";
 import { EMPTY_SCENE_FILTERS } from "../scenes/model";
 
-export const FIRST_DRAFT_PALETTE_VIEW_TYPE = "scribidian-palette";
+export const PALETTE_VIEW_TYPE = "scribidian-palette";
 
 export class ScribidianPaletteView extends ItemView {
   private query = "";
@@ -37,7 +37,7 @@ export class ScribidianPaletteView extends ItemView {
   }
 
   getViewType(): string {
-    return FIRST_DRAFT_PALETTE_VIEW_TYPE;
+    return PALETTE_VIEW_TYPE;
   }
 
   getDisplayText(): string {

@@ -17,6 +17,7 @@
 
 import { isSceneHeading } from "../screenplay/parser";
 import {
+  frontmatterEnd,
   isForcedTransition,
   isMarkdownHeading,
   isTransitionText,
@@ -38,14 +39,6 @@ export type LayoutLineKind =
 
 function isBlank(line: string | undefined): boolean {
   return line === undefined || line.trim() === "";
-}
-
-function frontmatterEnd(lines: readonly string[]): number {
-  if (lines[0]?.replace(/^\uFEFF/u, "").trim() !== "---") return -1;
-  for (let index = 1; index < lines.length; index += 1) {
-    if (lines[index]?.trim() === "---") return index;
-  }
-  return -1;
 }
 
 /**

@@ -1,6 +1,8 @@
 # Changelog
 
-All notable changes to First Draft are documented here. This project follows
+All notable changes to Scribidian are documented here. Entries from 0.13.1
+and earlier are from First Draft, the plugin Scribidian is forked from. This
+project follows
 [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]

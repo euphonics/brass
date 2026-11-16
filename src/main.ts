@@ -75,7 +75,7 @@ import {
   type ScribidianSettings,
 } from "./settings/settings";
 import {
-  FIRST_DRAFT_PALETTE_VIEW_TYPE,
+  PALETTE_VIEW_TYPE,
   ScribidianPaletteView,
 } from "./ui/scribidianPaletteView";
 import { CheatSheetModal } from "./ui/cheatSheetModal";
@@ -112,7 +112,7 @@ export default class ScribidianPlugin extends Plugin {
     );
     registerFountainCodeBlockProcessor(this);
     this.registerView(
-      FIRST_DRAFT_PALETTE_VIEW_TYPE,
+      PALETTE_VIEW_TYPE,
       (leaf) => new ScribidianPaletteView(leaf, this),
     );
     this.addRibbonIcon("clapperboard", "Open Scribidian palette", () => {
@@ -721,9 +721,7 @@ export default class ScribidianPlugin extends Plugin {
 
   async openPalette(): Promise<void> {
     this.activeMarkdownView();
-    const existing = this.app.workspace.getLeavesOfType(
-      FIRST_DRAFT_PALETTE_VIEW_TYPE,
-    )[0];
+    const existing = this.app.workspace.getLeavesOfType(PALETTE_VIEW_TYPE)[0];
     if (existing) {
       await this.app.workspace.revealLeaf(existing);
       return;
@@ -732,7 +730,7 @@ export default class ScribidianPlugin extends Plugin {
     const leaf = this.app.workspace.getRightLeaf(true);
     if (leaf === null) return;
     await leaf.setViewState({
-      type: FIRST_DRAFT_PALETTE_VIEW_TYPE,
+      type: PALETTE_VIEW_TYPE,
       active: true,
     });
     await this.app.workspace.revealLeaf(leaf);
@@ -769,9 +767,7 @@ export default class ScribidianPlugin extends Plugin {
   }
 
   private refreshPalettes(): void {
-    for (const leaf of this.app.workspace.getLeavesOfType(
-      FIRST_DRAFT_PALETTE_VIEW_TYPE,
-    )) {
+    for (const leaf of this.app.workspace.getLeavesOfType(PALETTE_VIEW_TYPE)) {
       if (leaf.view instanceof ScribidianPaletteView) leaf.view.refresh();
     }
   }

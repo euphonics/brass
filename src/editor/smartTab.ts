@@ -68,7 +68,11 @@ export interface SmartTabPlan {
 const LOWERCASE_LETTER = /\p{Ll}/u;
 const UPPERCASE_LETTER = /\p{Lu}/u;
 
-function frontmatterEnd(lines: readonly string[]): number {
+/**
+ * Index of the line that closes the front matter at the top ("---" ...
+ * "---"), or -1 when there is none or it is never closed.
+ */
+export function frontmatterEnd(lines: readonly string[]): number {
   if (lines[0]?.replace(/^\uFEFF/u, "").trim() !== "---") return -1;
   return lines.findIndex((line, index) => index > 0 && line.trim() === "---");
 }
