@@ -9,6 +9,11 @@
 3. **1.0.0.** Release after the directory accepts it and the device checks
    below are recorded.
 
+**Themes.** Supported: Obsidian's Default theme and Minimal, on desktop and
+phone. Other themes are best effort. In screenplay notes Scribidian locks the
+layout (font, 60-character column, indents, spacing, alignment) so most themes
+work without testing; themes keep colours, dark mode and text size.
+
 Export (PDF, Fountain, FDX) is not a priority for these builds. Export work
 lives in the deep backlog at the end.
 
@@ -104,15 +109,15 @@ Bugs reported against other Obsidian screenplay plugins that could also affect S
 
 ### Themes and appearance settings
 
-Tested on 2026-11-15 by switching settings for a moment in a test note, or by adding a theme's kind of CSS and removing it again. Most theme problems come from one gap: Scribidian resets the width, maximum width and margins of each line, but not text indent, line font, or the padding and width of the editor content.
+Tested on 2026-11-15 by switching settings for a moment in a test note, or by adding a theme's kind of CSS and removing it again. Most theme problems came from one gap: Scribidian reset the width, maximum width and margins of each line, but not text indent, line font, or the padding and width of the editor content. The layout lock (2026-11-15) closes it.
 
 | #   | Possible issue                                                                                                                                                                                                                                                  | Effort | Device | Result                                                                                                                                                       |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 43  | A theme or snippet indents the first line of each paragraph (`text-indent`, common in book-style themes). Every screenplay line shifts right.                                                                                                                   | S      | —      | **Confirmed** (simulated theme CSS): the character name moved from 36.7% to 43% across the column.                                                           |
-| 44  | A theme sets its font on each editor line rather than on the editor. That beats Scribidian's screenplay font.                                                                                                                                                   | S      | —      | **Confirmed** (simulated): lines showed in Georgia, and dialogue wrapped differently.                                                                        |
-| 45  | A theme narrows the editor's content area on its own (`.cm-contentContainer`). The 60-character column no longer fits.                                                                                                                                          | S      | —      | **Confirmed** (simulated): transitions ran past the right edge and dialogue wrapped more.                                                                    |
-| 46  | A theme adds side padding to the editor content. Indents are measured from the wrong edge.                                                                                                                                                                      | S      | —      | **Confirmed** (simulated): the character name moved to 39.6% and lines wrapped more.                                                                         |
-| 47  | A theme forces line padding with `!important`. All screenplay indents disappear.                                                                                                                                                                                | S      | —      | **Confirmed** (simulated), only when the theme uses `!important`. Without it Scribidian wins.                                                                |
+| 43  | A theme or snippet indents the first line of each paragraph (`text-indent`, common in book-style themes). Every screenplay line shifts right.                                                                                                                   | S      | —      | **Fixed** by the layout lock (re-tested: names stay at 36.7%).                                                                                               |
+| 44  | A theme sets its font on each editor line rather than on the editor. That beats Scribidian's screenplay font.                                                                                                                                                   | S      | —      | **Fixed** by the layout lock (re-tested: Courier kept, also when a theme sets the font on the content).                                                      |
+| 45  | A theme narrows the editor's content area on its own (`.cm-contentContainer`). The 60-character column no longer fits.                                                                                                                                          | S      | —      | **Fixed** by the layout lock (re-tested).                                                                                                                    |
+| 46  | A theme adds side padding to the editor content. Indents are measured from the wrong edge.                                                                                                                                                                      | S      | —      | **Fixed** by the layout lock (re-tested).                                                                                                                    |
+| 47  | A theme forces line padding with `!important`. All screenplay indents disappear.                                                                                                                                                                                | S      | —      | **Fixed** by the layout lock (re-tested with `!important`).                                                                                                  |
 | 48  | A theme justifies text. Dialogue and action get uneven word spacing.                                                                                                                                                                                            | S      | —      | Not visible in a short test. **Human test** with a justified theme.                                                                                          |
 | 49  | Live Preview treats some screenplay lines as Markdown. `> CUT TO:` is a blockquote, a line starting `- ` or `1. ` is a list with a bullet or number, and a line starting `#` is a heading. Themes that draw quote bars or list markers show them in the script. | S–M    | —      | **Confirmed:** the transition line carries Obsidian's quote styling and the `- ` line its list styling (Minimal draws no quote bar, so it looked fine here). |
 | 50  | Core settings that change the editor: readable line length off, line numbers, fold indicators off, Source mode, the Default theme, letter spacing.                                                                                                              | S      | —      | **Not reproduced:** the layout stayed correct with each one.                                                                                                 |
@@ -127,8 +132,9 @@ Tested on 2026-11-15 by switching settings for a moment in a test note, or by ad
 ### Workload
 
 - **57 possible issues:** 40 small, 16 medium, 1 medium-to-large.
-- **Confirmed (19):** 1, 7, 8, 9, 14, 17, 23, 24, 26, 27, 29, 42, 43, 44, 45,
-  46, 49, and #25 (caseless scripts). Partly: 28, 47.
+- **Fixed (5):** 43, 44, 45, 46, 47.
+- **Confirmed, open (14):** 1, 7, 8, 9, 14, 17, 23, 24, 26, 27, 29, 42, 49,
+  and #25 (caseless scripts). Partly: 28.
 - **Not a bug, by design, or not reproduced (9):** 19, 22 (suggestions), 30,
   31, 32, 33, 34 (desktop), 50, 55.
 - **Need a human (rest):** see the checklist.

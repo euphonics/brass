@@ -354,10 +354,18 @@
  * Indents are percentages of a 60-character line, so they match the printed
  * page on desktop and shrink in proportion on a phone.
  */
-.markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
-  .cm-scroller {
-  font-family: var(
+/*
+ * Layout lock. In screenplay notes Scribidian owns everything that decides
+ * where text sits and where lines break: the font, the 60-character column,
+ * indents, spacing and alignment. Themes keep colours, background, text size,
+ * cursor and selection. The !important flags are deliberate and limited to
+ * these properties, so a theme rule (first-line indents, its own line font,
+ * padded or narrowed content) can't knock the screenplay out of line. Markdown
+ * lines in a screenplay note (headings, lists, quotes, embeds) keep the
+ * theme's look apart from the column width.
+ */
+.markdown-source-view.mod-cm6 .cm-editor.scribidian-screenplay-layout {
+  --scribidian-layout-font: var(
     --scribidian-screenplay-font,
     "Courier Prime",
     "Courier New",
@@ -368,12 +376,32 @@
 
 .markdown-source-view.mod-cm6
   .cm-editor.scribidian-screenplay-layout
+  .cm-scroller {
+  font-family: var(--scribidian-layout-font) !important;
+}
+
+.markdown-source-view.mod-cm6
+  .cm-editor.scribidian-screenplay-layout
   .cm-sizer {
   /* 60 characters, plus a little room so a full line is not wrapped early.
      On a narrow screen, keep the theme's side margins (Minimal makes them
      with --max-width: 88% on each line, which the rule below undoes). */
-  max-width: min(60.5ch, var(--max-width, 100%));
-  margin-inline: auto;
+  max-width: min(60.5ch, var(--max-width, 100%)) !important;
+  margin-inline: auto !important;
+}
+
+/* The column is the sizer: the content area inside it gets no extra width
+   limit or side padding from a theme. */
+.markdown-source-view.mod-cm6
+  .cm-editor.scribidian-screenplay-layout
+  .cm-contentContainer,
+.markdown-source-view.mod-cm6
+  .cm-editor.scribidian-screenplay-layout
+  .cm-contentContainer
+  > .cm-content {
+  max-width: none !important;
+  margin-inline: 0 !important;
+  padding-inline: 0 !important;
 }
 
 /* Themes can size lines on their own (e.g. Minimal's --line-width and
@@ -383,10 +411,55 @@
   .cm-contentContainer
   > .cm-content
   > .cm-line {
-  box-sizing: border-box;
-  width: auto;
-  max-width: none;
-  margin-inline: 0;
+  box-sizing: border-box !important;
+  width: auto !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+
+/* Screenplay lines: reset everything a theme could use to move text. The
+   rules for each kind below set their own indents and alignment. */
+.markdown-source-view.mod-cm6
+  .cm-editor.scribidian-screenplay-layout
+  .cm-line:is(
+    .scribidian-sp-scene-heading,
+    .scribidian-sp-action,
+    .scribidian-sp-character,
+    .scribidian-sp-dialogue,
+    .scribidian-sp-parenthetical,
+    .scribidian-sp-transition,
+    .scribidian-sp-centered,
+    .scribidian-sp-lyric,
+    .scribidian-sp-page-break,
+    .scribidian-sp-note
+  ) {
+  font-family: var(--scribidian-layout-font) !important;
+  font-size: inherit !important;
+  letter-spacing: normal !important;
+  word-spacing: normal !important;
+  text-transform: none !important;
+  text-align: start !important;
+}
+
+/* Indents too, except on lines Obsidian draws as a Markdown list: their
+   hanging indent keeps wrapped text under the text, not under the bullet.
+   (:where keeps this rule's weight equal to the rules for each kind.) */
+.markdown-source-view.mod-cm6
+  .cm-editor.scribidian-screenplay-layout
+  .cm-line:is(
+    .scribidian-sp-scene-heading,
+    .scribidian-sp-action,
+    .scribidian-sp-character,
+    .scribidian-sp-dialogue,
+    .scribidian-sp-parenthetical,
+    .scribidian-sp-transition,
+    .scribidian-sp-centered,
+    .scribidian-sp-lyric,
+    .scribidian-sp-page-break,
+    .scribidian-sp-note
+  ):not(:where(.HyperMD-list-line)) {
+  text-indent: 0 !important;
+  padding-inline: 0 !important;
 }
 
 .markdown-source-view.mod-cm6
@@ -398,33 +471,33 @@
 .markdown-source-view.mod-cm6
   .cm-editor.scribidian-screenplay-layout
   .cm-line.scribidian-sp-character {
-  padding-inline-start: 36.667%;
+  padding-inline-start: 36.667% !important;
 }
 
 .markdown-source-view.mod-cm6
   .cm-editor.scribidian-screenplay-layout
   .cm-line.scribidian-sp-dialogue {
-  padding-inline-start: 16.667%;
-  padding-inline-end: 25%;
+  padding-inline-start: 16.667% !important;
+  padding-inline-end: 25% !important;
 }
 
 .markdown-source-view.mod-cm6
   .cm-editor.scribidian-screenplay-layout
   .cm-line.scribidian-sp-parenthetical {
-  padding-inline-start: 26.667%;
-  padding-inline-end: 31.667%;
+  padding-inline-start: 26.667% !important;
+  padding-inline-end: 31.667% !important;
 }
 
 .markdown-source-view.mod-cm6
   .cm-editor.scribidian-screenplay-layout
   .cm-line.scribidian-sp-transition {
-  text-align: end;
+  text-align: end !important;
 }
 
 .markdown-source-view.mod-cm6
   .cm-editor.scribidian-screenplay-layout
   .cm-line.scribidian-sp-centered {
-  text-align: center;
+  text-align: center !important;
   font-weight: var(--font-bold);
 }
 
@@ -432,7 +505,7 @@
   .cm-editor.scribidian-screenplay-layout
   .cm-line.scribidian-sp-lyric {
   font-style: italic;
-  padding-inline-start: 16.667%;
+  padding-inline-start: 16.667% !important;
 }
 
 .markdown-source-view.mod-cm6
