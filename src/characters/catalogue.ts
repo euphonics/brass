@@ -90,7 +90,7 @@ const UNSAFE_FILENAME_CHARACTERS = /[\\/:*?"<>|#[\]^]/gu;
 /** Readable character name, e.g. "DR. JANE MORROW (O.S.)" -> "Dr. Jane Morrow". */
 export function characterTitle(cue: string): string {
   const words = normalizeCharacterName(cue)
-    .replace(/\s+\([^)]*\)\s*$/u, "")
+    .replace(/(?:\s+\([^)]*\))+\s*$/u, "")
     .replace(UNSAFE_FILENAME_CHARACTERS, " ")
     .split(/\s+/u)
     .filter(Boolean);

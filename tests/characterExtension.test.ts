@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +37,12 @@ describe("character extensions", () => {
       "DR. JANE MORROW",
     );
     expect(characterNameFromCue("CUT TO:")).toBeNull();
+  });
+
+  it("drops every extension, including CONT'D", () => {
+    expect(characterNameFromCue("ALEX (V.O.) (CONT'D)")).toBe("ALEX");
+    expect(characterNameFromCue("ALEX (CONT’D) ^")).toBe("ALEX");
+    expect(isLikelyCharacterCue("ALEX (V.O.) (CONT'D)")).toBe(true);
   });
 
   it("rejects scene headings and ordinary mixed-case text", () => {

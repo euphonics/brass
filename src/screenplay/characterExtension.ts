@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +27,7 @@ export function characterNameFromCue(line: string): string | null {
     .trim()
     .replace(/^@/u, "")
     .replace(/\s*\^\s*$/u, "")
-    .replace(/\s+\([^)]*\)\s*$/u, "")
+    .replace(/(?:\s+\([^)]*\))+\s*$/u, "")
     .trim()
     .toLocaleUpperCase();
 }
@@ -37,7 +38,7 @@ export function isLikelyCharacterCue(line: string): boolean {
   const candidate = text
     .replace(/^@/u, "")
     .replace(/\s*\^\s*$/u, "")
-    .replace(/\s+\([^)]*\)\s*$/u, "")
+    .replace(/(?:\s+\([^)]*\))+\s*$/u, "")
     .trim();
   return (
     Boolean(candidate) &&

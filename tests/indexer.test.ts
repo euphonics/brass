@@ -24,6 +24,24 @@ import {
 import { parseFountain } from "../src/screenplay/parser";
 
 describe("screenplay index", () => {
+  it("never offers CONT'D or other extensions as part of a character", () => {
+    const index = buildScreenplayIndex(
+      parseFountain(`INT. ROOM - DAY
+
+ALEX (V.O.)
+One.
+
+ALEX (V.O.) (CONT'D)
+Two.
+
+ALEX (CONT’D)
+Three.
+`),
+    );
+    expect(index.characters.map((usage) => usage.value)).toEqual(["ALEX"]);
+    expect(index.parentheticals).toEqual([]);
+  });
+
   it("extracts screenplay element usage", () => {
     const index = buildScreenplayIndex(
       parseFountain(`INT. MILITARY BASE - THERAPY ROOM - DAY
