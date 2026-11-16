@@ -64,4 +64,11 @@ describe("settings migration", () => {
     expect(settings.editorLayout).toBe("plain");
     expect(settings.smartTabEnabled).toBe(DEFAULT_SETTINGS.smartTabEnabled);
   });
+
+  it("fills in Enter targets", () => {
+    const settings = migrateSettings({ enterTargets: { action: "character" } });
+    expect(settings.enterTargets.action).toBe("character");
+    expect(settings.enterTargets.dialogue).toBe("character");
+    expect(settings.enterTargets.transition).toBe("scene-heading");
+  });
 });

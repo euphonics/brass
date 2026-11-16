@@ -9,6 +9,10 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Settings > Enter key: choose what Enter starts at the end of each element
+  (action, dialogue, transition; scene heading, character and wryly under
+  Show more). The defaults keep the old behaviour. "New line (no change)" is
+  a plain line break.
 - Uppercase sluglines as you type ("int. kitchen - day" becomes "INT.
   KITCHEN - DAY"), with a setting for each mode: on in script mode, off in
   plain mode by default.
@@ -17,7 +21,7 @@ Scribidian changes since 0.1.0.
 - README tips on themes, other plugins and Fountain rules; a rewritten mobile
   testing guide; a roadmap with possible issues and a human test checklist.
 
-### Changed
+### Changed
 
 - Settings: "Text changes while typing" is now one table with a Plain and a Script column. A checkbox at the top of each column turns all of that mode's changes on or off.
 

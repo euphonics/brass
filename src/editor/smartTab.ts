@@ -20,6 +20,14 @@ import {
   DEFAULT_TIMES_OF_DAY,
 } from "../screenplay/fountain";
 import { isSceneHeading } from "../screenplay/parser";
+import {
+  DEFAULT_ENTER_TARGETS,
+  startsNewBlock,
+  type EnterSource,
+  type EnterTarget,
+  type EnterTargets,
+} from "./enterTargets";
+import type { ForcedElement } from "./forceElement";
 
 /*
  * Smart Tab: Tab at the end of a character, dialogue, scene heading or action
@@ -53,6 +61,8 @@ export interface SmartTabPlan {
   cursor: number;
   /** Open the suggestion menu after inserting. */
   openCompletion: boolean;
+  /** Set the new line to this element afterwards (Enter settings). */
+  forceAfter?: ForcedElement;
 }
 
 const LOWERCASE_LETTER = /\p{Ll}/u;
@@ -385,16 +395,55 @@ export function getSmartTabPlan(
   }
 }
 
+/** Which Enter setting applies to a line of this kind, if any. */
+function enterSourceOf(kind: SmartTabLineKind): EnterSource | null {
+  switch (kind) {
+    case "action":
+    case "dialogue":
+    case "transition":
+    case "character":
+    case "parenthetical":
+      return kind;
+    case "scene-heading":
+      return "sceneHeading";
+    default:
+      return null;
+  }
+}
+
 /**
- * Smart Enter: at the end of a transition, the same as Smart Tab (new
- * slugline); at the end of a dialogue line, a blank line and the character
- * list for the next speaker; at the end of a scene heading, a blank line
- * for the action. Anything else keeps the normal Enter.
+ * Whether the block ends after the line that ends at `at`: the next line is
+ * blank, missing, or a heading, scene heading or transition (not more of
+ * the same speech or paragraph).
+ */
+function blockEndsAfter(source: string, at: number): boolean {
+  const lineEnd = source.indexOf("\n", at);
+  if (lineEnd === -1) return true;
+  const nextEnd = source.indexOf("\n", lineEnd + 1);
+  const next = source
+    .slice(lineEnd + 1, nextEnd === -1 ? source.length : nextEnd)
+    .trim();
+  return (
+    next === "" ||
+    isMarkdownHeading(next) ||
+    isSceneHeading(next) ||
+    isForcedTransition(next)
+  );
+}
+
+/**
+ * Smart Enter. What Enter starts at the end of each element comes from
+ * `targets` (Settings > Enter key). The defaults: after a transition, a new
+ * slugline; after dialogue, a blank line and the character list for the
+ * next speaker; after a scene heading or an action paragraph, a blank line
+ * for the action; after a character or a wryly, Obsidian's own Enter (a
+ * dialogue line). Anything else keeps the normal Enter.
  */
 export function getSmartEnterPlan(
   source: string,
   cursorOffset: number,
   knownTimes: KnownTimes = DEFAULT_TIMES_OF_DAY,
+  targets: EnterTargets = DEFAULT_ENTER_TARGETS,
 ): SmartTabPlan | null {
   const plan = getSmartTabPlan(source, cursorOffset, knownTimes);
   // Lyrics ("~...") run line after line: plain Enter.
@@ -412,17 +461,12 @@ export function getSmartEnterPlan(
     lineEnd === -1 ? source.length : lineEnd,
   );
   if (plan?.kind === "dialogue" && rest.trim() !== "") return null;
-  if (plan?.kind === "transition") return plan;
   // After a "# heading" (or centred text): a blank line and the slugline
   // list, like Tab.
   if (plan?.kind === "heading") return plan;
-  if (
-    plan?.kind !== "dialogue" &&
-    plan?.kind !== "scene-heading" &&
-    plan?.kind !== "action"
-  ) {
-    return null;
-  }
+  const from = plan === null ? null : enterSourceOf(plan.kind);
+  if (plan === null || from === null) return null;
+  const target = targets[from];
   // Markdown list items and tasks keep Obsidian's own Enter (list continuation).
   if (plan.kind === "action") {
     const lineStart = source.lastIndexOf("\n", plan.at - 1) + 1;
@@ -430,27 +474,44 @@ export function getSmartEnterPlan(
       return null;
     }
   }
-  // Mid-speech or mid-paragraph (more text on the next line), Enter stays a
-  // plain line break so the block isn't split.
-  if (plan.kind === "dialogue" || plan.kind === "action") {
-    const lineEnd = source.indexOf("\n", plan.at);
-    if (lineEnd !== -1) {
-      const nextEnd = source.indexOf("\n", lineEnd + 1);
-      const nextLine = source.slice(
-        lineEnd + 1,
-        nextEnd === -1 ? source.length : nextEnd,
-      );
-      // A "# heading", scene heading or transition right below still ends
-      // the block: that line is not more of it.
-      const next = nextLine.trim();
-      const endsBlock =
-        next === "" ||
-        isMarkdownHeading(next) ||
-        isSceneHeading(next) ||
-        isForcedTransition(next);
-      if (!endsBlock) return null;
-    }
+  // An empty "()" keeps the normal Enter.
+  if (
+    plan.kind === "parenthetical" &&
+    source
+      .slice(lineStartForEnter, lineEnd === -1 ? source.length : lineEnd)
+      .trim() === "()"
+  ) {
+    return null;
   }
+  // Mid-speech or mid-paragraph (more text on the next line), Enter stays a
+  // plain line break so the block isn't split. The same for a new block
+  // started from a cue or a wryly with the speech still below.
+  const needsBlockEnd =
+    plan.kind === "dialogue" ||
+    plan.kind === "action" ||
+    ((plan.kind === "character" || plan.kind === "parenthetical") &&
+      startsNewBlock(target));
+  if (needsBlockEnd && !blockEndsAfter(source, plan.at)) return null;
+
+  // "New line": a plain line break, like Shift+Enter (no blockquote or
+  // list continuation from Obsidian's Enter).
+  if (target === "plain") {
+    return {
+      kind: plan.kind,
+      at: cursorOffset,
+      insert: "\n",
+      cursor: cursorOffset + 1,
+      openCompletion: false,
+    };
+  }
+
+  if (target !== DEFAULT_ENTER_TARGETS[from]) {
+    return customEnterPlan(source, plan, lineStartForEnter, target);
+  }
+
+  // The default for each element.
+  if (plan.kind === "transition") return plan;
+  if (plan.kind === "character" || plan.kind === "parenthetical") return null;
   const enterPlan: SmartTabPlan = {
     kind: plan.kind,
     at: plan.at,
@@ -459,21 +520,78 @@ export function getSmartEnterPlan(
     openCompletion: plan.kind === "dialogue",
   };
   if (plan.kind === "scene-heading") {
-    // A heading left at "INT. CAR - " drops the dangling " - ".
-    const typed = source.slice(lineStartForEnter, plan.at);
-    const trimmed = typed.replace(/\s*-\s*$/u, "");
-    if (trimmed !== typed) {
-      const insert = `${trimmed.toLocaleUpperCase()}\n\n`;
-      return {
-        ...enterPlan,
-        replaceFrom: lineStartForEnter,
-        insert,
-        cursor: lineStartForEnter + insert.length,
-      };
-    }
-    return uppercaseHeading(source, enterPlan);
+    return headingEnterPlan(source, enterPlan, lineStartForEnter, "\n\n");
   }
   return enterPlan;
+}
+
+/**
+ * Enter at the end of a scene heading: the heading is uppercased, and one
+ * left at "INT. CAR - " drops the dangling " - ".
+ */
+function headingEnterPlan(
+  source: string,
+  plan: SmartTabPlan,
+  lineStart: number,
+  gap: string,
+): SmartTabPlan {
+  const typed = source.slice(lineStart, plan.at);
+  const trimmed = typed.replace(/\s*-\s*$/u, "");
+  if (trimmed !== typed) {
+    const insert = `${trimmed.toLocaleUpperCase()}${gap}`;
+    return {
+      ...plan,
+      replaceFrom: lineStart,
+      insert,
+      cursor: lineStart + insert.length,
+    };
+  }
+  return uppercaseHeading(source, plan);
+}
+
+/**
+ * Enter set to start another element than the default: a blank line first
+ * for a new block (scene heading, action, character, transition), a single
+ * line break inside a speech (wryly, dialogue). The new line is then set to
+ * the element (`forceAfter`), which opens its suggestion list.
+ */
+function customEnterPlan(
+  source: string,
+  plan: SmartTabPlan,
+  lineStart: number,
+  target: Exclude<EnterTarget, "plain">,
+): SmartTabPlan {
+  const gap = startsNewBlock(target) ? "\n\n" : "\n";
+  const forceAfter = target === "dialogue" ? undefined : target;
+  const base: SmartTabPlan = {
+    kind: plan.kind,
+    at: plan.at,
+    insert: gap,
+    cursor: plan.at + gap.length,
+    openCompletion: false,
+    forceAfter,
+  };
+  switch (plan.kind) {
+    case "scene-heading":
+      return headingEnterPlan(source, base, lineStart, gap);
+    case "transition": {
+      const text = `${source.slice(lineStart, plan.at).trimEnd().toLocaleUpperCase()}${gap}`;
+      return {
+        ...base,
+        replaceFrom: lineStart,
+        insert: text,
+        cursor: lineStart + text.length,
+      };
+    }
+    case "parenthetical": {
+      // Close an unclosed "(whispering" first.
+      const typed = source.slice(lineStart, plan.at).trimEnd();
+      const insert = `${typed.endsWith(")") ? "" : ")"}${gap}`;
+      return { ...base, insert, cursor: plan.at + insert.length };
+    }
+    default:
+      return base;
+  }
 }
 
 /** Character name from a cue line: "@jen (V.O.) ^" -> "JEN". */

@@ -646,30 +646,46 @@
   width: 100%;
 }
 
-/* Settings: "Text changes while typing" table (one column per mode). */
-.scribidian-typing-changes {
+/* Settings tables: "Text changes while typing" and "Enter key". */
+.scribidian-settings-table-row {
   display: block;
 }
 
-.scribidian-typing-table {
+.scribidian-settings-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.scribidian-typing-table th,
-.scribidian-typing-table td {
-  padding: var(--size-4-2) var(--size-4-2);
+.scribidian-settings-table th,
+.scribidian-settings-table td {
+  padding: var(--size-4-2);
   border-bottom: 1px solid var(--background-modifier-border);
   vertical-align: middle;
 }
 
-.scribidian-typing-table tbody tr:last-child td {
+.scribidian-settings-table tbody tr:last-of-type td {
   border-bottom: none;
 }
 
-.scribidian-typing-table th {
+.scribidian-settings-table th {
   font-weight: var(--font-semibold);
   text-align: start;
+}
+
+.scribidian-settings-table-note {
+  margin-bottom: var(--size-4-2);
+}
+
+.scribidian-settings-table-more {
+  margin-top: var(--size-4-2);
+}
+
+.scribidian-enter-table td:last-child {
+  width: 50%;
+}
+
+.scribidian-enter-table select {
+  width: 100%;
 }
 
 .scribidian-typing-table .scribidian-typing-mode {

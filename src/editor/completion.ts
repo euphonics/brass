@@ -277,7 +277,14 @@ export function createScreenplayCompletionExtension(
       return false;
     }
     if (completionStatus(view.state) === "active") return false;
-    const plan = smartPlan(view, getSmartEnterPlan);
+    const plan = smartPlan(view, (source, cursor, knownTimes) =>
+      getSmartEnterPlan(
+        source,
+        cursor,
+        knownTimes,
+        plugin.settings.enterTargets,
+      ),
+    );
     return plan !== null && applySmartPlan(view, plan);
   };
 
@@ -308,7 +315,8 @@ export function createScreenplayCompletionExtension(
         userEvent: "input",
       });
     }
-    if (plan.openCompletion) startCompletion(view);
+    if (plan.forceAfter) forceElement(view, plan.forceAfter);
+    else if (plan.openCompletion) startCompletion(view);
     return true;
   };
 
