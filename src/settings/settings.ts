@@ -116,29 +116,29 @@ const CLEAN_EXPORT_SETTINGS: {
   {
     option: "removeTasks",
     name: "Remove tasks",
-    desc: "- [ ] and - [x] lines.",
+    desc: "Task checkboxes: lines starting - [ ] or - [x].",
   },
   {
     option: "wikilinks",
-    name: "Wikilinks",
-    desc: "[[Note|alias]]: keep it, keep only alias (or Note), or remove it. Fountain notes use the same [[ ]] syntax and are handled the same way.",
+    name: "Links to other notes",
+    desc: "Links like [[Note|alias]]: keep them, keep just the text, or remove them.",
     choices: LINK_CHOICES,
   },
   {
     option: "removeEmbeds",
     name: "Remove embeds",
-    desc: "![[image.png]] and ![alt](image.png).",
+    desc: "Embedded images and notes, like ![[image.png]].",
   },
   {
     option: "markdownLinks",
-    name: "Markdown links",
-    desc: "[text](https://...): keep it, keep only text, or remove it.",
+    name: "Web links",
+    desc: "Links like [text](https://...): keep them, keep just the text, or remove them.",
     choices: LINK_CHOICES,
   },
   {
     option: "codeBlocks",
     name: "Code blocks",
-    desc: "Fenced ``` or ~~~ blocks: keep them, keep only their content (fence lines removed), or remove them.",
+    desc: "Blocks fenced with ``` or ~~~: keep them, keep just what's inside, or remove them.",
     choices: {
       keep: "Keep as written",
       unwrap: "Keep the content only",
@@ -148,37 +148,37 @@ const CLEAN_EXPORT_SETTINGS: {
   {
     option: "removeHeadings",
     name: "Remove headings",
-    desc: "# Heading lines. These are also Fountain sections (acts, sequences).",
+    desc: "Heading lines (# Heading). In Fountain these are sections, such as acts.",
   },
   {
     option: "removeComments",
     name: "Remove comments",
-    desc: "%% comments %%, inline or across lines.",
+    desc: "Obsidian comments: %% comment %%.",
   },
   {
     option: "removeCallouts",
     name: "Remove callouts",
-    desc: "> [!note] blocks and their > lines.",
+    desc: "Callout boxes: > [!note] and the lines under them.",
   },
   {
     option: "removeFootnotes",
     name: "Remove footnotes",
-    desc: "[^1] references and [^1]: definition lines.",
+    desc: "Footnotes: [^1] and the lines that define them.",
   },
   {
     option: "removeBlockIds",
-    name: "Remove block IDs",
-    desc: "^abc123 at the end of a line. A lone ^ (dual dialogue) is kept.",
+    name: "Remove block link markers",
+    desc: "Markers at the end of a line, like ^abc123. A lone ^ (dual dialogue) is kept.",
   },
   {
     option: "removeHighlights",
-    name: "Remove highlight marks",
+    name: "Remove highlights",
     desc: "==text== becomes text.",
   },
   {
     option: "removeTags",
     name: "Remove tags",
-    desc: "Inline #tags. Scene numbers like #12# are kept.",
+    desc: "Tags like #idea. Scene numbers like #12# are kept.",
   },
 ];
 
@@ -306,26 +306,42 @@ const ENTER_TARGETS_NAME = "What Enter starts after each element";
 /** Placeholder keys that put the tables in their settings sections. */
 const TYPING_CHANGES_KEY = "typingChangesTable";
 const ENTER_TARGETS_KEY = "enterTargetsTable";
-const TABLE_KEYS: Record<string, string> = {
+const HOTKEYS_NAME = "Keyboard shortcuts";
+const HOTKEYS_KEY = "hotkeysAction";
+const ADVANCED_NAME = "Advanced settings";
+const ADVANCED_KEY = "advancedToggle";
+/** Items without a control, placed in their section by name. */
+const NAMED_ITEM_KEYS: Record<string, string> = {
   [TYPING_CHANGES_NAME]: TYPING_CHANGES_KEY,
   [ENTER_TARGETS_NAME]: ENTER_TARGETS_KEY,
+  [HOTKEYS_NAME]: HOTKEYS_KEY,
+  [ADVANCED_NAME]: ADVANCED_KEY,
 };
+/** Class of the Advanced section, whose settings start hidden. */
+const ADVANCED_CLASS = "scribidian-settings-advanced";
 
-/** Settings sections, in order, by control key. */
-const SETTING_GROUPS: { heading: string; keys: string[] }[] = [
+/**
+ * Settings sections, in order, by control key. Sections marked `last` go
+ * after built-in groups such as Clean Fountain export.
+ */
+const SETTING_GROUPS: {
+  heading: string;
+  keys: string[];
+  cls?: string;
+  last?: boolean;
+}[] = [
   {
-    heading: "Screenplay mode",
-    keys: ["activateFountainFiles", "activateFrontmatter"],
+    heading: "Getting started",
+    keys: ["activateFountainFiles", "activateFrontmatter", HOTKEYS_KEY],
   },
   {
-    heading: "Editor",
+    heading: "Writing",
     keys: [
       "editorLayout",
       "screenplayFont",
       "screenplayFontCustom",
-      "bottomTypingMargin",
       "smartTabEnabled",
-      "renderFountainCodeBlocks",
+      "bottomTypingMargin",
     ],
   },
   {
@@ -337,12 +353,9 @@ const SETTING_GROUPS: { heading: string; keys: string[] }[] = [
     keys: [ENTER_TARGETS_KEY],
   },
   {
-    heading: "Autocomplete",
+    heading: "Suggestions",
     keys: [
       "autocompleteEnabled",
-      "recentItemsWeighting",
-      "sceneTypeMinimumLetters",
-      "sceneTypeMatchCase",
       "maximumSuggestions",
       "preferredSceneTypes",
       "preferredTimesOfDay",
@@ -350,7 +363,7 @@ const SETTING_GROUPS: { heading: string; keys: string[] }[] = [
     ],
   },
   {
-    heading: "Status bar",
+    heading: "Page count and status bar",
     keys: [
       "statusBarEnabled",
       "showEstimatedPages",
@@ -358,15 +371,26 @@ const SETTING_GROUPS: { heading: string; keys: string[] }[] = [
       "showEstimatedRuntime",
       "showWordCount",
       "showSceneCount",
+      "pageSize",
+      "minutesPerPage",
     ],
-  },
-  {
-    heading: "Pages, runtime and PDF",
-    keys: ["pageSize", "minutesPerPage", "pdfLanguage"],
   },
   {
     heading: "Character pages",
     keys: ["characterFolder", "characterTemplate"],
+  },
+  {
+    heading: "Advanced",
+    cls: ADVANCED_CLASS,
+    last: true,
+    keys: [
+      ADVANCED_KEY,
+      "recentItemsWeighting",
+      "sceneTypeMinimumLetters",
+      "sceneTypeMatchCase",
+      "renderFountainCodeBlocks",
+      "pdfLanguage",
+    ],
   },
 ];
 
@@ -374,7 +398,7 @@ function definitionKey(item: SettingDefinitionItem): string | undefined {
   const control = (item as { control?: { key?: string } }).control;
   if (control?.key) return control.key;
   const name = (item as { name?: string }).name;
-  return name === undefined ? undefined : TABLE_KEYS[name];
+  return name === undefined ? undefined : NAMED_ITEM_KEYS[name];
 }
 
 /**
@@ -398,19 +422,24 @@ export function groupSettings(
       other.push(item);
     }
   }
-  const grouped = SETTING_GROUPS.map(({ heading, keys }) => ({
-    type: "group" as const,
-    heading,
-    items: keys.flatMap((key) => {
-      const item = byKey.get(key);
-      byKey.delete(key);
-      return item ? [item as SettingGroupItem] : [];
-    }),
-  })).filter((group) => group.items.length > 0);
+  const grouped = SETTING_GROUPS.map(({ heading, keys, cls, last }) => ({
+    group: {
+      type: "group" as const,
+      heading,
+      ...(cls ? { cls } : {}),
+      items: keys.flatMap((key) => {
+        const item = byKey.get(key);
+        byKey.delete(key);
+        return item ? [item as SettingGroupItem] : [];
+      }),
+    },
+    last: last === true,
+  })).filter(({ group }) => group.items.length > 0);
   const rest = [...byKey.values(), ...other] as SettingGroupItem[];
   return [
-    ...grouped,
+    ...grouped.filter(({ last }) => !last).map(({ group }) => group),
     ...groups,
+    ...grouped.filter(({ last }) => last).map(({ group }) => group),
     ...(rest.length > 0
       ? [{ type: "group" as const, heading: "Other", items: rest }]
       : []),
@@ -449,18 +478,6 @@ export class ScribidianSettingTab extends PluginSettingTab {
               // Reapply the search after each re-render of the tab.
               window.setTimeout(() => this.filterSettings(), 0);
             },
-          },
-        ],
-      },
-      {
-        type: "group",
-        heading: "Hotkeys",
-        items: [
-          {
-            name: "Set hotkeys",
-            desc: 'Open Settings > Hotkeys showing only this plugin\'s commands, e.g. "Set line to slugline".',
-            aliases: ["keyboard", "shortcut", "keys"],
-            action: () => this.openPluginHotkeys(),
           },
         ],
       },
@@ -546,6 +563,34 @@ export class ScribidianSettingTab extends PluginSettingTab {
     }
     syncMaster("plain");
     syncMaster("script");
+  }
+
+  /** Whether the Advanced section shows its settings. */
+  private showAdvanced = false;
+
+  /**
+   * First row of the Advanced section: a button that shows or hides the
+   * rest of it. Searching shows matching advanced settings anyway.
+   */
+  private renderAdvancedToggle(setting: Setting): void {
+    setting.settingEl.addClass("scribidian-advanced-toggle");
+    setting.setName(ADVANCED_NAME);
+    setting.setDesc(
+      "Fine-tuning for suggestions, code blocks and PDF languages. Most writers never need these.",
+    );
+    setting.addButton((button) => {
+      const update = (): void => {
+        button.setButtonText(this.showAdvanced ? "Hide" : "Show");
+        setting.settingEl
+          .closest(".setting-group")
+          ?.toggleClass("scribidian-advanced-open", this.showAdvanced);
+      };
+      button.onClick(() => {
+        this.showAdvanced = !this.showAdvanced;
+        update();
+      });
+      window.setTimeout(update, 0);
+    });
   }
 
   /** Whether the Enter table shows its less common rows. */
@@ -645,6 +690,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       this.containerEl.querySelectorAll<HTMLElement>(".setting-group"),
     )) {
       if (group.hasClass("scribidian-settings-search")) continue;
+      group.toggleClass("scribidian-searching", words.length > 0);
       let shown = 0;
       for (const item of Array.from(
         group.querySelectorAll<HTMLElement>(".setting-items > .setting-item"),
@@ -666,8 +712,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
     const templatesFolder = coreTemplatesFolder(this.app);
     return [
       {
-        name: "Open .fountain files in screenplay mode",
-        desc: "Automatically activate Scribidian for Fountain files.",
+        name: "Open .fountain files as screenplays",
+        desc: "Files ending in .fountain open with Scribidian's screenplay tools.",
         control: {
           type: "toggle",
           key: "activateFountainFiles",
@@ -675,8 +721,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Use screenplay frontmatter",
-        desc: "Activate Scribidian for Markdown notes with screenplay: true.",
+        name: "Turn on for notes marked as screenplays",
+        desc: "Ordinary notes with screenplay: true in their properties get the screenplay tools. The command Use this note as a screenplay adds it for you.",
         control: {
           type: "toggle",
           key: "activateFrontmatter",
@@ -684,8 +730,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Status bar",
-        desc: "Show current screenplay measurements in the status bar.",
+        name: "Show screenplay stats in the status bar",
+        desc: "Page count, runtime, words and scenes at the bottom of the window. Choose which below.",
         control: {
           type: "toggle",
           key: "statusBarEnabled",
@@ -693,8 +739,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Show estimated pages",
-        desc: "Include the approximate formatted screenplay length.",
+        name: "Estimated pages",
+        desc: "Roughly how many printed pages the script fills.",
         control: {
           type: "toggle",
           key: "showEstimatedPages",
@@ -702,8 +748,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Show current page",
-        desc: 'Show roughly which page the cursor is on, e.g. "p. 34 of ~77". Estimated for this note, the same way as the page count.',
+        name: "Current page",
+        desc: "Which page the cursor is on, for example p. 34 of ~77.",
         control: {
           type: "toggle",
           key: "showCurrentPage",
@@ -711,8 +757,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Show estimated runtime",
-        desc: "Include runtime derived from pages and the ratio below.",
+        name: "Estimated runtime",
+        desc: "Worked out from the page count and the minutes per page below.",
         control: {
           type: "toggle",
           key: "showEstimatedRuntime",
@@ -720,8 +766,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Show word count",
-        desc: "Include screenplay words in the status bar.",
+        name: "Word count",
+        desc: "Words in the script.",
         control: {
           type: "toggle",
           key: "showWordCount",
@@ -729,8 +775,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Show scene count",
-        desc: "Include detected sluglines in the status bar.",
+        name: "Scene count",
+        desc: "Counts the sluglines.",
         control: {
           type: "toggle",
           key: "showSceneCount",
@@ -739,7 +785,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Page size",
-        desc: "Formatting assumption used for estimated pages.",
+        desc: "US Letter or A4. Used for page counts and PDFs.",
         control: {
           type: "dropdown",
           key: "pageSize",
@@ -748,8 +794,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "PDF language",
-        desc: 'Regional character forms for Chinese, Japanese and Korean PDFs. First run "Install offline CJK PDF fonts" on this device. Horizontal layout only; does not translate text.',
+        name: "Chinese, Japanese and Korean in PDFs",
+        desc: "Which regional character forms to use when a PDF has Chinese, Japanese or Korean text. First run the command Install offline CJK PDF fonts on this device. Nothing is translated.",
         control: {
           type: "dropdown",
           key: "pdfLanguage",
@@ -759,7 +805,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Minutes per page",
-        desc: "Runtime estimate ratio. The screenplay convention is 1.0.",
+        desc: "Used for the estimated runtime. The usual rule of thumb is one minute per page.",
         control: {
           type: "slider",
           key: "minutesPerPage",
@@ -772,7 +818,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Editor mode",
-        desc: "Script mode lays each element out as it prints (centered character names, narrow dialogue, right-aligned transitions) and adds typing help such as Smart Enter. Plain mode keeps Obsidian's normal look and free typing: suggestions and Smart Tab still work, but Enter is always Obsidian's own. The note text is the same either way. Switch quickly with the command Screenplay: Toggle script and plain mode.",
+        desc: "Script mode lays your script out like the printed page and helps as you type. Plain mode keeps Obsidian's normal look and leaves your typing alone, though suggestions and Smart Tab still work. Your text is the same either way. Switch any time with the command Screenplay: Toggle script and plain mode.",
         control: {
           type: "dropdown",
           key: "editorLayout",
@@ -785,7 +831,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Screenplay font",
-        desc: "Font for screenplay notes in the editor (both layouts) and for rendered Fountain code blocks. Lists the fonts found on this device. PDF export and the page preview always use Courier.",
+        desc: "The font for scripts in the editor. PDFs and the page preview always use Courier, like a printed script.",
         control: {
           type: "dropdown",
           key: "screenplayFont",
@@ -798,7 +844,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Custom screenplay font",
-        desc: 'Used when Screenplay font is "Custom…". A font installed on this device; list fallbacks with commas, e.g. "Courier Prime, Courier New, monospace".',
+        desc: "Used when Screenplay font is set to Custom. Type the name of a font installed on this device. You can add backups after commas, for example Courier Prime, Courier New.",
         control: {
           type: "text",
           key: "screenplayFontCustom",
@@ -808,7 +854,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Bottom typing margin",
-        desc: "Leave this much empty space at the bottom of the editor in screenplay notes, so the status bar never covers text. 0 turns it off.",
+        desc: "Empty space below the last line, so the status bar never covers what you're typing. 0 turns it off.",
         control: {
           type: "slider",
           key: "bottomTypingMargin",
@@ -820,8 +866,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Render Fountain code blocks",
-        desc: "Display ```fountain code blocks with screenplay formatting (indented characters, dialogue, transitions) in all notes, not only in screenplay-mode files. When off, Fountain code blocks display as plain code. Re-open affected notes after changing.",
+        name: "Show fountain code blocks as a script",
+        desc: "In any note, a code block marked fountain shows with screenplay formatting. When off, it shows as plain code. Reopen notes after changing this.",
         control: {
           type: "toggle",
           key: "renderFountainCodeBlocks",
@@ -829,8 +875,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Autocomplete",
-        desc: "Suggest screenplay elements while typing in Screenplay Mode.",
+        name: "Suggestions while typing",
+        desc: "Suggest character names, places, times of day and more as you type in a script.",
         control: {
           type: "toggle",
           key: "autocompleteEnabled",
@@ -838,8 +884,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Recent-item weighting",
-        desc: "Balance frequency (left) against recency (right).",
+        name: "Suggestion order",
+        desc: "Left puts what you use most at the top of the list; right puts what you used last.",
         control: {
           type: "slider",
           key: "recentItemsWeighting",
@@ -851,8 +897,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Scene type suggestions start after",
-        desc: "Letters typed at the start of a new block before INT., EXT. and other scene types are suggested. Example: with 2, typing in shows INT.",
+        name: "Letters before scene types are suggested",
+        desc: "How many letters you type at the start of a line before INT., EXT. and other scene types are suggested. With 2, typing in shows INT.",
         control: {
           type: "slider",
           key: "sceneTypeMinimumLetters",
@@ -865,8 +911,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Match case for scene type suggestions",
-        desc: "Only suggest scene types when the letters typed match their case. On: E shows EXT., but ext shows nothing. Off: ext shows EXT.",
+        name: "Scene type suggestions match capitals",
+        desc: "On: E shows EXT., but e doesn't. Off: either does.",
         control: {
           type: "toggle",
           key: "sceneTypeMatchCase",
@@ -874,8 +920,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Maximum autocomplete suggestions",
-        desc: "Limit the number of Scribidian suggestions shown at once.",
+        name: "Maximum suggestions",
+        desc: "The most suggestions shown at once.",
         control: {
           type: "slider",
           key: "maximumSuggestions",
@@ -885,6 +931,17 @@ export class ScribidianSettingTab extends PluginSettingTab {
           defaultValue: DEFAULT_SETTINGS.maximumSuggestions,
           displayFormat: (value) => String(value),
         },
+      },
+      {
+        name: HOTKEYS_NAME,
+        desc: "Set keyboard shortcuts for Scribidian's commands, such as Set line to slugline.",
+        aliases: ["hotkeys", "keyboard", "shortcut", "keys"],
+        action: () => this.openPluginHotkeys(),
+      },
+      {
+        name: ADVANCED_NAME,
+        searchable: false,
+        render: (setting) => this.renderAdvancedToggle(setting),
       },
       {
         name: TYPING_CHANGES_NAME,
@@ -898,7 +955,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Smart Tab and Enter",
-        desc: 'At the end of a line, Tab inserts the next Fountain element: after a character or dialogue line, a new () line; after a slugline, " - " and times of day, or a blank line once complete; after action, a blank line and the character list. In script mode only, Enter at the end of a line starts the next element too (choose which under Enter key), and Shift+Enter is a plain line break.',
+        desc: "Tab moves you on to the next likely element: a wryly under a character, the time of day after a slugline, a character after action. In script mode Enter does the same; choose what it starts under Enter key. Turn off to make Tab and Enter work as normal.",
         control: {
           type: "toggle",
           key: "smartTabEnabled",
@@ -907,7 +964,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Character pages folder",
-        desc: "Folder relative to the screenplay or project note. Start with / for a vault-relative folder; projects can override it with character-folder.",
+        desc: "Where new character pages go, starting from the screenplay's folder. Start with / to start from the top of your vault instead. A screenplay project can set its own folder with character-folder.",
         control: {
           type: "text",
           key: "characterFolder",
@@ -921,7 +978,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Character page template",
-        desc: `Note used for new character pages. Type to search ${templatesFolder ? `your templates folder (${templatesFolder}) and its subfolders` : "your vault (set a folder in the core Templates plugin to narrow this)"}. Placeholders: {{character}}, {{cue}}, {{project}}, {{project_link}}, {{screenplay}}, {{title}}, {{date}}, {{time}}. Leave empty for the built-in template.`,
+        desc: `A note to start new character pages from. Leave empty to use the built-in one. Type to search ${templatesFolder ? `your templates folder (${templatesFolder})` : "your vault (setting a folder in the core Templates plugin narrows this)"}. In the template, these are filled in for you: {{character}}, {{cue}}, {{title}}, {{screenplay}}, {{project}}, {{project_link}}, {{date}}, {{time}}.`,
         control: {
           type: "file",
           key: "characterTemplate",
@@ -934,7 +991,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         type: "group",
-        heading: "Clean Fountain export",
+        heading: "Clean Fountain export: what to strip out",
         items: CLEAN_EXPORT_SETTINGS.map(({ option, name, desc, choices }) => {
           const key = `${CLEAN_EXPORT_PREFIX}${option}`;
           const defaultValue = DEFAULT_CLEAN_EXPORT_OPTIONS[option];
@@ -957,8 +1014,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         }),
       },
       {
-        name: "Preferred scene types",
-        desc: "Comma-separated values shown by New Scene, in order.",
+        name: "Scene types",
+        desc: "Suggested at the start of a slugline, in this order. Separate them with commas.",
         control: {
           type: "textarea",
           key: "preferredSceneTypes",
@@ -970,8 +1027,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Preferred times of day",
-        desc: "Comma-separated values shown by New Scene, in order.",
+        name: "Times of day",
+        desc: "Suggested after the place in a slugline, in this order. Separate them with commas.",
         control: {
           type: "textarea",
           key: "preferredTimesOfDay",
@@ -983,8 +1040,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Preferred slug modifiers",
-        desc: 'Comma-separated values offered after the time of day, as in "EXT. HIGHWAY - DAY (FLASHBACK)". Tab after the time opens the list; modifiers used in the script are added.',
+        name: "Slug modifiers",
+        desc: "Extra notes suggested after the time of day, like (FLASHBACK) in EXT. HIGHWAY - DAY (FLASHBACK). Separate them with commas. Ones you use in the script are added automatically.",
         control: {
           type: "textarea",
           key: "preferredSlugModifiers",

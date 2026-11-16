@@ -33,6 +33,10 @@ Scribidian changes since 0.1.0.
 
 - The editor layouts are now called script mode and plain mode. New command
   **Screenplay: Toggle script and plain mode**.
+- The settings page is reorganised for writers: Getting started, Writing,
+  Typing in each mode, Enter key, Suggestions, Page count and status bar,
+  Character pages, Clean Fountain export, and a collapsed Advanced section.
+  Names and descriptions use plain words. Your saved settings are unchanged.
 - The README is rewritten for writers: install with BRAT, a first five
   minutes walkthrough and a plain feature list. Developer setup and testing
   moved to `docs/DEVELOPING.md`; privacy details moved to `PRIVACY.md`.

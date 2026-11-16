@@ -52,7 +52,7 @@ export class ScreenplayPreviewModal extends Modal {
       );
     toolbar.createEl("p", {
       text: cjk
-        ? "Read-only preview. CJK line breaks and page count are approximate; export PDF for the measured layout. Choose the PDF language in settings for regional character forms."
+        ? "Read-only preview. CJK line breaks and page count are approximate; export PDF for the measured layout. Choose the character forms under Settings → Scribidian → Advanced → Chinese, Japanese and Korean in PDFs."
         : "Read-only preview. Your Fountain source remains unchanged.",
     });
     const exportButton = toolbar.createEl("button", { text: "Export PDF" });

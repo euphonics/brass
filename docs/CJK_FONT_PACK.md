@@ -12,7 +12,7 @@ keeps its built-in Courier-compatible fonts.
 2. In Obsidian's command palette, run **Scribidian: Install offline CJK PDF fonts**.
 3. Choose **both** `NotoSansCJK-Regular.woff` and `NotoSansCJK-Bold.woff` in the
    file picker, then choose **Install selected fonts**.
-4. Wait for the installed message and retry PDF export. Set **PDF language** to
+4. Wait for the installed message and retry PDF export. Set **Chinese, Japanese and Korean in PDFs** (under Advanced) to
    choose regional glyph forms; this does not translate text.
 
 Official files, pinned to the source used for release 0.13.0:

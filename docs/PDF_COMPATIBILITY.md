@@ -49,7 +49,8 @@ and right-to-left/complex-script layout is not guaranteed.
 
 - Horizontal output for representative Simplified/Traditional Chinese,
   Japanese kana/kanji and Korean Hangul. Mixed Latin text is supported.
-- Choose **Settings → Scribidian → PDF language** to select regional Han
+- Choose **Settings → Scribidian → Advanced → Chinese, Japanese and Korean in
+  PDFs** to select regional Han
   character forms. The default is Simplified Chinese; select Japanese for a
   Japanese screenplay, Korean for Korean, or Traditional Chinese for Taiwan
   forms. This does not translate text; Hong Kong-specific forms are not included

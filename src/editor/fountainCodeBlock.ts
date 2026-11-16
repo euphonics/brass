@@ -23,7 +23,7 @@ const BLOCK_CLASS = "scribidian-fountain-codeblock";
 
 /**
  * Register a markdown code block post-processor for `fountain` fenced code
- * blocks. When the "Render Fountain code blocks" setting is on, the block
+ * blocks. When the "Show fountain code blocks as a script" setting is on, the block
  * content is laid out with screenplay formatting (centred character cues,
  * indented dialogue, right-aligned transitions and so on). When off, the
  * block is re-created as a standard `<pre><code>` so it looks like any

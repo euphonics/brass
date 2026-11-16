@@ -646,6 +646,19 @@
   width: 100%;
 }
 
+/* Settings: the Advanced section hides its settings until "Show" (or a search). */
+.scribidian-settings-advanced:not(.scribidian-advanced-open):not(
+    .scribidian-searching
+  )
+  .setting-items
+  > .setting-item:not(.scribidian-advanced-toggle) {
+  display: none;
+}
+
+.scribidian-settings-advanced.scribidian-searching .scribidian-advanced-toggle {
+  display: none;
+}
+
 /* Settings tables: "Typing in each mode" and "Enter key". */
 .scribidian-settings-table-row {
   display: block;
