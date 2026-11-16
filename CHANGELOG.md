@@ -36,7 +36,9 @@ Scribidian changes since 0.1.0.
 - The settings page is reorganised for writers: Getting started, Writing,
   Typing in each mode, Enter key, Suggestions, Page count and status bar,
   Character pages, Clean Fountain export, and a collapsed Advanced section.
-  Names and descriptions use plain words. Your saved settings are unchanged.
+  Suggestion order and scene type matching sit under Show more in
+  Suggestions. Names and descriptions use plain words. Your saved settings
+  are unchanged.
 - The README is rewritten for writers: install with BRAT, a first five
   minutes walkthrough and a plain feature list. Developer setup and testing
   moved to `docs/DEVELOPING.md`; privacy details moved to `PRIVACY.md`.

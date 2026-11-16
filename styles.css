@@ -646,16 +646,19 @@
   width: 100%;
 }
 
-/* Settings: the Advanced section hides its settings until "Show" (or a search). */
-.scribidian-settings-advanced:not(.scribidian-advanced-open):not(
-    .scribidian-searching
-  )
-  .setting-items
-  > .setting-item:not(.scribidian-advanced-toggle) {
+/* Settings: rows after a "show more" row stay hidden until it is opened (or a search). */
+.setting-group:not(.scribidian-more-open):not(.scribidian-searching)
+  .scribidian-more-toggle
+  ~ .setting-item {
   display: none;
 }
 
-.scribidian-settings-advanced.scribidian-searching .scribidian-advanced-toggle {
+.scribidian-searching .scribidian-more-toggle {
+  display: none;
+}
+
+.scribidian-more-toggle-plain .setting-item-control,
+.scribidian-more-toggle-plain .setting-item-name {
   display: none;
 }
 

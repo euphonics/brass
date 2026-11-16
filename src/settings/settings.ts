@@ -310,15 +310,16 @@ const HOTKEYS_NAME = "Keyboard shortcuts";
 const HOTKEYS_KEY = "hotkeysAction";
 const ADVANCED_NAME = "Advanced settings";
 const ADVANCED_KEY = "advancedToggle";
+const MORE_SUGGESTIONS_NAME = "More suggestion settings";
+const MORE_SUGGESTIONS_KEY = "moreSuggestionsToggle";
 /** Items without a control, placed in their section by name. */
 const NAMED_ITEM_KEYS: Record<string, string> = {
   [TYPING_CHANGES_NAME]: TYPING_CHANGES_KEY,
   [ENTER_TARGETS_NAME]: ENTER_TARGETS_KEY,
   [HOTKEYS_NAME]: HOTKEYS_KEY,
   [ADVANCED_NAME]: ADVANCED_KEY,
+  [MORE_SUGGESTIONS_NAME]: MORE_SUGGESTIONS_KEY,
 };
-/** Class of the Advanced section, whose settings start hidden. */
-const ADVANCED_CLASS = "scribidian-settings-advanced";
 
 /**
  * Settings sections, in order, by control key. Sections marked `last` go
@@ -360,6 +361,10 @@ const SETTING_GROUPS: {
       "preferredSceneTypes",
       "preferredTimesOfDay",
       "preferredSlugModifiers",
+      MORE_SUGGESTIONS_KEY,
+      "recentItemsWeighting",
+      "sceneTypeMinimumLetters",
+      "sceneTypeMatchCase",
     ],
   },
   {
@@ -381,16 +386,8 @@ const SETTING_GROUPS: {
   },
   {
     heading: "Advanced",
-    cls: ADVANCED_CLASS,
     last: true,
-    keys: [
-      ADVANCED_KEY,
-      "recentItemsWeighting",
-      "sceneTypeMinimumLetters",
-      "sceneTypeMatchCase",
-      "renderFountainCodeBlocks",
-      "pdfLanguage",
-    ],
+    keys: [ADVANCED_KEY, "renderFountainCodeBlocks", "pdfLanguage"],
   },
 ];
 
@@ -565,32 +562,44 @@ export class ScribidianSettingTab extends PluginSettingTab {
     syncMaster("script");
   }
 
-  /** Whether the Advanced section shows its settings. */
-  private showAdvanced = false;
+  /** Keys of the "show more" rows that are currently open. */
+  private readonly openMore = new Set<string>();
 
   /**
-   * First row of the Advanced section: a button that shows or hides the
-   * rest of it. Searching shows matching advanced settings anyway.
+   * A row with a button that shows or hides the settings after it in the
+   * same section. Searching shows matching hidden settings anyway.
    */
-  private renderAdvancedToggle(setting: Setting): void {
-    setting.settingEl.addClass("scribidian-advanced-toggle");
-    setting.setName(ADVANCED_NAME);
-    setting.setDesc(
-      "Fine-tuning for suggestions, code blocks and PDF languages. Most writers never need these.",
-    );
-    setting.addButton((button) => {
-      const update = (): void => {
-        button.setButtonText(this.showAdvanced ? "Hide" : "Show");
-        setting.settingEl
-          .closest(".setting-group")
-          ?.toggleClass("scribidian-advanced-open", this.showAdvanced);
-      };
-      button.onClick(() => {
-        this.showAdvanced = !this.showAdvanced;
-        update();
-      });
-      window.setTimeout(update, 0);
+  private renderMoreToggle(setting: Setting, key: string): void {
+    setting.settingEl.addClass("scribidian-more-toggle");
+    const advanced = key === ADVANCED_KEY;
+    if (advanced) {
+      setting.setName(ADVANCED_NAME);
+      setting.setDesc(
+        "Fine-tuning for code blocks and PDF languages. Most writers never need these.",
+      );
+    } else {
+      setting.settingEl.addClass("scribidian-more-toggle-plain");
+    }
+    const [closed, open] = advanced
+      ? ["Show", "Hide"]
+      : ["Show more", "Show less"];
+    const button = advanced
+      ? setting.controlEl.createEl("button")
+      : setting.infoEl.createEl("button", {
+          cls: "scribidian-settings-table-more",
+        });
+    const update = (): void => {
+      const isOpen = this.openMore.has(key);
+      button.setText(isOpen ? open : closed);
+      setting.settingEl
+        .closest(".setting-group")
+        ?.toggleClass("scribidian-more-open", isOpen);
+    };
+    button.addEventListener("click", () => {
+      if (!this.openMore.delete(key)) this.openMore.add(key);
+      update();
     });
+    window.setTimeout(update, 0);
   }
 
   /** Whether the Enter table shows its less common rows. */
@@ -941,7 +950,13 @@ export class ScribidianSettingTab extends PluginSettingTab {
       {
         name: ADVANCED_NAME,
         searchable: false,
-        render: (setting) => this.renderAdvancedToggle(setting),
+        render: (setting) => this.renderMoreToggle(setting, ADVANCED_KEY),
+      },
+      {
+        name: MORE_SUGGESTIONS_NAME,
+        searchable: false,
+        render: (setting) =>
+          this.renderMoreToggle(setting, MORE_SUGGESTIONS_KEY),
       },
       {
         name: TYPING_CHANGES_NAME,
