@@ -33,6 +33,9 @@ Scribidian changes since 0.1.0.
 
 - The editor layouts are now called script mode and plain mode. New command
   **Screenplay: Toggle script and plain mode**.
+- The README is rewritten for writers: install with BRAT, a first five
+  minutes walkthrough and a plain feature list. Developer setup and testing
+  moved to `docs/DEVELOPING.md`; privacy details moved to `PRIVACY.md`.
 - The Set line commands are named "Set line to action", "Set line to
   character" and so on, without numbers. Assigned hotkeys keep working.
 - The plugin says "slugline" and "wryly" everywhere it used to say "scene
