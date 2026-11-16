@@ -16,6 +16,13 @@
   "Smart Tab" and "Smart Tab back", that do what Tab and Shift+Tab do. Writers
   can then put them on Obsidian's mobile toolbar (Settings → Mobile → Manage
   toolbar options). Desktop doesn't change.
+- **Automatic (CONT'D) when a speaker resumes.** (CONT'D) is never offered as
+  a suggestion. It should be filled in automatically, unlike (V.O.) and (O.S.),
+  which the writer chooses. PDF export already adds it when one speech breaks
+  across a page. Also add it on export when the same character speaks again
+  after only action lines in the same scene. Don't add it after another
+  character speaks, or after a new scene heading. Leave the writer's text
+  unchanged. Possibly offer a setting to turn it off.
 
 ## Possible issues
 
