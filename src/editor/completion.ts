@@ -321,6 +321,9 @@ export function createScreenplayCompletionExtension(
 
   const uppercaseTransitions = EditorState.transactionFilter.of((tr) => {
     if (!tr.docChanged || !tr.isUserEvent("input.type")) return tr;
+    // Leave text alone while a phone keyboard is composing a word: changing
+    // it mid-composition makes the keyboard duplicate or garble letters.
+    if (tr.isUserEvent("input.type.compose")) return tr;
     const file = tr.startState.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return tr;
     const fixes: { from: number; to: number; insert: string }[] = [];
