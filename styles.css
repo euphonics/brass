@@ -369,8 +369,10 @@
 .markdown-source-view.mod-cm6
   .cm-editor.scribidian-screenplay-layout
   .cm-sizer {
-  /* 60 characters, plus a little room so a full line is not wrapped early. */
-  max-width: 60.5ch;
+  /* 60 characters, plus a little room so a full line is not wrapped early.
+     On a narrow screen, keep the theme's side margins (Minimal makes them
+     with --max-width: 88% on each line, which the rule below undoes). */
+  max-width: min(60.5ch, var(--max-width, 100%));
   margin-inline: auto;
 }
 
