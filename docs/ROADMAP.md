@@ -102,26 +102,50 @@ Bugs reported against other Obsidian screenplay plugins that could also affect S
 | 40  | Embedding a screenplay note in another note (`![[Script]]`) loses the screenplay layout.                                                                                                                                                             | M      | —      | [Fountain Editor #67](https://github.com/chuangcaleb/obsidian-fountain-editor/issues/67)                                                                                                                                                                                     | **Likely:** the embedded note got no Scribidian styling. **Human test:** confirm by eye.                                                                                                                                                                                                  |
 | 41  | "Failed to install" from the directory or BRAT. Cause unknown in the other plugin; Scribidian's 3.4 MB `main.js` makes slow downloads more likely.                                                                                                   | S      | —      | [Fountain Editor #61](https://github.com/chuangcaleb/obsidian-fountain-editor/issues/61)                                                                                                                                                                                     | **Human test:** install through BRAT on a slow connection.                                                                                                                                                                                                                                |
 
+### Themes and appearance settings
+
+Tested on 2026-11-15 by switching settings for a moment in a test note, or by adding a theme's kind of CSS and removing it again. Most theme problems come from one gap: Scribidian resets the width, maximum width and margins of each line, but not text indent, line font, or the padding and width of the editor content.
+
+| #   | Possible issue                                                                                                                                                                                                                                                  | Effort | Device | Result                                                                                                                                                       |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 43  | A theme or snippet indents the first line of each paragraph (`text-indent`, common in book-style themes). Every screenplay line shifts right.                                                                                                                   | S      | —      | **Confirmed** (simulated theme CSS): the character name moved from 36.7% to 43% across the column.                                                           |
+| 44  | A theme sets its font on each editor line rather than on the editor. That beats Scribidian's screenplay font.                                                                                                                                                   | S      | —      | **Confirmed** (simulated): lines showed in Georgia, and dialogue wrapped differently.                                                                        |
+| 45  | A theme narrows the editor's content area on its own (`.cm-contentContainer`). The 60-character column no longer fits.                                                                                                                                          | S      | —      | **Confirmed** (simulated): transitions ran past the right edge and dialogue wrapped more.                                                                    |
+| 46  | A theme adds side padding to the editor content. Indents are measured from the wrong edge.                                                                                                                                                                      | S      | —      | **Confirmed** (simulated): the character name moved to 39.6% and lines wrapped more.                                                                         |
+| 47  | A theme forces line padding with `!important`. All screenplay indents disappear.                                                                                                                                                                                | S      | —      | **Confirmed** (simulated), only when the theme uses `!important`. Without it Scribidian wins.                                                                |
+| 48  | A theme justifies text. Dialogue and action get uneven word spacing.                                                                                                                                                                                            | S      | —      | Not visible in a short test. **Human test** with a justified theme.                                                                                          |
+| 49  | Live Preview treats some screenplay lines as Markdown. `> CUT TO:` is a blockquote, a line starting `- ` or `1. ` is a list with a bullet or number, and a line starting `#` is a heading. Themes that draw quote bars or list markers show them in the script. | S–M    | —      | **Confirmed:** the transition line carries Obsidian's quote styling and the `- ` line its list styling (Minimal draws no quote bar, so it looked fine here). |
+| 50  | Core settings that change the editor: readable line length off, line numbers, fold indicators off, Source mode, the Default theme, letter spacing.                                                                                                              | S      | —      | **Not reproduced:** the layout stayed correct with each one.                                                                                                 |
+| 51  | Right-to-left editor setting (Settings → Editor).                                                                                                                                                                                                               | S      | —      | Inconclusive: the setting didn't apply to an open note. **Human test:** turn it on, reopen a screenplay.                                                     |
+| 52  | Minimal's page-width options: `wide` and `max` cssclasses, Minimal Settings line widths, focus mode.                                                                                                                                                            | S      | —      | No change seen, but the test window was only 513 px wide, too narrow to tell. **Human test** in a wide window.                                               |
+| 53  | Bigger or smaller text: Minimal's text size, Obsidian's font size, zoom (Ctrl/Cmd +/−).                                                                                                                                                                         | S      | —      | Inconclusive. **Human test:** the column should stay 60 characters at any size.                                                                              |
+| 54  | Dark mode and colour schemes: page-break lines and notes use theme colours and could be hard to see.                                                                                                                                                            | S      | —      | **Human test:** look at a script in light and dark.                                                                                                          |
+| 55  | Heading styles (Minimal's colourful headings, your `headings` snippet) apply to Markdown headings inside screenplay notes.                                                                                                                                      | S      | —      | **By design.** Only Markdown headings are affected, not Fountain lines.                                                                                      |
+| 56  | Fountain code blocks in other notes pick up the theme's code-block look (background, smaller text, sideways scrolling instead of wrapping).                                                                                                                     | S      | —      | **Human test** in Reading view with two or three themes.                                                                                                     |
+| 57  | Phone margins in other themes. Scribidian's mobile margin fix reads Minimal's `--max-width`. A theme that makes phone margins another way would get the old too-close-to-the-edge look.                                                                         | S–M    | Phone  | **Human test** on a phone with the Default theme and one other.                                                                                              |
+
 ### Workload
 
-- **42 possible issues:** 27 small, 14 medium, 1 medium-to-large.
-- **Confirmed (13):** 1, 7, 8, 9, 14, 17, 23, 24, 26, 27, 29, 42, and #25
-  (caseless scripts). Partly: 28.
-- **Not a bug or not reproduced (7):** 19, 22 (suggestions), 30, 31, 32, 33,
-  34 (desktop).
+- **57 possible issues:** 40 small, 16 medium, 1 medium-to-large.
+- **Confirmed (19):** 1, 7, 8, 9, 14, 17, 23, 24, 26, 27, 29, 42, 43, 44, 45,
+  46, 49, and #25 (caseless scripts). Partly: 28, 47.
+- **Not a bug, by design, or not reproduced (9):** 19, 22 (suggestions), 30,
+  31, 32, 33, 34 (desktop), 50, 55.
 - **Need a human (rest):** see the checklist.
 
 ### Human test checklist
 
 - **iPhone:** 2, 3, 4, 5, 6, 9 (Smart Punctuation on?), 10, 11, 12, 13
-  (iCloud vault), 31, 34, 36, 41.
+  (iCloud vault), 31, 34, 36, 41, 57.
 - **iPad with keyboard:** 15.
-- **Android phone:** 2, 3, 4, 5, 6, 31, 34.
+- **Android phone:** 2, 3, 4, 5, 6, 31, 34, 57.
 - **Mac:** 16 (Japanese or Chinese input).
 - **Any desktop:** 20 (themes), 21 (Various Complements), 22 (conflicted
   character pages), 25 (right-to-left `@` cues), 28 (embeds), 35 (long script
   scroll), 37 (Vim), 38 (spell check), 39 (Reading view), 40 (embedded
-  script).
+  script), 48 (justified theme), 51 (right-to-left), 52 (Minimal page widths, wide
+  window), 53 (text size and zoom), 54 (light and dark), 56 (code blocks in other
+  themes).
 
 ## Deep backlog: export
 
