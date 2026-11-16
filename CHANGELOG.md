@@ -5,6 +5,31 @@ All notable changes to First Draft are documented here. This project follows
 
 ## [Unreleased]
 
+Scribidian changes since 0.1.0.
+
+### Added
+
+- **Smart Tab** and **Smart Tab back** commands, so Smart Tab can go on the
+  mobile toolbar (phone keyboards have no Tab key).
+- README tips on themes, other plugins and Fountain rules; a rewritten mobile
+  testing guide; a roadmap with possible issues and a human test checklist.
+
+### Fixed
+
+- Keep the theme's side margins on phones.
+- Don't change text while a phone keyboard is composing a word.
+- Lock the screenplay layout in screenplay notes so themes can't move it
+  (first-line indents, their own fonts, padded or narrowed content, inline
+  text styles). Colours, dark mode and text size still follow the theme.
+- Read every trailing extension on a cue, e.g. `ALEX (V.O.) (CONT'D)`.
+- Treat `!` lines as action, keep a speech going over a two-space line, and
+  ignore `%%` comments (including ones that open with text) and boneyard.
+- Count `O'BRIEN` and `O’BRIEN` as one character.
+- Don't capitalize the first letter of a line inside a code block.
+- Pick another name instead of failing when a file differs only in case.
+- Load even when another plugin already opens `.fountain` files.
+- "1 scene" and "1 word" in the status bar.
+
 ## [0.13.1] - 2026-10-19
 
 ### Fixed

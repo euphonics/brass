@@ -1,82 +1,69 @@
 # Mobile testing
 
-Scribidian uses browser-compatible Obsidian APIs and declares mobile support,
-but physical-device acceptance remains outstanding. Record it before claiming
-verified mobile support; if a release proceeds without a device, disclose the
-untested layout/performance in its release notes.
-Use a dedicated test vault containing no private screenplay material.
+Scribidian supports iPhone, iPad and Android, but has so far been tested on a
+phone by one person. These steps are for friends testing a beta. Use a test
+vault, or a copy of your vault, with no private screenplays in it.
 
-## Install stable 0.13.1
+## Install with BRAT (iPhone, iPad and Android)
 
-Use **Settings → Community plugins → Check for updates** to install 0.13.1,
-then restart Obsidian. It contains the palette-context and bundle-size fixes.
-If you pinned beta 3 in BRAT, use BRAT to select `0.13.1` explicitly before
-removing its beta tracking; do not rely on Obsidian's prerelease comparison.
+Until Scribidian is in Obsidian's community plugin directory, BRAT is the way to
+install it on a phone. BRAT installs plugins straight from their GitHub
+releases.
 
-## Alternative: select an exact release with BRAT
-
-This path works on both Android and iOS/iPadOS once the Scribidian repository
-is public and has a GitHub release.
-
-1. Install the **BRAT** community plugin in the mobile test vault.
-2. In BRAT, choose **Add Beta plugin**.
-3. Enter `euphonics/scribidian` and select the intended test release. For the
-   activated-note palette and bundle-size fixes, select `0.13.1` explicitly;
-   the old stable `0.13.0` release does not include them.
+1. In Obsidian, open **Settings → Community plugins**, turn off Restricted mode
+   if asked, then **Browse** and install **BRAT** (Obsidian42 - BRAT). Enable it.
+2. Open **Settings → BRAT → Add beta plugin**.
+3. Enter `euphonics/scribidian` and choose the latest release.
 4. Enable **Scribidian** under **Settings → Community plugins**.
-5. Open the project fixture and complete the checklist below.
+5. Run **Scribidian: Create example screenplay** from the command palette to
+   get a sample script to try.
 
-BRAT is only a release-candidate installation aid. Scribidian itself does not
-depend on BRAT and does not access the network.
+BRAT only installs Scribidian; Scribidian itself never goes online.
 
-## Android: direct local installation
+If you used First Draft before, turn it off first. Both plugins open
+`.fountain` files and lay out the editor, so having both on causes clashes.
+Hotkeys and settings don't carry over; set them again.
 
-For testing before a public release, build on the development computer and copy
-these files into `<test-vault>/.obsidian/plugins/scribidian/` on the device:
+## Android: install by hand
 
-- `main.js`
-- `manifest.json`
-- `styles.css`
+On a computer, download `main.js`, `manifest.json` and `styles.css` from the
+[latest release](https://github.com/euphonics/scribidian/releases/latest) and
+copy them into `<vault>/.obsidian/plugins/scribidian/` on the phone (USB or
+your sync app). Restart Obsidian and enable Scribidian. On iPhone this is
+impractical; use BRAT.
 
-Restart Obsidian, then enable Scribidian under **Settings → Community
-plugins**. Android file access varies by device; USB transfer or an existing
-vault sync method can be used. Do not point the development build at an
-everyday vault.
+## Put Smart Tab on the toolbar
 
-Direct installation on iOS/iPadOS is constrained by app file access, so the
-BRAT release-candidate path is the practical option there.
+Phone keyboards have no Tab key. To use Smart Tab (move from action to
+character to dialogue), add its commands to the toolbar above the keyboard:
 
-## Mobile acceptance checklist
+1. Open **Settings → Mobile → Manage toolbar options** (called "Mobile" or
+   "Toolbar" depending on the Obsidian version).
+2. Add **Scribidian: Screenplay: Smart Tab** and **Scribidian: Screenplay:
+   Smart Tab back**.
+3. Optionally add the **Set line** commands (Scene heading, Action, Character,
+   Parenthetical, Transition, Centered text).
 
-### Activated-note palette regression
+Tapping Smart Tab does exactly what pressing Tab does on a computer.
 
-For the palette-context fix, repeat these checks on the iPad in a disposable
-vault. The public 0.13.0 release does not contain this fix; use the matching test
-build, then restart Obsidian or disable/re-enable Scribidian.
+## Phone tips
 
-1. Open an existing Markdown screenplay with boolean `screenplay: true`.
-2. Open the Scribidian Palette, focus its controls, close/reopen the sidebar
-   repeatedly, and switch between editing and reading views. Writing controls
-   should remain available without asking you to activate the note again.
-3. Create a project, open its parts, and return to the original screenplay.
-   Each view should show the corresponding controls, not those of the previous
-   note. While properties load, a waiting message is preferable to activation.
-4. Switch to an ordinary note, an empty tab, a project, and a character page.
-   Only the ordinary Markdown note should offer screenplay activation; no action
-   should edit a screenplay left open in another tab by mistake.
-5. In an editable disposable note, change `screenplay: true` to `false`, then
-   back to `true`, and remove the property. Controls should reflect the current
-   properties. A malformed or incomplete YAML block should show waiting feedback
-   rather than an activation button.
-6. Restart Obsidian, lock/resume the device, and repeat steps 1–3.
+- **iPhone Smart Punctuation** turns `'` into `’`. Scribidian treats `O'BRIEN`
+  and `O’BRIEN` as the same character, but `--` still becomes `—`. To keep
+  plain quotes and dashes, turn off **Settings → General → Keyboard → Smart
+  Punctuation** on the iPhone.
+- **Natural Language Dates** opens a date list when you type `@`, which Fountain
+  uses to force a character name. Keep typing or tap elsewhere to close it, or change that
+  plugin's trigger character in its settings.
+- Phones have no status bar, so page count and word count aren't shown there.
 
-Record any failure together with the note type, reading/editing mode and whether
-the sidebar was focused. Automated context and rendering tests are not physical
-iPad acceptance.
-
-### General acceptance
+## Acceptance checklist
 
 - Open a `.fountain` file and a Markdown note with `screenplay: true`.
+- Check the side margins match ordinary notes, and that character names,
+  dialogue and transitions line up.
+- Add **Smart Tab** and **Smart Tab back** to the toolbar (above) and use them
+  to move between action, character and dialogue.
 - Confirm autocomplete works with the on-screen keyboard.
 - Open the Scribidian Palette and use its common actions.
 - Create and open a character dossier.
@@ -103,3 +90,10 @@ iPad acceptance.
 Record the Obsidian version, operating system version, and device type with the
 test result. Mobile acceptance is separate from the automated model tests and
 the desktop test-vault check.
+
+## Report what you find
+
+Use the [bug report form](https://github.com/euphonics/scribidian/issues/new/choose)
+and include the device, the OS version, the Obsidian version and the theme. The
+list of things that still need a person to check, grouped by device, is in the
+[roadmap](ROADMAP.md#human-test-checklist).

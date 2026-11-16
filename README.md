@@ -192,6 +192,51 @@ selectable Fountain examples, and Scribidian project concepts. The cheat sheet
 is bundled with the plugin, works offline, and does not create a vault note or
 access the system clipboard.
 
+## Tips and known limits
+
+**Themes.** Scribidian supports Obsidian's Default theme and Minimal, on desktop
+and phone. Other themes should work but are best effort. In screenplay notes
+Scribidian controls the layout (font, the 60-character column, indents,
+spacing, alignment) so themes can't knock it out of line; colours, dark mode
+and text size still follow your theme.
+
+- CSS snippets can't change a script's font or indents unless they use
+  `!important`. To change the script font, use **Settings → Scribidian →
+  Screenplay font** (this also works for accessibility fonts).
+- Wide-note options (Minimal's `wide` and `max`, width plugins) don't widen a
+  script: it stays 60 characters wide, like the printed page.
+
+**Phones.** See the [mobile guide](docs/MOBILE_TESTING.md) for installing with
+BRAT and putting **Smart Tab** on the toolbar (phone keyboards have no Tab
+key).
+
+**Other plugins.**
+
+- **Linter** rewrites scripts if it runs on them: it adds properties and a
+  heading to `.fountain` files, removes two-space lines and squeezes blank
+  lines. Add your screenplay folders to Linter's **Folders to ignore**, or turn
+  off lint on save.
+- **Natural Language Dates** opens a date list when you type `@`, which
+  Fountain uses to force a character name. Keep typing to close it, or change
+  that plugin's trigger.
+- If **First Draft** is installed, turn it off: both plugins open `.fountain`
+  files and lay out the editor.
+
+**Fountain rules worth knowing.**
+
+- An all-caps line followed by text (`BANG!` then a line) reads as a character
+  and dialogue. Start it with `!` to force action: `!BANG!`.
+- Scene headings must start with INT, EXT, EST or I/E. For anything else, start
+  the line with a period: `.INNEN. HAUS - TAG`.
+- Transitions must end in `TO:`. Force others with `>`: `> FADE OUT.`
+- Names in scripts without capital letters (Hebrew, Arabic, Chinese, Japanese,
+  Korean) need `@` in front: `@דוד`.
+- A line of two spaces keeps a speech going. `%% comments %%` and
+  `/* boneyard */` are ignored.
+- While Scribidian is turned off, `.fountain` files drop out of Obsidian's file
+  list unless **Settings → Files and links → Detect all file extensions** is
+  on.
+
 ## Development
 
 Requirements: Node.js 22.12+ within the 22 series, or Node.js 24+, and npm.
