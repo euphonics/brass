@@ -52,6 +52,8 @@ export interface ScribidianSettings {
   capitalizeLineStartsPlain: boolean;
   uppercaseTransitionsScript: boolean;
   uppercaseTransitionsPlain: boolean;
+  uppercaseSluglinesScript: boolean;
+  uppercaseSluglinesPlain: boolean;
   editorLayout: EditorLayout;
   bottomTypingMargin: number;
   screenplayFont: string;
@@ -173,6 +175,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   capitalizeLineStartsPlain: false,
   uppercaseTransitionsScript: true,
   uppercaseTransitionsPlain: false,
+  uppercaseSluglinesScript: true,
+  uppercaseSluglinesPlain: false,
   editorLayout: "screenplay",
   bottomTypingMargin: 40,
   screenplayFont: "Courier Prime",
@@ -253,8 +257,10 @@ const SETTING_GROUPS: { heading: string; keys: string[] }[] = [
     heading: "Text changes while typing",
     keys: [
       "capitalizeLineStartsScript",
+      "uppercaseSluglinesScript",
       "uppercaseTransitionsScript",
       "capitalizeLineStartsPlain",
+      "uppercaseSluglinesPlain",
       "uppercaseTransitionsPlain",
     ],
   },
@@ -673,6 +679,16 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Script mode: uppercase sluglines as you type",
+        desc: 'Scene headings become uppercase as you type them ("int. kitchen - day" becomes "INT. KITCHEN - DAY"), including lines forced with a leading period.',
+        aliases: ["capital", "uppercase", "scene heading", "slugline"],
+        control: {
+          type: "toggle",
+          key: "uppercaseSluglinesScript",
+          defaultValue: DEFAULT_SETTINGS.uppercaseSluglinesScript,
+        },
+      },
+      {
         name: "Script mode: uppercase transitions as you type",
         desc: 'Text typed on a forced transition line ("> cut to") becomes uppercase.',
         aliases: ["capital", "uppercase", "transition"],
@@ -690,6 +706,16 @@ export class ScribidianSettingTab extends PluginSettingTab {
           type: "toggle",
           key: "capitalizeLineStartsPlain",
           defaultValue: DEFAULT_SETTINGS.capitalizeLineStartsPlain,
+        },
+      },
+      {
+        name: "Plain mode: uppercase sluglines as you type",
+        desc: "The same as in script mode, for plain Fountain text. Off by default.",
+        aliases: ["capital", "uppercase", "scene heading", "slugline"],
+        control: {
+          type: "toggle",
+          key: "uppercaseSluglinesPlain",
+          defaultValue: DEFAULT_SETTINGS.uppercaseSluglinesPlain,
         },
       },
       {
@@ -911,6 +937,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "capitalizeLineStartsPlain":
       case "uppercaseTransitionsScript":
       case "uppercaseTransitionsPlain":
+      case "uppercaseSluglinesScript":
+      case "uppercaseSluglinesPlain":
       case "renderFountainCodeBlocks":
       case "sceneTypeMatchCase":
       case "statusBarEnabled":

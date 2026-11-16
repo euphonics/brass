@@ -9,6 +9,9 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Uppercase sluglines as you type ("int. kitchen - day" becomes "INT.
+  KITCHEN - DAY"), with a setting for each mode: on in script mode, off in
+  plain mode by default.
 - **Smart Tab** and **Smart Tab back** commands, so Smart Tab can go on the
   mobile toolbar (phone keyboards have no Tab key).
 - README tips on themes, other plugins and Fountain rules; a rewritten mobile
@@ -21,6 +24,7 @@ Scribidian changes since 0.1.0.
 - Line-start capitalization and transition uppercasing have a setting for each
   mode: on in script mode, off in plain mode by default. An existing
   capitalization setting carries over to script mode.
+
 - Plain mode no longer changes Enter: no Smart Enter, no
   Shift+Enter override, and Enter closes an open suggestion list instead of
   accepting it. Suggestions and Smart Tab still work.

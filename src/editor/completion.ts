@@ -41,7 +41,7 @@ import { editorInfoField } from "obsidian";
 import type ScribidianPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
 import { buildScreenplayIndex } from "../screenplay/indexer";
-import { parseFountain } from "../screenplay/parser";
+import { isSceneHeading, parseFountain } from "../screenplay/parser";
 import { ScreenplayIndexCache, textOutsideLine } from "./indexCache";
 import {
   getSmartEnterPlan,
@@ -344,9 +344,35 @@ export function createScreenplayCompletionExtension(
     const file = tr.startState.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return tr;
     const fixes: { from: number; to: number; insert: string }[] = [];
+    const sluglines = new Set<number>();
     tr.changes.iterChanges((_fromA, _toA, fromB, toB, inserted) => {
       const text = inserted.toString();
       const line = tr.newDoc.lineAt(fromB);
+      // Uppercase a scene heading as it is typed (setting). The whole line,
+      // so "int." becomes "INT." when the period makes it a heading. Only
+      // letters that change are replaced, so the cursor stays put.
+      if (
+        plugin.typingChangeEnabled("uppercaseSluglines") &&
+        isSceneHeading(line.text) &&
+        !inFrontmatter(tr.newDoc, line.number) &&
+        !inCodeBlock(tr.newDoc, line.number)
+      ) {
+        if (!sluglines.has(line.number)) {
+          sluglines.add(line.number);
+          [...line.text].reduce((offset, character) => {
+            const upper = character.toLocaleUpperCase();
+            if (upper !== character && upper.length === character.length) {
+              fixes.push({
+                from: line.from + offset,
+                to: line.from + offset + character.length,
+                insert: upper,
+              });
+            }
+            return offset + character.length;
+          }, 0);
+        }
+        return;
+      }
       // Capitalize the first letter typed on a line (setting), outside
       // the frontmatter.
       if (plugin.typingChangeEnabled("capitalizeLineStarts")) {

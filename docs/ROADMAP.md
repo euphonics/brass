@@ -45,8 +45,8 @@ is in [Editor modes](EDITOR_MODES.md).
   scene heading, action → action. Today Smart Enter covers some of these.
 - **Scribidian manages blank lines.** Enter adds the blank line Fountain needs;
   Backspace on it removes the pair. No typing or deleting blank lines by hand.
-- **Capitals as you type** on scene headings and character names, as already
-  happens on transitions.
+- **Capitals as you type** on character names. Scene headings and
+  transitions already do this (settings per mode).
 - **Show the current element** (status bar on desktop, near the toolbar on
   phones), with a way to change it.
 - **Per-note switch** between script and plain mode (command and status-bar

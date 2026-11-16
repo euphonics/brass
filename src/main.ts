@@ -522,7 +522,8 @@ export default class ScribidianPlugin extends Plugin {
 
   /** Whether a text change while typing is on in the current mode. */
   typingChangeEnabled(
-    change: "capitalizeLineStarts" | "uppercaseTransitions",
+    change:
+      "capitalizeLineStarts" | "uppercaseSluglines" | "uppercaseTransitions",
   ): boolean {
     const mode = this.isScriptMode() ? "Script" : "Plain";
     return this.settings[`${change}${mode}`];

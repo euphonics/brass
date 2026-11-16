@@ -38,6 +38,8 @@ describe("settings migration", () => {
     expect(settings.uppercaseTransitionsScript).toBe(true);
     expect(settings.capitalizeLineStartsPlain).toBe(false);
     expect(settings.uppercaseTransitionsPlain).toBe(false);
+    expect(settings.uppercaseSluglinesScript).toBe(true);
+    expect(settings.uppercaseSluglinesPlain).toBe(false);
   });
 
   it("moves the old single capitalize switch to script mode", () => {
