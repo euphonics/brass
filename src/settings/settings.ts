@@ -512,7 +512,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Editor layout",
-        desc: "Screenplay layout indents and aligns each element as it prints (centered character names, narrow dialogue, right-aligned transitions) in a monospace font. Plain Fountain text keeps Obsidian's normal look. Display only: the note text is the same either way.",
+        desc: "Screenplay layout indents and aligns each element as it prints (centered character names, narrow dialogue, right-aligned transitions) and adds typing help such as Smart Enter. Plain Fountain text keeps Obsidian's normal look and free typing: suggestions and Smart Tab still work, but Enter is always Obsidian's own. The note text is the same either way.",
         control: {
           type: "dropdown",
           key: "editorLayout",

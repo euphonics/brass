@@ -498,6 +498,21 @@ export default class ScribidianPlugin extends Plugin {
     }
   }
 
+  /**
+   * The two editor modes (Settings > Editor layout):
+   *
+   * - Script mode ("Screenplay layout"): the page is laid out like a
+   *   screenplay and Scribidian may shape typing, e.g. Smart Enter.
+   * - Plain mode ("Plain Fountain text"): plain text with free typing.
+   *   Suggestions and Smart Tab still work; Enter is always Obsidian's own.
+   *
+   * Behaviour that changes typing beyond suggestions and Tab belongs to
+   * script mode only. See docs/EDITOR_MODES.md for the full list.
+   */
+  isScriptMode(): boolean {
+    return this.settings.editorLayout === "screenplay";
+  }
+
   isScreenplayFile(file: TFile | null): boolean {
     const properties = this.notePropertiesForFile(file);
     return isScreenplayMode(

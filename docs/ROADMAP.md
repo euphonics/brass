@@ -27,6 +27,52 @@ lives in the deep backlog at the end.
 
 - **Smart Tab on phones.** Done (2026-11-15): commands **Smart Tab** and
   **Smart Tab back** for the mobile toolbar. Still to check on a real phone.
+- **Clear boundary between the editor modes.** Done (2026-11-15): plain mode
+  never changes Enter; see [Editor modes](EDITOR_MODES.md).
+- **Strict typing in script mode.** See the plan below.
+
+## Strict typing plan
+
+Goal: script mode types like Final Draft or Fade In, while plain mode stays
+free (suggestions and Smart Tab only). The file is always plain Fountain; the
+strictness is only in how typing behaves. The current split between the modes
+is in [Editor modes](EDITOR_MODES.md).
+
+**Phase 1: the biggest gain**
+
+- **Every Enter goes somewhere.** Scene heading → action, character →
+  dialogue, dialogue → next character, parenthetical → dialogue, transition →
+  scene heading, action → action. Today Smart Enter covers some of these.
+- **Scribidian manages blank lines.** Enter adds the blank line Fountain needs;
+  Backspace on it removes the pair. No typing or deleting blank lines by hand.
+- **Capitals as you type** on scene headings and character names, as already
+  happens on transitions.
+- **Show the current element** (status bar on desktop, near the toolbar on
+  phones), with a way to change it.
+- **Per-note switch** between script and plain mode (command and status-bar
+  toggle), instead of only the global setting.
+
+**Phase 2**
+
+- Hide Fountain markers (`@`, `!`, `.`, `>`) when the cursor is off the line.
+- Keep intent: an all-caps action line gets `!` so it isn't read as a
+  character (#69); `(` in dialogue starts a parenthetical and closes it.
+- Tidy pasted text (indents, blank lines).
+
+**Phase 3**
+
+- Live page breaks with page numbers; (MORE) and (CONT'D) shown in the editor.
+- An optional shortcut preset matching Final Draft's element keys.
+
+**Risks to design for:** phone keyboards and autocorrect (as in the earlier
+composing fix), clean Undo for every automatic change (#23), plugins that also
+use Enter and Tab (Outliner), and wrong guesses: every automatic change needs an
+obvious way back, such as Backspace undoing what was just added.
+
+**Open questions**
+
+- Should plain mode keep line-start capitalization and transition
+  uppercasing? Both change text as you type, but neither touches Enter.
 
 ## Possible issues
 

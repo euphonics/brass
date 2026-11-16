@@ -194,6 +194,12 @@ access the system clipboard.
 
 ## Tips and known limits
 
+**Two editor modes.** **Screenplay layout** lays the page out like a script
+and adds typing help such as Smart Enter. **Plain Fountain text** keeps free
+typing: suggestions and Smart Tab still work, but Enter is always Obsidian's
+own (Tab or a tap accepts a suggestion). Details:
+[Editor modes](docs/EDITOR_MODES.md).
+
 **Themes.** Scribidian supports Obsidian's Default theme and Minimal, on desktop
 and phone. Other themes should work but are best effort. In screenplay notes
 Scribidian controls the layout (font, the 60-character column, indents,

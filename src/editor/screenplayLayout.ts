@@ -128,7 +128,7 @@ export function createScreenplayLayoutExtension(
       }
 
       private isActive(view: EditorView): boolean {
-        if (plugin.settings.editorLayout !== "screenplay") return false;
+        if (!plugin.isScriptMode()) return false;
         const file = view.state.field(editorInfoField, false)?.file ?? null;
         return file !== null && plugin.isScreenplayFile(file);
       }

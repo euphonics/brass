@@ -94,7 +94,7 @@ export function createDualDialogueExtension(
   plugin: ScribidianPlugin,
 ): Extension {
   const isActive = (state: EditorState): boolean => {
-    if (plugin.settings.editorLayout !== "screenplay") return false;
+    if (!plugin.isScriptMode()) return false;
     const file = state.field(editorInfoField, false)?.file ?? null;
     return file !== null && plugin.isScreenplayFile(file);
   };

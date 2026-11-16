@@ -270,6 +270,12 @@ export function createScreenplayCompletionExtension(
   // dialogue, a new speaker. An open suggestion menu keeps Enter for
   // accepting.
   const enter = (view: EditorView): boolean => {
+    // Plain mode: Enter is always Obsidian's own. An open suggestion list
+    // closes rather than taking the Enter (Tab or a tap accepts it).
+    if (!plugin.isScriptMode()) {
+      if (completionStatus(view.state) !== null) closeCompletion(view);
+      return false;
+    }
     if (completionStatus(view.state) === "active") return false;
     const plan = smartPlan(view, getSmartEnterPlan);
     return plan !== null && applySmartPlan(view, plan);
@@ -277,6 +283,7 @@ export function createScreenplayCompletionExtension(
 
   // Shift+Enter: a plain line break, e.g. to continue the same speech.
   const shiftEnter = (view: EditorView): boolean => {
+    if (!plugin.isScriptMode()) return false;
     if (completionStatus(view.state) === "active") return false;
     if (!plugin.settings.smartTabEnabled) return false;
     const file = view.state.field(editorInfoField, false)?.file ?? null;
@@ -367,6 +374,15 @@ export function createScreenplayCompletionExtension(
   return [
     forcedListField,
     uppercaseTransitions,
+    // Before autocompletion, so plain mode's Enter runs ahead of the
+    // suggestion list's own Enter.
+    Prec.highest(
+      keymap.of([
+        { key: "Tab", run: tab },
+        { key: "Enter", run: enter },
+        { key: "Shift-Enter", run: shiftEnter },
+      ]),
+    ),
     autocompletion({
       activateOnTyping: true,
       // Keep the slugline flowing: scene type -> location -> time.
@@ -375,12 +391,5 @@ export function createScreenplayCompletionExtension(
       maxRenderedOptions: 20,
     }),
     EditorState.languageData.of(() => [{ autocomplete: source }]),
-    Prec.highest(
-      keymap.of([
-        { key: "Tab", run: tab },
-        { key: "Enter", run: enter },
-        { key: "Shift-Enter", run: shiftEnter },
-      ]),
-    ),
   ];
 }
