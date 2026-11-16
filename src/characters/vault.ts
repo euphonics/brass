@@ -17,6 +17,7 @@
 
 import { normalizePath, Notice, TFile, TFolder } from "obsidian";
 import type { App } from "obsidian";
+import { isPathTaken } from "../vaultPaths";
 import {
   characterFilename,
   characterFirstName,
@@ -122,7 +123,7 @@ function availablePath(
   const stem = characterFilename(cue, projectName);
   let suffix = 1;
   let path = normalizePath(`${folder}/${stem}.md`);
-  while (app.vault.getAbstractFileByPath(path) !== null) {
+  while (isPathTaken(app, path)) {
     suffix += 1;
     path = normalizePath(`${folder}/${stem} ${suffix}.md`);
   }

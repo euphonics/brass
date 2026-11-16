@@ -462,6 +462,30 @@
   padding-inline: 0 !important;
 }
 
+/* Inline text in screenplay lines (bold, links, tags, inline code,
+   highlights) uses the line's font, size and spacing, so a theme styling it
+   can't change where lines wrap. Colours and decoration stay the theme's. */
+.markdown-source-view.mod-cm6
+  .cm-editor.scribidian-screenplay-layout
+  .cm-line:is(
+    .scribidian-sp-scene-heading,
+    .scribidian-sp-action,
+    .scribidian-sp-character,
+    .scribidian-sp-dialogue,
+    .scribidian-sp-parenthetical,
+    .scribidian-sp-transition,
+    .scribidian-sp-centered,
+    .scribidian-sp-lyric,
+    .scribidian-sp-page-break,
+    .scribidian-sp-note
+  )
+  :is(span, a) {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  letter-spacing: inherit !important;
+  word-spacing: inherit !important;
+}
+
 .markdown-source-view.mod-cm6
   .cm-editor.scribidian-screenplay-layout
   .cm-line.scribidian-sp-scene-heading {

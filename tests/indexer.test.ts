@@ -115,3 +115,13 @@ Ready.
     expect(index.locations.map((usage) => usage.value)).toEqual(["HIGHWAY"]);
   });
 });
+
+describe("smart quotes", () => {
+  it("treats O'BRIEN and O’BRIEN as one character", () => {
+    const index = buildScreenplayIndex(
+      parseFountain("O'BRIEN\nHi.\n\nO\u2019BRIEN\nHi again.\n"),
+    );
+    expect(index.characters).toHaveLength(1);
+    expect(index.characters[0]?.count).toBe(2);
+  });
+});

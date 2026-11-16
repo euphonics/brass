@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +52,20 @@ describe("formatScreenplayStatus", () => {
     ).toBe(
       `Screenplay · ~37.2 pages · ~37 min · ${formattedWords} words · 28 scenes`,
     );
+  });
+
+  it("uses the singular for one word and one scene", () => {
+    expect(
+      formatScreenplayStatus(
+        { ...statistics, words: 1, scenes: 1 },
+        {
+          estimatedPages: false,
+          estimatedRuntime: false,
+          words: true,
+          scenes: true,
+        },
+      ),
+    ).toBe("Screenplay · 1 word · 1 scene");
   });
 
   it("respects independently disabled fields", () => {

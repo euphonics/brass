@@ -25,6 +25,11 @@ import type { ScreenplayDocument, ScreenplayIndex, Usage } from "./model";
 const SCENE_PARTS = new RegExp(`^\\.?(${SCENE_TYPE_SOURCE})\\s+(.+)$`, "iu");
 const SCENE_NUMBER = /\s+#[\p{L}\p{N}.-]+#\s*$/u;
 
+/** O'BRIEN and O’BRIEN (a phone's smart quotes) are the same entry. */
+function usageKey(value: string): string {
+  return value.replace(/[‘’]/gu, "'").toLocaleUpperCase();
+}
+
 function addUsage(
   usages: Map<string, Usage>,
   value: string,
@@ -33,7 +38,7 @@ function addUsage(
   const normalized = value.trim();
   if (!normalized) return;
 
-  const key = normalized.toLocaleUpperCase();
+  const key = usageKey(normalized);
   const existing = usages.get(key);
   if (existing) {
     existing.count += 1;
@@ -209,7 +214,7 @@ export function preferredAndRecent(
     addUsage(combined, value, maximumPosition - preferred.length + offset);
   }
   for (const usage of used) {
-    const existing = combined.get(usage.value.toLocaleUpperCase());
+    const existing = combined.get(usageKey(usage.value));
     if (existing) {
       existing.count += usage.count;
       existing.lastUsedPosition = Math.max(
@@ -217,7 +222,7 @@ export function preferredAndRecent(
         usage.lastUsedPosition,
       );
     } else {
-      combined.set(usage.value.toLocaleUpperCase(), { ...usage });
+      combined.set(usageKey(usage.value), { ...usage });
     }
   }
 

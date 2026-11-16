@@ -18,6 +18,7 @@
 import { normalizePath, Notice } from "obsidian";
 import type { TFile } from "obsidian";
 import type ScribidianPlugin from "../main";
+import { isPathTaken } from "../vaultPaths";
 import {
   availableExampleFolderName,
   exampleProjectFiles,
@@ -26,8 +27,8 @@ import {
 export async function createExampleScreenplay(
   plugin: ScribidianPlugin,
 ): Promise<void> {
-  const folder = availableExampleFolderName(
-    (candidate) => plugin.app.vault.getAbstractFileByPath(candidate) !== null,
+  const folder = availableExampleFolderName((candidate) =>
+    isPathTaken(plugin.app, candidate),
   );
   await plugin.app.vault.createFolder(folder);
   await plugin.app.vault.createFolder(normalizePath(`${folder}/Parts`));

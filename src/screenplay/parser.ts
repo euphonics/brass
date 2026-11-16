@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,6 +105,8 @@ export function parseFountain(source: string): ScreenplayDocument {
   const elements: ScreenplayElement[] = [];
   let blankLines = 0;
   let inDialogue = false;
+  let inComment = false;
+  let inBoneyard = false;
 
   for (let index = 0; index < lines.length; index += 1) {
     const raw = lines[index] ?? "";
@@ -112,6 +115,29 @@ export function parseFountain(source: string): ScreenplayDocument {
     const afterBlank =
       index === lines.length - 1 || (lines[index + 1]?.trim() ?? "") === "";
 
+    // Obsidian %% comments and Fountain /* boneyard */ are not screenplay
+    // text. A one-line comment inside a speech doesn't end it.
+    if (inComment) {
+      if (text.endsWith("%%")) inComment = false;
+      continue;
+    }
+    if (inBoneyard) {
+      if (text.endsWith("*/")) inBoneyard = false;
+      continue;
+    }
+    if (text.startsWith("%%")) {
+      inComment = !(text.length >= 4 && text.endsWith("%%"));
+      continue;
+    }
+    if (text.startsWith("/*")) {
+      inBoneyard = !(text.length >= 4 && text.endsWith("*/"));
+      continue;
+    }
+
+    // A line of two or more spaces inside a speech keeps it going
+    // (Fountain's way to put a blank line in dialogue).
+    if (inDialogue && text === "" && /^ {2,}$/u.test(raw)) continue;
+
     if (text === "") {
       blankLines += 1;
       inDialogue = false;
@@ -119,6 +145,13 @@ export function parseFountain(source: string): ScreenplayDocument {
     }
 
     if (/^=(?!=)/u.test(text)) {
+      inDialogue = false;
+      continue;
+    }
+
+    // "!" forces action, e.g. an all-caps line that would read as a cue.
+    if (text.startsWith("!")) {
+      pushElement(elements, "action", raw, index + 1);
       inDialogue = false;
       continue;
     }

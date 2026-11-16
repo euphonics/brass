@@ -71,13 +71,30 @@ export function classifyLayoutLines(
     const text = (lines[index] ?? "").trim();
 
     // Boneyard /* ... */ and Obsidian %% ... %% comments can span lines.
-    if (inBoneyard || inComment || text.startsWith("/*") || text === "%%") {
+    if (
+      inBoneyard ||
+      inComment ||
+      text.startsWith("/*") ||
+      text.startsWith("%%")
+    ) {
       kinds[index] = "note";
-      if (text.startsWith("/*") && !inBoneyard) inBoneyard = true;
-      else if (text === "%%" && !inComment) inComment = true;
-      else if (inComment && text.endsWith("%%")) inComment = false;
-      if (inBoneyard && text.endsWith("*/")) inBoneyard = false;
-      inDialogue = false;
+      if (inComment) {
+        if (text.endsWith("%%")) inComment = false;
+        inDialogue = false;
+      } else if (inBoneyard) {
+        if (text.endsWith("*/")) inBoneyard = false;
+        inDialogue = false;
+      } else {
+        const opener = text.startsWith("%%") ? "%%" : "/*";
+        const closer = opener === "%%" ? "%%" : "*/";
+        const oneLine = text.length >= 4 && text.endsWith(closer);
+        // A one-line comment inside a speech doesn't end it.
+        if (!oneLine) {
+          if (opener === "%%") inComment = true;
+          else inBoneyard = true;
+          inDialogue = false;
+        }
+      }
       continue;
     }
 
@@ -88,6 +105,13 @@ export function classifyLayoutLines(
       else if (forced.kind !== "parenthetical" && forced.kind !== "dialogue") {
         inDialogue = false;
       }
+      continue;
+    }
+
+    // A line of two or more spaces inside a speech keeps it going
+    // (Fountain's way to put a blank line in dialogue).
+    if (inDialogue && text === "" && /^ {2,}$/u.test(lines[index] ?? "")) {
+      kinds[index] = "dialogue";
       continue;
     }
 

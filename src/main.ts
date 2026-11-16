@@ -17,6 +17,7 @@
 
 import { createDualDialogueExtension } from "./editor/dualDialogueView";
 import { EditorView } from "@codemirror/view";
+import { pressTab } from "./editor/pressTab";
 import { estimateCurrentPage } from "./screenplay/currentPage";
 import type { ScreenplayStatistics } from "./screenplay/model";
 import {
@@ -25,7 +26,13 @@ import {
 } from "./editor/screenplayFont";
 import { createBottomMarginExtension } from "./editor/bottomMargin";
 import { createScreenplayLayoutExtension } from "./editor/screenplayLayout";
-import { MarkdownView, Plugin, getFrontMatterInfo, parseYaml } from "obsidian";
+import {
+  MarkdownView,
+  Notice,
+  Plugin,
+  getFrontMatterInfo,
+  parseYaml,
+} from "obsidian";
 import type { TFile } from "obsidian";
 import { openCharacterPicker } from "./commands/character";
 import { exportFdx } from "./commands/exportFdx";
@@ -86,7 +93,7 @@ export default class ScribidianPlugin extends Plugin {
   async onload(): Promise<void> {
     await this.loadSettings();
     this.applyScreenplayFont();
-    this.registerExtensions(["fountain"], "markdown");
+    this.registerFountainExtension();
     this.statusBarItem = this.addStatusBarItem();
     this.statusBarItem.addClass("scribidian-status");
     this.statusBarItem.hide();
@@ -179,6 +186,27 @@ export default class ScribidianPlugin extends Plugin {
           const cm = (editor as { cm?: unknown }).cm;
           if (!(cm instanceof EditorView)) return false;
           if (!checking) forceElement(cm, element);
+          return true;
+        },
+      });
+    }
+
+    // Phone keyboards have no Tab key. These commands press Tab and
+    // Shift+Tab in the editor, so Smart Tab can go on the mobile toolbar.
+    const smartTabCommands: [string, string, boolean][] = [
+      ["screenplay-smart-tab", "Screenplay: Smart Tab", false],
+      ["screenplay-smart-tab-back", "Screenplay: Smart Tab back", true],
+    ];
+    for (const [id, name, shiftKey] of smartTabCommands) {
+      this.addCommand({
+        id,
+        name,
+        icon: shiftKey ? "arrow-left-to-line" : "arrow-right-to-line",
+        editorCheckCallback: (checking, editor, context) => {
+          if (!this.isScreenplayFile(context.file)) return false;
+          const cm = (editor as { cm?: unknown }).cm;
+          if (!(cm instanceof EditorView)) return false;
+          if (!checking) pressTab(cm, shiftKey);
           return true;
         },
       });
@@ -450,6 +478,24 @@ export default class ScribidianPlugin extends Plugin {
 
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
+  }
+
+  /**
+   * Open .fountain files as notes. Another plugin (or Custom File
+   * Extensions) may have claimed .fountain already; Obsidian then refuses a
+   * second claim, which would otherwise stop Scribidian from loading.
+   */
+  private registerFountainExtension(): void {
+    try {
+      this.registerExtensions(["fountain"], "markdown");
+    } catch {
+      new Notice(
+        "Scribidian: another plugin already opens .fountain files. Scribidian " +
+          "still works in them if that plugin opens them as notes. Otherwise, " +
+          "turn off that plugin's .fountain support and restart Obsidian.",
+        15000,
+      );
+    }
   }
 
   isScreenplayFile(file: TFile | null): boolean {

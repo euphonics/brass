@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Christian Grobmeier
+ * Modifications copyright 2026 arvn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,6 +89,42 @@ INT. ROOM - DAY
 
     expect(document.elements).toEqual([
       { type: "scene-heading", text: "INT. ROOM - DAY", line: 2 },
+    ]);
+  });
+});
+
+describe("Fountain rules", () => {
+  const types = (source: string) =>
+    parseFountain(source).elements.map((element) => [
+      element.type,
+      element.text,
+    ]);
+
+  it("treats a line starting with ! as action", () => {
+    expect(types("!SPLASH\nWater everywhere.\n")).toEqual([
+      ["action", "!SPLASH"],
+      ["action", "Water everywhere."],
+    ]);
+  });
+
+  it("keeps a speech going over a line of two spaces", () => {
+    expect(types("JANE\nLine one.\n  \nLine two.\n")).toEqual([
+      ["character", "JANE"],
+      ["dialogue", "Line one."],
+      ["dialogue", "Line two."],
+    ]);
+  });
+
+  it("skips Obsidian comments and boneyard", () => {
+    expect(
+      types(
+        "JOKER\n%%note%%\nChoose.\n\n%% to do\nfix this\n%%\n\n/* cut\nold scene */\n\nBATMAN\nNo.\n",
+      ),
+    ).toEqual([
+      ["character", "JOKER"],
+      ["dialogue", "Choose."],
+      ["character", "BATMAN"],
+      ["dialogue", "No."],
     ]);
   });
 });

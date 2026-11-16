@@ -319,6 +319,16 @@ export function createScreenplayCompletionExtension(
     return true;
   };
 
+  // Inside a ``` or ~~~ fenced code block? Only checked for the first
+  // letter of a line, so the scan up to that line is rare and cheap.
+  const inCodeBlock = (doc: Text, lineNumber: number): boolean => {
+    let open = false;
+    for (let number = 1; number < lineNumber; number += 1) {
+      if (/^\s*(?:```|~~~)/u.test(doc.line(number).text)) open = !open;
+    }
+    return open;
+  };
+
   const uppercaseTransitions = EditorState.transactionFilter.of((tr) => {
     if (!tr.docChanged || !tr.isUserEvent("input.type")) return tr;
     // Leave text alone while a phone keyboard is composing a word: changing
@@ -337,7 +347,11 @@ export function createScreenplayCompletionExtension(
           tr.newDoc.sliceString(line.from, fromB),
           text,
         );
-        if (capital !== null && !inFrontmatter(tr.newDoc, line.number)) {
+        if (
+          capital !== null &&
+          !inFrontmatter(tr.newDoc, line.number) &&
+          !inCodeBlock(tr.newDoc, line.number)
+        ) {
           fixes.push({ from: fromB, to: toB, insert: capital });
           return;
         }

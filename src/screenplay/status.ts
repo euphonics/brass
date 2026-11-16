@@ -58,10 +58,14 @@ export function formatScreenplayStatus(
     );
   }
   if (fields.words) {
-    parts.push(`${statistics.words.toLocaleString()} words`);
+    parts.push(
+      `${statistics.words.toLocaleString()} ${statistics.words === 1 ? "word" : "words"}`,
+    );
   }
   if (fields.scenes) {
-    parts.push(`${statistics.scenes} scenes`);
+    parts.push(
+      `${statistics.scenes} ${statistics.scenes === 1 ? "scene" : "scenes"}`,
+    );
   }
 
   return parts.join(" · ");

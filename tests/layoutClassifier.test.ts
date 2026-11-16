@@ -157,3 +157,35 @@ describe("editor screenplay layout", () => {
     expect(menuLineKind("Character extension")).toBeNull();
   });
 });
+
+describe("comments and two-space lines", () => {
+  const kinds = (text: string) => classifyLayoutLines(text.split("\n"));
+
+  it("keeps a speech going past a one-line comment", () => {
+    expect(kinds("JOKER\n%%note%%\nChoose.")).toEqual([
+      "character",
+      "note",
+      "dialogue",
+    ]);
+  });
+
+  it("recognises a comment that opens with text on the same line", () => {
+    expect(kinds("%% to do\nfix this\n%%\n\nJOKER\nChoose.")).toEqual([
+      "note",
+      "note",
+      "note",
+      null,
+      "character",
+      "dialogue",
+    ]);
+  });
+
+  it("keeps a speech going over a line of two spaces", () => {
+    expect(kinds("JANE\nLine one.\n  \nLine two.")).toEqual([
+      "character",
+      "dialogue",
+      "dialogue",
+      "dialogue",
+    ]);
+  });
+});
