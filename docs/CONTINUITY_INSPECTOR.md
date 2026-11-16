@@ -25,7 +25,7 @@ Use **Scribidian Test Vault**, open `Continuity Inspector Demo/Project` and run
 **Inspect continuity**. Confirm optional-page advice, an empty scene, a missing
 time label and a spelling variant. Character pages remain optional.
 
-1. Click the Japanese cue and the empty-scene heading: each selects the original
+1. Click the Japanese cue and the empty scene's slugline: each selects the original
    line. The accented ÉLISE cue matches the ELISE page's alias and is not flagged.
 2. Refresh, then edit a part in another editor and click old evidence: navigation
    must stop until the report is refreshed.

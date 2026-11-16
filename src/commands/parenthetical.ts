@@ -56,18 +56,18 @@ export function openParenthetical(
     ...recent,
     ...COMMON_PARENTHETICALS,
   ]).map((label) => ({ kind: "value", label }));
-  choices.push({ kind: "custom", label: "Custom parenthetical…" });
+  choices.push({ kind: "custom", label: "Custom wryly…" });
 
   new PickerModal(plugin.app, {
-    title: "Parenthetical",
-    placeholder: "Choose or create a parenthetical",
+    title: "Wryly",
+    placeholder: "Choose or create a wryly",
     items: choices,
     itemText: (item) => item.label,
     onChoose: (choice) => {
       if (choice.kind === "custom") {
         new TextInputModal(
           plugin.app,
-          "Custom Parenthetical",
+          "Custom wryly",
           "e.g. under her breath",
           (value) => insertParenthetical(editor, value),
         ).open();

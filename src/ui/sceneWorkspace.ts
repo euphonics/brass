@@ -445,7 +445,7 @@ class SceneEditModal extends Modal {
             }
           });
         });
-      new Setting(this.contentEl).setName("Scene heading").addText((text) =>
+      new Setting(this.contentEl).setName("Slugline").addText((text) =>
         text.setValue(this.heading).onChange((value) => {
           this.heading = value;
         }),

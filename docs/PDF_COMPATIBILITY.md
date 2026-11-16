@@ -6,8 +6,8 @@ projects.
 
 ## Supported in 0.12
 
-- Scene headings, action, character cues, character extensions,
-  parentheticals, dialogue, and transitions.
+- Sluglines, action, character cues, character extensions,
+  wrylies, dialogue, and transitions.
 - US Letter and A4, using the page size selected under Settings → Scribidian.
 - Courier-style 12-point typography, screenplay margins, deterministic line
   wrapping, page breaks, and page numbers.
@@ -93,11 +93,11 @@ A filename alone does not generate a title page. No dates or personal details
 are inferred. Long fields wrap; metadata that cannot fit stops export rather
 than clipping. Missing glyphs in metadata also stop export before saving.
 
-Character cues, parentheticals and dialogue are paginated as a speech. Short
+Character cues, wrylies and dialogue are paginated as a speech. Short
 speeches move intact when they fit a fresh page. A speech that must span pages
 ends its outgoing page with `(MORE)` and repeats its cue with `(CONT'D)` on the
-next page, preserving extensions such as `(V.O.)`. Parentheticals stay with
-their following dialogue. Oversized indivisible cues/parentheticals stop export.
+next page, preserving extensions such as `(V.O.)`. Wrylies stay with
+their following dialogue. Oversized indivisible cues/wrylies stop export.
 Generated markers never modify source or dialogue statistics. Preview uses
 the same layout rules, with approximate CJK metrics as described above.
 

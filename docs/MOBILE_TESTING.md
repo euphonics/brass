@@ -41,8 +41,8 @@ character to dialogue), add its commands to the toolbar above the keyboard:
    "Toolbar" depending on the Obsidian version).
 2. Add **Scribidian: Screenplay: Smart Tab** and **Scribidian: Screenplay:
    Smart Tab back**.
-3. Optionally add the **Set line** commands (Scene heading, Action, Character,
-   Parenthetical, Transition, Centered text).
+3. Optionally add the **Set line** commands (Slugline, Action, Character,
+   Wryly, Transition, Centered text).
 
 Tapping Smart Tab does exactly what pressing Tab does on a computer.
 

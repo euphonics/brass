@@ -60,14 +60,14 @@ export const ENTER_SOURCE_ROWS: {
   { source: "action", name: "Action line", more: false },
   { source: "dialogue", name: "Dialogue", more: false },
   { source: "transition", name: "Transition", more: false },
-  { source: "sceneHeading", name: "Scene heading", more: true },
+  { source: "sceneHeading", name: "Slugline", more: true },
   { source: "character", name: "Character", more: true },
   { source: "parenthetical", name: "Wryly", more: true },
 ];
 
 /** Dropdown choices, in screenplay order. */
 export const ENTER_TARGET_OPTIONS: Record<EnterTarget, string> = {
-  "scene-heading": "Scene heading",
+  "scene-heading": "Slugline",
   action: "Action line",
   character: "Character",
   parenthetical: "Wryly",

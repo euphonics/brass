@@ -39,7 +39,7 @@ const ACTION_LABELS: Record<PaletteAction, string> = {
   character: "Character",
   "character-extension": "Character Extension",
   "character-page": "Character Page",
-  parenthetical: "Parenthetical",
+  parenthetical: "Wryly",
   "new-scene": "New Scene",
   transition: "Transition",
 };

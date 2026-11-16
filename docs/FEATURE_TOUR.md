@@ -12,13 +12,13 @@ workflow introduced in earlier releases. All captures use an isolated demo vault
 
 The dockable Scribidian palette keeps context-sensitive writing commands,
 character pages, project navigation, recent characters, locations,
-parentheticals, and transitions beside the editor.
+wrylies, and transitions beside the editor.
 
 ![Screenplay editor and Scribidian palette](images/quick-access-palette.png)
 
-Autocomplete and keyboard-first commands cover scene headings, known
+Autocomplete and keyboard-first commands cover sluglines, known
 locations, times of day, character cues, character extensions,
-parentheticals, and transitions. Statistics in the status bar update while the
+wrylies, and transitions. Statistics in the status bar update while the
 source remains ordinary portable text.
 
 ## Combine a screenplay from several files

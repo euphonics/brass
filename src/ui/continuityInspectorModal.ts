@@ -50,7 +50,7 @@ export class ContinuityInspectorModal extends Modal {
         text: `${report.files.length} screenplay parts · ${dossiers.size} character pages · ${report.findings.length} findings`,
       });
       this.contentEl.createEl("p", {
-        text: "Read-only checks of character identities/links and scene headings/content. Suggestions may be intentional. Story logic, chronology, props and inferred character presence are not checked.",
+        text: "Read-only checks of character identities/links and sluglines/content. Suggestions may be intentional. Story logic, chronology, props and inferred character presence are not checked.",
       });
       if (report.incomplete.length) {
         this.contentEl.createEl("h3", { text: "Checks incomplete" });

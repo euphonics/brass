@@ -33,7 +33,7 @@ export const CHEAT_SHEET_SECTIONS: CheatSheetSection[] = [
     introduction: "Common terms used when describing a screenplay.",
     entries: [
       {
-        term: "Scene heading / slugline",
+        term: "Slugline (scene heading)",
         explanation:
           "Starts a scene and names whether it is inside or outside, the location, and usually the time.",
         example: "INT. KITCHEN - DAY",
@@ -61,7 +61,7 @@ export const CHEAT_SHEET_SECTIONS: CheatSheetSection[] = [
         example: "MARA\nThis is the last train.",
       },
       {
-        term: "Parenthetical",
+        term: "Wryly (parenthetical)",
         explanation:
           "A short delivery or action note directly below the character cue.",
         example: "MARA\n(quietly)\nWe have to go.",
@@ -92,7 +92,7 @@ export const CHEAT_SHEET_SECTIONS: CheatSheetSection[] = [
       "These are the six core element types Scribidian recognises and exports to FDX.",
     entries: [
       {
-        term: "Scene heading",
+        term: "Slugline",
         explanation: "Begin with INT., EXT., or INT./EXT.",
         example: "INT. LAST TRAIN - NIGHT",
       },
@@ -107,13 +107,13 @@ export const CHEAT_SHEET_SECTIONS: CheatSheetSection[] = [
         example: "MARA",
       },
       {
-        term: "Parenthetical",
+        term: "Wryly",
         explanation: "Put a brief direction in parentheses below the cue.",
         example: "(after a beat)",
       },
       {
         term: "Dialogue",
-        explanation: "Write speech directly below its cue or parenthetical.",
+        explanation: "Write speech directly below its cue or wryly.",
         example: "MARA\n(after a beat)\nAll right.",
       },
       {

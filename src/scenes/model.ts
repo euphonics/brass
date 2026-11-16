@@ -276,9 +276,7 @@ export function createScene(
 ): SceneChange {
   if (file.issue) throw new Error(file.issue);
   if (!isSceneHeading(heading.trim()) || /[\r\n]/u.test(heading))
-    throw new Error(
-      "Enter one valid scene heading, for example INT. OFFICE - DAY.",
-    );
+    throw new Error("Enter one valid slugline, for example INT. OFFICE - DAY.");
   if (target) assertScene(file, target);
   const eol = file.source.includes("\r\n") ? "\r\n" : "\n";
   const block =

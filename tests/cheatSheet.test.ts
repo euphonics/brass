@@ -28,7 +28,7 @@ describe("screenplay cheat sheet", () => {
     const terms = CHEAT_SHEET_SECTIONS.flatMap((section) =>
       section.entries.map((entry) => entry.term),
     );
-    expect(terms).toContain("Scene heading / slugline");
+    expect(terms).toContain("Slugline (scene heading)");
     expect(terms).toContain("V.O.");
     expect(terms).toContain("Project note");
     expect(terms).toContain("Character dossier");
@@ -39,10 +39,10 @@ describe("screenplay cheat sheet", () => {
       (section) => section.title === "Fountain quick syntax",
     );
     expect(fountain?.entries.map((entry) => entry.term)).toEqual([
-      "Scene heading",
+      "Slugline",
       "Action",
       "Character",
-      "Parenthetical",
+      "Wryly",
       "Dialogue",
       "Transition",
     ]);

@@ -371,7 +371,7 @@ export function layoutScreenplay(
           if (stop === offset) {
             if (!page.blocks.length)
               throw new ScreenplayLayoutError(
-                "A character cue or parenthetical is too long to fit with dialogue on one page. Shorten it before exporting.",
+                "A character cue or wryly is too long to fit with dialogue on one page. Shorten it before exporting.",
               );
             addPage();
             gap = 0;

@@ -40,12 +40,12 @@ is in [Editor modes](EDITOR_MODES.md).
 
 **Phase 1: the biggest gain**
 
-- **Every Enter goes somewhere.** Scene heading → action, character →
-  dialogue, dialogue → next character, parenthetical → dialogue, transition →
-  scene heading, action → action. Today Smart Enter covers some of these.
+- **Every Enter goes somewhere.** Slugline → action, character →
+  dialogue, dialogue → next character, wryly → dialogue, transition →
+  slugline, action → action. Today Smart Enter covers some of these.
 - **Scribidian manages blank lines.** Enter adds the blank line Fountain needs;
   Backspace on it removes the pair. No typing or deleting blank lines by hand.
-- **Capitals as you type** on character names. Scene headings and
+- **Capitals as you type** on character names. Sluglines and
   transitions already do this (settings per mode).
 - **Show the current element** (status bar on desktop, near the toolbar on
   phones), with a way to change it.
@@ -56,7 +56,7 @@ is in [Editor modes](EDITOR_MODES.md).
 
 - Hide Fountain markers (`@`, `!`, `.`, `>`) when the cursor is off the line.
 - Keep intent: an all-caps action line gets `!` so it isn't read as a
-  character (#69); `(` in dialogue starts a parenthetical and closes it.
+  character (#69); `(` in dialogue starts a wryly and closes it.
 - Tidy pasted text (indents, blank lines).
 
 **Phase 3**
@@ -203,7 +203,7 @@ Found on 2026-11-15 by testing Fountain edge cases, the plugins in this vault, a
 | 67  | A line holding only two spaces should keep a speech going (Fountain's rule for a blank line inside dialogue). Scribidian ends the speech there, so the rest becomes action.                                                                                                               | S–M    | —      | **Fixed:** a two-space line keeps the speech going, in the layout and in suggestions and statistics.                                                                                                 |
 | 68  | A Fountain title page at the top of a script (`Title:`, `Author:`) is laid out as action in the editor.                                                                                                                                                                                   | S      | —      | **Confirmed** (unit test). Cosmetic; export reads it correctly.                                                                                                                                      |
 | 69  | An all-caps action line followed by more text (`BANG!` then a line) is read as a character and dialogue.                                                                                                                                                                                  | S      | —      | **By design.** Explained in the README, and `!BANG!` now works everywhere (#66).                                                                                                                     |
-| 70  | Scene headings in other languages (`INNEN.`, `EXT` words other than INT/EXT/EST/I/E) aren't recognised, and transitions that don't end in `TO:` (`FADE OUT.`, `SMASH CUT TO BLACK.`) are action.                                                                                          | S      | —      | **By design.** Explained in the README.                                                                                                                                                              |
+| 70  | Sluglines in other languages (`INNEN.`, `EXT` words other than INT/EXT/EST/I/E) aren't recognised, and transitions that don't end in `TO:` (`FADE OUT.`, `SMASH CUT TO BLACK.`) are action.                                                                                               | S      | —      | **By design.** Explained in the README.                                                                                                                                                              |
 | 71  | Turning Scribidian off.                                                                                                                                                                                                                                                                   | S      | —      | **Clean.** The README explains the file-list setting.                                                                                                                                                |
 | 72  | Phones have no status bar, so page count, runtime, word count and scene count can't be seen on a phone.                                                                                                                                                                                   | M      | Phone  | **Human test** on a phone. Obsidian's mobile app hides the status bar.                                                                                                                               |
 | 73  | Friends switching from First Draft. With both plugins on, both claim `.fountain` (#26), both lay out the editor, and commands appear twice. Hotkeys and settings don't carry over, because the command names and settings file are new.                                                   | S–M    | —      | **Documented** in the README and mobile guide. **Human test** with both plugins installed.                                                                                                           |
@@ -253,18 +253,18 @@ The editor layout uses its own line classifier. Suggestions, statistics, charact
 | 78  | Centered text (`> THE END <`): the layout centres it; the parser has no centered element and reads action with the markers, so PDF export would print `> THE END <`.                                                                                                                              | S–M    |
 | 79  | Page break (`===`): the layout draws a page break; the parser reads action `===` (counted, and printed in PDF).                                                                                                                                                                                   | S      |
 | 80  | Sections (`# ACT ONE`) and note lines (`[[...]]`): the layout leaves them out of the script; the parser reads them as action (counted, printed).                                                                                                                                                  | S      |
-| 81  | An unclosed parenthetical on its own line (`(whispering`): the layout shows a parenthetical, the parser reads dialogue.                                                                                                                                                                           | S      |
+| 81  | An unclosed wryly on its own line (`(whispering`): the layout shows a wryly, the parser reads dialogue.                                                                                                                                                                                           | S      |
 | 82  | A Markdown heading inside a speech: the layout ends the speech, the parser keeps it as dialogue.                                                                                                                                                                                                  | S      |
 | 83  | Character cues and transitions are decided in four places (parser, layout classifier, Smart Tab, cue checker), and they disagree: `FADE OUT.` is a cue for Smart Tab but not for the cue checker. Front matter is also found four different ways. One shared line classifier would remove #76–83. | M–L    |
 
 ### Typing behaviour across elements
 
-| #   | Inconsistency                                                                                                                                                                                                                                                                | Effort |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 84  | Scene headings and `>` transitions are uppercased as you type, but character names aren't. Worse, first-letter capitalization turns `jane` into `Jane`, which is no longer read as a character. Natural transitions (`cut to:`) aren't uppercased either; only `>` ones are. | S–M    |
-| 85  | The per-mode text-change settings only cover typing. Smart Tab, Smart Enter, suggestions and the Set line commands still uppercase headings and names in both modes, whatever those settings say.                                                                            | S–M    |
-| 86  | Shift+Tab and Escape (turn the empty next-cue line into action) only work in script mode and only on that one line. The command "Smart Tab back" sounds like the reverse of Smart Tab, but in plain mode it runs Obsidian's outdent.                                         | S      |
-| 87  | Pickers are uneven: commands exist for Character, Parenthetical and Character extension; the Transition picker is only in the palette; scene headings only through New scene.                                                                                                | S      |
+| #   | Inconsistency                                                                                                                                                                                                                                                           | Effort |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 84  | Sluglines and `>` transitions are uppercased as you type, but character names aren't. Worse, first-letter capitalization turns `jane` into `Jane`, which is no longer read as a character. Natural transitions (`cut to:`) aren't uppercased either; only `>` ones are. | S–M    |
+| 85  | The per-mode text-change settings only cover typing. Smart Tab, Smart Enter, suggestions and the Set line commands still uppercase headings and names in both modes, whatever those settings say.                                                                       | S–M    |
+| 86  | Shift+Tab and Escape (turn the empty next-cue line into action) only work in script mode and only on that one line. The command "Smart Tab back" sounds like the reverse of Smart Tab, but in plain mode it runs Obsidian's outdent.                                    | S      |
+| 87  | Pickers are uneven: commands exist for Character, Wryly and Character extension; the Transition picker is only in the palette; sluglines only through New scene.                                                                                                        | S      |
 
 ### Names and settings
 
@@ -307,7 +307,7 @@ Not planned for the 0.1.x betas or 1.0.0.
   which the writer chooses. PDF export already adds it when one speech breaks
   across a page. Also add it on export when the same character speaks again
   after only action lines in the same scene. Don't add it after another
-  character speaks, or after a new scene heading. Leave the writer's text
+  character speaks, or after a new slugline. Leave the writer's text
   unchanged. Possibly offer a setting to turn it off.
 - **Finding an exported PDF on a phone.** The PDF is saved in the vault, but a
   phone gives no easy way to find, open or share it. Could open the PDF right

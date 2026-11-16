@@ -44,7 +44,7 @@ The current build provides:
 - screenplay-aware estimated pages for US Letter or A4;
 - configurable runtime estimation based on minutes per page;
 - a current-document statistics dialog with character dialogue rankings;
-- parenthetical insertion with common, recently used, and custom choices;
+- wryly insertion with common, recently used, and custom choices;
 - transition insertion with common, previously used, and custom choices;
 - non-destructive export to a clean `.fountain` file;
 - non-destructive Final Draft `.fdx` export for the six core screenplay element
@@ -131,7 +131,7 @@ INT. OFFICE - NIGHT
 The body starts at page 1. Speeches crossing page boundaries get `(MORE)`
 and a repeated speaker cue with `(CONT'D)`; short speeches stay together
 where possible. These markers appear in preview/PDF only, not in your source.
-Oversized title metadata or parentheticals stop export with a clear message.
+Oversized title metadata or wrylies stop export with a clear message.
 
 ### Create a screenplay project
 
@@ -240,7 +240,7 @@ key).
 
 - An all-caps line followed by text (`BANG!` then a line) reads as a character
   and dialogue. Start it with `!` to force action: `!BANG!`.
-- Scene headings must start with INT, EXT, EST or I/E. For anything else, start
+- Sluglines must start with INT, EXT, EST or I/E. For anything else, start
   the line with a period: `.INNEN. HAUS - TAG`.
 - Transitions must end in `TO:`. Force others with `>`: `> FADE OUT.`
 - A line of two spaces keeps a speech going. `%% comments %%` and
@@ -295,7 +295,7 @@ Expected result:
   `Screenplay: Open Scribidian Palette`; the panel opens in the right sidebar;
 - move the caret between a character cue, dialogue, and a blank line and confirm
   the highlighted first action changes appropriately;
-- click a recent character, parenthetical, or transition to insert it, or click
+- click a recent character, wryly, or transition to insert it, or click
   a recent location to start a New Scene using that location;
 - use **Open page** beside JANE or MILLER, then confirm the dossier shows linked
   screenplay usage, relationships, and an **Open Local Graph** action;
@@ -309,7 +309,7 @@ Expected result:
 - the status bar shows estimated pages, estimated runtime, words, and scenes;
 - run `Screenplay: Show Statistics` to see document totals and dialogue counts
   by character;
-- put the caret in dialogue, run `Screenplay: Parenthetical`, and choose a
+- put the caret in dialogue, run `Screenplay: Wryly`, and choose a
   common or custom direction;
 - run `Screenplay: Transition` on a blank line and choose a common or custom
   transition;
@@ -318,7 +318,7 @@ Expected result:
   note untouched;
 - run `Screenplay: Export to Final Draft FDX`; Scribidian creates a new sibling
   `.fdx` file without changing the source. Open that file in Final Draft and
-  confirm the scene heading, action, character extension, parenthetical,
+  confirm the slugline, action, character extension, wryly,
   dialogue, and transition retain their element types;
 - run `Screenplay: Preview` from a standalone screenplay, a project part, and a
   project note; confirm the project preview combines its parts in order and the

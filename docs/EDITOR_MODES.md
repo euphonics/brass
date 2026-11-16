@@ -35,7 +35,7 @@ by default; check `plugin.typingChangeEnabled(...)`.
 | Shift+Enter as a plain line break                           | Yes          | Obsidian's Shift+Enter                             |
 | **Set line** commands                                       | Yes          | Yes (they add Fountain markers such as `@` or `>`) |
 | Capitalize the first letter of a line                       | On (setting) | Off (setting)                                      |
-| Uppercase a scene heading (slugline) as you type            | On (setting) | Off (setting)                                      |
+| Uppercase a slugline as you type                            | On (setting) | Off (setting)                                      |
 | Uppercase while typing on a `>` transition line             | On (setting) | Off (setting)                                      |
 | Cursor skips the blank line between two elements            | On (setting) | Off (setting)                                      |
 | Status bar, palette, scene workspace, inspector, commands   | Yes          | Yes                                                |

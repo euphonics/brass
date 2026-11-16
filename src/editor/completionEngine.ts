@@ -440,7 +440,7 @@ function parentheticalPlan(
   ).map((usage) => ({
     label: usage.value,
     applyText: usage.value,
-    detail: "Parenthetical",
+    detail: "Wryly",
   }));
   if (candidates.length === 0) return null;
   // Smart Tab inserts "()", so replace the closing parenthesis too.

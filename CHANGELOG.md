@@ -14,7 +14,7 @@ Scribidian changes since 0.1.0.
   join them. On in script mode, off in plain mode (Settings > Typing in each
   mode, which was "Text changes while typing").
 - Settings > Enter key: choose what Enter starts at the end of each element
-  (action, dialogue, transition; scene heading, character and wryly under
+  (action, dialogue, transition; slugline, character and wryly under
   Show more). The defaults keep the old behaviour. "New line (no change)" is
   a plain line break.
 - Uppercase sluglines as you type ("int. kitchen - day" becomes "INT.
@@ -33,6 +33,9 @@ Scribidian changes since 0.1.0.
   **Screenplay: Toggle script and plain mode**.
 - The Set line commands are named "Set line to action", "Set line to
   character" and so on, without numbers. Assigned hotkeys keep working.
+- The plugin says "slugline" and "wryly" everywhere it used to say "scene
+  heading" and "parenthetical" (commands, menus, settings, cheat sheet,
+  docs). FDX export still uses Final Draft's own element names.
 - Line-start capitalization and transition uppercasing have a setting for each
   mode: on in script mode, off in plain mode by default. An existing
   capitalization setting carries over to script mode.

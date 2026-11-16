@@ -458,7 +458,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
         items: [
           {
             name: "Set hotkeys",
-            desc: 'Open Settings > Hotkeys showing only this plugin\'s commands, e.g. "Set line to scene heading".',
+            desc: 'Open Settings > Hotkeys showing only this plugin\'s commands, e.g. "Set line to slugline".',
             aliases: ["keyboard", "shortcut", "keys"],
             action: () => this.openPluginHotkeys(),
           },
@@ -730,7 +730,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Show scene count",
-        desc: "Include detected scene headings in the status bar.",
+        desc: "Include detected sluglines in the status bar.",
         control: {
           type: "toggle",
           key: "showSceneCount",
@@ -898,7 +898,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Smart Tab and Enter",
-        desc: 'At the end of a line, Tab inserts the next Fountain element: after a character or dialogue line, a new () line; after a scene heading, " - " and times of day, or a blank line once complete; after action, a blank line and the character list. In script mode only, Enter at the end of a line starts the next element too (choose which under Enter key), and Shift+Enter is a plain line break.',
+        desc: 'At the end of a line, Tab inserts the next Fountain element: after a character or dialogue line, a new () line; after a slugline, " - " and times of day, or a blank line once complete; after action, a blank line and the character list. In script mode only, Enter at the end of a line starts the next element too (choose which under Enter key), and Shift+Enter is a plain line break.',
         control: {
           type: "toggle",
           key: "smartTabEnabled",

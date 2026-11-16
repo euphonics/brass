@@ -77,7 +77,7 @@ export function renderRecentPalette(
       insert: (value) => openNewSceneAtLocation(plugin, editor, value),
     },
     {
-      title: "Parentheticals",
+      title: "Wrylies",
       values: ranked(index.parentheticals),
       insert: (value) => insertParenthetical(editor, value),
     },

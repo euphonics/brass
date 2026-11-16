@@ -180,10 +180,10 @@ export default class ScribidianPlugin extends Plugin {
     const forceCommands: [ForcedElement, string, string][] = [
       // The ids stayed the same when the names lost their numbers, so
       // assigned hotkeys keep working.
-      ["scene-heading", "set-line-scene-heading", "Set line to scene heading"],
+      ["scene-heading", "set-line-scene-heading", "Set line to slugline"],
       ["action", "set-line-action", "Set line to action"],
       ["character", "set-line-character", "Set line to character"],
-      ["parenthetical", "set-line-parenthetical", "Set line to parenthetical"],
+      ["parenthetical", "set-line-parenthetical", "Set line to wryly"],
       ["transition", "set-line-transition", "Set line to transition"],
       ["centered", "set-line-centered", "Set line to centered text"],
     ];
@@ -292,7 +292,7 @@ export default class ScribidianPlugin extends Plugin {
     });
     this.addCommand({
       id: "screenplay-parenthetical",
-      name: "Screenplay: Parenthetical",
+      name: "Screenplay: Wryly",
       editorCheckCallback: (checking, editor, context) => {
         if (!this.isScreenplayFile(context.file)) return false;
         if (!checking) openParenthetical(this, editor);

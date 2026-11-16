@@ -238,6 +238,6 @@ export function menuLineKind(
     return "scene-heading";
   }
   if (detail === "Transition") return "transition";
-  if (detail === "Parenthetical") return "parenthetical";
+  if (detail === "Wryly") return "parenthetical";
   return null;
 }

@@ -144,7 +144,7 @@ describe("source scene workspace", () => {
   it("rejects multiline/invalid headings", () => {
     const file = sceneFile("Film.md", source);
     expect(() => createScene(file, "Hello", "", null, "after")).toThrow(
-      "valid scene heading",
+      "valid slugline",
     );
     expect(() =>
       createScene(
