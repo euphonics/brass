@@ -49,6 +49,7 @@ import { createExampleScreenplay } from "./commands/createExample";
 import { activateScreenplayNote } from "./commands/activateScreenplay";
 import { openNewScene } from "./commands/newScene";
 import { openParenthetical } from "./commands/parenthetical";
+import { openTransition } from "./commands/transition";
 import { previewScreenplay } from "./commands/previewScreenplay";
 import {
   createScreenplayCompletionExtension,
@@ -74,10 +75,7 @@ import {
   ScribidianSettingTab,
   type ScribidianSettings,
 } from "./settings/settings";
-import {
-  PALETTE_VIEW_TYPE,
-  ScribidianPaletteView,
-} from "./ui/scribidianPaletteView";
+import { SCENES_VIEW_TYPE, ScenesView } from "./ui/scenesView";
 import { CheatSheetModal } from "./ui/cheatSheetModal";
 import { StatisticsModal } from "./ui/statisticsModal";
 import { ContinuityInspectorModal } from "./ui/continuityInspectorModal";
@@ -86,7 +84,6 @@ import type { NoteProperties } from "./ui/noteContext";
 import { CjkFontPackModal } from "./ui/cjkFontPackModal";
 
 export default class ScribidianPlugin extends Plugin {
-  sceneWorkspaceMode = false;
   settings: ScribidianSettings = { ...DEFAULT_SETTINGS };
   private statusBarItem: HTMLElement | null = null;
   private refreshTimer: number | null = null;
@@ -111,19 +108,11 @@ export default class ScribidianPlugin extends Plugin {
       }),
     );
     registerFountainCodeBlockProcessor(this);
-    this.registerView(
-      PALETTE_VIEW_TYPE,
-      (leaf) => new ScribidianPaletteView(leaf, this),
-    );
-    this.addRibbonIcon("clapperboard", "Open Scribidian palette", () => {
-      void this.openPalette();
+    this.registerView(SCENES_VIEW_TYPE, (leaf) => new ScenesView(leaf, this));
+    this.addRibbonIcon("clapperboard", "Open scenes", () => {
+      void this.openScenes();
     });
 
-    this.addCommand({
-      id: "open-first-draft-palette",
-      name: "Open palette",
-      callback: () => void this.openPalette(),
-    });
     this.addCommand({
       id: "install-offline-cjk-pdf-fonts",
       name: "Install offline CJK PDF fonts",
@@ -131,8 +120,8 @@ export default class ScribidianPlugin extends Plugin {
     });
     this.addCommand({
       id: "open-scene-workspace",
-      name: "Open scene workspace",
-      callback: () => void this.openSceneWorkspace(),
+      name: "Open scenes",
+      callback: () => void this.openScenes(),
     });
     this.addCommand({
       id: "inspect-continuity",
@@ -300,6 +289,15 @@ export default class ScribidianPlugin extends Plugin {
       },
     });
     this.addCommand({
+      id: "screenplay-transition",
+      name: "Screenplay: Transition",
+      editorCheckCallback: (checking, editor, context) => {
+        if (!this.isScreenplayFile(context.file)) return false;
+        if (!checking) openTransition(this, editor);
+        return true;
+      },
+    });
+    this.addCommand({
       id: "screenplay-show-statistics",
       name: "Screenplay: Show statistics",
       checkCallback: (checking) => {
@@ -440,17 +438,17 @@ export default class ScribidianPlugin extends Plugin {
     );
     this.registerEvent(
       this.app.metadataCache.on("changed", (file) => {
-        if (this.sceneWorkspaceMode || file === this.activeFile())
+        if (this.scenesOpen() || file === this.activeFile())
           this.scheduleRefresh();
       }),
     );
-    const refreshScenes = () => {
-      if (this.sceneWorkspaceMode) this.scheduleRefresh();
+    const onVaultChange = () => {
+      if (this.scenesOpen()) this.scheduleRefresh();
     };
-    this.registerEvent(this.app.vault.on("modify", refreshScenes));
-    this.registerEvent(this.app.vault.on("rename", refreshScenes));
-    this.registerEvent(this.app.vault.on("delete", refreshScenes));
-    this.registerEvent(this.app.vault.on("create", refreshScenes));
+    this.registerEvent(this.app.vault.on("modify", onVaultChange));
+    this.registerEvent(this.app.vault.on("rename", onVaultChange));
+    this.registerEvent(this.app.vault.on("delete", onVaultChange));
+    this.registerEvent(this.app.vault.on("create", onVaultChange));
     this.registerDomEvent(document, "selectionchange", () => {
       const activeElement = document.activeElement;
       if (
@@ -605,7 +603,7 @@ export default class ScribidianPlugin extends Plugin {
 
   refreshStatus(): void {
     this.refreshProjectViewClasses();
-    this.refreshPalettes();
+    this.refreshScenes();
     if (this.refreshTimer !== null) {
       window.clearTimeout(this.refreshTimer);
       this.refreshTimer = null;
@@ -719,9 +717,10 @@ export default class ScribidianPlugin extends Plugin {
     this.statusBarItem?.show();
   }
 
-  async openPalette(): Promise<void> {
+  /** Open the Scenes sidebar, or bring it forward if it is already open. */
+  async openScenes(): Promise<void> {
     this.activeMarkdownView();
-    const existing = this.app.workspace.getLeavesOfType(PALETTE_VIEW_TYPE)[0];
+    const existing = this.app.workspace.getLeavesOfType(SCENES_VIEW_TYPE)[0];
     if (existing) {
       await this.app.workspace.revealLeaf(existing);
       return;
@@ -730,16 +729,10 @@ export default class ScribidianPlugin extends Plugin {
     const leaf = this.app.workspace.getRightLeaf(true);
     if (leaf === null) return;
     await leaf.setViewState({
-      type: PALETTE_VIEW_TYPE,
+      type: SCENES_VIEW_TYPE,
       active: true,
     });
     await this.app.workspace.revealLeaf(leaf);
-  }
-
-  async openSceneWorkspace(): Promise<void> {
-    this.sceneWorkspaceMode = true;
-    await this.openPalette();
-    this.refreshPalettes();
   }
 
   openContinuityInspector(): void {
@@ -756,7 +749,7 @@ export default class ScribidianPlugin extends Plugin {
       direct,
       this.app.workspace.getActiveFile(),
       views,
-      this.app.workspace.getActiveViewOfType(ScribidianPaletteView) !== null,
+      this.app.workspace.getActiveViewOfType(ScenesView) !== null,
     );
   }
 
@@ -766,9 +759,13 @@ export default class ScribidianPlugin extends Plugin {
     );
   }
 
-  private refreshPalettes(): void {
-    for (const leaf of this.app.workspace.getLeavesOfType(PALETTE_VIEW_TYPE)) {
-      if (leaf.view instanceof ScribidianPaletteView) leaf.view.refresh();
+  private scenesOpen(): boolean {
+    return this.app.workspace.getLeavesOfType(SCENES_VIEW_TYPE).length > 0;
+  }
+
+  private refreshScenes(): void {
+    for (const leaf of this.app.workspace.getLeavesOfType(SCENES_VIEW_TYPE)) {
+      if (leaf.view instanceof ScenesView) leaf.view.refresh();
     }
   }
 

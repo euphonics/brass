@@ -1,8 +1,8 @@
-# Scene workspace
+# Scenes panel
 
-Open a screenplay or its project note, then click **Scenes** in the Scribidian
-palette. Alternatively, use Cmd/Ctrl+P and search **Open scene workspace**.
-**Writing actions** takes you back to the existing tools.
+Open a screenplay or its project note, then click the clapperboard icon in the
+ribbon, or use Cmd/Ctrl+P and search **Open scenes**. The panel opens in the
+right sidebar.
 
 Each card shows its source heading and part, synopsis, characters and approximate
 page position. Click its heading to open the original note. Search headings and
@@ -60,7 +60,7 @@ Refresh a stale workspace before retrying.
 ## Desktop acceptance checklist
 
 Use only the isolated **Scribidian Test Vault**. Reload the plugin after installing
-a new build. Open `Scene Workspace Demo/Project`, then open the scene workspace.
+a new build. Open `Scene Workspace Demo/Project`, then open the Scenes panel.
 
 1. Confirm four scenes in part order. Click each heading; check its original
    source, including the repeated station heading and Japanese heading.

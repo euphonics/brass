@@ -18,14 +18,14 @@
 import { ItemView } from "obsidian";
 import type { IconName, WorkspaceLeaf } from "obsidian";
 import type ScribidianPlugin from "../main";
-import { renderScribidianPalette } from "./palette/paletteRenderer";
 import { renderSceneWorkspace } from "./sceneWorkspace";
 import { EMPTY_SCENE_FILTERS } from "../scenes/model";
 
-export const PALETTE_VIEW_TYPE = "scribidian-palette";
+/** Kept from the old palette so sidebars saved with it still open. */
+export const SCENES_VIEW_TYPE = "scribidian-palette";
 
-export class ScribidianPaletteView extends ItemView {
-  private query = "";
+/** The sidebar scene list: jump to, filter, add, edit and move scenes. */
+export class ScenesView extends ItemView {
   private renderGeneration = 0;
   private sceneFilters = { ...EMPTY_SCENE_FILTERS };
 
@@ -37,11 +37,11 @@ export class ScribidianPaletteView extends ItemView {
   }
 
   getViewType(): string {
-    return PALETTE_VIEW_TYPE;
+    return SCENES_VIEW_TYPE;
   }
 
   getDisplayText(): string {
-    return "Scribidian palette";
+    return "Scenes";
   }
 
   getIcon(): IconName {
@@ -59,22 +59,12 @@ export class ScribidianPaletteView extends ItemView {
 
   refresh(): void {
     const generation = ++this.renderGeneration;
-    if (this.plugin.sceneWorkspaceMode) {
-      void renderSceneWorkspace(
-        this.plugin,
-        this.contentEl,
-        this.sceneFilters,
-        () => generation === this.renderGeneration,
-        () => this.refresh(),
-      );
-      return;
-    }
-    renderScribidianPalette(this.plugin, this.contentEl, {
-      getQuery: () => this.query,
-      setQuery: (query) => {
-        this.query = query;
-      },
-      isCurrent: () => generation === this.renderGeneration,
-    });
+    void renderSceneWorkspace(
+      this.plugin,
+      this.contentEl,
+      this.sceneFilters,
+      () => generation === this.renderGeneration,
+      () => this.refresh(),
+    );
   }
 }

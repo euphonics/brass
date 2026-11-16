@@ -53,59 +53,6 @@
   margin-block: var(--size-4-3) var(--size-4-2);
 }
 
-.scribidian-palette-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(8rem, 100%), 1fr));
-  gap: var(--size-4-2);
-}
-
-.scribidian-palette-onboarding-actions {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.scribidian-palette .scribidian-palette-action {
-  min-width: 0;
-  max-width: 100%;
-  height: auto;
-  min-height: var(--input-height);
-  padding: var(--size-4-2) var(--size-4-3);
-  white-space: normal;
-  overflow-wrap: anywhere;
-  text-align: center;
-}
-
-.scribidian-palette-global-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: var(--size-4-2);
-}
-
-.scribidian-palette-action:first-child {
-  color: var(--text-on-accent);
-  background: var(--interactive-accent);
-}
-
-.scribidian-palette-search {
-  width: 100%;
-  margin-bottom: var(--size-4-2);
-}
-
-.scribidian-palette-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--size-2-3);
-}
-
-.scribidian-project-parts {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.scribidian-project-parts .scribidian-palette-item {
-  width: 100%;
-  text-align: start;
-}
-
 .scribidian-project-note
   .metadata-property[data-property-key="parts"]
   .multi-select-container {
@@ -119,45 +66,12 @@
   max-width: 100%;
 }
 
-.scribidian-palette-item-row {
-  display: inline-flex;
-  max-width: 100%;
-}
-
-.scribidian-palette-item-row .scribidian-palette-item {
-  border-start-end-radius: 0;
-  border-end-end-radius: 0;
-}
-
-.scribidian-palette-item-secondary {
-  color: var(--text-muted);
-  border-inline-start: 1px solid var(--background-modifier-border);
-  border-start-start-radius: 0;
-  border-end-start-radius: 0;
-}
-
-.scribidian-palette-item {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.scribidian-palette-empty {
-  color: var(--text-muted);
-}
-
 .scribidian-palette-muted {
   color: var(--text-muted);
 }
 
 .scribidian-character-graph {
   width: 100%;
-}
-
-.scribidian-palette-check {
-  color: var(--text-normal);
-  background: var(--interactive-normal);
 }
 
 .scribidian-character-check-link {

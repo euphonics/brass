@@ -38,7 +38,7 @@ by default; check `plugin.typingChangeEnabled(...)`.
 | Uppercase a slugline as you type                            | On (setting) | Off (setting)                                      |
 | Uppercase while typing on a `>` transition line             | On (setting) | Off (setting)                                      |
 | Cursor skips the blank line between two elements            | On (setting) | Off (setting)                                      |
-| Status bar, palette, scene workspace, inspector, commands   | Yes          | Yes                                                |
+| Status bar, Scenes panel, inspector, commands               | Yes          | Yes                                                |
 
 These settings have a Plain and a Script column under
 **Settings → Scribidian → Typing in each mode**.

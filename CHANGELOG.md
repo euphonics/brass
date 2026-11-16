@@ -11,6 +11,8 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- **Screenplay: Transition** command, so the transition picker no longer
+  needs the sidebar.
 - Keep the cursor off blank lines between elements: arrow keys and clicks
   skip the single blank line that separates two elements, so typing can't
   join them. On in script mode, off in plain mode (Settings > Typing in each
@@ -29,6 +31,11 @@ Scribidian changes since 0.1.0.
 
 ### Changed
 
+- The sidebar palette is gone. Its buttons (Preview, Export PDF, character
+  pages, project parts and so on) were already commands, and the Recent lists
+  are dropped. The scene list stays as the **Scenes** panel: click the
+  clapperboard icon or run **Open scenes**. A sidebar saved with the palette
+  opens as the Scenes panel.
 - Settings: "Text changes while typing" is now one table with a Plain and a Script column. A checkbox at the top of each column turns all of that mode's changes on or off.
 
 - The editor layouts are now called script mode and plain mode. New command

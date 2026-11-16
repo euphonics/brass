@@ -78,10 +78,6 @@ export async function renderSceneWorkspace(
   container.empty();
   container.createEl("h2", { text: "Scenes" });
   const bar = container.createDiv({ cls: "scribidian-scene-actions" });
-  action(bar, "Writing actions", () => {
-    plugin.sceneWorkspaceMode = false;
-    refresh();
-  });
   action(bar, "Refresh", refresh);
   action(bar, "Inspect continuity", () => plugin.openContinuityInspector());
   try {

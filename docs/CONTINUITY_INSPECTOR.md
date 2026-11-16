@@ -1,7 +1,7 @@
 # Continuity inspector
 
-Open a screenplay or project and use **Inspect continuity** in Cmd/Ctrl+P,
-the writing palette, or the scene workspace. The report is read-only and stays
+Open a screenplay or project and use **Inspect continuity** in Cmd/Ctrl+P
+or the Scenes panel. The report is read-only and stays
 in memory. **Refresh** reruns it against the current scope; click evidence to
 select its original cue or heading. A changed source or dossier stops stale
 navigation and asks for Refresh.
@@ -33,7 +33,7 @@ time label and a spelling variant. Character pages remain optional.
 4. In a disposable part, add a section or an unresolved project link: check that
    incomplete coverage is clearly disclosed, not presented as a clean report.
 5. Compare source before/after checking and navigation: no note content changes.
-6. Try the palette button and command; narrow the window and check evidence wraps.
+6. Try the Scenes panel button and command; narrow the window and check evidence wraps.
 
 Physical mobile layout/performance remains unverified. No automatic fixes, remote
 analysis, clipboard access, stored findings or exported reports are included.

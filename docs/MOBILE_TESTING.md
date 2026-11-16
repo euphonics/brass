@@ -65,11 +65,10 @@ Tapping Smart Tab does exactly what pressing Tab does on a computer.
 - Add **Smart Tab** and **Smart Tab back** to the toolbar (above) and use them
   to move between action, character and dialogue.
 - Confirm autocomplete works with the on-screen keyboard.
-- Open the Scribidian Palette and use its common actions.
 - Create and open a character dossier.
 - Open a multi-part screenplay project and navigate between parts.
 - View project statistics and character checks.
-- In a build containing the scene workspace, check narrow cards, filters, scene
+- Open the Scenes panel and check narrow cards, filters, scene
   editing and cross-part move/restore on disposable notes.
 - In a build containing the continuity inspector, check scrolling/wrapped
   evidence, source navigation, Refresh and stale-report warnings.

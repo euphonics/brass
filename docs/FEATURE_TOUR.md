@@ -8,13 +8,7 @@ The scene workspace and continuity inspector screenshots show **0.13.0**.
 The other screenshots and short video show the continuing writing and export
 workflow introduced in earlier releases. All captures use an isolated demo vault.
 
-## Write with the quick-access palette
-
-The dockable Scribidian palette keeps context-sensitive writing commands,
-character pages, project navigation, recent characters, locations,
-wrylies, and transitions beside the editor.
-
-![Screenplay editor and Scribidian palette](images/quick-access-palette.png)
+## Write with keyboard-first tools
 
 Autocomplete and keyboard-first commands cover sluglines, known
 locations, times of day, character cues, character extensions,
@@ -28,13 +22,13 @@ folders, and the `parts` property stays readable one link per line.
 
 ![Multi-file screenplay project](images/multi-file-project.png)
 
-Project statistics, checks, recent items, preview, and Fountain, FDX, and PDF
+Project statistics, checks, preview, and Fountain, FDX, and PDF
 exports operate on the combined screenplay. Previous/next actions move between
 parts without the command palette.
 
 ## Plan and navigate scenes
 
-Choose **Scenes** in the palette or run **Open scene workspace** with Cmd/Ctrl+P.
+Click the clapperboard icon or run **Open scenes** with Cmd/Ctrl+P.
 Scene cards show headings, source parts, characters, portable `= Synopsis` notes
 and approximate page positions. Search or filter by part, character, location or
 time; click a heading to return to the original text.
@@ -44,7 +38,7 @@ time; click a heading to return to the original text.
 Create scenes, edit synopses and rearrange complete scene blocks. Cross-part moves
 require confirmation and saved, unchanged notes; **Restore last move** retains a
 local recovery copy and refuses to overwrite later writing. Unsupported syntax
-disables editing with an explanation. See the [scene workspace guide](SCENE_WORKSPACE.md)
+disables editing with an explanation. See the [Scenes panel guide](SCENE_WORKSPACE.md)
 for safety boundaries and the remaining desktop acceptance checks.
 
 ## Preview and export a readable PDF
@@ -73,7 +67,7 @@ They do not generate or rewrite story material.
 
 ## Review source-linked continuity signals
 
-Run **Inspect continuity** from Cmd/Ctrl+P, the palette or the scene workspace.
+Run **Inspect continuity** from Cmd/Ctrl+P or the Scenes panel.
 It combines character identity, alias, relationship and spelling checks with
 advice about optional dossiers, empty scenes and missing time-of-day labels.
 Evidence opens the original cue, heading or character page; changed sources
@@ -97,8 +91,7 @@ copy shortcut; the plugin itself does not access the clipboard.
 
 ## Try it safely
 
-Run **Create example screenplay** from the Scribidian palette or command
-palette. It creates a self-contained tour with a project, parts, and character
+Run **Create example screenplay** from the command palette. It creates a self-contained tour with a project, parts, and character
 dossiers. Existing vault content is never overwritten.
 
 The 13-second [preview and PDF demo](images/scribidian-demo.mp4) is also

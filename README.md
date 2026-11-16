@@ -78,10 +78,9 @@ and examples of the Fountain format.
 
 **Organising a script**
 
-- A **palette** in the sidebar with the actions that fit where your cursor is,
-  and recently used characters, places and transitions.
-- A **scene workspace** to see every scene, jump to it, add a synopsis, and
-  move scenes around.
+- A **Scenes** panel in the sidebar to see every scene, jump to it, add a
+  synopsis, and move scenes around. Click the clapperboard icon or run
+  **Open scenes**.
 - **Longer scripts** can be split across several files and treated as one
   screenplay (see [Screenplay projects](#screenplay-projects)).
 - **Character pages**: ordinary notes about each character, linked to the
@@ -104,7 +103,7 @@ See the [feature tour](docs/FEATURE_TOUR.md) for pictures of each part.
 - [Editor modes](docs/EDITOR_MODES.md): what script mode and plain mode each do.
 - [Using Scribidian on a phone](docs/MOBILE_TESTING.md): installing, and
   putting Smart Tab on the toolbar.
-- [Scene workspace](docs/SCENE_WORKSPACE.md) and
+- [Scenes panel](docs/SCENE_WORKSPACE.md) and
   [continuity inspector](docs/CONTINUITY_INSPECTOR.md).
 - [PDF export](docs/PDF_COMPATIBILITY.md) and
   [Final Draft export](docs/FDX_COMPATIBILITY.md): what they can and can't do.

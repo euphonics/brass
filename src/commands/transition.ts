@@ -62,7 +62,7 @@ export function openTransition(plugin: ScribidianPlugin, editor: Editor): void {
       if (choice.kind === "custom") {
         new TextInputModal(
           plugin.app,
-          "Custom Transition",
+          "Custom transition",
           "e.g. IRIS OUT",
           (value) => insertTransition(editor, value),
         ).open();
