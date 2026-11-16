@@ -9,6 +9,10 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Keep the cursor off blank lines between elements: arrow keys and clicks
+  skip the single blank line that separates two elements, so typing can't
+  join them. On in script mode, off in plain mode (Settings > Typing in each
+  mode, which was "Text changes while typing").
 - Settings > Enter key: choose what Enter starts at the end of each element
   (action, dialogue, transition; scene heading, character and wryly under
   Show more). The defaults keep the old behaviour. "New line (no change)" is

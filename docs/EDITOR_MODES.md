@@ -14,8 +14,9 @@ typing help differ.
 
 The rule for new features: anything that changes typing beyond suggestions and
 the Tab key belongs to script mode only. In code, check `plugin.isScriptMode()`.
-Text changes while typing get a setting for each mode, on in script mode and
-off in plain mode by default; check `plugin.typingChangeEnabled(...)`.
+Text changes while typing, and the cursor lock on blank lines between
+elements, get a setting for each mode, on in script mode and off in plain mode
+by default; check `plugin.typingChangeEnabled(...)`.
 
 ## Current behaviour
 
@@ -36,7 +37,8 @@ off in plain mode by default; check `plugin.typingChangeEnabled(...)`.
 | Capitalize the first letter of a line                       | On (setting) | Off (setting)                                      |
 | Uppercase a scene heading (slugline) as you type            | On (setting) | Off (setting)                                      |
 | Uppercase while typing on a `>` transition line             | On (setting) | Off (setting)                                      |
+| Cursor skips the blank line between two elements            | On (setting) | Off (setting)                                      |
 | Status bar, palette, scene workspace, inspector, commands   | Yes          | Yes                                                |
 
-Text changes while typing have their own settings for each mode under
-**Settings → Scribidian → Text changes while typing**.
+These settings have a Plain and a Script column under
+**Settings → Scribidian → Typing in each mode**.

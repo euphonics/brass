@@ -55,6 +55,7 @@ import {
   forceElement,
 } from "./editor/completion";
 import type { ForcedElement } from "./editor/forceElement";
+import { createBlankLineLockExtension } from "./editor/blankLineLock";
 import { registerFountainCodeBlockProcessor } from "./editor/fountainCodeBlock";
 import { isCharacterFrontmatter } from "./characters/catalogue";
 import {
@@ -103,6 +104,7 @@ export default class ScribidianPlugin extends Plugin {
     this.registerEditorExtension(createScreenplayLayoutExtension(this));
     this.registerEditorExtension(createDualDialogueExtension(this));
     this.registerEditorExtension(createBottomMarginExtension(this));
+    this.registerEditorExtension(createBlankLineLockExtension(this));
     this.registerEditorExtension(
       EditorView.updateListener.of((update) => {
         if (update.selectionSet && !update.docChanged) this.onCursorMoved();
@@ -520,10 +522,13 @@ export default class ScribidianPlugin extends Plugin {
     return this.settings.editorLayout === "screenplay";
   }
 
-  /** Whether a text change while typing is on in the current mode. */
+  /** Whether a per-mode typing setting is on in the current mode. */
   typingChangeEnabled(
     change:
-      "capitalizeLineStarts" | "uppercaseSluglines" | "uppercaseTransitions",
+      | "capitalizeLineStarts"
+      | "uppercaseSluglines"
+      | "uppercaseTransitions"
+      | "lockBlankLines",
   ): boolean {
     const mode = this.isScriptMode() ? "Script" : "Plain";
     return this.settings[`${change}${mode}`];

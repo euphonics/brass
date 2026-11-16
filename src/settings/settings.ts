@@ -60,13 +60,16 @@ export interface ScribidianSettings {
   activateFrontmatter: boolean;
   autocompleteEnabled: boolean;
   smartTabEnabled: boolean;
-  /** Text changes while typing, set separately for script and plain mode. */
+  /** Typing settings, set separately for script and plain mode. */
   capitalizeLineStartsScript: boolean;
   capitalizeLineStartsPlain: boolean;
   uppercaseTransitionsScript: boolean;
   uppercaseTransitionsPlain: boolean;
   uppercaseSluglinesScript: boolean;
   uppercaseSluglinesPlain: boolean;
+  /** Keep the cursor off the blank line between two elements. */
+  lockBlankLinesScript: boolean;
+  lockBlankLinesPlain: boolean;
   /** What Enter starts at the end of each element (script mode). */
   enterTargets: EnterTargets;
   editorLayout: EditorLayout;
@@ -192,6 +195,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   uppercaseTransitionsPlain: false,
   uppercaseSluglinesScript: true,
   uppercaseSluglinesPlain: false,
+  lockBlankLinesScript: true,
+  lockBlankLinesPlain: false,
   enterTargets: { ...DEFAULT_ENTER_TARGETS },
   editorLayout: "screenplay",
   bottomTypingMargin: 40,
@@ -259,9 +264,11 @@ type TypingChangeKey =
   | "uppercaseSluglinesScript"
   | "uppercaseSluglinesPlain"
   | "uppercaseTransitionsScript"
-  | "uppercaseTransitionsPlain";
+  | "uppercaseTransitionsPlain"
+  | "lockBlankLinesScript"
+  | "lockBlankLinesPlain";
 
-/** Rows of the "Text changes while typing" table: one switch per mode. */
+/** Rows of the "Typing in each mode" table: one switch per mode. */
 export const TYPING_CHANGE_ROWS: {
   name: string;
   desc: string;
@@ -286,9 +293,15 @@ export const TYPING_CHANGE_ROWS: {
     plain: "uppercaseTransitionsPlain",
     script: "uppercaseTransitionsScript",
   },
+  {
+    name: "Keep the cursor off blank lines between elements",
+    desc: "Arrow keys and clicks skip the single blank line that separates two elements, so typing can't join them by accident. Enter still makes room for a new element.",
+    plain: "lockBlankLinesPlain",
+    script: "lockBlankLinesScript",
+  },
 ];
 
-const TYPING_CHANGES_NAME = "Text changes while typing";
+const TYPING_CHANGES_NAME = "Typing in each mode";
 const ENTER_TARGETS_NAME = "What Enter starts after each element";
 /** Placeholder keys that put the tables in their settings sections. */
 const TYPING_CHANGES_KEY = "typingChangesTable";
@@ -316,7 +329,7 @@ const SETTING_GROUPS: { heading: string; keys: string[] }[] = [
     ],
   },
   {
-    heading: "Text changes while typing",
+    heading: "Typing in each mode",
     keys: [TYPING_CHANGES_KEY],
   },
   {
@@ -469,7 +482,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       cls: "scribidian-settings-table scribidian-typing-table",
     });
     const head = table.createEl("thead").createEl("tr");
-    head.createEl("th", { text: "Change" });
+    head.createEl("th", { text: "Setting" });
     const body = table.createEl("tbody");
     const columns = [
       { mode: "plain", title: "Plain" },
@@ -1094,6 +1107,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "uppercaseTransitionsPlain":
       case "uppercaseSluglinesScript":
       case "uppercaseSluglinesPlain":
+      case "lockBlankLinesScript":
+      case "lockBlankLinesPlain":
       case "renderFountainCodeBlocks":
       case "sceneTypeMatchCase":
       case "statusBarEnabled":
