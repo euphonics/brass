@@ -22,7 +22,12 @@ import {
   screenplayFontOptions,
 } from "../editor/screenplayFont";
 import { PluginSettingTab } from "obsidian";
-import type { App, SettingDefinitionItem, SettingGroupItem } from "obsidian";
+import type {
+  App,
+  Setting,
+  SettingDefinitionItem,
+  SettingGroupItem,
+} from "obsidian";
 import type ScribidianPlugin from "../main";
 import {
   DEFAULT_CLEAN_EXPORT_OPTIONS,
@@ -236,6 +241,45 @@ function isSettingKey(key: string): key is keyof ScribidianSettings {
   return key in DEFAULT_SETTINGS;
 }
 
+type TypingChangeKey =
+  | "capitalizeLineStartsScript"
+  | "capitalizeLineStartsPlain"
+  | "uppercaseSluglinesScript"
+  | "uppercaseSluglinesPlain"
+  | "uppercaseTransitionsScript"
+  | "uppercaseTransitionsPlain";
+
+/** Rows of the "Text changes while typing" table: one switch per mode. */
+export const TYPING_CHANGE_ROWS: {
+  name: string;
+  desc: string;
+  plain: TypingChangeKey;
+  script: TypingChangeKey;
+}[] = [
+  {
+    name: "Capitalize the first letter of each line",
+    desc: '"she runs" becomes "She runs". Lines that start with a symbol, like a wryly\'s "(", and lines in code blocks are left alone.',
+    plain: "capitalizeLineStartsPlain",
+    script: "capitalizeLineStartsScript",
+  },
+  {
+    name: "Uppercase sluglines as you type",
+    desc: '"int. kitchen - day" becomes "INT. KITCHEN - DAY", including lines forced with a leading period.',
+    plain: "uppercaseSluglinesPlain",
+    script: "uppercaseSluglinesScript",
+  },
+  {
+    name: "Uppercase transitions as you type",
+    desc: 'Text typed on a forced transition line ("> cut to") becomes uppercase.',
+    plain: "uppercaseTransitionsPlain",
+    script: "uppercaseTransitionsScript",
+  },
+];
+
+const TYPING_CHANGES_NAME = "Text changes while typing";
+/** Placeholder key that puts the table in its settings section. */
+const TYPING_CHANGES_KEY = "typingChangesTable";
+
 /** Settings sections, in order, by control key. */
 const SETTING_GROUPS: { heading: string; keys: string[] }[] = [
   {
@@ -255,14 +299,7 @@ const SETTING_GROUPS: { heading: string; keys: string[] }[] = [
   },
   {
     heading: "Text changes while typing",
-    keys: [
-      "capitalizeLineStartsScript",
-      "uppercaseSluglinesScript",
-      "uppercaseTransitionsScript",
-      "capitalizeLineStartsPlain",
-      "uppercaseSluglinesPlain",
-      "uppercaseTransitionsPlain",
-    ],
+    keys: [TYPING_CHANGES_KEY],
   },
   {
     heading: "Autocomplete",
@@ -300,7 +337,10 @@ const SETTING_GROUPS: { heading: string; keys: string[] }[] = [
 
 function definitionKey(item: SettingDefinitionItem): string | undefined {
   const control = (item as { control?: { key?: string } }).control;
-  return control?.key;
+  if (control?.key) return control.key;
+  return (item as { name?: string }).name === TYPING_CHANGES_NAME
+    ? TYPING_CHANGES_KEY
+    : undefined;
 }
 
 /**
@@ -392,6 +432,86 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       ...groupSettings(this.flatDefinitions()),
     ];
+  }
+
+  /**
+   * Draw the text-change switches as a table: one row per change, one
+   * checkbox column per editor mode, and a header checkbox per column that
+   * turns that whole mode on or off.
+   */
+  private renderTypingChanges(setting: Setting): void {
+    setting.settingEl.addClass("scribidian-typing-changes");
+    setting.infoEl.remove();
+    setting.controlEl.remove();
+    const settings = this.plugin.settings;
+    const table = setting.settingEl.createEl("table", {
+      cls: "scribidian-typing-table",
+    });
+    const head = table.createEl("thead").createEl("tr");
+    head.createEl("th", { text: "Change" });
+    const body = table.createEl("tbody");
+    const columns = [
+      { mode: "plain", title: "Plain" },
+      { mode: "script", title: "Script" },
+    ] as const;
+    const boxes = {
+      plain: [] as HTMLInputElement[],
+      script: [] as HTMLInputElement[],
+    };
+    const masters = {} as Record<"plain" | "script", HTMLInputElement>;
+
+    const syncMaster = (mode: "plain" | "script"): void => {
+      const values = TYPING_CHANGE_ROWS.map((row) => settings[row[mode]]);
+      const all = values.every(Boolean);
+      masters[mode].checked = all;
+      masters[mode].indeterminate = !all && values.some(Boolean);
+    };
+
+    for (const { mode, title } of columns) {
+      const label = head
+        .createEl("th", { cls: "scribidian-typing-mode" })
+        .createEl("label");
+      const master = label.createEl("input", { type: "checkbox" });
+      master.setAttr(
+        "aria-label",
+        `Turn all ${title.toLowerCase()} mode changes on or off`,
+      );
+      label.createSpan({ text: title });
+      masters[mode] = master;
+      master.addEventListener("change", () => {
+        const on = master.checked;
+        for (const [index, row] of TYPING_CHANGE_ROWS.entries()) {
+          settings[row[mode]] = on;
+          const box = boxes[mode][index];
+          if (box) box.checked = on;
+        }
+        syncMaster(mode);
+        void this.plugin.saveSettings();
+      });
+    }
+
+    for (const row of TYPING_CHANGE_ROWS) {
+      const tr = body.createEl("tr");
+      const info = tr.createEl("td", { cls: "scribidian-typing-info" });
+      info.createDiv({ cls: "setting-item-name", text: row.name });
+      info.createDiv({ cls: "setting-item-description", text: row.desc });
+      for (const { mode, title } of columns) {
+        const key = row[mode];
+        const box = tr
+          .createEl("td", { cls: "scribidian-typing-mode" })
+          .createEl("input", { type: "checkbox" });
+        box.checked = settings[key];
+        box.setAttr("aria-label", `${title} mode: ${row.name}`);
+        boxes[mode].push(box);
+        box.addEventListener("change", () => {
+          settings[key] = box.checked;
+          syncMaster(mode);
+          void this.plugin.saveSettings();
+        });
+      }
+    }
+    syncMaster("plain");
+    syncMaster("script");
   }
 
   /** Open Settings > Hotkeys filtered to this plugin's commands. */
@@ -669,64 +789,9 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Script mode: capitalize the first letter of each line",
-        desc: 'The first letter typed on a line becomes a capital ("she runs" becomes "She runs"). Lines that start with a symbol, like a wryly\'s "(", and lines in code blocks are left alone.',
-        aliases: ["capital", "uppercase", "auto capitalize"],
-        control: {
-          type: "toggle",
-          key: "capitalizeLineStartsScript",
-          defaultValue: DEFAULT_SETTINGS.capitalizeLineStartsScript,
-        },
-      },
-      {
-        name: "Script mode: uppercase sluglines as you type",
-        desc: 'Scene headings become uppercase as you type them ("int. kitchen - day" becomes "INT. KITCHEN - DAY"), including lines forced with a leading period.',
-        aliases: ["capital", "uppercase", "scene heading", "slugline"],
-        control: {
-          type: "toggle",
-          key: "uppercaseSluglinesScript",
-          defaultValue: DEFAULT_SETTINGS.uppercaseSluglinesScript,
-        },
-      },
-      {
-        name: "Script mode: uppercase transitions as you type",
-        desc: 'Text typed on a forced transition line ("> cut to") becomes uppercase.',
-        aliases: ["capital", "uppercase", "transition"],
-        control: {
-          type: "toggle",
-          key: "uppercaseTransitionsScript",
-          defaultValue: DEFAULT_SETTINGS.uppercaseTransitionsScript,
-        },
-      },
-      {
-        name: "Plain mode: capitalize the first letter of each line",
-        desc: "The same as in script mode, for plain Fountain text. Off by default, so plain mode keeps free typing.",
-        aliases: ["capital", "uppercase", "auto capitalize"],
-        control: {
-          type: "toggle",
-          key: "capitalizeLineStartsPlain",
-          defaultValue: DEFAULT_SETTINGS.capitalizeLineStartsPlain,
-        },
-      },
-      {
-        name: "Plain mode: uppercase sluglines as you type",
-        desc: "The same as in script mode, for plain Fountain text. Off by default.",
-        aliases: ["capital", "uppercase", "scene heading", "slugline"],
-        control: {
-          type: "toggle",
-          key: "uppercaseSluglinesPlain",
-          defaultValue: DEFAULT_SETTINGS.uppercaseSluglinesPlain,
-        },
-      },
-      {
-        name: "Plain mode: uppercase transitions as you type",
-        desc: "The same as in script mode, for plain Fountain text. Off by default.",
-        aliases: ["capital", "uppercase", "transition"],
-        control: {
-          type: "toggle",
-          key: "uppercaseTransitionsPlain",
-          defaultValue: DEFAULT_SETTINGS.uppercaseTransitionsPlain,
-        },
+        name: TYPING_CHANGES_NAME,
+        searchable: false,
+        render: (setting) => this.renderTypingChanges(setting),
       },
       {
         name: "Smart Tab and Enter",

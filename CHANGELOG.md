@@ -17,7 +17,9 @@ Scribidian changes since 0.1.0.
 - README tips on themes, other plugins and Fountain rules; a rewritten mobile
   testing guide; a roadmap with possible issues and a human test checklist.
 
-### Changed
+### Changed
+
+- Settings: "Text changes while typing" is now one table with a Plain and a Script column. A checkbox at the top of each column turns all of that mode's changes on or off.
 
 - The editor layouts are now called script mode and plain mode. New command
   **Screenplay: Switch between script and plain mode**.
