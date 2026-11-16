@@ -198,7 +198,7 @@ access the system clipboard.
 typing help such as Smart Enter and automatic capitals. **Plain mode** keeps
 free typing: suggestions and Smart Tab still work, but Enter is always
 Obsidian's own (Tab or a tap accepts a suggestion) and text isn't changed as
-you type. Switch with **Screenplay: Switch between script and plain mode**;
+you type. Switch with **Screenplay: Toggle script and plain mode**;
 each text change can be turned on or off per mode in settings. Details:
 [Editor modes](docs/EDITOR_MODES.md).
 

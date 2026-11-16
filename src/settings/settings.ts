@@ -772,7 +772,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Editor mode",
-        desc: "Script mode lays each element out as it prints (centered character names, narrow dialogue, right-aligned transitions) and adds typing help such as Smart Enter. Plain mode keeps Obsidian's normal look and free typing: suggestions and Smart Tab still work, but Enter is always Obsidian's own. The note text is the same either way. Switch quickly with the command Screenplay: Switch between script and plain mode.",
+        desc: "Script mode lays each element out as it prints (centered character names, narrow dialogue, right-aligned transitions) and adds typing help such as Smart Enter. Plain mode keeps Obsidian's normal look and free typing: suggestions and Smart Tab still work, but Enter is always Obsidian's own. The note text is the same either way. Switch quickly with the command Screenplay: Toggle script and plain mode.",
         control: {
           type: "dropdown",
           key: "editorLayout",

@@ -30,7 +30,7 @@ Scribidian changes since 0.1.0.
 - Settings: "Text changes while typing" is now one table with a Plain and a Script column. A checkbox at the top of each column turns all of that mode's changes on or off.
 
 - The editor layouts are now called script mode and plain mode. New command
-  **Screenplay: Switch between script and plain mode**.
+  **Screenplay: Toggle script and plain mode**.
 - Line-start capitalization and transition uppercasing have a setting for each
   mode: on in script mode, off in plain mode by default. An existing
   capitalization setting carries over to script mode.

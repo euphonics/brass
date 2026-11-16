@@ -1,7 +1,7 @@
 # Editor modes
 
 Scribidian has two editor modes, chosen in **Settings → Scribidian → Editor
-mode**, or switched with the command **Screenplay: Switch between script and
+mode**, or switched with the command **Screenplay: Toggle script and
 plain mode**. Both edit the same plain Fountain text; only the display and the
 typing help differ.
 
