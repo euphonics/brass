@@ -250,4 +250,16 @@ Hello.
     // Untouched lines keep their spacing exactly.
     expect(clean("Two  spaces stay.")).toBe("Two  spaces stay.");
   });
+
+  it("leaves embeds alone when unwrapping links, even back to back", () => {
+    const unwrap = (text: string) =>
+      cleanFountainSource(text, {
+        ...DEFAULT_CLEAN_EXPORT_OPTIONS,
+        removeEmbeds: false,
+        wikilinks: "unwrap",
+        markdownLinks: "unwrap",
+      });
+    expect(unwrap("[[A]][[B|bee]] ![[pic.png]]")).toBe("Abee ![[pic.png]]");
+    expect(unwrap("[go](x.md) ![alt](p.png)")).toBe("go ![alt](p.png)");
+  });
 });

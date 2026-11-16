@@ -449,10 +449,10 @@ export default class ScribidianPlugin extends Plugin {
     this.registerEvent(this.app.vault.on("rename", onVaultChange));
     this.registerEvent(this.app.vault.on("delete", onVaultChange));
     this.registerEvent(this.app.vault.on("create", onVaultChange));
-    this.registerDomEvent(document, "selectionchange", () => {
-      const activeElement = document.activeElement;
+    this.registerDomEvent(activeDocument, "selectionchange", () => {
+      const activeElement = activeDocument.activeElement;
       if (
-        activeElement instanceof HTMLElement &&
+        activeElement?.instanceOf(HTMLElement) &&
         activeElement.closest(".cm-editor")
       ) {
         this.scheduleRefresh();

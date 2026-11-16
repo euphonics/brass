@@ -100,9 +100,11 @@ export const DEFAULT_CLEAN_EXPORT_OPTIONS: CleanExportOptions = {
 };
 
 const TASK_LINE = /^\s*[-*+]\s+\[[^\]]?\](?:\s.*)?$/u;
-const WIKILINK = /(?<!!)\[\[([^[\]\n]+?)\]\]/gu;
+// The link patterns capture an optional leading `!` so embeds can be left
+// alone. iOS before 16.4 has no lookbehind, so `(?<!!)` can't be used.
+const WIKILINK = /(!?)\[\[([^[\]\n]+?)\]\]/gu;
 const EMBED = /!\[\[[^[\]\n]*\]\]|!\[[^\]\n]*\]\([^)\n]*\)/gu;
-const MARKDOWN_LINK = /(?<!!)\[([^[\]\n]+)\]\([^)\n]+\)/gu;
+const MARKDOWN_LINK = /(!?)\[([^[\]\n]+)\]\([^)\n]+\)/gu;
 const HEADING_LINE = /^\s*#{1,6}\s/u;
 const CALLOUT_START = /^\s*>\s*\[!/u;
 const FOOTNOTE_DEFINITION = /^\s*\[\^[^\]\n]+\]:/u;
@@ -151,7 +153,8 @@ export function normalizeCleanExportOptions(
 
 /** `[[target|alias]]` -> `alias`, `[[target]]` -> `target`. Embeds stay. */
 export function unwrapWikilinks(text: string): string {
-  return text.replace(WIKILINK, (_match, inner: string) => {
+  return text.replace(WIKILINK, (match, bang: string, inner: string) => {
+    if (bang) return match;
     const pipe = inner.indexOf("|");
     return (pipe === -1 ? inner : inner.slice(pipe + 1)).trim();
   });
@@ -184,12 +187,20 @@ function cleanInline(line: string, options: CleanExportOptions): string {
   let text = line;
   if (options.removeEmbeds) text = text.replace(EMBED, GAP);
   if (options.wikilinks === "unwrap") text = unwrapWikilinks(text);
-  if (options.wikilinks === "remove") text = text.replace(WIKILINK, GAP);
+  if (options.wikilinks === "remove") {
+    text = text.replace(WIKILINK, (match, bang: string) =>
+      bang ? match : GAP,
+    );
+  }
   if (options.markdownLinks === "unwrap") {
-    text = text.replace(MARKDOWN_LINK, "$1");
+    text = text.replace(MARKDOWN_LINK, (match, bang: string, label: string) =>
+      bang ? match : label,
+    );
   }
   if (options.markdownLinks === "remove") {
-    text = text.replace(MARKDOWN_LINK, GAP);
+    text = text.replace(MARKDOWN_LINK, (match, bang: string) =>
+      bang ? match : GAP,
+    );
   }
   if (options.removeFootnotes) text = text.replace(FOOTNOTE_REFERENCE, GAP);
   if (options.removeBlockIds) text = text.replace(BLOCK_ID, GAP);
@@ -250,10 +261,7 @@ export function cleanFountainSource(
       for (;;) {
         const marker = rest.indexOf("%%");
         if (inComment) {
-          if (marker === -1) {
-            rest = "";
-            break;
-          }
+          if (marker === -1) break;
           rest = rest.slice(marker + 2);
           inComment = false;
         } else {
