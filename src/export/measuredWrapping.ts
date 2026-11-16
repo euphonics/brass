@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import LineBreaker from "linebreak";
+import { LineBreaker } from "linebreak";
 
 /** Unicode break opportunities, with grapheme-safe emergency word wrapping. */
 export function wrapMeasuredText(

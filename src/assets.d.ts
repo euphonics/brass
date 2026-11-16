@@ -20,7 +20,7 @@ declare module "*.ttf?bytes" {
 }
 
 declare module "linebreak" {
-  export default class LineBreaker {
+  export class LineBreaker {
     constructor(text: string);
     nextBreak(): { position: number; required: boolean } | null;
   }
