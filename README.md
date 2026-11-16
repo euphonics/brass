@@ -206,6 +206,12 @@ and text size still follow your theme.
 - Wide-note options (Minimal's `wide` and `max`, width plugins) don't widen a
   script: it stays 60 characters wide, like the printed page.
 
+**Languages.** Scribidian supports languages written in the Latin alphabet.
+Right-to-left scripts (Hebrew, Arabic) and scripts without capital letters
+(Chinese, Japanese, Korean) aren't supported yet; contributions from people who
+write screenplays in those languages are welcome (see
+[CONTRIBUTING](CONTRIBUTING.md)).
+
 **Phones.** See the [mobile guide](docs/MOBILE_TESTING.md) for installing with
 BRAT and putting **Smart Tab** on the toolbar (phone keyboards have no Tab
 key).
@@ -229,8 +235,6 @@ key).
 - Scene headings must start with INT, EXT, EST or I/E. For anything else, start
   the line with a period: `.INNEN. HAUS - TAG`.
 - Transitions must end in `TO:`. Force others with `>`: `> FADE OUT.`
-- Names in scripts without capital letters (Hebrew, Arabic, Chinese, Japanese,
-  Korean) need `@` in front: `@דוד`.
 - A line of two spaces keeps a speech going. `%% comments %%` and
   `/* boneyard */` are ignored.
 - While Scribidian is turned off, `.fountain` files drop out of Obsidian's file
