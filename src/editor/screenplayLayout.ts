@@ -234,6 +234,15 @@ export function createScreenplayLayoutExtension(
     return true;
   };
 
+  // Backspace on the empty line laid out as a cue (strict cursor
+  // placement): step back to the action margin on the same line, as
+  // Shift+Tab does, instead of deleting the line. The next Backspace
+  // deletes as usual.
+  const backspace = (view: EditorView): boolean => {
+    if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
+    return shiftTab(view);
+  };
+
   // Escape closing the character list on the empty next-cue line: the
   // writer chose not to add a cue, so the line becomes action (as with
   // Shift+Tab) instead of staying centred until they type. Observed, not
@@ -255,6 +264,11 @@ export function createScreenplayLayoutExtension(
     lineKindField,
     layoutPlugin,
     escape,
-    Prec.highest(keymap.of([{ key: "Shift-Tab", run: shiftTab }])),
+    Prec.highest(
+      keymap.of([
+        { key: "Shift-Tab", run: shiftTab },
+        { key: "Backspace", run: backspace },
+      ]),
+    ),
   ];
 }

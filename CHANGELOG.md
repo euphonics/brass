@@ -90,6 +90,9 @@ Scribidian changes since 0.1.0.
 - Tab at the end of an action line puts the next line in the cue's column
   even in a script with no characters yet (the character list is empty).
   Shift+Tab or Escape makes it action.
+- Strict cursor placement: Backspace on an empty line in the cue's column
+  moves to the action margin on the same line (like Shift+Tab) instead of
+  deleting the line. A second Backspace deletes it.
 - Enter after a wryly puts the new line in the dialogue column instead of
   the action margin.
 - Typing `(` after a new character name in capitals (`JOHN (`) opens the
