@@ -64,6 +64,13 @@ const PAGE_DIMENSIONS: Record<PageSize, ScreenplayPageDimensions> = {
 const FONT_SIZE = 12;
 const LINE_HEIGHT = 12;
 export const CJK_LINE_HEIGHT = 14.4;
+
+/** Whether the text has Chinese, Japanese or Korean characters. */
+export function hasCjkText(text: string): boolean {
+  return /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\u3000-\u303f\uff00-\uffef]/u.test(
+    text,
+  );
+}
 const TOP_MARGIN = 72;
 const BOTTOM_MARGIN = 60;
 
@@ -463,7 +470,7 @@ export function layoutScreenplay(
 
 export class ScreenplayLayoutError extends Error {
   constructor(message: string) {
-    super(`PDF layout stopped: ${message} Your source is unchanged.`);
+    super(`Preview stopped: ${message} Your source is unchanged.`);
     this.name = "ScreenplayLayoutError";
   }
 }

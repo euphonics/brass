@@ -7,7 +7,7 @@ right sidebar.
 Each card shows its source heading and part, synopsis, characters and approximate
 page position. Click its heading to open the original note. Search headings and
 synopses, or filter by part, character, location and time. Page positions are
-estimates, not exact PDF pagination. Project order comes from `parts`; the plugin
+estimates, not exact pagination. Project order comes from `parts`; the plugin
 does not scan your vault or create new chapter files.
 
 ## Create and describe
@@ -27,8 +27,7 @@ INT. STATION - DAY
 A clock ticks.
 ```
 
-Synopses stay in Fountain source/export but are omitted from statistics, preview
-and PDF. Other source text is preserved.
+Synopses stay in Fountain source/export but are omitted from statistics and preview. Other source text is preserved.
 
 ## Rearrange safely
 
@@ -67,7 +66,7 @@ a new build. Open `Scene Workspace Demo/Project`, then open the Scenes panel.
 2. Search `train`, then try each filter and Clear filters. Narrow the sidebar;
    confirm headings, buttons and controls remain readable and keyboard-accessible.
 3. Edit a synopsis. Check `= ...` source lines; confirm synopsis text is absent
-   from preview, exported PDF and statistics.
+   from preview and statistics.
 4. Create a scene before an existing scene and at the end of the other part.
    Immediately type action: it should not replace the heading. Undo in the editor.
 5. Move a scene Up/Down, then undo. Check complete dialogue and comments travel

@@ -37,7 +37,6 @@ import type { TFile } from "obsidian";
 import { openCharacterPicker } from "./commands/character";
 import { exportFdx } from "./commands/exportFdx";
 import { exportFountain } from "./commands/exportFountain";
-import { exportPdf } from "./commands/exportPdf";
 import {
   isLikelyCharacterCue,
   openCharacterExtension,
@@ -84,7 +83,6 @@ import { StatisticsModal } from "./ui/statisticsModal";
 import { ContinuityInspectorModal } from "./ui/continuityInspectorModal";
 import { NoteContext, resolveNoteProperties } from "./ui/noteContext";
 import type { NoteProperties } from "./ui/noteContext";
-import { CjkFontPackModal } from "./ui/cjkFontPackModal";
 
 export default class ScribidianPlugin extends Plugin {
   settings: ScribidianSettings = { ...DEFAULT_SETTINGS };
@@ -118,11 +116,6 @@ export default class ScribidianPlugin extends Plugin {
       void this.openScenes();
     });
 
-    this.addCommand({
-      id: "install-offline-cjk-pdf-fonts",
-      name: "Install offline CJK PDF fonts",
-      callback: () => new CjkFontPackModal(this).open(),
-    });
     this.addCommand({
       id: "open-scene-workspace",
       name: "Open scenes",
@@ -341,20 +334,6 @@ export default class ScribidianPlugin extends Plugin {
         )
           return false;
         if (!checking) void previewScreenplay(this, view);
-        return true;
-      },
-    });
-    this.addCommand({
-      id: "screenplay-export-pdf",
-      name: "Screenplay: Export PDF",
-      checkCallback: (checking) => {
-        const view = this.activeMarkdownView();
-        if (
-          view === null ||
-          (!this.isScreenplayFile(view.file) && !this.isProjectFile(view.file))
-        )
-          return false;
-        if (!checking) void exportPdf(this, view);
         return true;
       },
     });

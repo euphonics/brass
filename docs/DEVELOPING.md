@@ -74,8 +74,8 @@ Expected result:
 - run `Screenplay: Preview` from a standalone screenplay, a project part, and a
   project note; confirm the project preview combines its parts in order and the
   source remains unchanged;
-- export from the preview or run `Screenplay: Export PDF`; confirm the PDF opens,
-  matches the configured Letter/A4 size, and a second export uses a numbered
+- export from the preview or run `Screenplay: Export to Fountain`; confirm the
+  file opens in another screenplay app and a second export uses a numbered
   filename rather than overwriting the first;
 - switch page size, minutes per page, or individual status fields under
   Settings → Scribidian and confirm the display updates;
@@ -106,7 +106,7 @@ node scripts/install-test-vault.mjs /absolute/path/to/test-vault
 ## Automated testing
 
 `npm test` covers parsing, estimation, helpers, character cataloguing and
-verification, derived dossier usage, Fountain/FDX/PDF export, deterministic
+verification, derived dossier usage, Fountain/FDX export, deterministic
 screenplay page layout, strict XML parsing, XML escaping, and structural FDX
 compatibility. `npm run test-vault` builds the production bundle and installs
 it into the isolated vault.

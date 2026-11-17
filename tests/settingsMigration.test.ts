@@ -42,6 +42,12 @@ describe("settings migration", () => {
     expect(settings.uppercaseSluglinesPlain).toBe(false);
   });
 
+  it("drops the old PDF language setting", () => {
+    expect(migrateSettings({ pdfLanguage: "ja" })).not.toHaveProperty(
+      "pdfLanguage",
+    );
+  });
+
   it("moves the old single capitalize switch to script mode", () => {
     const settings = migrateSettings({ capitalizeLineStarts: false });
     expect(settings.capitalizeLineStartsScript).toBe(false);

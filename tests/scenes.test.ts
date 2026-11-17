@@ -88,7 +88,7 @@ describe("source scene workspace", () => {
     expect(second.scenes[0]?.page).toBe(first.pages + 1);
     expect(first.scenes[2]?.page).toBeGreaterThan(first.scenes[0]?.page ?? 0);
   });
-  it("excludes synopsis lines from dialogue, statistics and PDF layout", () => {
+  it("excludes synopsis lines from dialogue, statistics and preview layout", () => {
     const doc = parseFountain(
       "INT. ROOM - DAY\n= Secret synopsis words\n\nALEX\nHello.",
     );

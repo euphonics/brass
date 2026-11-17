@@ -1,47 +1,11 @@
 # Third-party notices
 
-## Noto Sans CJK 2.004
-
-Copyright 2014–2021 Adobe (http://www.adobe.com/), with Reserved Font Name
-'Source'. Licensed under SIL Open Font
-License 1.1. Source: https://github.com/notofonts/noto-cjk . Regular and bold
-pan-CJK fonts are static instances of the upstream variable TrueType font,
-packaged as WOFF with aligned glyph records, retaining glyphs and localized
-forms. Full terms are in `assets/fonts/noto-cjk/LICENSE` and the `main.js` banner.
-
 ## Unicode line breaking
 
-The one-pass WOFF decoder uses `pako`, Copyright (C) 2014-2017 by Vitaly Puzrin
-and Andrei Tuputcyn, under the MIT permission/warranty terms reproduced below,
-as a fallback when native browser decompression is unavailable.
-
-First Draft includes `linebreak`, Copyright (c) 2014-present Devon Govett;
+Scribidian includes `linebreak`, Copyright (c) 2014-present Devon Govett;
 `unicode-trie`, Copyright 2018; `tiny-inflate`, Copyright (c) 2015-present Devon
-Govett; and `base64-js`, Copyright (c) 2014. All use the MIT
-permission and warranty terms reproduced below. The distributed plugin banner
-reproduces these notices and terms.
-
-## Liberation Mono 2.1.5
-
-First Draft bundles unmodified regular and bold fonts from
-[Liberation Fonts](https://github.com/liberationfonts/liberation-fonts/releases/tag/2.1.5).
-Digitized data copyright (c) 2010 Google Corporation; Copyright (c) 2012
-Red Hat, Inc. The fonts are under SIL Open Font License 1.1, not Apache-2.0.
-The complete upstream copyright and licence are in
-`assets/fonts/liberation-mono/LICENSE` and reproduced in the distributed
-`main.js` banner. See the font folder's README for archive provenance/checksum.
-
-## @pdf-lib/fontkit
-
-First Draft includes [@pdf-lib/fontkit](https://github.com/Hopding/fontkit),
-Copyright (c) 2014 Devon Govett, under the MIT License. The MIT permission and
-warranty terms reproduced for pdf-lib below also apply to this dependency.
-The distributed plugin banner reproduces these notices and permission terms.
-
-## pdf-lib
-
-First Draft includes [pdf-lib](https://github.com/Hopding/pdf-lib), Copyright
-(c) 2019 Andrew Dillon, under the MIT License:
+Govett; and `base64-js`, Copyright (c) 2014. They are used for line wrapping in
+the screenplay preview. All are under the MIT License:
 
 > Permission is hereby granted, free of charge, to any person obtaining a copy
 > of this software and associated documentation files (the "Software"), to deal

@@ -22,7 +22,7 @@ folders, and the `parts` property stays readable one link per line.
 
 ![Multi-file screenplay project](images/multi-file-project.png)
 
-Project statistics, checks, preview, and Fountain, FDX, and PDF
+Project statistics, checks, preview, and Fountain and FDX
 exports operate on the combined screenplay. Previous/next actions move between
 parts without the command palette.
 
@@ -41,17 +41,16 @@ local recovery copy and refuses to overwrite later writing. Unsupported syntax
 disables editing with an explanation. See the [Scenes panel guide](SCENE_WORKSPACE.md)
 for safety boundaries and the remaining desktop acceptance checks.
 
-## Preview and export a readable PDF
+## Preview and export
 
 Preview renders the active screenplay or whole project as paper-like pages.
-The toolbar exports the same deterministic layout to a new PDF without
-changing or overwriting the source.
+The toolbar exports a new Fountain file without changing or overwriting the
+source. Import it into Final Draft, Fade In or another screenplay app to make
+the PDF.
 
 ![Screenplay preview](images/screenplay-preview.png)
 
-The configured US Letter or A4 size controls both preview and PDF. See
-[PDF compatibility](PDF_COMPATIBILITY.md) for the supported screenplay
-elements and intentional production-pagination boundary.
+The configured US Letter or A4 size controls the preview and page counts.
 
 ## Keep character context in normal Markdown
 
@@ -94,5 +93,5 @@ copy shortcut; the plugin itself does not access the clipboard.
 Run **Create example screenplay** from the command palette. It creates a self-contained tour with a project, parts, and character
 dossiers. Existing vault content is never overwritten.
 
-The 13-second [preview and PDF demo](images/scribidian-demo.mp4) is also
+The 13-second [preview demo](images/scribidian-demo.mp4), recorded when Scribidian still had PDF export, is also
 available as a compact video.

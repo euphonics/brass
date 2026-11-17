@@ -20,8 +20,10 @@ Arabic) and scripts without capital letters (Chinese, Japanese, Korean) are out
 of scope for now. Contributions are welcome from people who write screenplays in
 those languages.
 
-Export (PDF, Fountain, FDX) is not a priority for these builds. Export work
-lives in the deep backlog at the end.
+Scribidian has no PDF export (removed 2026-11-17). Writers export Fountain
+(or FDX), import it into Final Draft, Fade In or another screenplay app for
+last looks, and make the PDF there. Fountain export is the export priority;
+FDX improvements come after it (see Export at the end).
 
 ## Planned work
 
@@ -94,7 +96,7 @@ which device. A checklist for testers is at the end of this section.
 | 1   | Smart Tab, Shift+Tab and Escape can't be used (see Planned work).                                                                                                                                                        | S      | —      | **Fixed:** new commands **Smart Tab** and **Smart Tab back** run Tab and Shift+Tab, for the mobile toolbar. Tested on desktop. **Human test** on a phone.                                                                  |
 | 2   | The suggestion list (characters, locations, transitions) may sit under the on-screen keyboard or be cut off near the bottom of the screen.                                                                               | M      | Phone  | **Human test** on a phone.                                                                                                                                                                                                 |
 | 3   | The Scenes panel and Continuity Inspector may be cramped or cut off on a narrow screen.                                                                                                                                  | M      | Phone  | **Human test** on a phone.                                                                                                                                                                                                 |
-| 4   | Slow start-up and typing on long scripts on older phones. `main.js` is 3.4 MB, mostly because it includes PDF export. Loading PDF export only when it is used would help.                                                | M–L    | Phone  | Desktop: Scribidian reloads in 0.44 s, and a 120-page script (5,850 lines) is read and laid out in about 5 ms. Phones are often 5–10 times slower. **Human test:** start-up and typing in a long script on an older phone. |
+| 4   | Slow start-up and typing on long scripts on older phones. Done in part (2026-11-17): PDF export is removed and `main.js` dropped from 3.6 MB to about 0.17 MB.                                                           | M–L    | Phone  | Desktop: Scribidian reloads in 0.44 s, and a 120-page script (5,850 lines) is read and laid out in about 5 ms. Phones are often 5–10 times slower. **Human test:** start-up and typing in a long script on an older phone. |
 | 5   | Courier Prime (the default font) isn't installed on phones. iPhone falls back to Courier or Courier New, Android to its own monospace font. Line widths and the page estimate in the status bar may then look a bit off. | S      | Phone  | **Human test** on a phone: compare line widths with desktop.                                                                                                                                                               |
 | 6   | The typing margin at the bottom may not be enough to keep the cursor above the keyboard. Keyboards and toolbars differ between iPhone and Android.                                                                       | S–M    | Phone  | **Human test** on iPhone and Android.                                                                                                                                                                                      |
 | 7   | Testers won't know how to set up the mobile toolbar. Needs a short guide.                                                                                                                                                | S      | —      | **Fixed:** toolbar steps are in `docs/MOBILE_TESTING.md`.                                                                                                                                                                  |
@@ -283,7 +285,7 @@ Fixed on 2026-11-16: the editor layout, the parser, Smart Tab and the cue checks
 | 93  | The README feature list still says the screenplay layout is "display only (Settings > Editor layout, or plain Fountain text)". The setting is now Editor mode, and script mode changes typing.                        | S      |
 | 94  | The README writes commands in Title Case ("Scribidian: Create Example Screenplay", "Open Screenplay Cheat Sheet"); the real names are sentence case.                                                                  | S      |
 | 95  | The roadmap plans wikilink options for export (#29), but clean Fountain export already has them (keep, unwrap or remove links, plus comments, tags, highlights and more). PDF and FDX export don't use those options. | S      |
-| 96  | The editor font is a setting, but PDF export and the page preview always use Courier.                                                                                                                                 | S      |
+| 96  | The editor font is a setting, but the page preview always uses Courier.                                                                                                                                               | S      |
 
 ### Code structure
 
@@ -292,9 +294,23 @@ Fixed on 2026-11-16: the editor layout, the parser, Smart Tab and the cue checks
 | 97  | New files written for Scribidian (`pressTab.ts`, `vaultPaths.ts`, `settingsMigration.test.ts`) carry "Copyright 2026 Christian Grobmeier" because the header check demands his header on every file. | S      |
 | 98  | `main.ts` (about 790 lines) mixes commands, mode logic, settings loading and the status bar; `vaultPaths.ts` sits alone at the top of `src/` while other helpers live in folders.                    | M      |
 
-## Deep backlog: export
+## Export
 
-Not planned for the 0.1.x betas or 1.0.0.
+**Fountain export is the priority.** The file must import cleanly into Final
+Draft, Fade In, Highland and WriterSolo, so the writer can finish there.
+
+- **Title page from note properties.** A Markdown screenplay's `title`,
+  `author`, `credit` and so on show in the preview but are not written into
+  the exported Fountain file as a title block. Check, and add them.
+- **Round-trip test.** Export TIGHTER-sized scripts and import them into Final
+  Draft and Fade In; list every element that changes type.
+
+**FDX export, after Fountain.** FDX export writes only six element types
+(see `docs/FDX_COMPATIBILITY.md`). Improve it: centered text, lyrics, notes,
+dual dialogue, title page, scene numbers, and checking the file in Final
+Draft itself.
+
+The items below are older export ideas, not yet scheduled.
 
 - **Wikilinks on export.** In Fountain, `[[...]]` is a writer's note; in
   Obsidian it's a link. Offer options for how wikilinks are handled when
@@ -304,20 +320,15 @@ Not planned for the 0.1.x betas or 1.0.0.
 
 - **Automatic (CONT'D) when a speaker resumes.** (CONT'D) is never offered as
   a suggestion. It should be filled in automatically, unlike (V.O.) and (O.S.),
-  which the writer chooses. PDF export already adds it when one speech breaks
-  across a page. Also add it on export when the same character speaks again
+  which the writer chooses. Add it on export when the same character speaks again
   after only action lines in the same scene. Don't add it after another
   character speaks, or after a new slugline. Leave the writer's text
   unchanged. Possibly offer a setting to turn it off.
-- **Finding an exported PDF on a phone.** The PDF is saved in the vault, but a
-  phone gives no easy way to find, open or share it. Could open the PDF right
+- **Finding an exported file on a phone.** The export is saved in the vault,
+  but a phone gives no easy way to find, open or share it. Could open it right
   away or say where it went. (S, phone)
-- **CJK font pack on iPhone.** The pack downloads and writes large font files
-  into the vault. This may be slow or fail on iOS when storage is low. (S,
-  iPhone)
 - **Export files on a Mac.** File names that differ only in upper and lower
   case count as the same file on macOS, so exported files could overwrite each
   other. (S, Mac)
 - **Export bugs seen in other plugins.** Forced-element markers (`@`, `.`)
-  showing in the PDF; remembering the last paper size; highlighting one
-  character's lines; Courier Prime in the PDF. [obsidian-fountain #31](https://github.com/bgrundmann/obsidian-fountain/issues/31), [obsidian-fountain #27](https://github.com/bgrundmann/obsidian-fountain/issues/27), [obsidian-fountain #38](https://github.com/bgrundmann/obsidian-fountain/issues/38), [obsidian-fountain #37](https://github.com/bgrundmann/obsidian-fountain/issues/37), [obsidian-fountain #23](https://github.com/bgrundmann/obsidian-fountain/issues/23).
+  handled wrongly on export; highlighting one character's lines. [obsidian-fountain #31](https://github.com/bgrundmann/obsidian-fountain/issues/31), [obsidian-fountain #27](https://github.com/bgrundmann/obsidian-fountain/issues/27), [obsidian-fountain #38](https://github.com/bgrundmann/obsidian-fountain/issues/38), [obsidian-fountain #37](https://github.com/bgrundmann/obsidian-fountain/issues/37), [obsidian-fountain #23](https://github.com/bgrundmann/obsidian-fountain/issues/23).

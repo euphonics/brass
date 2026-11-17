@@ -2,16 +2,9 @@
 
 ## Runtime base64
 
-Starting with 0.13.1, bundled Liberation Mono fonts are embedded as literal
-byte arrays at build time. Scribidian no longer calls browser `atob()` or
-`btoa()` to decode fonts. The production build rejects these calls and release
-assets at or above 5,000,000 bytes.
-
-The upstream `pdf-lib` and `@pdf-lib/fontkit` libraries still contain encoding
-utilities and compressed font/shaping tables represented as base64. They are
-data used for local PDF generation, not encoded JavaScript to execute. A scanner
-that detects these broader patterns may still show an advisory. We do not
-rename, conceal or patch those library utilities merely to suppress a warning.
+Scribidian has no PDF export, so it bundles no fonts or PDF libraries. It
+never calls browser `atob()` or `btoa()`. The production build rejects these
+calls and release assets at or above 5,000,000 bytes.
 
 ## Unavailable malware or obfuscation scans
 

@@ -44,8 +44,6 @@ import {
 } from "../export/fountain";
 import { coreTemplatesFolder, isTemplateCandidate } from "../characters/vault";
 import type { PageSize } from "../screenplay/model";
-import { isPdfLanguage, PDF_LANGUAGES } from "../export/pdfLanguage";
-import type { PdfLanguage } from "../export/pdfLanguage";
 import {
   DEFAULT_SLUG_MODIFIERS,
   DEFAULT_SCENE_TYPES,
@@ -91,7 +89,6 @@ export interface ScribidianSettings {
   showWordCount: boolean;
   showSceneCount: boolean;
   pageSize: PageSize;
-  pdfLanguage: PdfLanguage;
   minutesPerPage: number;
   updateDelayMs: number;
   characterFolder: string;
@@ -217,7 +214,6 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   showWordCount: true,
   showSceneCount: true,
   pageSize: "us-letter",
-  pdfLanguage: "zh-Hans",
   minutesPerPage: 1,
   updateDelayMs: 300,
   characterFolder: "Characters",
@@ -245,6 +241,8 @@ export function migrateSettings(
     ...(rest as Partial<ScribidianSettings>),
   };
   settings.enterTargets = normalizeEnterTargets(rest.enterTargets);
+  // PDF export was removed; drop its old setting.
+  delete (settings as Record<string, unknown>).pdfLanguage;
   if (
     typeof capitalizeLineStarts === "boolean" &&
     typeof rest.capitalizeLineStartsScript !== "boolean"
@@ -387,7 +385,7 @@ const SETTING_GROUPS: {
   {
     heading: "Advanced",
     last: true,
-    keys: [ADVANCED_KEY, "renderFountainCodeBlocks", "pdfLanguage"],
+    keys: [ADVANCED_KEY, "renderFountainCodeBlocks"],
   },
 ];
 
@@ -575,7 +573,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
     if (advanced) {
       setting.setName(ADVANCED_NAME);
       setting.setDesc(
-        "Fine-tuning for code blocks and PDF languages. Most writers never need these.",
+        "Fine-tuning for code blocks. Most writers never need these.",
       );
     } else {
       setting.settingEl.addClass("scribidian-more-toggle-plain");
@@ -794,22 +792,12 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Page size",
-        desc: "US Letter or A4. Used for page counts and PDFs.",
+        desc: "US Letter or A4. Used for page counts and the preview.",
         control: {
           type: "dropdown",
           key: "pageSize",
           options: { "us-letter": "US Letter", a4: "A4" },
           defaultValue: DEFAULT_SETTINGS.pageSize,
-        },
-      },
-      {
-        name: "Chinese, Japanese and Korean in PDFs",
-        desc: "Which regional character forms to use when a PDF has Chinese, Japanese or Korean text. First run the command Install offline CJK PDF fonts on this device. Nothing is translated.",
-        control: {
-          type: "dropdown",
-          key: "pdfLanguage",
-          options: PDF_LANGUAGES,
-          defaultValue: DEFAULT_SETTINGS.pdfLanguage,
         },
       },
       {
@@ -840,7 +828,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Screenplay font",
-        desc: "The font for scripts in the editor. PDFs and the page preview always use Courier, like a printed script.",
+        desc: "The font for scripts in the editor. The page preview always uses Courier, like a printed script.",
         control: {
           type: "dropdown",
           key: "screenplayFont",
@@ -1131,9 +1119,6 @@ export class ScribidianSettingTab extends PluginSettingTab {
     } else if (key === "editorLayout") {
       if (value !== "screenplay" && value !== "plain") return;
       this.plugin.settings.editorLayout = value;
-    } else if (key === "pdfLanguage") {
-      if (!isPdfLanguage(value)) return;
-      this.plugin.settings.pdfLanguage = value;
     } else if (typeof DEFAULT_SETTINGS[key] === "boolean") {
       if (typeof value !== "boolean") return;
       this.setBooleanSetting(key, value);

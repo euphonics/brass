@@ -32,15 +32,23 @@ Scribidian changes since 0.1.0.
 - README tips on themes, other plugins and Fountain rules; a rewritten mobile
   testing guide; a roadmap with possible issues and a human test checklist.
 
+### Removed
+
+- PDF export, the "Install offline CJK PDF fonts" command and the PDF
+  language setting. Export Fountain (or FDX), import it into Final Draft, Fade
+  In or another screenplay app for last looks, and make the PDF there. The
+  plugin drops from 3.6 MB to about 0.17 MB and starts faster, mostly on
+  phones. The preview's button now exports Fountain. A CJK font pack
+  installed earlier can be deleted: the `fonts` folder inside
+  `.obsidian/plugins/scribidian/`.
+
 ### Changed
 
 - Moving the cursor no longer recounts the script: the status bar and the
   Scenes panel reuse their numbers until the text changes, and the Scenes
   panel moves its highlight instead of rebuilding. On a 3,000-line script a
   refresh after a cursor move drops from about 35 ms to about 9 ms.
-- Faster start: the PDF export code and its fonts (most of the plugin's
-  size) load on the first PDF export instead of when Obsidian starts, and
-  the editor features are added in one step instead of six.
+- Faster start: the editor features are added in one step instead of six.
 
 - The sidebar palette is gone. Its buttons (Preview, Export PDF, character
   pages, project parts and so on) were already commands, and the Recent lists

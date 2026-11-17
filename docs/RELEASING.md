@@ -32,7 +32,7 @@ in `manifest.json`.
 
 8. Confirm README, feature tour, compatibility/privacy guides and screenshots
    distinguish the published version from unreleased features. Capture scene and
-   inspector screenshots; the existing video only covers preview/PDF export.
+   inspector screenshots; the existing video shows the removed PDF export and needs replacing.
 9. Confirm the complete audit is clean and [Dependabot alert 1](https://github.com/grobmeier/firstdraft/security/dependabot/1)
    is closed after pushing the Moment fix. See [dependency security](DEPENDENCY_SECURITY.md).
 

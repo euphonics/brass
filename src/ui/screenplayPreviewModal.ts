@@ -20,11 +20,11 @@ import type { App } from "obsidian";
 import type { PageSize, ScreenplayDocument } from "../screenplay/model";
 import {
   CJK_LINE_HEIGHT,
+  hasCjkText,
   layoutScreenplay,
   screenplayElementText,
   ScreenplayLayoutError,
 } from "../export/screenplayLayout";
-import { hasCjkText } from "../export/pdfLanguage";
 
 export class ScreenplayPreviewModal extends Modal {
   constructor(
@@ -32,7 +32,7 @@ export class ScreenplayPreviewModal extends Modal {
     private readonly screenplay: ScreenplayDocument,
     private readonly pageSize: PageSize,
     private readonly screenplayTitle: string,
-    private readonly exportPdf: () => Promise<void>,
+    private readonly exportFountain: () => Promise<void>,
   ) {
     super(app);
   }
@@ -52,11 +52,13 @@ export class ScreenplayPreviewModal extends Modal {
       );
     toolbar.createEl("p", {
       text: cjk
-        ? "Read-only preview. CJK line breaks and page count are approximate; export PDF for the measured layout. Choose the character forms under Settings → Scribidian → Advanced → Chinese, Japanese and Korean in PDFs."
+        ? "Read-only preview. CJK line breaks and page count are approximate."
         : "Read-only preview. Your Fountain source remains unchanged.",
     });
-    const exportButton = toolbar.createEl("button", { text: "Export PDF" });
-    exportButton.addEventListener("click", () => void this.exportPdf());
+    const exportButton = toolbar.createEl("button", {
+      text: "Export Fountain",
+    });
+    exportButton.addEventListener("click", () => void this.exportFountain());
 
     let layout;
     try {

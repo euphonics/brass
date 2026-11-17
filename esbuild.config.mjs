@@ -18,18 +18,9 @@ import esbuild from "esbuild";
 import process from "node:process";
 import { builtinModules } from "node:module";
 import { readFileSync } from "node:fs";
-import { fontBytesEsbuildPlugin } from "./scripts/font-bytes.mjs";
 
-const fontLicense = readFileSync(
-  new URL("./assets/fonts/liberation-mono/LICENSE", import.meta.url),
-  "utf8",
-);
 const thirdPartyNotices = readFileSync(
   new URL("./THIRD_PARTY_NOTICES.md", import.meta.url),
-  "utf8",
-);
-const cjkLicense = readFileSync(
-  new URL("./assets/fonts/noto-cjk/LICENSE", import.meta.url),
   "utf8",
 );
 
@@ -51,19 +42,7 @@ const context = await esbuild.context({
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Includes pdf-lib, Copyright (c) 2019 Andrew Dillon, used under the MIT
- * License. See THIRD_PARTY_NOTICES.md in the source repository.
- * Includes @pdf-lib/fontkit, Copyright (c) 2014 Devon Govett, MIT License.
- * Includes unmodified Liberation Mono 2.1.5 regular and bold fonts:
-${fontLicense
-  .split("\n")
-  .map((line) => ` * ${line}`)
-  .join("\n")}
 ${thirdPartyNotices
-  .split("\n")
-  .map((line) => ` * ${line}`)
-  .join("\n")}
-${cjkLicense
   .split("\n")
   .map((line) => ` * ${line}`)
   .join("\n")}
@@ -71,7 +50,6 @@ ${cjkLicense
   },
   entryPoints: ["src/main.ts"],
   bundle: true,
-  plugins: [fontBytesEsbuildPlugin()],
   external: [
     "obsidian",
     "electron",

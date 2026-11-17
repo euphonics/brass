@@ -7,7 +7,6 @@
   "scripts": {
     "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production && npm run check:bundle-size",
     "check:bundle-size": "node scripts/check-bundle-size.mjs",
-    "font-pack": "node scripts/build-font-pack.mjs",
     "dev": "node esbuild.config.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -15,7 +14,6 @@
     "license:headers:check": "node scripts/add-license-headers.mjs --check",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:pdf-output": "node scripts/check-pdf-output.mjs",
     "test:watch": "vitest",
     "test-vault": "npm run build && node scripts/install-test-vault.mjs"
   },
@@ -51,9 +49,6 @@
     "moment": "2.31.0"
   },
   "dependencies": {
-    "@pdf-lib/fontkit": "1.1.1",
-    "linebreak": "2.0.0",
-    "pako": "3.0.3",
-    "pdf-lib": "^1.17.1"
+    "linebreak": "2.0.0"
   }
 }

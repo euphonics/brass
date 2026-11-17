@@ -50,7 +50,7 @@ recover from Obsidian's file history.
   already exists, adds the properties Scribidian needs (`scribidian`,
   `character`, `aliases`, `screenplays`, `related`). The page's text is not
   changed.
-- **Exports** (Fountain, Final Draft, PDF) always create a new file. Your
+- **Exports** (Fountain, Final Draft) always create a new file. Your
   screenplay is never changed.
 
 ### The scene recovery file
@@ -62,13 +62,6 @@ move replaces it. It is plain text, not encrypted, and may end up in backups
 and sync. Delete it when you no longer need it. Moving a scene within one file
 doesn't create it.
 
-### Chinese, Japanese and Korean PDF fonts
-
-Installing the optional PDF fonts reads only the two font files you pick
-yourself. Scribidian checks them against the official checksums, stores them
-in its plugin folder, and checks them again before each export. It never
-downloads fonts.
-
 ## What you are trusting
 
 Like every Obsidian community plugin, Scribidian runs with the same access as
@@ -78,8 +71,8 @@ Installing it means trusting the code in this repository and the GitHub account
 that publishes it. The source is open; review it, or build it yourself with
 `npm ci && npm run build`, if you want to check what you install.
 
-The installed plugin includes four libraries, all for PDF export: `pdf-lib`,
-`@pdf-lib/fontkit`, `linebreak` and `pako`. Their versions are pinned. Build
+The installed plugin includes one library, `linebreak`, which wraps lines in
+the page preview. Its version is pinned. Build
 and test tools run only on the developer's computer and are not part of the
 installed plugin.
 

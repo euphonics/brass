@@ -2,8 +2,8 @@
 
 Scribidian turns Obsidian into a screenplay editor. You write in plain text,
 and Scribidian lays it out like a printed script, suggests character names and
-scene details as you type, counts your pages, and exports a properly formatted
-PDF or Final Draft file.
+scene details as you type, counts your pages, and exports Fountain or Final Draft files for finishing in
+a dedicated screenplay app.
 
 Your scripts stay ordinary text files in
 [Fountain](https://fountain.io/), a simple screenplay format: a line like
@@ -11,7 +11,7 @@ Your scripts stay ordinary text files in
 the lines below it are dialogue. They open in any text editor and in other
 screenplay apps, with or without Scribidian.
 
-![Writing in Scribidian, then previewing and exporting a PDF](docs/images/firstdraft-demo.gif)
+![Writing in Scribidian, then previewing it as pages](docs/images/firstdraft-demo.gif)
 
 **This is a beta.** Scribidian 0.1.0 has so far been tested by one writer.
 Keep backups of your scripts, and please
@@ -56,7 +56,8 @@ See [Moving from First Draft](docs/releases/0.1.0.md#moving-from-first-draft).
    slugline, a character after action. Enter starts the next element, for
    example a new speaker after a line of dialogue.
 5. **See it as pages.** Run **Screenplay: Preview** to see the script as
-   printed pages, then **Export PDF**.
+   printed pages, then **Export Fountain** to take it into Final Draft, Fade In
+   or another screenplay app.
 
 Open **Scribidian: Open screenplay cheat sheet** any time for screenplay terms
 and examples of the Fountain format.
@@ -90,9 +91,9 @@ and examples of the Fountain format.
 
 **Sharing your script**
 
-- **PDF** in US Letter or A4, with standard margins, Courier, page numbers, an
-  optional title page, and `(MORE)` / `(CONT'D)` when a speech crosses a page.
-- **Final Draft** (`.fdx`) and clean **Fountain** files for other apps.
+- Clean **Fountain** and **Final Draft** (`.fdx`) files. Scribidian has no PDF
+  export: import the Fountain file into Final Draft, Fade In, Highland or
+  another screenplay app for last looks, and make the PDF there.
 - Exports always create a new file. Your script is never changed.
 
 See the [feature tour](docs/FEATURE_TOUR.md) for pictures of each part.
@@ -105,9 +106,7 @@ See the [feature tour](docs/FEATURE_TOUR.md) for pictures of each part.
   putting Smart Tab on the toolbar.
 - [Scenes panel](docs/SCENE_WORKSPACE.md) and
   [continuity inspector](docs/CONTINUITY_INSPECTOR.md).
-- [PDF export](docs/PDF_COMPATIBILITY.md) and
-  [Final Draft export](docs/FDX_COMPATIBILITY.md): what they can and can't do.
-- [Chinese, Japanese and Korean PDFs](docs/CJK_FONT_PACK.md).
+- [Final Draft export](docs/FDX_COMPATIBILITY.md): what it can and can't do.
 
 ## Tips and known limits
 
@@ -135,8 +134,7 @@ size still follow your theme.
 Right-to-left languages (Hebrew, Arabic) and languages without capital letters
 (Chinese, Japanese, Korean) aren't supported for writing yet. If you write
 screenplays in one of them and would like to help, see
-[CONTRIBUTING](CONTRIBUTING.md). PDF export can still print Chinese, Japanese
-and Korean text with an [optional font pack](docs/CJK_FONT_PACK.md).
+[CONTRIBUTING](CONTRIBUTING.md).
 
 **Phones.** Phone keyboards have no Tab key. The
 [phone guide](docs/MOBILE_TESTING.md) shows how to put **Smart Tab** on the
@@ -166,7 +164,7 @@ toolbar above the keyboard.
 
 ## Title pages
 
-To add a title page to your PDF, give the screenplay (or project) note a
+To show a title page in the preview, give the screenplay (or project) note a
 `title` property. You can also add `credit`, `author`, `source`, `draft-date`
 (in quotes)
 and `contact`. In a `.fountain` file, put them at the top instead:
