@@ -38,6 +38,9 @@ Scribidian changes since 0.1.0.
   Scenes panel reuse their numbers until the text changes, and the Scenes
   panel moves its highlight instead of rebuilding. On a 3,000-line script a
   refresh after a cursor move drops from about 35 ms to about 9 ms.
+- Faster start: the PDF export code and its fonts (most of the plugin's
+  size) load on the first PDF export instead of when Obsidian starts, and
+  the editor features are added in one step instead of six.
 
 - The sidebar palette is gone. Its buttons (Preview, Export PDF, character
   pages, project parts and so on) were already commands, and the Recent lists

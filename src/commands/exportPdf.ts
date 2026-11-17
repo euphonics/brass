@@ -18,11 +18,10 @@
 import { Notice } from "obsidian";
 import type { MarkdownView } from "obsidian";
 import type ScribidianPlugin from "../main";
-import {
-  pdfExportPath,
-  serializePdf,
-  UnsupportedPdfTextError,
-} from "../export/pdf";
+import type * as PdfExport from "../export/pdf";
+// The PDF code (pdf-lib, fontkit and the embedded fonts, most of the
+// plugin's size) loads on the first export, not when Obsidian starts.
+type PdfModule = typeof PdfExport;
 import { loadScreenplayContext } from "../projects/vault";
 import { ScreenplayLayoutError } from "../export/screenplayLayout";
 import { CjkFontPackError, loadCjkFontPack } from "../export/cjkFontPack";
@@ -42,11 +41,13 @@ export async function exportPdf(
 
   activeExports.add(plugin);
   const progress = new Notice("Preparing screenplay PDF…", 0);
+  let pdf: PdfModule | null = null;
   try {
     // Paint the progress notice before synchronous font decoding starts, using
     // the editor's window so this also works in an Obsidian popout.
     const ownerWindow = view.containerEl.ownerDocument.defaultView ?? window;
     await new Promise<void>((resolve) => ownerWindow.setTimeout(resolve, 0));
+    pdf = await import("../export/pdf");
     const context = await loadScreenplayContext(
       plugin.app,
       file,
@@ -54,7 +55,7 @@ export async function exportPdf(
       view.editor.getValue(),
     );
     const title = context.project?.project.title ?? context.owner.basename;
-    const path = pdfExportPath(
+    const path = pdf.pdfExportPath(
       context.owner.path,
       {
         has: (candidate: string) =>
@@ -62,7 +63,7 @@ export async function exportPdf(
       },
       title,
     );
-    const content = await serializePdf(context.document, {
+    const content = await pdf.serializePdf(context.document, {
       pageSize: plugin.settings.pageSize,
       title,
       language: plugin.settings.pdfLanguage,
@@ -77,7 +78,7 @@ export async function exportPdf(
     new Notice(`Exported screenplay PDF to ${path}`);
   } catch (error) {
     if (
-      error instanceof UnsupportedPdfTextError ||
+      (pdf !== null && error instanceof pdf.UnsupportedPdfTextError) ||
       error instanceof ScreenplayLayoutError ||
       error instanceof CjkFontPackError
     ) {

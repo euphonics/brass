@@ -100,16 +100,18 @@ export default class ScribidianPlugin extends Plugin {
     this.statusBarItem.addClass("scribidian-status");
     this.statusBarItem.hide();
     this.addSettingTab(new ScribidianSettingTab(this.app, this));
-    this.registerEditorExtension(createScreenplayCompletionExtension(this));
-    this.registerEditorExtension(createScreenplayLayoutExtension(this));
-    this.registerEditorExtension(createDualDialogueExtension(this));
-    this.registerEditorExtension(createBottomMarginExtension(this));
-    this.registerEditorExtension(createBlankLineLockExtension(this));
-    this.registerEditorExtension(
+    // One call, in this order: each call makes Obsidian reconfigure every
+    // open editor.
+    this.registerEditorExtension([
+      createScreenplayCompletionExtension(this),
+      createScreenplayLayoutExtension(this),
+      createDualDialogueExtension(this),
+      createBottomMarginExtension(this),
+      createBlankLineLockExtension(this),
       EditorView.updateListener.of((update) => {
         if (update.selectionSet && !update.docChanged) this.onCursorMoved();
       }),
-    );
+    ]);
     registerFountainCodeBlockProcessor(this);
     this.registerView(SCENES_VIEW_TYPE, (leaf) => new ScenesView(leaf, this));
     this.addRibbonIcon("clapperboard", "Open scenes", () => {
