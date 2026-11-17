@@ -15,182 +15,70 @@
  * limitations under the License.
  */
 
-import type {
-  ScreenplayDocument,
-  ScreenplayElement,
-  ScreenplayElementType,
-} from "./model";
+import {
+  centeredContent,
+  characterCue,
+  classifyLines,
+  frontmatterEnd,
+} from "./lines";
+import type { ScreenplayDocument, ScreenplayElement } from "./model";
 import { extractFountainTitlePage } from "./titlePage";
 
-const SCENE_HEADING = /^(?:INT|EXT|EST|INT\.\/EXT|INT\/EXT|I\/E)(?:\.|\s)/iu;
-const HAS_LETTER = /\p{L}/u;
-const UPPERCASE_LETTER = /\p{Lu}/u;
-const LOWERCASE_LETTER = /\p{Ll}/u;
-
-function withoutFrontmatter(source: string): string {
+/** The lines after the front matter. Line numbers count from there. */
+function bodyLines(source: string): string[] {
   const lines = source
     .replace(/^\uFEFF/u, "")
     .replaceAll("\r\n", "\n")
     .split("\n");
-  if (lines[0]?.trim() !== "---") return lines.join("\n");
-
-  const closingIndex = lines.findIndex(
-    (line, index) => index > 0 && line.trim() === "---",
-  );
-  return closingIndex === -1
-    ? lines.join("\n")
-    : lines.slice(closingIndex + 1).join("\n");
+  const end = frontmatterEnd(lines);
+  return end === -1 ? lines : lines.slice(end + 1);
 }
 
-export function isSceneHeading(line: string): boolean {
-  const text = line.trim();
-  if (text.startsWith("!")) return false;
-  return /^\.[\p{L}\p{N}]/u.test(text) || SCENE_HEADING.test(text);
-}
-
-function isTransition(
-  line: string,
-  beforeBlank: boolean,
-  afterBlank: boolean,
-): boolean {
-  const text = line.trim();
-  if (text.startsWith(">") && !text.endsWith("<")) return true;
-  return (
-    beforeBlank &&
-    afterBlank &&
-    text.endsWith("TO:") &&
-    UPPERCASE_LETTER.test(text) &&
-    !LOWERCASE_LETTER.test(text)
-  );
-}
-
-interface CharacterCue {
-  name: string;
-  extension: string | null;
-}
-
-function characterCue(line: string): CharacterCue | null {
-  const text = line.trim();
-  const forced = text.startsWith("@");
-  const candidate = (forced ? text.slice(1).trim() : text)
-    .replace(/\s*\^\s*$/u, "")
-    .trim();
-  if (!candidate || isSceneHeading(candidate) || !HAS_LETTER.test(candidate))
-    return null;
-  if (!forced && LOWERCASE_LETTER.test(candidate)) return null;
-  if (!forced && !UPPERCASE_LETTER.test(candidate)) return null;
-
-  const extensionMatch = /(?:\s+\([^)]*\))+\s*$/u.exec(candidate);
-  const extension = extensionMatch?.[0].trim() ?? null;
-  const name = extensionMatch
-    ? candidate.slice(0, extensionMatch.index).trim()
-    : candidate;
-
-  return name ? { name, extension } : null;
-}
-
-function pushElement(
-  elements: ScreenplayElement[],
-  type: ScreenplayElementType,
-  text: string,
-  line: number,
-): void {
-  elements.push({ type, text, line });
-}
-
+/**
+ * Read a Fountain document into screenplay elements. Each line's kind comes
+ * from `classifyLines`, the same rules the editor layout uses.
+ */
 export function parseFountain(source: string): ScreenplayDocument {
-  const { lines, titlePage } = extractFountainTitlePage(
-    withoutFrontmatter(source).split("\n"),
-  );
+  const { lines, titlePage } = extractFountainTitlePage(bodyLines(source));
+  const kinds = classifyLines(lines, { frontmatter: false });
   const elements: ScreenplayElement[] = [];
   let blankLines = 0;
-  let inDialogue = false;
-  let inComment = false;
-  let inBoneyard = false;
 
   for (let index = 0; index < lines.length; index += 1) {
     const raw = lines[index] ?? "";
     const text = raw.trim();
-    const beforeBlank = index === 0 || (lines[index - 1]?.trim() ?? "") === "";
-    const afterBlank =
-      index === lines.length - 1 || (lines[index + 1]?.trim() ?? "") === "";
+    const kind = kinds[index] ?? null;
+    const line = index + 1;
 
-    // Obsidian %% comments and Fountain /* boneyard */ are not screenplay
-    // text. A one-line comment inside a speech doesn't end it.
-    if (inComment) {
-      if (text.endsWith("%%")) inComment = false;
+    if (kind === null) {
+      if (text === "") blankLines += 1;
       continue;
     }
-    if (inBoneyard) {
-      if (text.endsWith("*/")) inBoneyard = false;
-      continue;
-    }
-    if (text.startsWith("%%")) {
-      inComment = !(text.length >= 4 && text.endsWith("%%"));
-      continue;
-    }
-    if (text.startsWith("/*")) {
-      inBoneyard = !(text.length >= 4 && text.endsWith("*/"));
-      continue;
-    }
+    // Notes, comments, synopses and page breaks aren't printed or counted. A
+    // line of spaces inside a speech only keeps the speech going.
+    if (kind === "note" || kind === "page-break" || text === "") continue;
 
-    // A line of two or more spaces inside a speech keeps it going
-    // (Fountain's way to put a blank line in dialogue).
-    if (inDialogue && text === "" && /^ {2,}$/u.test(raw)) continue;
-
-    if (text === "") {
-      blankLines += 1;
-      inDialogue = false;
-      continue;
+    switch (kind) {
+      case "character": {
+        const cue = characterCue(text);
+        elements.push({
+          type: "character",
+          text: cue?.name ?? text,
+          line,
+          ...(cue?.extension ? { characterExtension: cue.extension } : {}),
+        });
+        break;
+      }
+      case "centered":
+        elements.push({ type: "centered", text: centeredContent(text), line });
+        break;
+      case "action":
+      case "lyric":
+        elements.push({ type: "action", text: raw, line });
+        break;
+      default:
+        elements.push({ type: kind, text, line });
     }
-
-    if (/^=(?!=)/u.test(text)) {
-      inDialogue = false;
-      continue;
-    }
-
-    // "!" forces action, e.g. an all-caps line that would read as a cue.
-    if (text.startsWith("!")) {
-      pushElement(elements, "action", raw, index + 1);
-      inDialogue = false;
-      continue;
-    }
-
-    if (isSceneHeading(text)) {
-      pushElement(elements, "scene-heading", text, index + 1);
-      inDialogue = false;
-      continue;
-    }
-
-    if (isTransition(text, beforeBlank, afterBlank)) {
-      pushElement(elements, "transition", text, index + 1);
-      inDialogue = false;
-      continue;
-    }
-
-    if (inDialogue && text.startsWith("(") && text.endsWith(")")) {
-      pushElement(elements, "parenthetical", text, index + 1);
-      continue;
-    }
-
-    if (inDialogue) {
-      pushElement(elements, "dialogue", text, index + 1);
-      continue;
-    }
-
-    const cue = beforeBlank && !afterBlank ? characterCue(text) : null;
-    if (cue !== null) {
-      elements.push({
-        type: "character",
-        text: cue.name,
-        line: index + 1,
-        ...(cue.extension ? { characterExtension: cue.extension } : {}),
-      });
-      inDialogue = true;
-      continue;
-    }
-
-    pushElement(elements, "action", raw, index + 1);
   }
 
   return { elements, blankLines, ...(titlePage ? { titlePage } : {}) };

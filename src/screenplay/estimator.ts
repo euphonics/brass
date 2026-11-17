@@ -39,6 +39,7 @@ const PAGE_METRICS: Record<PageSize, PageMetrics> = {
       dialogue: 35,
       parenthetical: 26,
       transition: 50,
+      centered: 61,
     },
   },
   a4: {
@@ -50,6 +51,7 @@ const PAGE_METRICS: Record<PageSize, PageMetrics> = {
       dialogue: 34,
       parenthetical: 25,
       transition: 48,
+      centered: 59,
     },
   },
 };

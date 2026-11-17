@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { isSceneHeading, parseFountain } from "../screenplay/parser";
+import { isSceneHeading } from "../screenplay/lines";
+import { parseFountain } from "../screenplay/parser";
 import { parseSceneHeadingParts } from "../screenplay/indexer";
 import { calculateStatistics } from "../screenplay/statistics";
 import type { PageSize } from "../screenplay/model";

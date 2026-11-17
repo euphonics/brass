@@ -16,6 +16,11 @@
  */
 
 import {
+  isMarkdownHeading,
+  isSceneHeading,
+  isTransitionText,
+} from "../screenplay/lines";
+import {
   DEFAULT_SLUG_MODIFIERS,
   CHARACTER_EXTENSIONS,
   COMMON_PARENTHETICALS,
@@ -30,18 +35,13 @@ import {
   preferredAndRecentTimes,
   rankUsages,
 } from "../screenplay/indexer";
-import { isSceneHeading, parseFountain } from "../screenplay/parser";
+import { parseFountain } from "../screenplay/parser";
 import type {
   ScreenplayDocument,
   ScreenplayIndex,
   Usage,
 } from "../screenplay/model";
-import {
-  isInDialogueBlock,
-  isMarkdownHeading,
-  isTransitionText,
-  recentSceneSpeakers,
-} from "./smartTab";
+import { isInDialogueBlock, recentSceneSpeakers } from "./smartTab";
 
 export type ScreenplayCompletionKind =
   | "character"

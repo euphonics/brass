@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
+import { isForcedTransition, isSceneHeading } from "../screenplay/lines";
 import { StateEffect, StateField } from "@codemirror/state";
-import { isSceneHeading } from "../screenplay/parser";
 import type { LayoutLineKind } from "./layoutClassifier";
-import { isForcedTransition } from "./smartTab";
 
 /** The cursor's line, laid out as a chosen element. */
 export interface LineKindOverride {

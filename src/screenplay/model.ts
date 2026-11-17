@@ -21,7 +21,8 @@ export type ScreenplayElementType =
   | "character"
   | "dialogue"
   | "parenthetical"
-  | "transition";
+  | "transition"
+  | "centered";
 
 export interface ScreenplayElement {
   type: ScreenplayElementType;

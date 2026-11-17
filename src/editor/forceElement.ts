@@ -15,8 +15,11 @@
  * limitations under the License.
  */
 
-import { isSceneHeading } from "../screenplay/parser";
-import { isTransitionText, looksLikeCharacterCue } from "./smartTab";
+import {
+  isSceneHeading,
+  isTransitionText,
+  looksLikeCharacterCue,
+} from "../screenplay/lines";
 
 /** Elements a line can be forced to with the "Set line to …" commands. */
 export type ForcedElement =

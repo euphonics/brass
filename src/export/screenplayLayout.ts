@@ -53,7 +53,7 @@ interface ElementStyle {
   right: number;
   maximumCharacters: number;
   gapBefore: number;
-  align: "left" | "right";
+  align: "left" | "right" | "center";
 }
 
 const PAGE_DIMENSIONS: Record<PageSize, ScreenplayPageDimensions> = {
@@ -119,6 +119,14 @@ function styleFor(
         maximumCharacters: 60,
         gapBefore: 12,
         align: "left",
+      };
+    case "centered":
+      return {
+        left: 90,
+        right: 72,
+        maximumCharacters: 60,
+        gapBefore: 12,
+        align: "center",
       };
   }
 }

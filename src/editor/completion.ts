@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { isForcedTransition, isSceneHeading } from "../screenplay/lines";
 import { lineKindField, setLineKind } from "./lineKindOverride";
 import { forceElementPlan, type ForcedElement } from "./forceElement";
 import {
@@ -41,13 +42,12 @@ import { editorInfoField } from "obsidian";
 import type ScribidianPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
 import { buildScreenplayIndex } from "../screenplay/indexer";
-import { isSceneHeading, parseFountain } from "../screenplay/parser";
+import { parseFountain } from "../screenplay/parser";
 import { ScreenplayIndexCache, textOutsideLine } from "./indexCache";
 import {
   getSmartEnterPlan,
   getSmartTabPlan,
   capitalizeLineStart,
-  isForcedTransition,
   type SmartTabPlan,
 } from "./smartTab";
 import {

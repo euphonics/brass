@@ -64,6 +64,18 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- The editor, suggestions, statistics, Smart Tab and export now read every
+  line the same way, using one set of rules:
+  - A cue with a lowercase extension (`JANE (v.o.)`) counts as a character.
+  - `CUT TO:` is always a transition, never a character, even with no blank
+    line after it.
+  - Centered text (`> THE END <`) is centered in PDF and FDX export, without
+    the markers.
+  - Page breaks (`===`), sections (`# ACT ONE`), notes (`[[...]]`) and
+    callouts are no longer counted or printed as action.
+  - An unclosed wryly (`(whispering`) is a wryly, and a Markdown heading ends
+    a speech.
+  - `FADE OUT.` and `FADE IN:` are never read as character names.
 - Keep the theme's side margins on phones.
 - Don't change text while a phone keyboard is composing a word.
 - Lock the screenplay layout in screenplay notes so themes can't move it

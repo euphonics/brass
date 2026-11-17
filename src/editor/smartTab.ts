@@ -16,10 +16,18 @@
  */
 
 import {
+  classifyLines,
+  frontmatterEnd,
+  isForcedTransition,
+  isMarkdownHeading,
+  isSceneHeading,
+  isTransitionText,
+  looksLikeCharacterCue,
+} from "../screenplay/lines";
+import {
   splitSlugModifier,
   DEFAULT_TIMES_OF_DAY,
 } from "../screenplay/fountain";
-import { isSceneHeading } from "../screenplay/parser";
 import {
   DEFAULT_ENTER_TARGETS,
   startsNewBlock,
@@ -65,33 +73,8 @@ export interface SmartTabPlan {
   forceAfter?: ForcedElement;
 }
 
-const LOWERCASE_LETTER = /\p{Ll}/u;
-const UPPERCASE_LETTER = /\p{Lu}/u;
-
-/**
- * Index of the line that closes the front matter at the top ("---" ...
- * "---"), or -1 when there is none or it is never closed.
- */
-export function frontmatterEnd(lines: readonly string[]): number {
-  if (lines[0]?.replace(/^\uFEFF/u, "").trim() !== "---") return -1;
-  return lines.findIndex((line, index) => index > 0 && line.trim() === "---");
-}
-
 function isBlank(line: string | undefined): boolean {
   return (line ?? "").trim() === "";
-}
-
-/**
- * Forced transition line: "> CUT TO:". Not centered text ("> THE END <")
- * and not an Obsidian callout ("> [!note]").
- */
-export function isForcedTransition(text: string): boolean {
-  const trimmed = text.trim();
-  return (
-    trimmed.startsWith(">") &&
-    !trimmed.endsWith("<") &&
-    !/^>\s*\[!/u.test(trimmed)
-  );
 }
 
 /**
@@ -110,31 +93,9 @@ export function capitalizeLineStart(
 /** Known times, or a function that computes them only when needed. */
 export type KnownTimes = readonly string[] | (() => readonly string[]);
 
-export function isTransitionText(text: string): boolean {
-  if (isForcedTransition(text)) return true;
-  return (
-    text.endsWith("TO:") &&
-    UPPERCASE_LETTER.test(text) &&
-    !LOWERCASE_LETTER.test(text)
-  );
-}
-
-/** Character cue text: all caps (or forced with @), not a heading or transition. */
-export function looksLikeCharacterCue(text: string): boolean {
-  const trimmed = text.trim();
-  if (!trimmed || isSceneHeading(trimmed) || isTransitionText(trimmed)) {
-    return false;
-  }
-  if (trimmed.startsWith("@")) return trimmed.length > 1;
-  const name = trimmed
-    .replace(/\s*\^\s*$/u, "")
-    .replace(/(?:\s+\([^)]*\))+\s*$/u, "");
-  return UPPERCASE_LETTER.test(name) && !LOWERCASE_LETTER.test(name);
-}
-
 /**
- * Whether line `index` sits inside a dialogue block: a run of non-blank lines
- * whose first line is a character cue that starts after a blank line.
+ * Whether line `index` sits inside a speech: under a character cue that
+ * starts a block, with only dialogue and wrylies between them.
  */
 export function isInDialogueBlock(
   lines: readonly string[],
@@ -145,13 +106,15 @@ export function isInDialogueBlock(
   while (start >= firstContentLine && !isBlank(lines[start])) start -= 1;
   const cueIndex = start + 1;
   if (cueIndex >= index) return false;
-  const cueStartsBlock = cueIndex === firstContentLine || isBlank(lines[start]);
-  return cueStartsBlock && looksLikeCharacterCue(lines[cueIndex] ?? "");
-}
-
-/** Markdown heading or Fountain section: "# Act One", "## Sequence". */
-export function isMarkdownHeading(text: string): boolean {
-  return /^#{1,6}\s+\S/u.test(text.trim());
+  const kinds = classifyLines(lines.slice(0, index + 1), { cursorLine: index });
+  if (kinds[cueIndex] !== "character") return false;
+  for (let line = cueIndex + 1; line < index; line += 1) {
+    const kind = kinds[line];
+    if (kind !== "dialogue" && kind !== "parenthetical" && kind !== "note") {
+      return false;
+    }
+  }
+  return true;
 }
 
 export function classifySmartTabLine(

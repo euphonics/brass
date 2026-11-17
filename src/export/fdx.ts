@@ -27,6 +27,7 @@ const FDX_PARAGRAPH_TYPES: Record<ScreenplayElementType, string> = {
   dialogue: "Dialogue",
   parenthetical: "Parenthetical",
   transition: "Transition",
+  centered: "Action",
 };
 
 function validXmlCharacter(character: string): boolean {
@@ -73,7 +74,8 @@ export function serializeFdx(document: ScreenplayDocument): string {
   const paragraphs = document.elements.map((element) => {
     const type = FDX_PARAGRAPH_TYPES[element.type];
     const text = escapeXmlText(fdxText(element));
-    return `    <Paragraph Type="${type}">\n      <Text>${text}</Text>\n    </Paragraph>`;
+    const alignment = element.type === "centered" ? ' Alignment="Center"' : "";
+    return `    <Paragraph Type="${type}"${alignment}>\n      <Text>${text}</Text>\n    </Paragraph>`;
   });
 
   return [

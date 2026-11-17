@@ -15,39 +15,16 @@
  * limitations under the License.
  */
 
-import { isSceneHeading } from "./parser";
+import { characterCue } from "./lines";
 
-const HAS_LETTER = /\p{L}/u;
-const LOWERCASE_LETTER = /\p{Ll}/u;
-const STANDARD_TRANSITION = /(?:TO:|FADE IN:|FADE OUT\.)$/u;
-
+/** The name on a character cue line, in capitals, or null. */
 export function characterNameFromCue(line: string): string | null {
-  if (!isLikelyCharacterCue(line)) return null;
-  return line
-    .trim()
-    .replace(/^@/u, "")
-    .replace(/\s*\^\s*$/u, "")
-    .replace(/(?:\s+\([^)]*\))+\s*$/u, "")
-    .trim()
-    .toLocaleUpperCase();
+  return characterCue(line)?.name.toLocaleUpperCase() ?? null;
 }
 
+/** Whether a line on its own could be a character cue. */
 export function isLikelyCharacterCue(line: string): boolean {
-  const text = line.trim();
-  const forced = text.startsWith("@");
-  const candidate = text
-    .replace(/^@/u, "")
-    .replace(/\s*\^\s*$/u, "")
-    .replace(/(?:\s+\([^)]*\))+\s*$/u, "")
-    .trim();
-  return (
-    Boolean(candidate) &&
-    HAS_LETTER.test(candidate) &&
-    !isSceneHeading(candidate) &&
-    !text.startsWith(">") &&
-    !STANDARD_TRANSITION.test(candidate) &&
-    (forced || !LOWERCASE_LETTER.test(candidate))
-  );
+  return characterCue(line) !== null;
 }
 
 export function withCharacterExtension(
