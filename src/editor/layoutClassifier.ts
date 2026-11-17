@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { classifyLines, type LineKind } from "../screenplay/lines";
+import type { Text } from "@codemirror/state";
+import {
+  characterCue,
+  classifyLines,
+  type LineKind,
+} from "../screenplay/lines";
 
 /** How a line is laid out in the editor's screenplay layout. */
 export type LayoutLineKind = LineKind;
@@ -74,4 +79,18 @@ export function menuLineKind(
   if (detail === "Transition") return "transition";
   if (detail === "Wryly") return "parenthetical";
   return null;
+}
+
+/**
+ * Whether the cursor being on line `line` (0-based) can change how lines
+ * are laid out. `classifyLines` only uses the cursor line for an empty line
+ * (where the next cue or dialogue goes) and for a character cue on that
+ * line or the line above it. Moving between other lines needn't reclassify.
+ */
+export function cursorAffectsLayout(doc: Text, line: number): boolean {
+  if (line < 0 || line >= doc.lines) return true;
+  const text = doc.line(line + 1).text;
+  if (text.trim() === "") return true;
+  if (characterCue(text) !== null) return true;
+  return line > 0 && characterCue(doc.line(line).text) !== null;
 }

@@ -36,6 +36,7 @@ import type ScribidianPlugin from "../main";
 import {
   centeredMarkers,
   classifyLayoutLines,
+  cursorAffectsLayout,
   menuLineKind,
   forcedHeadingDot,
   type LayoutLineKind,
@@ -99,9 +100,12 @@ export function createScreenplayLayoutExtension(
       update(update: ViewUpdate): void {
         const cursorLine =
           update.state.doc.lineAt(update.state.selection.main.head).number - 1;
+        const cursorMoved = cursorLine !== this.cursorLine;
         const reclassify =
           update.docChanged ||
-          cursorLine !== this.cursorLine ||
+          (cursorMoved &&
+            (cursorAffectsLayout(update.state.doc, this.cursorLine) ||
+              cursorAffectsLayout(update.state.doc, cursorLine))) ||
           openMenuKind(update.state) !== this.menuKind ||
           update.startState.field(lineKindField, false) !==
             update.state.field(lineKindField, false) ||
@@ -119,6 +123,7 @@ export function createScreenplayLayoutExtension(
         }
         if (
           reclassify ||
+          cursorMoved ||
           this.active !== wasActive ||
           update.viewportChanged ||
           update.transactions.some((tr) => tr.reconfigured)

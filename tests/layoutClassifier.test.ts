@@ -16,8 +16,10 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { Text } from "@codemirror/state";
 import {
   centeredMarkers,
+  cursorAffectsLayout,
   menuLineKind,
   classifyLayoutLines,
 } from "../src/editor/layoutClassifier";
@@ -187,5 +189,61 @@ describe("comments and two-space lines", () => {
       "dialogue",
       "dialogue",
     ]);
+  });
+});
+
+describe("cursorAffectsLayout", () => {
+  const script = [
+    "---",
+    "screenplay: true",
+    "---",
+    "",
+    "INT. KITCHEN - DAY",
+    "",
+    "Jen stirs the pot.",
+    "",
+    "JEN (V.O.)",
+    "(quietly)",
+    "It was never about the soup.",
+    "  ",
+    "Still stirring.",
+    "",
+    "GEORGE",
+    "",
+    "Al",
+    "",
+    "AL",
+    "",
+    "> THE END <",
+    "",
+    "# Act two",
+    "",
+    "~Sing it",
+    "",
+    "CUT TO:",
+    "",
+    "/* a boneyard",
+    "BOB",
+    "*/",
+    "",
+    "MARY ^",
+    "Hi.",
+  ];
+  const doc = Text.of(script);
+
+  it("is true wherever the cursor line changes the layout", () => {
+    const base = classifyLayoutLines(script, -1);
+    for (let line = 0; line < script.length; line += 1) {
+      if (cursorAffectsLayout(doc, line)) continue;
+      expect(classifyLayoutLines(script, line), `line ${line}`).toEqual(base);
+    }
+  });
+
+  it("is true on empty lines and around cues", () => {
+    expect(cursorAffectsLayout(doc, 3)).toBe(true);
+    expect(cursorAffectsLayout(doc, 8)).toBe(true);
+    expect(cursorAffectsLayout(doc, 9)).toBe(true);
+    expect(cursorAffectsLayout(doc, 6)).toBe(false);
+    expect(cursorAffectsLayout(doc, -1)).toBe(true);
   });
 });
