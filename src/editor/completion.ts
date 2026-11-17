@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
-import { isForcedTransition, isSceneHeading } from "../screenplay/lines";
+import {
+  isForcedTransition,
+  isMarkdownHeading,
+  isSceneHeading,
+  isTransitionText,
+} from "../screenplay/lines";
+import { setTabMenuLine, tabMenuLineField } from "./tabCueLine";
 import { lineKindField, setLineKind } from "./lineKindOverride";
 import { forceElementPlan, type ForcedElement } from "./forceElement";
 import { menuLineKind } from "./layoutClassifier";
@@ -86,31 +92,28 @@ const forcedListField = StateField.define<{
   },
 });
 
-/** Smart Tab opened a suggestion list on this empty line (its start). */
-const setTabMenuLine = StateEffect.define<number | null>();
-
 /**
- * The empty line where Smart Tab just opened a list. It lasts while the
- * cursor stays on that line and the line is empty.
+ * Whether the last text above line `lineNumber` is a "# heading", a
+ * transition or centred text, after which a slugline (not a cue) comes.
  */
-const tabMenuLineField = StateField.define<number | null>({
-  create: () => null,
-  update(value, tr) {
-    for (const effect of tr.effects) {
-      if (effect.is(setTabMenuLine)) return effect.value;
-    }
-    if (value === null) return null;
-    const from = tr.changes.mapPos(value);
-    const current = tr.state.doc.lineAt(tr.state.selection.main.head);
-    return current.from === from && current.text.trim() === "" ? from : null;
-  },
-});
+function followsHeading(doc: Text, lineNumber: number): boolean {
+  for (let number = lineNumber - 1; number >= 1; number -= 1) {
+    const text = doc.line(number).text.trim();
+    if (text === "") continue;
+    return (
+      isMarkdownHeading(text) || isTransitionText(text) || /^>.*<$/u.test(text)
+    );
+  }
+  return false;
+}
 
 /**
  * Typing on the empty line where Tab opened the character list: the writer
  * is typing a cue. Keep the line laid out as one, so a name typed in lower
  * case ("Jen", before the list's "JEN" is picked) stays in the middle
- * instead of dropping to the action margin. Shift+Tab still makes it action.
+ * instead of dropping to the action margin. The same when the list is
+ * empty (no characters yet) and Tab put a cue there. Shift+Tab still makes
+ * it action.
  */
 const keepTabCue = EditorState.transactionExtender.of((tr) => {
   if (!tr.docChanged) return null;
@@ -118,13 +121,18 @@ const keepTabCue = EditorState.transactionExtender.of((tr) => {
   const marked = start.field(tabMenuLineField, false) ?? null;
   if (marked === null) return null;
   if (start.field(lineKindField, false) != null) return null;
-  if (start.doc.lineAt(start.selection.main.head).from !== marked) return null;
-  if (completionStatus(start) !== "active") return null;
-  const first = currentCompletions(start)[0]?.detail;
-  if (menuLineKind(first) !== "character") return null;
+  if (start.doc.lineAt(start.selection.main.head).from !== marked.from) {
+    return null;
+  }
+  if (completionStatus(start) === "active") {
+    const first = currentCompletions(start)[0]?.detail;
+    if (menuLineKind(first) !== "character") return null;
+  } else if (!marked.cue) {
+    return null;
+  }
   const head = tr.state.selection.main.head;
   const line = tr.state.doc.lineAt(head);
-  if (line.from !== tr.changes.mapPos(marked)) return null;
+  if (line.from !== tr.changes.mapPos(marked.from)) return null;
   return {
     effects: [
       setLineKind.of({ from: line.from, kind: "character" }),
@@ -367,11 +375,20 @@ export function createScreenplayCompletionExtension(
     if (plan.forceAfter) forceElement(view, plan.forceAfter);
     else if (plan.openCompletion) {
       // A new block: remember the line, so typing a cue there keeps the
-      // cue's column (see keepTabCue).
-      if (plan.kind === "new-block" || plan.kind === "under-block") {
+      // cue's column (see keepTabCue), even with no characters to list.
+      if (
+        plan.kind === "new-block" ||
+        plan.kind === "under-block" ||
+        plan.kind === "action"
+      ) {
         const line = view.state.doc.lineAt(view.state.selection.main.head);
         if (line.text.trim() === "") {
-          view.dispatch({ effects: setTabMenuLine.of(line.from) });
+          view.dispatch({
+            effects: setTabMenuLine.of({
+              from: line.from,
+              cue: !followsHeading(view.state.doc, line.number),
+            }),
+          });
         }
       }
       startCompletion(view);

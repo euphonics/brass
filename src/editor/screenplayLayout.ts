@@ -16,6 +16,7 @@
  */
 
 import { lineKindField, setLineKind } from "./lineKindOverride";
+import { tabCueLine } from "./tabCueLine";
 import {
   closeCompletion,
   completionStatus,
@@ -67,12 +68,18 @@ const LINE_DECORATIONS = new Map<LayoutLineKind, Decoration>(
 
 const HIDDEN = Decoration.replace({});
 
-/** Element of the open suggestion list on an empty cursor line, or null. */
+/**
+ * Element of the open suggestion list on an empty cursor line, or null. A
+ * line where Tab put a cue counts as a character even when the list is
+ * empty (no characters yet).
+ */
 function openMenuKind(state: EditorState): LayoutLineKind | null {
-  if (completionStatus(state) !== "active") return null;
   const line = state.doc.lineAt(state.selection.main.head);
   if (line.text.trim() !== "") return null;
-  return menuLineKind(currentCompletions(state)[0]?.detail);
+  if (completionStatus(state) === "active") {
+    return menuLineKind(currentCompletions(state)[0]?.detail);
+  }
+  return tabCueLine(state) !== null ? "character" : null;
 }
 
 /**
@@ -234,7 +241,12 @@ export function createScreenplayLayoutExtension(
   const escape = EditorView.domEventObservers({
     keydown(event, view) {
       if (event.key !== "Escape") return;
-      if (completionStatus(view.state) !== "active") return;
+      if (
+        completionStatus(view.state) !== "active" &&
+        tabCueLine(view.state) === null
+      ) {
+        return;
+      }
       window.setTimeout(() => shiftTab(view), 0);
     },
   });

@@ -86,6 +86,9 @@ Scribidian changes since 0.1.0.
 - After Tab opens the character list on an empty line, typing a name in
   lower case ("Jen") keeps the line in the cue's column instead of jumping
   back to the action margin.
+- Tab at the end of an action line puts the next line in the cue's column
+  even in a script with no characters yet (the character list is empty).
+  Shift+Tab or Escape makes it action.
 - The editor, suggestions, statistics, Smart Tab and export now read every
   line the same way, using one set of rules:
   - A cue with a lowercase extension (`JANE (v.o.)`) counts as a character.
