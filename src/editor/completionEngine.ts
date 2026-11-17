@@ -19,6 +19,7 @@ import {
   isMarkdownHeading,
   isSceneHeading,
   isTransitionText,
+  looksLikeCharacterCue,
 } from "../screenplay/lines";
 import {
   DEFAULT_SLUG_MODIFIERS,
@@ -112,12 +113,22 @@ function extensionPlan(
   lineFrom: number,
   cursorOffset: number,
   characters: readonly string[],
+  startsBlock: boolean,
 ): ScreenplayCompletionPlan | null {
   // "JEN (" or "JEN(" both open the list.
   const match = /^(.+?)(\s*)\(([^)]*)$/u.exec(before);
   if (!match) return null;
-  const character = match[1]?.replace(/^@/u, "").trim().toLocaleUpperCase();
-  if (!character || !characters.includes(character)) return null;
+  const typed = match[1] ?? "";
+  const character = typed.replace(/^@/u, "").trim().toLocaleUpperCase();
+  if (!character) return null;
+  // A known character, or a new one: a name in capitals (or "@name")
+  // starting a block, before it has any dialogue.
+  if (
+    !characters.includes(character) &&
+    !(startsBlock && looksLikeCharacterCue(typed))
+  ) {
+    return null;
+  }
 
   const query = match[3]?.toLocaleUpperCase() ?? "";
   const openParenthesis = before.lastIndexOf("(");
@@ -503,6 +514,7 @@ export function getScreenplayCompletionPlan(
     from,
     cursorOffset,
     characterNames,
+    from === 0 || previousLine.trim() === "",
   );
   if (extensions) return extensions;
 

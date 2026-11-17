@@ -89,6 +89,9 @@ Scribidian changes since 0.1.0.
 - Tab at the end of an action line puts the next line in the cue's column
   even in a script with no characters yet (the character list is empty).
   Shift+Tab or Escape makes it action.
+- Typing `(` after a new character name in capitals (`JOHN (`) opens the
+  extension list ((V.O.), (O.S.) and so on), not only after a name that
+  already has dialogue.
 - The editor, suggestions, statistics, Smart Tab and export now read every
   line the same way, using one set of rules:
   - A cue with a lowercase extension (`JANE (v.o.)`) counts as a character.

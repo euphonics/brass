@@ -98,6 +98,20 @@ describe("screenplay completion engine", () => {
     ]);
   });
 
+  it("offers extensions for a new name in capitals starting a block", () => {
+    const plan = (source: string) =>
+      getScreenplayCompletionPlan(
+        source,
+        source.length,
+        DEFAULT_COMPLETION_PREFERENCES,
+      )?.kind;
+    expect(plan("My action.\n\nJOHN (")).toBe("character-extension");
+    expect(plan("My action.\n\nJOHN(")).toBe("character-extension");
+    // Not inside an action paragraph, and not for ordinary text.
+    expect(plan("My action.\nJOHN (")).not.toBe("character-extension");
+    expect(plan("My action.\n\nShe waves (")).not.toBe("character-extension");
+  });
+
   it("opens character extensions right after the name, too", () => {
     const source = `${screenplay}\nJANE(`;
     const plan = getScreenplayCompletionPlan(
