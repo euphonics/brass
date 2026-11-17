@@ -661,11 +661,29 @@ export default class ScribidianPlugin extends Plugin {
       this.settings.characterFolder,
       this.isScreenplayFile(file) ? view.editor.getValue() : undefined,
     );
-    return calculateStatistics(context.document, {
+    // Cursor moves refresh the status too; recount only when the text or
+    // a setting it depends on changed.
+    const key = JSON.stringify([
+      context.source,
+      context.document.titlePage ?? null,
+      this.settings.pageSize,
+      this.settings.minutesPerPage,
+    ]);
+    if (this.statisticsCache?.key === key) {
+      return this.statisticsCache.statistics;
+    }
+    const statistics = calculateStatistics(context.document, {
       pageSize: this.settings.pageSize,
       minutesPerPage: this.settings.minutesPerPage,
     });
+    this.statisticsCache = { key, statistics };
+    return statistics;
   }
+
+  private statisticsCache: {
+    key: string;
+    statistics: ScreenplayStatistics;
+  } | null = null;
 
   private async showStatistics(view: MarkdownView): Promise<void> {
     const statistics = await this.statisticsFor(view);

@@ -166,6 +166,42 @@ export function sceneFile(
   };
 }
 
+const sceneFileCache = new Map<
+  string,
+  { source: string; pageSize: PageSize; pageOffset: number; file: SceneFile }
+>();
+
+/**
+ * `sceneFile`, reusing the last result for this path while its text, page
+ * size and starting page are unchanged. The Scenes panel refreshes on every
+ * cursor move, and most of those don't change the text.
+ */
+export function cachedSceneFile(
+  path: string,
+  source: string,
+  pageSize: PageSize = "us-letter",
+  pageOffset = 0,
+): SceneFile {
+  const cached = sceneFileCache.get(path);
+  if (
+    cached !== undefined &&
+    cached.source === source &&
+    cached.pageSize === pageSize &&
+    cached.pageOffset === pageOffset
+  ) {
+    return cached.file;
+  }
+  const file = sceneFile(path, source, pageSize, pageOffset);
+  // Keep one entry per path, and only a few paths.
+  sceneFileCache.delete(path);
+  if (sceneFileCache.size >= 8) {
+    const oldest = sceneFileCache.keys().next().value;
+    if (oldest !== undefined) sceneFileCache.delete(oldest);
+  }
+  sceneFileCache.set(path, { source, pageSize, pageOffset, file });
+  return file;
+}
+
 export function filterScenes(
   scenes: readonly Scene[],
   filters: SceneFilters,

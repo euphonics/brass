@@ -16,6 +16,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  cachedSceneFile,
   sceneFile,
   filterScenes,
   EMPTY_SCENE_FILTERS,
@@ -275,4 +276,26 @@ describe("source scene workspace", () => {
     expect(
       sceneFile("Film.md", "---\ntitle: Night\nINT. ROOM - DAY").issue,
     ).toBeTruthy());
+});
+
+describe("cachedSceneFile", () => {
+  const source =
+    "INT. ROOF - DAY\n\nShe waits.\n\nEXT. STREET - NIGHT\n\nRain.";
+
+  it("reuses the result while the text and page settings are the same", () => {
+    const first = cachedSceneFile("cache.md", source);
+    expect(cachedSceneFile("cache.md", `${source}`)).toBe(first);
+    expect(first.scenes).toHaveLength(2);
+  });
+
+  it("recounts when the text or a page setting changes", () => {
+    const first = cachedSceneFile("cache2.md", source);
+    const edited = cachedSceneFile("cache2.md", `${source}\n\nINT. CAR - DAY`);
+    expect(edited).not.toBe(first);
+    expect(edited.scenes).toHaveLength(3);
+    expect(cachedSceneFile("cache2.md", source, "a4")).not.toBe(edited);
+    expect(cachedSceneFile("cache2.md", source, "a4", 3)).not.toBe(
+      cachedSceneFile("cache2.md", source, "a4", 0),
+    );
+  });
 });

@@ -68,6 +68,57 @@ function action(
   return button;
 }
 
+/** Whether the cursor (workspace.activePath/activeLine) is in `scene`. */
+function isActiveScene(
+  workspace: SceneWorkspace,
+  file: SceneFile,
+  scene: Scene,
+): boolean {
+  if (scene.path !== workspace.activePath) return false;
+  if (workspace.activeLine < scene.line) return false;
+  const next = file.scenes.find((item) => item.start > scene.start);
+  return next === undefined || workspace.activeLine < next.line;
+}
+
+/**
+ * Everything the list shows, apart from which scene the cursor is in. When
+ * it hasn't changed, the panel keeps its elements and only moves the
+ * highlight, instead of rebuilding on every keystroke.
+ */
+function sceneListKey(
+  workspace: SceneWorkspace,
+  filters: SceneFilters,
+): string {
+  return JSON.stringify({
+    issues: workspace.issues,
+    activePath: workspace.activePath,
+    filters,
+    files: workspace.files.map((file) => ({
+      path: file.path,
+      issue: file.issue,
+      scenes: file.scenes.map((scene) => [
+        scene.heading,
+        scene.line,
+        scene.page.toFixed(1),
+        scene.synopsis,
+        scene.characters,
+        // Searching also looks at the scene text.
+        filters.query ? scene.text : "",
+      ]),
+    })),
+  });
+}
+
+interface RenderedSceneList {
+  key: string;
+  /** The latest data; buttons read it when clicked, so it is never stale. */
+  current: { workspace: SceneWorkspace };
+  /** Move the highlight to the scene the cursor is in. */
+  markActive: () => void;
+}
+
+const renderedLists = new WeakMap<HTMLElement, RenderedSceneList>();
+
 export async function renderSceneWorkspace(
   plugin: ScribidianPlugin,
   container: HTMLElement,
@@ -75,14 +126,39 @@ export async function renderSceneWorkspace(
   isCurrent: () => boolean,
   refresh: () => void,
 ): Promise<void> {
+  let loaded: SceneWorkspace;
+  try {
+    loaded = await loadSceneWorkspace(plugin);
+  } catch (error) {
+    if (!isCurrent()) return;
+    renderedLists.delete(container);
+    container.empty();
+    container.createEl("h2", { text: "Scenes" });
+    const bar = container.createDiv({ cls: "scribidian-scene-actions" });
+    action(bar, "Refresh", refresh);
+    action(bar, "Inspect continuity", () => plugin.openContinuityInspector());
+    container.createEl("p", {
+      text: error instanceof Error ? error.message : "Could not load scenes.",
+    });
+    return;
+  }
+  if (!isCurrent()) return;
+  const key = sceneListKey(loaded, filters);
+  const rendered = renderedLists.get(container);
+  if (rendered !== undefined && rendered.key === key) {
+    rendered.current.workspace = loaded;
+    rendered.markActive();
+    return;
+  }
+
+  const current = { workspace: loaded };
+  const workspace = loaded;
   container.empty();
   container.createEl("h2", { text: "Scenes" });
   const bar = container.createDiv({ cls: "scribidian-scene-actions" });
   action(bar, "Refresh", refresh);
   action(bar, "Inspect continuity", () => plugin.openContinuityInspector());
-  try {
-    const workspace = await loadSceneWorkspace(plugin);
-    if (!isCurrent()) return;
+  {
     const all = workspace.files.flatMap((file) => file.scenes);
     const issues = [
       ...workspace.issues,
@@ -100,7 +176,13 @@ export async function renderSceneWorkspace(
       bar,
       "New scene",
       () =>
-        new SceneEditModal(plugin, workspace, null, "create", refresh).open(),
+        new SceneEditModal(
+          plugin,
+          current.workspace,
+          null,
+          "create",
+          refresh,
+        ).open(),
       !canWrite || !workspace.files.some((file) => !file.issue),
     );
     action(
@@ -153,6 +235,20 @@ export async function renderSceneWorkspace(
       },
     ];
     const list = container.createDiv({ cls: "scribidian-scene-list" });
+    const cards: {
+      card: HTMLElement;
+      heading: HTMLElement;
+      live: () => { file: SceneFile; scene: Scene };
+    }[] = [];
+    const markActive = (): void => {
+      for (const { card, heading, live } of cards) {
+        const { file, scene } = live();
+        const active = isActiveScene(current.workspace, file, scene);
+        card.toggleClass("is-active", active);
+        if (active) heading.setAttribute("aria-current", "true");
+        else heading.removeAttribute("aria-current");
+      }
+    };
     const renderList = (): void => {
       list.empty();
       const visible = filterScenes(all, filters);
@@ -166,26 +262,30 @@ export async function renderSceneWorkspace(
         cls: "scribidian-palette-muted",
         text: `${visible.length} of ${all.length} scenes · page positions are approximate`,
       });
+      cards.length = 0;
       for (const scene of visible) {
-        const file = workspace.files.find((item) => item.path === scene.path);
-        if (!file) continue;
-        const card = list.createDiv({ cls: "scribidian-scene-card" });
-        const active =
-          scene.path === workspace.activePath &&
-          workspace.activeLine >= scene.line &&
-          (!file.scenes.find((item) => item.start > scene.start) ||
-            workspace.activeLine <
-              (file.scenes.find((item) => item.start > scene.start)?.line ??
-                Infinity));
-        if (active) card.addClass("is-active");
-        const index = all.indexOf(scene);
-        const heading = action(
-          card,
-          `${index + 1}. ${scene.heading}`,
-          () => void report(() => jumpToScene(plugin, file, scene), refresh),
+        const fileIndex = workspace.files.findIndex(
+          (item) => item.path === scene.path,
         );
+        const file = workspace.files[fileIndex];
+        if (!file) continue;
+        const local = file.scenes.indexOf(scene);
+        // The same file and scene in the latest data (see sceneListKey).
+        const live = (): { file: SceneFile; scene: Scene } => {
+          const liveFile = current.workspace.files[fileIndex] ?? file;
+          return { file: liveFile, scene: liveFile.scenes[local] ?? scene };
+        };
+        const card = list.createDiv({ cls: "scribidian-scene-card" });
+        const index = all.indexOf(scene);
+        const heading = action(card, `${index + 1}. ${scene.heading}`, () => {
+          const target = live();
+          void report(
+            () => jumpToScene(plugin, target.file, target.scene),
+            refresh,
+          );
+        });
         heading.addClass("scribidian-scene-heading");
-        if (active) heading.setAttribute("aria-current", "true");
+        cards.push({ card, heading, live });
         card.createEl("p", {
           cls: "scribidian-palette-muted",
           text: `${scene.path} · ~p. ${scene.page.toFixed(1)}`,
@@ -208,24 +308,24 @@ export async function renderSceneWorkspace(
           () =>
             new SceneEditModal(
               plugin,
-              workspace,
-              scene,
+              current.workspace,
+              live().scene,
               "synopsis",
               refresh,
             ).open(),
           disabled,
         );
-        const local = file.scenes.indexOf(scene);
         const shift = (offset: -1 | 1) =>
           void report(async () => {
-            const target = file.scenes[local + offset];
+            const { file: liveFile, scene: liveScene } = live();
+            const target = liveFile.scenes[local + offset];
             if (!target) return;
             await applySceneChanges(
               plugin,
               moveScene(
-                file,
-                scene,
-                file,
+                liveFile,
+                liveScene,
+                liveFile,
                 target,
                 offset < 0 ? "before" : "after",
               ),
@@ -265,14 +365,15 @@ export async function renderSceneWorkspace(
           () =>
             new SceneEditModal(
               plugin,
-              workspace,
-              scene,
+              current.workspace,
+              live().scene,
               "move",
               refresh,
             ).open(),
           disabled,
         );
       }
+      markActive();
     };
     search.addEventListener("input", () => {
       filters.query = search.value;
@@ -296,11 +397,7 @@ export async function renderSceneWorkspace(
       refresh();
     });
     renderList();
-  } catch (error) {
-    if (isCurrent())
-      container.createEl("p", {
-        text: error instanceof Error ? error.message : "Could not load scenes.",
-      });
+    renderedLists.set(container, { key, current, markActive });
   }
 }
 

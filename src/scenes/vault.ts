@@ -22,7 +22,7 @@ import {
   projectMembershipIssue,
 } from "../projects/vault";
 import {
-  sceneFile,
+  cachedSceneFile,
   type Scene,
   type SceneFile,
   type SceneChange,
@@ -93,7 +93,7 @@ export async function loadSceneWorkspace(
   let pageOffset = 0;
   const files: SceneFile[] = [];
   for (const file of context.parts) {
-    const result = sceneFile(
+    const result = cachedSceneFile(
       file.path,
       await sourceFor(plugin, file.path),
       plugin.settings.pageSize,
