@@ -25,6 +25,10 @@ Scribidian changes since 0.1.0.
   and wryly under Show more). The defaults keep the old behaviour. "New line
   (no change)" is a plain line break. Tab completes a slugline first; its
   choice applies after that.
+- Setting **Character suggestions match capitals** (Suggestions > Show
+  more). On by default: typing `JE` opens the character list, `Je` doesn't.
+  Off: `Je` opens it too, and the line moves to the character column while
+  the list is open.
 - Uppercase sluglines as you type ("int. kitchen - day" becomes "INT.
   KITCHEN - DAY"), with a setting for each mode: on in script mode, off in
   plain mode by default.

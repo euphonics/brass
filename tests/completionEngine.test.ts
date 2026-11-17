@@ -81,6 +81,18 @@ describe("screenplay completion engine", () => {
     );
   });
 
+  it("opens the character list for lowercase typing with match capitals off", () => {
+    const source = `${screenplay}\n\nJa`;
+    const plan = (characterMatchCase: boolean) =>
+      getScreenplayCompletionPlan(source, source.length, {
+        ...DEFAULT_COMPLETION_PREFERENCES,
+        characterMatchCase,
+      });
+    expect(plan(true)?.kind).not.toBe("character");
+    expect(plan(false)?.kind).toBe("character");
+    expect(plan(false)?.candidates[0]?.label).toBe("JANE");
+  });
+
   it("offers character extensions only for discovered characters", () => {
     const source = `${screenplay}\nJANE (`;
     const plan = getScreenplayCompletionPlan(

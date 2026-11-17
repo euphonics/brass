@@ -287,7 +287,7 @@ cue's column, Enter after a wryly, Backspace on an empty cue line.
 | 103 | `EST` is a valid slugline start but isn't in the slugline list: `ES`/`EST` sit in the cue's column with no list until `EST.` is typed.                                                                                                     | S      |
 | 104 | After Escape or Shift+Tab turns the empty line into action, typing `INT` shows no slugline list (a line set to action gets no lists); it becomes a slugline only at `INT.`.                                                                | S      |
 | 105 | A forced cue (`@`, `@j`) shows no character list, and `@j` stays at the action margin until a second letter.                                                                                                                               | S      |
-| 106 | A known name typed with a lowercase letter at the start of a block (`Je`, after first-letter capitalisation) opens no character list. Possibly intended (it could be action: "Jen walks"). Decide.                                         | S      |
+| 106 | Done (2026-11-17): new setting **Character suggestions match capitals** (on by default). Off: a known name typed with a lowercase letter (`Je`) opens the character list and moves the line to the character column.                       | S      |
 
 ### Names and settings
 

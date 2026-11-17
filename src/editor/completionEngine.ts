@@ -76,6 +76,11 @@ export interface CompletionPreferences {
   sceneTypeMinimumLetters?: number;
   /** Scene type suggestions require the typed letters' case to match. */
   sceneTypeMatchCase?: boolean;
+  /**
+   * Typing only opens the character list for capitals ("JE", not "Je").
+   * Off: any case opens it. Default on.
+   */
+  characterMatchCase?: boolean;
   /** Slug modifiers offered after the time of day. */
   preferredSlugModifiers?: readonly string[];
 }
@@ -598,8 +603,10 @@ export function getScreenplayCompletionPlan(
 
   // Typing only opens the list for capitals (so lowercase action doesn't),
   // but once it is open on purpose (Tab, Enter, Ctrl+Space) any case
-  // matches: "f" finds FIONA.
-  const characterQuery = explicit ? query.toLocaleUpperCase() : query;
+  // matches: "f" finds FIONA. With "match capitals" off, typing in any
+  // case opens it too: "Je" finds JEN.
+  const anyCase = explicit || preferences.characterMatchCase === false;
+  const characterQuery = anyCase ? query.toLocaleUpperCase() : query;
   const characterCandidates =
     !plausiblePosition ||
     // Typing needs two capitals ("JE"): one is just a capitalized action

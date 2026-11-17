@@ -80,6 +80,7 @@ export interface ScribidianSettings {
   renderFountainCodeBlocks: boolean;
   sceneTypeMinimumLetters: number;
   sceneTypeMatchCase: boolean;
+  characterMatchCase: boolean;
   recentItemsWeighting: number;
   maximumSuggestions: number;
   preferredSceneTypes: string[];
@@ -206,6 +207,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   renderFountainCodeBlocks: false,
   sceneTypeMinimumLetters: 2,
   sceneTypeMatchCase: false,
+  characterMatchCase: true,
   recentItemsWeighting: 0.65,
   maximumSuggestions: 8,
   preferredSceneTypes: DEFAULT_SCENE_TYPES,
@@ -371,6 +373,7 @@ const SETTING_GROUPS: {
       "recentItemsWeighting",
       "sceneTypeMinimumLetters",
       "sceneTypeMatchCase",
+      "characterMatchCase",
     ],
   },
   {
@@ -947,6 +950,15 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Character suggestions match capitals",
+        desc: "On: typing JE at the start of a block shows JEN, but Je doesn't, so ordinary action doesn't open the list. Off: Je shows JEN too, and the line moves to the character column while the list is open. Picking a name writes it in capitals. Tab and Enter open the list in any case either way.",
+        control: {
+          type: "toggle",
+          key: "characterMatchCase",
+          defaultValue: DEFAULT_SETTINGS.characterMatchCase,
+        },
+      },
+      {
         name: "Maximum suggestions",
         desc: "The most suggestions shown at once.",
         control: {
@@ -1198,6 +1210,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "lockBlankLinesPlain":
       case "renderFountainCodeBlocks":
       case "sceneTypeMatchCase":
+      case "characterMatchCase":
       case "statusBarEnabled":
       case "showEstimatedPages":
       case "showCurrentPage":

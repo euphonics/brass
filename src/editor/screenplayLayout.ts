@@ -71,16 +71,19 @@ const HIDDEN = Decoration.replace({});
 /**
  * Element of the open suggestion list on an empty cursor line, or null. A
  * line where Tab put a cue counts as a character even when the list is
- * empty (no characters yet). The slugline list keeps its line at the left
- * margin even with text typed: "IN" in capitals would otherwise read as a
- * cue being typed and jump to the cue's column.
+ * empty (no characters yet). With text typed, the slugline list keeps its
+ * line at the left margin ("IN" in capitals would otherwise read as a cue
+ * being typed) and the character list puts it in the cue's column ("Je"
+ * in lower case would otherwise read as action).
  */
 function openMenuKind(state: EditorState): LayoutLineKind | null {
   const line = state.doc.lineAt(state.selection.main.head);
   const empty = line.text.trim() === "";
   if (completionStatus(state) === "active") {
     const kind = menuLineKind(currentCompletions(state)[0]?.detail);
-    return empty || kind === "scene-heading" ? kind : null;
+    return empty || kind === "scene-heading" || kind === "character"
+      ? kind
+      : null;
   }
   if (!empty) return null;
   return tabCueLine(state) !== null ? "character" : null;
