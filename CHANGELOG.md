@@ -65,6 +65,9 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- After Tab opens the character list on an empty line, typing a name in
+  lower case ("Jen") keeps the line in the cue's column instead of jumping
+  back to the action margin.
 - The editor, suggestions, statistics, Smart Tab and export now read every
   line the same way, using one set of rules:
   - A cue with a lowercase extension (`JANE (v.o.)`) counts as a character.
