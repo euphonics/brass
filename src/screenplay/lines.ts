@@ -236,13 +236,15 @@ export function classifyLines(
     }
 
     if (text === "") {
-      // The empty line being typed on: right under a cue it is the dialogue
-      // line; after a speech and a blank line it is where the next cue goes.
+      // The empty line being typed on: right under a cue or a wryly it is
+      // the dialogue line; after a speech and a blank line it is where the
+      // next cue goes.
       if (index === cursorLine) {
         const previous = kinds[index - 1];
         const beforeBlank = kinds[index - 2];
-        if (previous === "character") kinds[index] = "dialogue";
-        else if (
+        if (previous === "character" || previous === "parenthetical") {
+          kinds[index] = "dialogue";
+        } else if (
           isBlank(lines[index - 1]) &&
           (beforeBlank === "dialogue" || beforeBlank === "parenthetical")
         ) {

@@ -115,6 +115,10 @@ describe("editor screenplay layout", () => {
     const picked = classify("BLAKE\nYou sure?\n\nJEN\n", 4);
     expect(picked[3]).toBe("character");
     expect(picked[4]).toBe("dialogue");
+    // Enter after a wryly: the empty line under it is the dialogue line.
+    const wryly = classify("Action.\n\nTEST (O.S.)\n(beat)\n", 4);
+    expect(wryly[3]).toBe("parenthetical");
+    expect(wryly[4]).toBe("dialogue");
   });
 
   it("lays out a line turned back into action (Shift+Tab) as action", () => {
