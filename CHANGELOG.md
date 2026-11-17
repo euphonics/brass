@@ -93,6 +93,9 @@ Scribidian changes since 0.1.0.
 - Strict cursor placement: Backspace on an empty line in the cue's column
   moves to the action margin on the same line (like Shift+Tab) instead of
   deleting the line. A second Backspace deletes it.
+- Typing the start of a slugline in capitals (`IN`) keeps the line at the
+  left margin while the slugline list is open, instead of jumping to the
+  cue's column.
 - Enter after a wryly puts the new line in the dialogue column instead of
   the action margin.
 - Typing `(` after a new character name in capitals (`JOHN (`) opens the
