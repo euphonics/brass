@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
-import { EditorSelection, EditorState } from "@codemirror/state";
+import {
+  EditorSelection,
+  EditorState,
+  Prec,
+  findClusterBreak,
+} from "@codemirror/state";
+import { keymap, type EditorView } from "@codemirror/view";
 import type { Extension, Text, Transaction } from "@codemirror/state";
 import { editorInfoField } from "obsidian";
 import { classifyLines } from "../screenplay/lines";
@@ -88,13 +94,26 @@ export function joinsDifferentElements(
  * would land on a separator puts it at the end of the line above instead.
  * Backspace or Delete across a line break never joins two different
  * elements (a cue and its dialogue): Backspace moves to the end of the line
- * above instead, and Delete does nothing. Other edits and selections are
- * left alone.
+ * above instead, and Delete does nothing; Shift+Backspace joins them
+ * anyway. Other edits and selections are left alone.
  */
 export function createBlankLineLockExtension(
   plugin: ScribidianPlugin,
 ): Extension {
-  return EditorState.transactionFilter.of((tr) => {
+  const shiftBackspace = Prec.high(
+    keymap.of([
+      {
+        key: "Shift-Backspace",
+        run: (view) => {
+          if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
+          const file = view.state.field(editorInfoField, false)?.file ?? null;
+          if (file === null || !plugin.isScreenplayFile(file)) return false;
+          return mergeWithLineAbove(view);
+        },
+      },
+    ]),
+  );
+  const filter = EditorState.transactionFilter.of((tr) => {
     const backspace = tr.docChanged && tr.isUserEvent("delete.backward");
     const forward = tr.docChanged && tr.isUserEvent("delete.forward");
     if (tr.docChanged && !backspace && !forward) return tr;
@@ -125,6 +144,7 @@ export function createBlankLineLockExtension(
       { selection: EditorSelection.cursor(target), sequential: true },
     ];
   });
+  return [filter, shiftBackspace];
 }
 
 /**
@@ -157,4 +177,33 @@ function elementJoin(
   const cursorLine = start.doc.lineAt(start.selection.main.head).number - 1;
   if (!joinsDifferentElements(start.doc, from, to, cursorLine)) return null;
   return { aboveEnd: start.doc.lineAt(from).to };
+}
+
+/**
+ * Backspace that may join different elements ("Delete and merge with line
+ * above", Shift+Backspace by default). At the start of a line it joins the
+ * line to the one above, whatever elements they are; elsewhere it deletes
+ * like Backspace. A selection is deleted.
+ */
+export function mergeWithLineAbove(view: EditorView): boolean {
+  const { state } = view;
+  const range = state.selection.main;
+  let from = range.from;
+  const to = range.to;
+  if (range.empty) {
+    const line = state.doc.lineAt(to);
+    if (to === line.from) {
+      if (line.number === 1) return false;
+      from = to - 1;
+    } else {
+      from = findClusterBreak(line.text, to - line.from, false) + line.from;
+    }
+  }
+  view.dispatch({
+    changes: { from, to },
+    selection: EditorSelection.cursor(from),
+    scrollIntoView: true,
+    userEvent: "delete.merge",
+  });
+  return true;
 }

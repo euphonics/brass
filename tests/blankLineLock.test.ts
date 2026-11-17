@@ -28,8 +28,12 @@ vi.mock("obsidian", async () => {
   };
 });
 
-const { createBlankLineLockExtension, cursorOffSeparator, isSeparatorLine } =
-  await import("../src/editor/blankLineLock");
+const {
+  createBlankLineLockExtension,
+  cursorOffSeparator,
+  isSeparatorLine,
+  mergeWithLineAbove,
+} = await import("../src/editor/blankLineLock");
 const { editorInfoField } = await import("obsidian");
 
 const doc = Text.of([
@@ -162,6 +166,49 @@ describe("blank line lock", () => {
       }).state;
       const after = backspace(placed);
       expect(after.selection.main.head).toBe(after.doc.line(2).from);
+    });
+  });
+
+  describe("Delete and merge with line above", () => {
+    const plugin = {
+      typingChangeEnabled: () => true,
+      isScreenplayFile: () => true,
+    } as unknown as Parameters<typeof createBlankLineLockExtension>[0];
+    const run = (text: string[], line: number, ch: number) => {
+      let state = EditorState.create({
+        doc: Text.of(text),
+        extensions: [editorInfoField, createBlankLineLockExtension(plugin)],
+      });
+      state = state.update({
+        selection: EditorSelection.cursor(state.doc.line(line).from + ch),
+      }).state;
+      const view = {
+        get state() {
+          return state;
+        },
+        dispatch: (spec: Parameters<EditorState["update"]>[0]) => {
+          state = state.update(spec).state;
+        },
+      };
+      const handled = mergeWithLineAbove(
+        view as unknown as Parameters<typeof mergeWithLineAbove>[0],
+      );
+      return { handled, state };
+    };
+
+    it("joins a line to a different element above", () => {
+      const { state } = run(["Action.", "", "CODY", "Test"], 4, 0);
+      expect(state.doc.line(3).text).toBe("CODYTest");
+      expect(state.selection.main.head).toBe(state.doc.line(3).from + 4);
+    });
+
+    it("deletes one character mid-line", () => {
+      const { state } = run(["CODY", "Test"], 2, 2);
+      expect(state.doc.line(2).text).toBe("Tst");
+    });
+
+    it("does nothing at the start of the note", () => {
+      expect(run(["CODY"], 1, 0).handled).toBe(false);
     });
   });
 });

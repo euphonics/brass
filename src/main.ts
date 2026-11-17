@@ -56,7 +56,10 @@ import {
   forceElement,
 } from "./editor/completion";
 import type { ForcedElement } from "./editor/forceElement";
-import { createBlankLineLockExtension } from "./editor/blankLineLock";
+import {
+  createBlankLineLockExtension,
+  mergeWithLineAbove,
+} from "./editor/blankLineLock";
 import { registerFountainCodeBlockProcessor } from "./editor/fountainCodeBlock";
 import { isCharacterFrontmatter } from "./characters/catalogue";
 import {
@@ -211,6 +214,20 @@ export default class ScribidianPlugin extends Plugin {
       });
     }
 
+    // Strict cursor placement stops Backspace from joining two different
+    // elements; this joins them anyway. Shift+Backspace in the editor runs
+    // it too (see createBlankLineLockExtension).
+    this.addCommand({
+      id: "screenplay-merge-with-line-above",
+      name: "Screenplay: Delete and merge with line above",
+      editorCheckCallback: (checking, editor, context) => {
+        if (!this.isScreenplayFile(context.file)) return false;
+        const cm = (editor as { cm?: unknown }).cm;
+        if (!(cm instanceof EditorView)) return false;
+        if (!checking) mergeWithLineAbove(cm);
+        return true;
+      },
+    });
     this.addCommand({
       id: "screenplay-new-scene",
       name: "Screenplay: New scene",

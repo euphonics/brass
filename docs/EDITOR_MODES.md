@@ -38,6 +38,7 @@ by default; check `plugin.typingChangeEnabled(...)`.
 | Uppercase a slugline as you type                               | On (setting) | Off (setting)                                      |
 | Uppercase while typing on a `>` transition line                | On (setting) | Off (setting)                                      |
 | Strict cursor placement (skip the blank line between elements) | On (setting) | Off (setting)                                      |
+| Shift+Backspace joins a line to a different element above      | With strict  | With strict                                        |
 | Status bar, Scenes panel, inspector, commands                  | Yes          | Yes                                                |
 
 These settings have a Plain and a Script column under

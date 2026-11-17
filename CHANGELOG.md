@@ -17,7 +17,8 @@ Scribidian changes since 0.1.0.
   that separates two elements, so typing can't join them. Arrow keys and
   clicks skip it, and Backspace on an extra empty line lands at the end of
   the line above. Backspace and Delete never join two different elements,
-  like a cue and its dialogue. On in script mode, off in plain mode (Settings > Typing in each
+  like a cue and its dialogue; Shift+Backspace (or the command "Delete and
+  merge with line above") joins them anyway. On in script mode, off in plain mode (Settings > Typing in each
   mode, which was "Text changes while typing").
 - Settings > Enter key: choose what Enter starts at the end of each element
   (action, dialogue, transition; slugline, character and wryly under
