@@ -16,8 +16,9 @@
  */
 
 /*
- * What Enter starts at the end of each screenplay element (script mode,
- * Smart Tab and Enter on). Set in Settings > Enter key.
+ * What Tab and Enter start at the end of each screenplay element (Smart Tab
+ * and Enter on; Enter in script mode only). Set in Settings > Tab and Enter
+ * keys.
  */
 
 /** The elements Enter can follow. */
@@ -51,6 +52,16 @@ export const DEFAULT_ENTER_TARGETS: EnterTargets = {
   parenthetical: "dialogue",
 };
 
+/** What Tab starts by default: the next likely element. */
+export const DEFAULT_TAB_TARGETS: EnterTargets = {
+  action: "character",
+  dialogue: "parenthetical",
+  transition: "scene-heading",
+  sceneHeading: "action",
+  character: "parenthetical",
+  parenthetical: "dialogue",
+};
+
 /** Settings rows: the common ones first, the rest behind "Show more". */
 export const ENTER_SOURCE_ROWS: {
   source: EnterSource;
@@ -81,12 +92,15 @@ export function isEnterTarget(value: unknown): value is EnterTarget {
 }
 
 /** Stored targets with anything missing or unknown set to its default. */
-export function normalizeEnterTargets(stored: unknown): EnterTargets {
+export function normalizeEnterTargets(
+  stored: unknown,
+  defaults: EnterTargets = DEFAULT_ENTER_TARGETS,
+): EnterTargets {
   const values =
     stored !== null && typeof stored === "object"
       ? (stored as Record<string, unknown>)
       : {};
-  const targets = { ...DEFAULT_ENTER_TARGETS };
+  const targets = { ...defaults };
   for (const source of Object.keys(targets) as EnterSource[]) {
     const value = values[source];
     if (isEnterTarget(value)) targets[source] = value;

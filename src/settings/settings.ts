@@ -31,6 +31,7 @@ import type {
 import type ScribidianPlugin from "../main";
 import {
   DEFAULT_ENTER_TARGETS,
+  DEFAULT_TAB_TARGETS,
   ENTER_SOURCE_ROWS,
   ENTER_TARGET_OPTIONS,
   isEnterTarget,
@@ -70,6 +71,8 @@ export interface ScribidianSettings {
   lockBlankLinesPlain: boolean;
   /** What Enter starts at the end of each element (script mode). */
   enterTargets: EnterTargets;
+  /** What Tab starts at the end of each element. */
+  tabTargets: EnterTargets;
   editorLayout: EditorLayout;
   bottomTypingMargin: number;
   screenplayFont: string;
@@ -195,6 +198,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   lockBlankLinesScript: true,
   lockBlankLinesPlain: false,
   enterTargets: { ...DEFAULT_ENTER_TARGETS },
+  tabTargets: { ...DEFAULT_TAB_TARGETS },
   editorLayout: "screenplay",
   bottomTypingMargin: 40,
   screenplayFont: "Courier Prime",
@@ -241,6 +245,10 @@ export function migrateSettings(
     ...(rest as Partial<ScribidianSettings>),
   };
   settings.enterTargets = normalizeEnterTargets(rest.enterTargets);
+  settings.tabTargets = normalizeEnterTargets(
+    rest.tabTargets,
+    DEFAULT_TAB_TARGETS,
+  );
   // PDF export was removed; drop its old setting.
   delete (settings as Record<string, unknown>).pdfLanguage;
   if (
@@ -300,7 +308,7 @@ export const TYPING_CHANGE_ROWS: {
 ];
 
 const TYPING_CHANGES_NAME = "Typing in each mode";
-const ENTER_TARGETS_NAME = "What Enter starts after each element";
+const ENTER_TARGETS_NAME = "What Tab and Enter start after each element";
 /** Placeholder keys that put the tables in their settings sections. */
 const TYPING_CHANGES_KEY = "typingChangesTable";
 const ENTER_TARGETS_KEY = "enterTargetsTable";
@@ -348,7 +356,7 @@ const SETTING_GROUPS: {
     keys: [TYPING_CHANGES_KEY],
   },
   {
-    heading: "Enter key",
+    heading: "Tab and Enter keys",
     keys: [ENTER_TARGETS_KEY],
   },
   {
@@ -600,53 +608,75 @@ export class ScribidianSettingTab extends PluginSettingTab {
     window.setTimeout(update, 0);
   }
 
-  /** Whether the Enter table shows its less common rows. */
+  /** Whether the Tab and Enter table shows its less common rows. */
   private showAllEnterRows: boolean | null = null;
 
   /**
-   * Draw the Enter settings as a table: one row per element with a dropdown
-   * of what Enter starts after it. Less common rows sit behind "Show more"
-   * (shown anyway when one of them is changed from its default).
+   * Draw the Tab and Enter settings as a table: one row per element with a
+   * dropdown each for what Tab and Enter start after it. Less common rows
+   * sit behind "Show more" (shown anyway when one of them is changed from
+   * its default).
    */
   private renderEnterTargets(setting: Setting): void {
     setting.settingEl.addClass("scribidian-settings-table-row");
     setting.infoEl.remove();
     setting.controlEl.remove();
-    const targets = this.plugin.settings.enterTargets;
+    const columns = [
+      {
+        key: "Tab",
+        targets: this.plugin.settings.tabTargets,
+        defaults: DEFAULT_TAB_TARGETS,
+      },
+      {
+        key: "Enter",
+        targets: this.plugin.settings.enterTargets,
+        defaults: DEFAULT_ENTER_TARGETS,
+      },
+    ];
     setting.settingEl.createDiv({
       cls: "setting-item-description scribidian-settings-table-note",
-      text: "What pressing Enter at the end of a line starts next. Script mode only, with Smart Tab and Enter on. Shift+Enter is always a plain line break.",
+      text: 'What pressing Tab or Enter at the end of a line starts next, with Smart Tab and Enter on. Enter works this way in script mode only. Tab first completes a slugline (" - ", the time of day, a modifier); its choice applies after that. In the middle of a line Tab adds a wryly inside a speech and otherwise does nothing. Shift+Enter is always a plain line break.',
     });
     const table = setting.settingEl.createEl("table", {
       cls: "scribidian-settings-table scribidian-enter-table",
     });
     const head = table.createEl("thead").createEl("tr");
     head.createEl("th", { text: "Element" });
-    head.createEl("th", { text: "Enter starts" });
+    for (const column of columns) {
+      head.createEl("th", { text: `${column.key} starts` });
+    }
     const body = table.createEl("tbody");
     const moreRows: HTMLElement[] = [];
     this.showAllEnterRows ??= ENTER_SOURCE_ROWS.some(
       (row) =>
-        row.more && targets[row.source] !== DEFAULT_ENTER_TARGETS[row.source],
+        row.more &&
+        columns.some(
+          (column) =>
+            column.targets[row.source] !== column.defaults[row.source],
+        ),
     );
     for (const row of ENTER_SOURCE_ROWS) {
       const tr = body.createEl("tr");
       if (row.more) moreRows.push(tr);
       tr.createEl("td", { cls: "setting-item-name", text: row.name });
-      const select = tr.createEl("td").createEl("select", { cls: "dropdown" });
-      select.setAttr(
-        "aria-label",
-        `After ${row.name.toLowerCase()}, Enter starts`,
-      );
-      for (const [value, label] of Object.entries(ENTER_TARGET_OPTIONS)) {
-        select.createEl("option", { value, text: label });
+      for (const { key, targets } of columns) {
+        const select = tr
+          .createEl("td")
+          .createEl("select", { cls: "dropdown" });
+        select.setAttr(
+          "aria-label",
+          `After ${row.name.toLowerCase()}, ${key} starts`,
+        );
+        for (const [value, label] of Object.entries(ENTER_TARGET_OPTIONS)) {
+          select.createEl("option", { value, text: label });
+        }
+        select.value = targets[row.source];
+        select.addEventListener("change", () => {
+          if (!isEnterTarget(select.value)) return;
+          targets[row.source] = select.value;
+          void this.plugin.saveSettings();
+        });
       }
-      select.value = targets[row.source];
-      select.addEventListener("change", () => {
-        if (!isEnterTarget(select.value)) return;
-        targets[row.source] = select.value;
-        void this.plugin.saveSettings();
-      });
     }
     const button = setting.settingEl.createEl("button", {
       cls: "scribidian-settings-table-more",
@@ -958,7 +988,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Smart Tab and Enter",
-        desc: "Tab moves you on to the next likely element: a wryly under a character, the time of day after a slugline, a character after action. In script mode Enter does the same; choose what it starts under Enter key. Turn off to make Tab and Enter work as normal.",
+        desc: "Tab moves you on to the next likely element: a wryly under a character, the time of day after a slugline, a character after action. In script mode Enter does the same; choose what each starts under Tab and Enter keys. Turn off to make Tab and Enter work as normal.",
         control: {
           type: "toggle",
           key: "smartTabEnabled",

@@ -30,6 +30,7 @@ import {
 } from "../screenplay/fountain";
 import {
   DEFAULT_ENTER_TARGETS,
+  DEFAULT_TAB_TARGETS,
   startsNewBlock,
   type EnterSource,
   type EnterTarget,
@@ -209,10 +210,62 @@ function noop(at: number): SmartTabPlan {
   return { kind: "none", at, insert: "", cursor: at, openCompletion: false };
 }
 
+/**
+ * Smart Tab. At the end of an element, Tab starts what `targets` says
+ * (Settings > Tab and Enter keys); the defaults are the next likely
+ * element. A slugline is completed first (" - ", the time of day, a
+ * modifier), and the setting applies after that.
+ */
 export function getSmartTabPlan(
   source: string,
   cursorOffset: number,
   knownTimes: KnownTimes = DEFAULT_TIMES_OF_DAY,
+  targets: EnterTargets = DEFAULT_TAB_TARGETS,
+): SmartTabPlan | null {
+  const plan = defaultTabPlan(source, cursorOffset, knownTimes);
+  if (plan === null || !endsElement(plan)) return plan;
+  const from = enterSourceOf(plan.kind);
+  if (from === null) return plan;
+  const target = targets[from];
+  if (target === DEFAULT_TAB_TARGETS[from]) return plan;
+  if (target === "plain") {
+    return {
+      kind: plan.kind,
+      at: plan.at,
+      insert: "\n",
+      cursor: plan.at + 1,
+      openCompletion: false,
+    };
+  }
+  const lineStart = source.lastIndexOf("\n", Math.max(0, plan.at - 1)) + 1;
+  return customEnterPlan(source, plan, lineStart, target);
+}
+
+/**
+ * Whether a default Tab plan is the step that leaves the element (as
+ * opposed to splitting a speech, completing a slugline or doing nothing).
+ */
+function endsElement(plan: SmartTabPlan): boolean {
+  switch (plan.kind) {
+    case "action":
+    case "transition":
+    case "character":
+      return true;
+    case "dialogue":
+      return plan.insert === "\n()";
+    case "parenthetical":
+      return plan.insert !== "";
+    case "scene-heading":
+      return plan.insert === "\n\n" && !plan.openCompletion;
+    default:
+      return false;
+  }
+}
+
+function defaultTabPlan(
+  source: string,
+  cursorOffset: number,
+  knownTimes: KnownTimes,
 ): SmartTabPlan | null {
   const lineStart = source.lastIndexOf("\n", Math.max(0, cursorOffset - 1)) + 1;
   const nextBreak = source.indexOf("\n", cursorOffset);
@@ -400,7 +453,7 @@ function blockEndsAfter(source: string, at: number): boolean {
 
 /**
  * Smart Enter. What Enter starts at the end of each element comes from
- * `targets` (Settings > Enter key). The defaults: after a transition, a new
+ * `targets` (Settings > Tab and Enter keys). The defaults: after a transition, a new
  * slugline; after dialogue, a blank line and the character list for the
  * next speaker; after a scene heading or an action paragraph, a blank line
  * for the action; after a character or a wryly, Obsidian's own Enter (a
@@ -412,7 +465,7 @@ export function getSmartEnterPlan(
   knownTimes: KnownTimes = DEFAULT_TIMES_OF_DAY,
   targets: EnterTargets = DEFAULT_ENTER_TARGETS,
 ): SmartTabPlan | null {
-  const plan = getSmartTabPlan(source, cursorOffset, knownTimes);
+  const plan = defaultTabPlan(source, cursorOffset, knownTimes);
   // Lyrics ("~...") run line after line: plain Enter.
   const lineStartForEnter =
     source.lastIndexOf("\n", Math.max(0, cursorOffset - 1)) + 1;

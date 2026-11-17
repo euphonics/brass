@@ -576,7 +576,7 @@
   display: none;
 }
 
-/* Settings tables: "Typing in each mode" and "Enter key". */
+/* Settings tables: "Typing in each mode" and "Tab and Enter keys". */
 .scribidian-settings-table-row {
   display: block;
 }
@@ -610,8 +610,8 @@
   margin-top: var(--size-4-2);
 }
 
-.scribidian-enter-table td:last-child {
-  width: 50%;
+.scribidian-enter-table td:not(:first-child) {
+  width: 36%;
 }
 
 .scribidian-enter-table select {

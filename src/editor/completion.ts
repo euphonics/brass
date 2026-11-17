@@ -297,7 +297,8 @@ export function createScreenplayCompletionExtension(
   // Fountain element. Returning false keeps Obsidian's normal Tab.
   const smartPlan = (
     view: EditorView,
-    planner: typeof getSmartTabPlan = getSmartTabPlan,
+    planner: typeof getSmartTabPlan = (source, cursor, knownTimes) =>
+      getSmartTabPlan(source, cursor, knownTimes, plugin.settings.tabTargets),
   ): SmartTabPlan | null => {
     if (!plugin.settings.smartTabEnabled) return null;
     const file = view.state.field(editorInfoField, false)?.file ?? null;

@@ -18,10 +18,11 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_ENTER_TARGETS,
+  DEFAULT_TAB_TARGETS,
   normalizeEnterTargets,
   type EnterTargets,
 } from "../src/editor/enterTargets";
-import { getSmartEnterPlan } from "../src/editor/smartTab";
+import { getSmartEnterPlan, getSmartTabPlan } from "../src/editor/smartTab";
 
 const withTargets = (changes: Partial<EnterTargets>): EnterTargets => ({
   ...DEFAULT_ENTER_TARGETS,
@@ -109,5 +110,43 @@ describe("Enter targets", () => {
         withTargets({ character: "action" }),
       ),
     ).toBeNull();
+  });
+});
+
+describe("Tab targets", () => {
+  const tab = (source: string, changes: Partial<EnterTargets> = {}) =>
+    getSmartTabPlan(source, source.length, undefined, {
+      ...DEFAULT_TAB_TARGETS,
+      ...changes,
+    });
+
+  it("keeps the usual Tab with the defaults", () => {
+    expect(tab("JEN\nHello.")?.insert).toBe("\n()");
+    expect(normalizeEnterTargets(undefined, DEFAULT_TAB_TARGETS)).toEqual(
+      DEFAULT_TAB_TARGETS,
+    );
+  });
+
+  it("starts the chosen element at the end of an element", () => {
+    const plan = tab("JEN\nHello.", { dialogue: "character" });
+    expect(plan?.insert).toBe("\n\n");
+    expect(plan?.forceAfter).toBe("character");
+    expect(tab("She runs.", { action: "plain" })?.insert).toBe("\n");
+  });
+
+  it("still completes a slugline before the choice applies", () => {
+    const changes = { sceneHeading: "character" } as const;
+    expect(tab("INT. CAR", changes)?.insert).toBe(" - ");
+    const done = tab("INT. CAR - DAY (FLASHBACK)", changes);
+    expect(done?.forceAfter).toBe("character");
+  });
+
+  it("leaves mid-speech Tab (a wryly) alone", () => {
+    const source = "JEN\nHello there.";
+    const plan = getSmartTabPlan(source, source.length - 6, undefined, {
+      ...DEFAULT_TAB_TARGETS,
+      dialogue: "character",
+    });
+    expect(plan?.insert).toContain("()");
   });
 });

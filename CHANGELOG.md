@@ -20,10 +20,11 @@ Scribidian changes since 0.1.0.
   like a cue and its dialogue; Shift+Backspace (or the command "Delete and
   merge with line above") joins them anyway. On in script mode, off in plain mode (Settings > Typing in each
   mode, which was "Text changes while typing").
-- Settings > Enter key: choose what Enter starts at the end of each element
-  (action, dialogue, transition; slugline, character and wryly under
-  Show more). The defaults keep the old behaviour. "New line (no change)" is
-  a plain line break.
+- Settings > Tab and Enter keys: choose what Tab and what Enter start at the
+  end of each element (action, dialogue, transition; slugline, character
+  and wryly under Show more). The defaults keep the old behaviour. "New line
+  (no change)" is a plain line break. Tab completes a slugline first; its
+  choice applies after that.
 - Uppercase sluglines as you type ("int. kitchen - day" becomes "INT.
   KITCHEN - DAY"), with a setting for each mode: on in script mode, off in
   plain mode by default.
@@ -60,7 +61,7 @@ Scribidian changes since 0.1.0.
 - The editor layouts are now called script mode and plain mode. New command
   **Screenplay: Toggle script and plain mode**.
 - The settings page is reorganised for writers: Getting started, Writing,
-  Typing in each mode, Enter key, Suggestions, Page count and status bar,
+  Typing in each mode, Tab and Enter keys, Suggestions, Page count and status bar,
   Character pages, Clean Fountain export, and a collapsed Advanced section.
   Suggestion order and scene type matching sit under Show more in
   Suggestions. Names and descriptions use plain words. Your saved settings
@@ -89,6 +90,8 @@ Scribidian changes since 0.1.0.
 - Tab at the end of an action line puts the next line in the cue's column
   even in a script with no characters yet (the character list is empty).
   Shift+Tab or Escape makes it action.
+- Enter after a wryly puts the new line in the dialogue column instead of
+  the action margin.
 - Typing `(` after a new character name in capitals (`JOHN (`) opens the
   extension list ((V.O.), (O.S.) and so on), not only after a name that
   already has dialogue.
