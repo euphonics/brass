@@ -121,6 +121,33 @@ describe("blank line lock", () => {
       expect(after.selection.main.head).toBe(after.doc.line(3).from);
     });
 
+    it("won't join a cue and its dialogue: moves to the end of the cue", () => {
+      const speech = ["Action.", "", "CODY", "Test"];
+      const after = backspace(stateAt(speech, 4));
+      expect(after.doc.toString()).toBe(speech.join("\n"));
+      expect(after.selection.main.head).toBe(after.doc.line(3).to);
+    });
+
+    it("still joins two lines of the same element", () => {
+      const speech = ["CODY", "Line one", "line two"];
+      const after = backspace(stateAt(speech, 3));
+      expect(after.doc.line(2).text).toBe("Line oneline two");
+    });
+
+    it("Delete at the end of a cue does nothing", () => {
+      const speech = ["Action.", "", "CODY", "Test"];
+      const state = stateAt(speech, 3);
+      const end = state.doc.line(3).to;
+      const placed = state.update({
+        selection: EditorSelection.cursor(end),
+      }).state;
+      const after = placed.update({
+        changes: { from: end, to: end + 1 },
+        userEvent: "delete.forward",
+      }).state;
+      expect(after.doc.toString()).toBe(speech.join("\n"));
+    });
+
     it("does nothing with the setting off", () => {
       const off = { ...plugin, typingChangeEnabled: () => false };
       const state = EditorState.create({

@@ -16,8 +16,9 @@
  */
 
 import { EditorSelection, EditorState } from "@codemirror/state";
-import type { Extension, Text } from "@codemirror/state";
+import type { Extension, Text, Transaction } from "@codemirror/state";
 import { editorInfoField } from "obsidian";
+import { classifyLines } from "../screenplay/lines";
 import type ScribidianPlugin from "../main";
 
 /*
@@ -59,18 +60,53 @@ export function cursorOffSeparator(
 }
 
 /**
+ * Whether deleting `from`..`to` (with the cursor on line `cursorLine`,
+ * 0-based) joins two lines of text that are different elements, such as a
+ * character cue and the dialogue under it.
+ */
+export function joinsDifferentElements(
+  doc: Text,
+  from: number,
+  to: number,
+  cursorLine: number,
+): boolean {
+  const above = doc.lineAt(from);
+  const below = doc.lineAt(to);
+  if (above.number === below.number) return false;
+  if (above.text.trim() === "" || below.text.trim() === "") return false;
+  const lines = doc.sliceString(0, below.to).split("\n");
+  const kinds = classifyLines(lines, { cursorLine });
+  const kindAbove = kinds[above.number - 1] ?? null;
+  const kindBelow = kinds[below.number - 1] ?? null;
+  return kindAbove !== null && kindBelow !== null && kindAbove !== kindBelow;
+}
+
+/**
  * The lock as an editor extension, only in screenplay notes with the setting
  * on for the current editor mode. It changes cursor moves (arrow keys,
  * clicks) and Backspace: deleting an extra empty line so that the cursor
  * would land on a separator puts it at the end of the line above instead.
- * Other edits and selections are left alone.
+ * Backspace or Delete across a line break never joins two different
+ * elements (a cue and its dialogue): Backspace moves to the end of the line
+ * above instead, and Delete does nothing. Other edits and selections are
+ * left alone.
  */
 export function createBlankLineLockExtension(
   plugin: ScribidianPlugin,
 ): Extension {
   return EditorState.transactionFilter.of((tr) => {
     const backspace = tr.docChanged && tr.isUserEvent("delete.backward");
-    if (tr.docChanged && !backspace) return tr;
+    const forward = tr.docChanged && tr.isUserEvent("delete.forward");
+    if (tr.docChanged && !backspace && !forward) return tr;
+    if (backspace || forward) {
+      const join = elementJoin(plugin, tr);
+      if (join !== null) {
+        return backspace
+          ? { selection: EditorSelection.cursor(join.aboveEnd) }
+          : {};
+      }
+      if (forward) return tr;
+    }
     const selection = tr.selection ?? (backspace ? tr.newSelection : null);
     if (selection === null) return tr;
     if (selection.ranges.length !== 1 || !selection.main.empty) return tr;
@@ -89,4 +125,36 @@ export function createBlankLineLockExtension(
       { selection: EditorSelection.cursor(target), sequential: true },
     ];
   });
+}
+
+/**
+ * When `tr` is a Backspace or Delete with no selection that would join two
+ * different elements, the end of the line above the join; otherwise null.
+ */
+function elementJoin(
+  plugin: ScribidianPlugin,
+  tr: Transaction,
+): { aboveEnd: number } | null {
+  const start = tr.startState;
+  if (start.selection.ranges.length !== 1 || !start.selection.main.empty) {
+    return null;
+  }
+  let from = -1;
+  let to = -1;
+  let count = 0;
+  tr.changes.iterChanges((fromA, toA) => {
+    count += 1;
+    from = fromA;
+    to = toA;
+  });
+  if (count !== 1) return null;
+  if (start.doc.lineAt(from).number === start.doc.lineAt(to).number) {
+    return null;
+  }
+  if (!plugin.typingChangeEnabled("lockBlankLines")) return null;
+  const file = start.field(editorInfoField, false)?.file ?? null;
+  if (file === null || !plugin.isScreenplayFile(file)) return null;
+  const cursorLine = start.doc.lineAt(start.selection.main.head).number - 1;
+  if (!joinsDifferentElements(start.doc, from, to, cursorLine)) return null;
+  return { aboveEnd: start.doc.lineAt(from).to };
 }

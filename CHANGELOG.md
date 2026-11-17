@@ -16,7 +16,8 @@ Scribidian changes since 0.1.0.
 - Strict cursor placement: the cursor never rests on the single blank line
   that separates two elements, so typing can't join them. Arrow keys and
   clicks skip it, and Backspace on an extra empty line lands at the end of
-  the line above. On in script mode, off in plain mode (Settings > Typing in each
+  the line above. Backspace and Delete never join two different elements,
+  like a cue and its dialogue. On in script mode, off in plain mode (Settings > Typing in each
   mode, which was "Text changes while typing").
 - Settings > Enter key: choose what Enter starts at the end of each element
   (action, dialogue, transition; slugline, character and wryly under
