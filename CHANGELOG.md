@@ -34,6 +34,11 @@ Scribidian changes since 0.1.0.
 
 ### Changed
 
+- Moving the cursor no longer recounts the script: the status bar and the
+  Scenes panel reuse their numbers until the text changes, and the Scenes
+  panel moves its highlight instead of rebuilding. On a 3,000-line script a
+  refresh after a cursor move drops from about 35 ms to about 9 ms.
+
 - The sidebar palette is gone. Its buttons (Preview, Export PDF, character
   pages, project parts and so on) were already commands, and the Recent lists
   are dropped. The scene list stays as the **Scenes** panel: click the
