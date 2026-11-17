@@ -94,6 +94,11 @@ Scribidian changes since 0.1.0.
 - Tab at the end of an action line puts the next line in the cue's column
   even in a script with no characters yet (the character list is empty).
   Shift+Tab or Escape makes it action.
+- Strict cursor placement: Backspace never leaves the cursor on the blank
+  line right under a block at the end of the script; it goes to the end of
+  the text above. A line set to action that merges into the line above no
+  longer lays that line out as action (text at the action margin right
+  under dialogue).
 - Strict cursor placement: Backspace on an empty line in the cue's column
   moves to the action margin on the same line (like Shift+Tab) instead of
   deleting the line. A second Backspace deletes it.

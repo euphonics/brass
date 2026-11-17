@@ -66,6 +66,24 @@ export function cursorOffSeparator(
 }
 
 /**
+ * Backspace landing on a blank line right under text, with nothing but
+ * blank lines (or the end of the note) below: typing there would join the
+ * block above, so the cursor goes to the end of that text instead. The
+ * end of the note has no element below, so isSeparatorLine doesn't cover
+ * it. Null to leave the cursor.
+ */
+export function offBlankUnderText(doc: Text, head: number): number | null {
+  const line = doc.lineAt(head);
+  if (line.number <= 1 || line.text.trim() !== "") return null;
+  const above = doc.line(line.number - 1);
+  if (above.text.trim() === "") return null;
+  if (line.number < doc.lines && doc.line(line.number + 1).text.trim() !== "") {
+    return null;
+  }
+  return above.to;
+}
+
+/**
  * Whether deleting `from`..`to` (with the cursor on line `cursorLine`,
  * 0-based) joins two lines of text that are different elements, such as a
  * character cue and the dialogue under it.
@@ -132,12 +150,14 @@ export function createBlankLineLockExtension(
     if (!plugin.typingChangeEnabled("lockBlankLines")) return tr;
     const file = tr.startState.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return tr;
-    const target = cursorOffSeparator(
-      tr.newDoc,
-      tr.startState.selection.main.head,
-      selection.main.head,
-      backspace || tr.isUserEvent("select.pointer"),
-    );
+    const target =
+      cursorOffSeparator(
+        tr.newDoc,
+        tr.startState.selection.main.head,
+        selection.main.head,
+        backspace || tr.isUserEvent("select.pointer"),
+      ) ??
+      (backspace ? offBlankUnderText(tr.newDoc, selection.main.head) : null);
     if (target === null) return tr;
     return [
       tr,

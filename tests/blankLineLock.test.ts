@@ -35,6 +35,8 @@ const {
   mergeWithLineAbove,
 } = await import("../src/editor/blankLineLock");
 const { editorInfoField } = await import("obsidian");
+const { lineKindField, setLineKind } =
+  await import("../src/editor/lineKindOverride");
 
 const doc = Text.of([
   "Edgar strokes her.", // line 1
@@ -98,7 +100,11 @@ describe("blank line lock", () => {
     const stateAt = (text: string[], line: number) => {
       const state = EditorState.create({
         doc: Text.of(text),
-        extensions: [editorInfoField, createBlankLineLockExtension(plugin)],
+        extensions: [
+          editorInfoField,
+          lineKindField,
+          createBlankLineLockExtension(plugin),
+        ],
       });
       return state.update({
         selection: EditorSelection.cursor(state.doc.line(line).from),
@@ -117,6 +123,25 @@ describe("blank line lock", () => {
       const after = backspace(stateAt(lines, 3));
       expect(after.doc.lines).toBe(4);
       expect(after.selection.main.head).toBe(after.doc.line(1).to);
+    });
+
+    it("at the end of the note, skips the blank line under the speech", () => {
+      const speech = ["CHARACTER", "Hi.", "", ""];
+      const after = backspace(stateAt(speech, 4));
+      expect(after.selection.main.head).toBe(after.doc.line(2).to);
+    });
+
+    it("drops a line's element choice when it merges into the line above", () => {
+      const speech = ["CHARACTER", "Hi.", "", ""];
+      const start = stateAt(speech, 4);
+      const chosen = start.update({
+        effects: setLineKind.of({
+          from: start.doc.line(4).from,
+          kind: "action",
+        }),
+      }).state;
+      expect(chosen.field(lineKindField)).not.toBeNull();
+      expect(backspace(chosen).field(lineKindField)).toBeNull();
     });
 
     it("leaves Backspace alone when the cursor doesn't land on a separator", () => {

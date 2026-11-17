@@ -40,8 +40,18 @@ export const setLineKind = StateEffect.define<LineKindOverride | null>();
 export const lineKindField = StateField.define<LineKindOverride | null>({
   create: () => null,
   update(value, tr) {
+    // The line merged into the one above (its line break deleted): the
+    // choice was for that line, not for the one it joined.
+    let merged = false;
+    if (value !== null) {
+      tr.changes.iterChanges((fromA, toA) => {
+        if (fromA < value.from && toA >= value.from) merged = true;
+      });
+    }
     let next =
-      value === null ? null : { ...value, from: tr.changes.mapPos(value.from) };
+      value === null || merged
+        ? null
+        : { ...value, from: tr.changes.mapPos(value.from) };
     for (const effect of tr.effects) {
       if (effect.is(setLineKind)) next = effect.value;
     }
