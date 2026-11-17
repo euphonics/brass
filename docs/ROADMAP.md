@@ -268,6 +268,27 @@ Fixed on 2026-11-16: the editor layout, the parser, Smart Tab and the cue checks
 | 86  | Shift+Tab and Escape (turn the empty next-cue line into action) only work in script mode and only on that one line. The command "Smart Tab back" sounds like the reverse of Smart Tab, but in plain mode it runs Obsidian's outdent.                                    | S      |
 | 87  | Pickers are uneven: commands exist for Character, Wryly, Character extension and Transition; sluglines only through New scene.                                                                                                                                          | S      |
 
+### Menus and the cursor's column (script mode)
+
+Tested live on 2026-11-17 with a script of ~50 typing scenarios (each
+keystroke checks which column the line is in and which list is open). Rule
+the writer expects: the line sits in the column of the list that is open,
+the slugline list never shows in the cue's column, and the cue's column only
+appears once a character list (or a cue) is really being typed. Already
+fixed that day: Tab after action with no characters, `IN` jumping to the
+cue's column, Enter after a wryly, Backspace on an empty cue line.
+
+| #   | Issue                                                                                                                                                                                                                                      | Effort |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 99  | Tab after action (the line goes to the cue's column), then type `IN`: the slugline list opens but the line stays in the cue's column. With or without characters in the script.                                                            | S      |
+| 100 | Escape or Shift+Tab while the slugline list is open on `IN`: the list closes and the line jumps to the cue's column, the opposite of what the key means.                                                                                   | S      |
+| 101 | A capitalised action word that starts like a scene type (`INTENSE MUSIC`): `IN`/`INT` show the slugline list at the left margin, then `INTE` closes it and the line jumps to the cue's column. The line moves twice while typing one word. | S–M    |
+| 102 | Transitions typed without `>` (`CUT TO:`, `SMASH CUT TO:`, `FADE OUT.`) get no transition list, and sit in the cue's column until the `:` is typed, then jump right. Only `> ...` opens the transition list.                               | M      |
+| 103 | `EST` is a valid slugline start but isn't in the slugline list: `ES`/`EST` sit in the cue's column with no list until `EST.` is typed.                                                                                                     | S      |
+| 104 | After Escape or Shift+Tab turns the empty line into action, typing `INT` shows no slugline list (a line set to action gets no lists); it becomes a slugline only at `INT.`.                                                                | S      |
+| 105 | A forced cue (`@`, `@j`) shows no character list, and `@j` stays at the action margin until a second letter.                                                                                                                               | S      |
+| 106 | A known name typed with a lowercase letter at the start of a block (`Je`, after first-letter capitalisation) opens no character list. Possibly intended (it could be action: "Jen walks"). Decide.                                         | S      |
+
 ### Names and settings
 
 | #   | Inconsistency                                                                                                                                                                                                                                                                                        | Effort |
