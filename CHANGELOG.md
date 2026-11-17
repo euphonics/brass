@@ -101,6 +101,9 @@ Scribidian changes since 0.1.0.
   it (`INTENSE MUSIC`, a new name like `BOB`) and moves to the character
   column only once it is clearly a cue: the character list shows it, the
   (V.O.) list is open, it starts with `@`, or Enter puts a line under it.
+- A line in capitals ending in punctuation (`BANG!`, `SILENCE.`) is action,
+  even with text right below it, so Enter after it starts more action. An
+  extension is fine (`JEN (V.O.)`); `@` forces a cue (`@JOHN JR.`).
 - A line Tab put in the character column only offers characters, never the
   slugline list. Escape or Shift+Tab with the slugline list open keeps the
   line at the action margin.

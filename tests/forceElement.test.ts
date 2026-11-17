@@ -72,7 +72,9 @@ describe("force element", () => {
 
   it("action: removes forcing marks, or forces with ! when needed", () => {
     expect(forceElementPlan("She runs.", "action")).toBeNull();
-    expect(forceElementPlan("BANG!", "action")?.text).toBe("!BANG!");
+    expect(forceElementPlan("BANG", "action")?.text).toBe("!BANG");
+    // Capitals ending in punctuation already read as action.
+    expect(forceElementPlan("BANG!", "action")).toBeNull();
     expect(forceElementPlan(".LATER", "action")?.text).toBe("!LATER");
     expect(forceElementPlan("> She leaves <", "action")?.text).toBe(
       "She leaves",

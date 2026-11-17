@@ -95,6 +95,14 @@ describe("editor screenplay layout", () => {
     expect(classify("Text.\n\n@jen", 2)[2]).toBe("character");
   });
 
+  it("reads capitals ending in punctuation as action, even with text below", () => {
+    expect(classify("Text.\n\nBANG!\nShe falls.")[2]).toBe("action");
+    expect(classify("Text.\n\nSILENCE.\nThen a knock.")[2]).toBe("action");
+    // An extension is fine, and "@" forces a cue.
+    expect(classify("Text.\n\nJEN (V.O.)\nHi.")[2]).toBe("character");
+    expect(classify("Text.\n\n@BANG!\nHi.")[2]).toBe("character");
+  });
+
   it("needs a blank line before a cue", () => {
     expect(classify("She runs.\nJEN\nHi.")).toEqual([
       "action",

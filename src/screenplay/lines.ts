@@ -43,6 +43,7 @@ const FADE_TRANSITION = /^FADE (?:IN:|OUT\.|TO BLACK\.)$/u;
 /** Lines that are something else, never a character cue. */
 const NOT_A_CUE = /^(?:!|>|#|=|~|\[\[|\/\*|%%)/u;
 const CUE_EXTENSIONS = /(?:\s+\([^)]*\))+\s*$/u;
+const ENDS_IN_PUNCTUATION = /[.!?,;:\u2026\u2013\u2014-]$/u;
 const DUAL_DIALOGUE_CARET = /\s*\^\s*$/u;
 
 function isBlank(line: string | undefined): boolean {
@@ -142,6 +143,9 @@ export function characterCue(line: string): CharacterCue | null {
   ) {
     return null;
   }
+  // A line in capitals ending in punctuation ("BANG!", "SILENCE.") is
+  // action, not a name. An extension after the name is fine: "JEN (V.O.)".
+  if (!forced && ENDS_IN_PUNCTUATION.test(name)) return null;
   return { name, extension };
 }
 

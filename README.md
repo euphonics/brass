@@ -151,8 +151,11 @@ toolbar above the keyboard.
 
 **Fountain rules worth knowing.**
 
-- A line in capitals with text right below it (`BANG!` then a line) reads as a
-  character and dialogue. Put `!` in front to make it action: `!BANG!`.
+- A line in capitals with text right below it reads as a character and
+  dialogue, unless it ends in punctuation: `BANG!` or `SILENCE.` stays action
+  in Scribidian. Other apps follow plain Fountain and may read `BANG!` as a
+  character; put `!` in front (`!BANG!`) to make it action everywhere. For a
+  name that does end in punctuation (`JOHN JR.`), put `@` in front.
 - Sluglines must start with INT, EXT, EST or I/E. For anything else, start the
   line with a full stop: `.INNEN. HAUS - TAG`.
 - Transitions must end in `TO:`. For others, start with `>`: `> FADE OUT.`
