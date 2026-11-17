@@ -14,31 +14,31 @@ typing help differ.
 
 The rule for new features: anything that changes typing beyond suggestions and
 the Tab key belongs to script mode only. In code, check `plugin.isScriptMode()`.
-Text changes while typing, and the cursor lock on blank lines between
-elements, get a setting for each mode, on in script mode and off in plain mode
+Text changes while typing, and strict cursor placement (the cursor lock on blank lines between
+elements), get a setting for each mode, on in script mode and off in plain mode
 by default; check `plugin.typingChangeEnabled(...)`.
 
 ## Current behaviour
 
-| Behaviour                                                   | Script mode  | Plain mode                                         |
-| ----------------------------------------------------------- | ------------ | -------------------------------------------------- |
-| Screenplay layout (indents, 60-character column, lock)      | Yes          | No                                                 |
-| Dual dialogue shown side by side                            | Yes          | No                                                 |
-| Screenplay font                                             | Yes          | Yes                                                |
-| Bottom typing margin                                        | Yes          | Yes                                                |
-| Suggestions while typing                                    | Yes          | Yes                                                |
-| Accept a suggestion with Tab or a tap                       | Yes          | Yes                                                |
-| Accept a suggestion with Enter                              | Yes          | No: Enter closes the list and starts a new line    |
-| Smart Tab (Tab) and the Smart Tab commands                  | Yes          | Yes                                                |
-| Shift+Tab or Escape on the empty next-cue line → action     | Yes          | No (there is no layout to change)                  |
-| Smart Enter (next element; set per element under Enter key) | Yes          | No: Obsidian's Enter                               |
-| Shift+Enter as a plain line break                           | Yes          | Obsidian's Shift+Enter                             |
-| **Set line** commands                                       | Yes          | Yes (they add Fountain markers such as `@` or `>`) |
-| Capitalize the first letter of a line                       | On (setting) | Off (setting)                                      |
-| Uppercase a slugline as you type                            | On (setting) | Off (setting)                                      |
-| Uppercase while typing on a `>` transition line             | On (setting) | Off (setting)                                      |
-| Cursor skips the blank line between two elements            | On (setting) | Off (setting)                                      |
-| Status bar, Scenes panel, inspector, commands               | Yes          | Yes                                                |
+| Behaviour                                                      | Script mode  | Plain mode                                         |
+| -------------------------------------------------------------- | ------------ | -------------------------------------------------- |
+| Screenplay layout (indents, 60-character column, lock)         | Yes          | No                                                 |
+| Dual dialogue shown side by side                               | Yes          | No                                                 |
+| Screenplay font                                                | Yes          | Yes                                                |
+| Bottom typing margin                                           | Yes          | Yes                                                |
+| Suggestions while typing                                       | Yes          | Yes                                                |
+| Accept a suggestion with Tab or a tap                          | Yes          | Yes                                                |
+| Accept a suggestion with Enter                                 | Yes          | No: Enter closes the list and starts a new line    |
+| Smart Tab (Tab) and the Smart Tab commands                     | Yes          | Yes                                                |
+| Shift+Tab or Escape on the empty next-cue line → action        | Yes          | No (there is no layout to change)                  |
+| Smart Enter (next element; set per element under Enter key)    | Yes          | No: Obsidian's Enter                               |
+| Shift+Enter as a plain line break                              | Yes          | Obsidian's Shift+Enter                             |
+| **Set line** commands                                          | Yes          | Yes (they add Fountain markers such as `@` or `>`) |
+| Capitalize the first letter of a line                          | On (setting) | Off (setting)                                      |
+| Uppercase a slugline as you type                               | On (setting) | Off (setting)                                      |
+| Uppercase while typing on a `>` transition line                | On (setting) | Off (setting)                                      |
+| Strict cursor placement (skip the blank line between elements) | On (setting) | Off (setting)                                      |
+| Status bar, Scenes panel, inspector, commands                  | Yes          | Yes                                                |
 
 These settings have a Plain and a Script column under
 **Settings → Scribidian → Typing in each mode**.

@@ -13,9 +13,10 @@ Scribidian changes since 0.1.0.
 
 - **Screenplay: Transition** command, so the transition picker no longer
   needs the sidebar.
-- Keep the cursor off blank lines between elements: arrow keys and clicks
-  skip the single blank line that separates two elements, so typing can't
-  join them. On in script mode, off in plain mode (Settings > Typing in each
+- Strict cursor placement: the cursor never rests on the single blank line
+  that separates two elements, so typing can't join them. Arrow keys and
+  clicks skip it, and Backspace on an extra empty line lands at the end of
+  the line above. On in script mode, off in plain mode (Settings > Typing in each
   mode, which was "Text changes while typing").
 - Settings > Enter key: choose what Enter starts at the end of each element
   (action, dialogue, transition; slugline, character and wryly under

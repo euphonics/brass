@@ -67,7 +67,7 @@ export interface ScribidianSettings {
   uppercaseTransitionsPlain: boolean;
   uppercaseSluglinesScript: boolean;
   uppercaseSluglinesPlain: boolean;
-  /** Keep the cursor off the blank line between two elements. */
+  /** Strict cursor placement: keep the cursor off the blank line between two elements. */
   lockBlankLinesScript: boolean;
   lockBlankLinesPlain: boolean;
   /** What Enter starts at the end of each element (script mode). */
@@ -294,8 +294,8 @@ export const TYPING_CHANGE_ROWS: {
     script: "uppercaseTransitionsScript",
   },
   {
-    name: "Keep the cursor off blank lines between elements",
-    desc: "Arrow keys and clicks skip the single blank line that separates two elements, so typing can't join them by accident. Enter still makes room for a new element.",
+    name: "Strict cursor placement",
+    desc: "The cursor never rests on the single blank line that separates two elements, so typing can't join them by accident. Arrow keys and clicks skip it, and Backspace on an extra empty line lands at the end of the line above. Enter still makes room for a new element.",
     plain: "lockBlankLinesPlain",
     script: "lockBlankLinesScript",
   },

@@ -15,13 +15,22 @@
  * limitations under the License.
  */
 
-import { Text } from "@codemirror/state";
+import { EditorSelection, EditorState, Text } from "@codemirror/state";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("obsidian", () => ({ editorInfoField: {} }));
+vi.mock("obsidian", async () => {
+  const { StateField } = await import("@codemirror/state");
+  return {
+    editorInfoField: StateField.define({
+      create: () => ({ file: { path: "script.md" } }),
+      update: (value) => value,
+    }),
+  };
+});
 
-const { cursorOffSeparator, isSeparatorLine } =
+const { createBlankLineLockExtension, cursorOffSeparator, isSeparatorLine } =
   await import("../src/editor/blankLineLock");
+const { editorInfoField } = await import("obsidian");
 
 const doc = Text.of([
   "Edgar strokes her.", // line 1
@@ -68,5 +77,64 @@ describe("blank line lock", () => {
   it("leaves other lines alone", () => {
     expect(cursorOffSeparator(doc, 0, doc.line(5).from, false)).toBeNull();
     expect(cursorOffSeparator(doc, 0, doc.line(3).from, true)).toBeNull();
+  });
+
+  describe("Backspace", () => {
+    const plugin = {
+      typingChangeEnabled: () => true,
+      isScreenplayFile: () => true,
+    } as unknown as Parameters<typeof createBlankLineLockExtension>[0];
+    const lines = [
+      "George offers it to Jen.", // line 1
+      "", // line 2
+      "", // line 3: cursor here
+      "GEORGE", // line 4
+      "You are not Jen.", // line 5
+    ];
+    const stateAt = (text: string[], line: number) => {
+      const state = EditorState.create({
+        doc: Text.of(text),
+        extensions: [editorInfoField, createBlankLineLockExtension(plugin)],
+      });
+      return state.update({
+        selection: EditorSelection.cursor(state.doc.line(line).from),
+      }).state;
+    };
+    const backspace = (state: EditorState) => {
+      const head = state.selection.main.head;
+      return state.update({
+        changes: { from: head - 1, to: head },
+        selection: EditorSelection.cursor(head - 1),
+        userEvent: "delete.backward",
+      }).state;
+    };
+
+    it("puts the cursor at the end of the line above, not on the separator", () => {
+      const after = backspace(stateAt(lines, 3));
+      expect(after.doc.lines).toBe(4);
+      expect(after.selection.main.head).toBe(after.doc.line(1).to);
+    });
+
+    it("leaves Backspace alone when the cursor doesn't land on a separator", () => {
+      const fourBlank = ["Action.", "", "", "", "", "JANE", "Hi."];
+      const after = backspace(stateAt(fourBlank, 4));
+      expect(after.selection.main.head).toBe(after.doc.line(3).from);
+    });
+
+    it("does nothing with the setting off", () => {
+      const off = { ...plugin, typingChangeEnabled: () => false };
+      const state = EditorState.create({
+        doc: Text.of(lines),
+        extensions: [
+          editorInfoField,
+          createBlankLineLockExtension(off as unknown as typeof plugin),
+        ],
+      });
+      const placed = state.update({
+        selection: EditorSelection.cursor(state.doc.line(3).from),
+      }).state;
+      const after = backspace(placed);
+      expect(after.selection.main.head).toBe(after.doc.line(2).from);
+    });
   });
 });

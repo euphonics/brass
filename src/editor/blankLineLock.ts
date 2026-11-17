@@ -59,16 +59,20 @@ export function cursorOffSeparator(
 }
 
 /**
- * The lock as an editor extension. Only cursor moves are changed (arrow
- * keys, clicks), never edits, and only in screenplay notes with the
- * setting on for the current editor mode. Selections are left alone.
+ * The lock as an editor extension, only in screenplay notes with the setting
+ * on for the current editor mode. It changes cursor moves (arrow keys,
+ * clicks) and Backspace: deleting an extra empty line so that the cursor
+ * would land on a separator puts it at the end of the line above instead.
+ * Other edits and selections are left alone.
  */
 export function createBlankLineLockExtension(
   plugin: ScribidianPlugin,
 ): Extension {
   return EditorState.transactionFilter.of((tr) => {
-    if (tr.docChanged || !tr.selection) return tr;
-    const { selection } = tr;
+    const backspace = tr.docChanged && tr.isUserEvent("delete.backward");
+    if (tr.docChanged && !backspace) return tr;
+    const selection = tr.selection ?? (backspace ? tr.newSelection : null);
+    if (selection === null) return tr;
     if (selection.ranges.length !== 1 || !selection.main.empty) return tr;
     if (!plugin.typingChangeEnabled("lockBlankLines")) return tr;
     const file = tr.startState.field(editorInfoField, false)?.file ?? null;
@@ -77,7 +81,7 @@ export function createBlankLineLockExtension(
       tr.newDoc,
       tr.startState.selection.main.head,
       selection.main.head,
-      tr.isUserEvent("select.pointer"),
+      backspace || tr.isUserEvent("select.pointer"),
     );
     if (target === null) return tr;
     return [
