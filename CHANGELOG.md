@@ -97,6 +97,13 @@ Scribidian changes since 0.1.0.
 - Strict cursor placement: Backspace on an empty line in the cue's column
   moves to the action margin on the same line (like Shift+Tab) instead of
   deleting the line. A second Backspace deletes it.
+- Script mode: a line in capitals stays at the action margin while you type
+  it (`INTENSE MUSIC`, a new name like `BOB`) and moves to the character
+  column only once it is clearly a cue: the character list shows it, the
+  (V.O.) list is open, it starts with `@`, or Enter puts a line under it.
+- A line Tab put in the character column only offers characters, never the
+  slugline list. Escape or Shift+Tab with the slugline list open keeps the
+  line at the action margin.
 - Typing the start of a slugline in capitals (`IN`) keeps the line at the
   left margin while the slugline list is open, instead of jumping to the
   cue's column.

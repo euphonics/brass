@@ -523,37 +523,35 @@ export function getScreenplayCompletionPlan(
   );
   if (extensions) return extensions;
 
-  const transition = transitionPlan(
-    before,
-    from,
-    cursorOffset,
-    index,
-    preferences,
-  );
+  // A line set to a character only gets characters (and extensions).
+  const characterOnly = force === "character";
+
+  const transition = characterOnly
+    ? null
+    : transitionPlan(before, from, cursorOffset, index, preferences);
   if (transition) return transition;
 
-  const modifier = slugModifierPlan(
-    source,
-    before,
-    from,
-    cursorOffset,
-    index,
-    preferences,
-    explicit,
-  );
+  const modifier = characterOnly
+    ? null
+    : slugModifierPlan(
+        source,
+        before,
+        from,
+        cursorOffset,
+        index,
+        preferences,
+        explicit,
+      );
   if (modifier) return modifier;
 
-  const scene = scenePlan(before, from, cursorOffset, index, preferences);
+  const scene = characterOnly
+    ? null
+    : scenePlan(before, from, cursorOffset, index, preferences);
   if (scene) return scene;
 
-  const parenthetical = parentheticalPlan(
-    source,
-    before,
-    from,
-    cursorOffset,
-    index,
-    preferences,
-  );
+  const parenthetical = characterOnly
+    ? null
+    : parentheticalPlan(source, before, from, cursorOffset, index, preferences);
   if (parenthetical) return parenthetical;
 
   const query = before.trimStart();
@@ -579,19 +577,20 @@ export function getScreenplayCompletionPlan(
     !/\s/u.test(query) &&
     (query.length >= minimumLetters ||
       (explicit && afterHeading && query.length === 0));
-  const sceneTypeCandidates = wantsSceneTypes
-    ? (preferences.preferredSceneTypes ?? DEFAULT_SCENE_TYPES)
-        .filter((type) =>
-          matchCase
-            ? type.startsWith(query)
-            : type.toLocaleUpperCase().startsWith(query.toLocaleUpperCase()),
-        )
-        .map((type) => ({
-          label: type,
-          applyText: `${type} `,
-          detail: "Scene type",
-        }))
-    : [];
+  const sceneTypeCandidates =
+    wantsSceneTypes && !characterOnly
+      ? (preferences.preferredSceneTypes ?? DEFAULT_SCENE_TYPES)
+          .filter((type) =>
+            matchCase
+              ? type.startsWith(query)
+              : type.toLocaleUpperCase().startsWith(query.toLocaleUpperCase()),
+          )
+          .map((type) => ({
+            label: type,
+            applyText: `${type} `,
+            detail: "Scene type",
+          }))
+      : [];
   if (afterHeading && query.length === 0 && sceneTypeCandidates.length > 0) {
     return {
       kind: "scene-type",

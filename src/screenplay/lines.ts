@@ -300,12 +300,14 @@ export function classifyLines(
     if (
       startsBlock &&
       characterCue(text) !== null &&
-      // A cue needs a line under it. A cue just picked, with the cursor on
-      // it or on the empty line below, counts before its dialogue is typed.
+      // A cue needs a line under it. A cue just picked or ended with Enter,
+      // with the cursor on the empty line below, counts before its
+      // dialogue is typed. While it is typed, a line in capitals stays
+      // action ("INTENSE MUSIC", "BOB"): the editor moves it to the cue's
+      // column once the character list shows it. A forced "@name" counts
+      // at once.
       (!isBlank(lines[index + 1]) ||
-        // Two letters at least, so the auto-capital starting an action
-        // line ("S") does not jump to the middle.
-        (index === cursorLine && text.replace(/^@/u, "").length > 1) ||
+        (index === cursorLine && /^@./u.test(text)) ||
         index + 1 === cursorLine)
     ) {
       kinds[index] = "character";

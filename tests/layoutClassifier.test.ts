@@ -85,10 +85,14 @@ describe("editor screenplay layout", () => {
     ]);
   });
 
-  it("treats an all-caps line without dialogue as action, unless being typed", () => {
+  it("treats an all-caps line without dialogue as action, even while typed", () => {
     expect(classify("Text.\n\nBANG!\n\nMore.")[2]).toBe("action");
-    expect(classify("Text.\n\nJEN", 2)[2]).toBe("character");
+    // Being typed: stays action until the character list shows it (the
+    // editor's job), Enter puts a line under it, or it starts with "@".
+    expect(classify("Text.\n\nJEN", 2)[2]).toBe("action");
     expect(classify("Text.\n\nJEN")[2]).toBe("action");
+    expect(classify("Text.\n\nJEN\n", 3)[2]).toBe("character");
+    expect(classify("Text.\n\n@jen", 2)[2]).toBe("character");
   });
 
   it("needs a blank line before a cue", () => {
@@ -158,9 +162,9 @@ describe("editor screenplay layout", () => {
   it("knows which element a suggestion list is for", () => {
     expect(menuLineKind("12 dialogue blocks")).toBe("character");
     expect(menuLineKind("1 dialogue block")).toBe("character");
+    expect(menuLineKind("Character extension")).toBe("character");
     expect(menuLineKind("Scene type")).toBe("scene-heading");
     expect(menuLineKind("Transition")).toBe("transition");
-    expect(menuLineKind("Character extension")).toBeNull();
   });
 });
 

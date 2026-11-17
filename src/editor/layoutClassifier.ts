@@ -73,6 +73,7 @@ export function menuLineKind(
 ): LayoutLineKind | null {
   if (!detail) return null;
   if (/dialogue blocks?$/u.test(detail)) return "character";
+  if (detail === "Character extension") return "character";
   if (["Scene type", "Location", "Time", "Slug modifier"].includes(detail)) {
     return "scene-heading";
   }
