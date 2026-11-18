@@ -114,7 +114,7 @@ See the [feature tour](docs/FEATURE_TOUR.md) for pictures of each part.
 as you type, for example with capitals and Smart Enter. **Plain mode** keeps
 Obsidian's normal look and free typing: suggestions and Smart Tab still work,
 but Enter and your text are left alone. Switch with
-**Screenplay: Toggle script and plain mode**. Each kind of typing help can be
+**Screenplay: Toggle script/Fountain mode**. Each kind of typing help can be
 turned on or off for each mode in settings. See
 [Editor modes](docs/EDITOR_MODES.md).
 

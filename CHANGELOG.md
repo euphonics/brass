@@ -11,6 +11,8 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- docs/EDITOR_BEHAVIOR_DECISIONS.md: how the script editor should behave
+  (Enter, Tab, Backspace, menus, capitals) and the cases to test.
 - Strict cursor placement: Backspace or Delete anywhere on an empty wryly,
   `()`, or one that would leave only `(` or `)` (as in `(b|`), deletes the
   wryly line and puts the cursor at the end of the dialogue above. A lone
@@ -80,7 +82,7 @@ Scribidian changes since 0.1.0.
 - Settings: "Text changes while typing" is now one table with a Plain and a Script column. A checkbox at the top of each column turns all of that mode's changes on or off.
 
 - The editor layouts are now called script mode and plain mode. New command
-  **Screenplay: Toggle script and plain mode**.
+  **Screenplay: Toggle script/Fountain mode**.
 - The settings page is reorganised for writers: Getting started, Writing,
   Typing in each mode, Tab and Enter keys, Suggestions, Page count and status bar,
   Character pages, Clean Fountain export, and a collapsed Advanced section.

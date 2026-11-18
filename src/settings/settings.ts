@@ -863,13 +863,13 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Editor mode",
-        desc: "Script mode lays your script out like the printed page and helps as you type. Plain mode keeps Obsidian's normal look and leaves your typing alone, though suggestions and Smart Tab still work. Your text is the same either way. Switch any time with the command Screenplay: Toggle script and plain mode.",
+        desc: "Script mode lays your script out like the printed page and helps as you type. Plain mode keeps Obsidian's normal look and leaves your typing alone, though suggestions and Smart Tab still work. Your text is the same either way. Switch any time with the command Screenplay: Toggle script/Fountain mode.",
         control: {
           type: "dropdown",
           key: "editorLayout",
           options: {
-            screenplay: "Script mode (screenplay layout)",
-            plain: "Plain mode (Fountain text)",
+            screenplay: "Screenplay (formatted)",
+            plain: "Fountain (plain text)",
           },
           defaultValue: DEFAULT_SETTINGS.editorLayout,
         },

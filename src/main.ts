@@ -129,7 +129,7 @@ export default class ScribidianPlugin extends Plugin {
 
     this.addCommand({
       id: "toggle-editor-mode",
-      name: "Screenplay: Toggle script and plain mode",
+      name: "Screenplay: Toggle script/Fountain mode",
       icon: "file-type",
       callback: () => void this.toggleEditorMode(),
     });
