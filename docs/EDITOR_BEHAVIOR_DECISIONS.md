@@ -119,6 +119,9 @@ Test cases:
 
 - Enter at the end of a capitals line turns it into a character only if it
   does not end in punctuation (a closing extension like `(V.O.)` is fine).
+- **Shift+Enter** is a plain line break, and the new line is the same
+  element as the line the cursor was on: after dialogue the cursor stays in
+  the dialogue column. Strict on or off, Smart Enter on or off.
 - **Enter at the end of a line in the middle of a speech** (a cue, wryly or
   dialogue line with more of the speech right below): with strict on,
   nothing happens. A new block there would cut the speech in two.

@@ -929,17 +929,32 @@ export function createScreenplayCompletionExtension(
     return kinds[line.number - 1] === "dialogue";
   };
 
-  // Shift+Enter: a plain line break, e.g. to continue the same speech.
+  // Shift+Enter: a plain line break, e.g. to continue the same speech. The
+  // new line is the same element as the line the cursor was on (dialogue
+  // stays in the dialogue column), even where an empty line would
+  // otherwise read as action.
   const shiftEnter = (view: EditorView): boolean => {
     if (!plugin.isScriptMode()) return false;
     if (completionStatus(view.state) === "active") return false;
-    if (!plugin.settings.smartEnterEnabled) return false;
     const file = view.state.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return false;
-    view.dispatch(view.state.replaceSelection("\n"), {
+    const { state } = view;
+    const line = state.doc.lineAt(state.selection.main.head);
+    const override = state.field(lineKindField, false) ?? null;
+    const kind =
+      override !== null && override.from === line.from
+        ? override.kind
+        : (classifyLines(state.doc.toString().split("\n"), {
+            cursorLine: line.number - 1,
+          })[line.number - 1] ?? null);
+    view.dispatch(state.replaceSelection("\n"), {
       scrollIntoView: true,
       userEvent: "input",
     });
+    if (kind !== null && state.selection.ranges.length === 1) {
+      const next = view.state.doc.lineAt(view.state.selection.main.head);
+      view.dispatch({ effects: setLineKind.of({ from: next.from, kind }) });
+    }
     return true;
   };
 

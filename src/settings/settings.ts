@@ -713,7 +713,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
     });
     setting.settingEl.createDiv({
       cls: "setting-item-description scribidian-settings-table-note",
-      text: 'What pressing Tab or Enter at the end of a line starts next, with Smart Tab or Smart Enter on. Enter works this way in script mode only. Tab first completes a slugline (" - ", the time of day, a modifier); its choice applies after that. What they do in the middle of a line is set in the next two tables. Shift+Enter is always a plain line break.',
+      text: 'What pressing Tab or Enter at the end of a line starts next, with Smart Tab or Smart Enter on. Enter works this way in script mode only. Tab first completes a slugline (" - ", the time of day, a modifier); its choice applies after that. What they do in the middle of a line is set in the next two tables. Shift+Enter is always a plain line break that keeps the same element.',
     });
     const table = setting.settingEl.createEl("table", {
       cls: "scribidian-settings-table scribidian-enter-table",

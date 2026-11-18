@@ -130,6 +130,9 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Script mode: Shift+Enter starts a new line of the same element as the
+  line the cursor was on (after dialogue, the cursor stays in the dialogue
+  column).
 - Script mode, strict: deleting a whole selected character cue right after
   another speech removes the cue and the blank line, so its dialogue carries
   on the speech above (as in Fade In), instead of leaving an empty cue line. After action, only the cue line goes and its dialogue stays as a
