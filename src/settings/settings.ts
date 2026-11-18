@@ -38,11 +38,17 @@ import {
   normalizeEnterTargets,
   DEFAULT_TAB_INSIDE,
   DEFAULT_TAB_INSIDE_PLAIN,
+  DEFAULT_ENTER_INSIDE,
+  DEFAULT_ENTER_INSIDE_PLAIN,
+  ENTER_INSIDE_LABELS,
+  ENTER_INSIDE_OPTIONS,
+  normalizeEnterInside,
+  type EnterInsideActions,
   normalizeTabInside,
   TAB_INSIDE_LABELS,
   tabInsideOptions,
   type EnterTargets,
-  type TabInsideAction,
+  type EnterSource,
   type TabInsideActions,
 } from "../editor/enterTargets";
 import {
@@ -88,6 +94,9 @@ export interface ScribidianSettings {
   /** Tab inside a line, set separately for script and plain mode. */
   tabInsideScript: TabInsideActions;
   tabInsidePlain: TabInsideActions;
+  /** Enter inside a line, set separately for script and plain mode. */
+  enterInsideScript: EnterInsideActions;
+  enterInsidePlain: EnterInsideActions;
   editorLayout: EditorLayout;
   bottomTypingMargin: number;
   screenplayFont: string;
@@ -223,6 +232,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   tabTargets: { ...DEFAULT_TAB_TARGETS },
   tabInsideScript: { ...DEFAULT_TAB_INSIDE },
   tabInsidePlain: { ...DEFAULT_TAB_INSIDE_PLAIN },
+  enterInsideScript: { ...DEFAULT_ENTER_INSIDE },
+  enterInsidePlain: { ...DEFAULT_ENTER_INSIDE_PLAIN },
   editorLayout: "screenplay",
   bottomTypingMargin: 40,
   screenplayFont: "Courier Prime",
@@ -283,6 +294,11 @@ export function migrateSettings(
   settings.tabInsidePlain = normalizeTabInside(
     rest.tabInsidePlain,
     DEFAULT_TAB_INSIDE_PLAIN,
+  );
+  settings.enterInsideScript = normalizeEnterInside(rest.enterInsideScript);
+  settings.enterInsidePlain = normalizeEnterInside(
+    rest.enterInsidePlain,
+    DEFAULT_ENTER_INSIDE_PLAIN,
   );
   // Smart Tab used to switch Enter's element logic too; Smart Enter now
   // has its own setting, starting from the old value.
@@ -697,7 +713,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
     });
     setting.settingEl.createDiv({
       cls: "setting-item-description scribidian-settings-table-note",
-      text: 'What pressing Tab or Enter at the end of a line starts next, with Smart Tab or Smart Enter on. Enter works this way in script mode only. Tab first completes a slugline (" - ", the time of day, a modifier); its choice applies after that. What Tab does in the middle of a line is set under Inside a line. Shift+Enter is always a plain line break.',
+      text: 'What pressing Tab or Enter at the end of a line starts next, with Smart Tab or Smart Enter on. Enter works this way in script mode only. Tab first completes a slugline (" - ", the time of day, a modifier); its choice applies after that. What they do in the middle of a line is set in the next two tables. Shift+Enter is always a plain line break.',
     });
     const table = setting.settingEl.createEl("table", {
       cls: "scribidian-settings-table scribidian-enter-table",
@@ -755,20 +771,57 @@ export class ScribidianSettingTab extends PluginSettingTab {
     });
     update();
     this.renderTabInside(setting.settingEl);
+    this.renderEnterInside(setting.settingEl);
   }
 
   /**
-   * The "Tab inside a line" table: one dropdown per element for what Tab
-   * does with the cursor in the middle of the line.
+   * The "Tab inside a line" table: one dropdown per element and mode for
+   * what Tab does with the cursor in the middle of the line.
    */
   private renderTabInside(parent: HTMLElement): void {
+    this.renderInsideTable(parent, {
+      heading: "Tab inside a line",
+      note: "With the cursor inside a line, not at its end. Next part: sluglines go on to the location, time or modifier, characters to the extension, with its list open and the current one picked. Next element: the cursor goes to the start of the next element, skipping any parts. Obsidian's: the key works as in a normal note.",
+      key: "Tab",
+      script: this.plugin.settings.tabInsideScript,
+      plain: this.plugin.settings.tabInsidePlain,
+      options: (source) => tabInsideOptions(source),
+      label: (value) => TAB_INSIDE_LABELS[value],
+    });
+  }
+
+  /** The "Enter inside a line" table, like the Tab one. */
+  private renderEnterInside(parent: HTMLElement): void {
+    this.renderInsideTable(parent, {
+      heading: "Enter inside a line",
+      note: "With the cursor inside a line, not at its start or end. Line break: the rest of the line moves to a new line as typed. Obsidian's Enter: as in a normal note, which may continue a list or quote. Next element: the cursor goes to the start of the next element. Nothing: Enter is ignored, so the line can't be split.",
+      key: "Enter",
+      script: this.plugin.settings.enterInsideScript,
+      plain: this.plugin.settings.enterInsidePlain,
+      options: () => ENTER_INSIDE_OPTIONS,
+      label: (value) => ENTER_INSIDE_LABELS[value],
+    });
+  }
+
+  private renderInsideTable<Action extends string>(
+    parent: HTMLElement,
+    spec: {
+      heading: string;
+      note: string;
+      key: string;
+      script: Record<EnterSource, Action>;
+      plain: Record<EnterSource, Action>;
+      options: (source: EnterSource) => readonly Action[];
+      label: (value: Action) => string;
+    },
+  ): void {
     parent.createDiv({
       cls: "scribidian-settings-subheading",
-      text: "Inside a line",
+      text: spec.heading,
     });
     parent.createDiv({
       cls: "setting-item-description scribidian-settings-table-note",
-      text: "With the cursor inside a line, not at its end, in each mode. Next part: sluglines go on to the location, time or modifier, characters to the extension, with its list open and the current one picked. Next element: the cursor goes to the start of the next element, skipping any parts. Obsidian's: the key works as in a normal note.",
+      text: spec.note,
     });
     const table = parent.createEl("table", {
       cls: "scribidian-settings-table scribidian-enter-table",
@@ -778,9 +831,9 @@ export class ScribidianSettingTab extends PluginSettingTab {
     head.createEl("th", { text: "Script" });
     head.createEl("th", { text: "Fountain" });
     const body = table.createEl("tbody");
-    const modes: [string, TabInsideActions][] = [
-      ["script", this.plugin.settings.tabInsideScript],
-      ["Fountain", this.plugin.settings.tabInsidePlain],
+    const modes: [string, Record<EnterSource, Action>][] = [
+      ["script", spec.script],
+      ["Fountain", spec.plain],
     ];
     for (const row of ENTER_SOURCE_ROWS) {
       const tr = body.createEl("tr");
@@ -791,15 +844,16 @@ export class ScribidianSettingTab extends PluginSettingTab {
           .createEl("select", { cls: "dropdown" });
         select.setAttr(
           "aria-label",
-          `Inside ${row.name.toLowerCase()} in ${mode} mode, Tab does`,
+          `Inside ${row.name.toLowerCase()} in ${mode} mode, ${spec.key} does`,
         );
-        for (const value of tabInsideOptions(row.source)) {
-          select.createEl("option", { value, text: TAB_INSIDE_LABELS[value] });
+        const options = spec.options(row.source);
+        for (const value of options) {
+          select.createEl("option", { value, text: spec.label(value) });
         }
         select.value = actions[row.source];
         select.addEventListener("change", () => {
-          const value = select.value as TabInsideAction;
-          if (!tabInsideOptions(row.source).includes(value)) return;
+          const value = select.value as Action;
+          if (!options.includes(value)) return;
           actions[row.source] = value;
           void this.plugin.saveSettings();
         });

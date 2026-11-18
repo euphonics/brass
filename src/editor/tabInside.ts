@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import type { EnterSource, TabInsideActions } from "./enterTargets";
+import type {
+  EnterInsideActions,
+  EnterSource,
+  TabInsideActions,
+} from "./enterTargets";
 import { classifySmartTabLine } from "./smartTab";
 import { classifyLines } from "../screenplay/lines";
 
@@ -218,4 +222,60 @@ export function getTabInsidePlan(
     anchor: lineFrom + next.to,
     head: lineFrom + next.from,
   };
+}
+
+export type EnterInsidePlan =
+  | { type: "nothing" }
+  | { type: "line-break" }
+  | { type: "obsidian" }
+  | { type: "move"; cursor: number };
+
+const ALL_NEXT_ELEMENT: TabInsideActions = {
+  action: "next-element",
+  dialogue: "next-element",
+  transition: "next-element",
+  sceneHeading: "next-element",
+  character: "next-element",
+  parenthetical: "next-element",
+};
+
+/**
+ * What Enter does with the cursor inside line `index` (0-based), past its
+ * first letter and before its end: the "Enter inside a line" setting. Null
+ * when the cursor isn't inside an element's text (then Enter's other rules
+ * apply). `cursor` is the offset within the line.
+ */
+export function getEnterInsidePlan(
+  lines: readonly string[],
+  index: number,
+  lineFroms: readonly number[],
+  cursor: number,
+  actions: EnterInsideActions,
+): EnterInsidePlan | null {
+  const line = lines[index] ?? "";
+  const source = sourceOf(classifySmartTabLine(lines, index));
+  if (source === null) return null;
+  const textStart = line.length - line.trimStart().length;
+  const textEnd = line.trimEnd().length;
+  if (cursor <= textStart || cursor >= textEnd) return null;
+  // "(beat|)" counts as the end of the wryly.
+  if (
+    source === "parenthetical" &&
+    line.slice(0, textEnd).endsWith(")") &&
+    cursor === textEnd - 1
+  ) {
+    return null;
+  }
+  const action = actions[source];
+  if (action !== "next-element") return { type: action };
+  const plan = getTabInsidePlan(
+    lines,
+    index,
+    lineFroms,
+    cursor,
+    ALL_NEXT_ELEMENT,
+  );
+  return plan?.type === "move"
+    ? { type: "move", cursor: plan.cursor }
+    : { type: "nothing" };
 }

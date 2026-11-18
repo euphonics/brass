@@ -31,7 +31,7 @@ import {
 } from "./lineKindOverride";
 import { forceElementPlan, type ForcedElement } from "./forceElement";
 import { menuLineKind } from "./layoutClassifier";
-import { getTabInsidePlan } from "./tabInside";
+import { getEnterInsidePlan, getTabInsidePlan } from "./tabInside";
 import { CHARACTER_EXTENSIONS } from "../screenplay/fountain";
 import {
   acceptCompletion,
@@ -693,27 +693,52 @@ export function createScreenplayCompletionExtension(
     return true;
   };
 
-  // Enter in the middle of a slugline ("INT. CAR| - DAY"), either mode.
-  // With strict cursor placement on, nothing happens: splitting would
-  // mangle the heading. With it off, a plain line break that keeps the
-  // text as typed (" - DAY") with the cursor at the start of the new line.
-  const enterInSlugline = (view: EditorView): boolean => {
+  // Enter with the cursor inside a line: the "Enter inside a line"
+  // setting, per mode. True when handled, false to let Obsidian's Enter
+  // run, null when Enter's other rules apply (start or end of a line).
+  const enterInside = (view: EditorView): boolean | null => {
     const file = view.state.field(editorInfoField, false)?.file ?? null;
-    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    if (file === null || !plugin.isScreenplayFile(file)) return null;
     const { selection, doc } = view.state;
-    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    if (selection.ranges.length > 1 || !selection.main.empty) return null;
     const head = selection.main.head;
     const line = doc.lineAt(head);
-    if (!isSceneHeading(line.text.trim())) return false;
-    const start = line.from + (line.text.length - line.text.trimStart().length);
-    const end = line.from + line.text.trimEnd().length;
-    if (head <= start || head >= end) return false;
-    if (plugin.typingChangeEnabled("lockBlankLines")) return true;
-    view.dispatch(view.state.replaceSelection("\n"), {
-      scrollIntoView: true,
-      userEvent: "input",
-    });
-    return true;
+    const lines = doc.toString().split("\n");
+    const lineFroms: number[] = [];
+    let offset = 0;
+    for (const text of lines) {
+      lineFroms.push(offset);
+      offset += text.length + 1;
+    }
+    const plan = getEnterInsidePlan(
+      lines,
+      line.number - 1,
+      lineFroms,
+      head - line.from,
+      plugin.isScriptMode()
+        ? plugin.settings.enterInsideScript
+        : plugin.settings.enterInsidePlain,
+    );
+    if (plan === null) return null;
+    switch (plan.type) {
+      case "nothing":
+        return true;
+      case "obsidian":
+        return false;
+      case "move":
+        view.dispatch({
+          selection: { anchor: plan.cursor },
+          scrollIntoView: true,
+          userEvent: "select",
+        });
+        return true;
+      case "line-break":
+        view.dispatch(view.state.replaceSelection("\n"), {
+          scrollIntoView: true,
+          userEvent: "input",
+        });
+        return true;
+    }
   };
 
   // Plain mode, a "> transition" or "> centered <" line: a plain line
@@ -783,8 +808,9 @@ export function createScreenplayCompletionExtension(
   // dialogue, a new speaker. An open suggestion menu keeps Enter for
   // accepting.
   const enter = (view: EditorView): boolean => {
-    if (completionStatus(view.state) !== "active" && enterInSlugline(view)) {
-      return true;
+    if (completionStatus(view.state) !== "active") {
+      const inside = enterInside(view);
+      if (inside !== null) return inside;
     }
     // Plain mode: Enter is always Obsidian's own. An open suggestion list
     // closes rather than taking the Enter (Tab or a tap accepts it).

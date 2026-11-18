@@ -187,3 +187,68 @@ export function normalizeTabInside(
   }
   return actions;
 }
+
+/** What Enter does with the cursor inside a line (not at its start or end). */
+export type EnterInsideAction =
+  "nothing" | "line-break" | "obsidian" | "next-element";
+
+export type EnterInsideActions = Record<EnterSource, EnterInsideAction>;
+
+/**
+ * Script mode: splitting a slugline, cue, wryly or transition would mangle
+ * it, so Enter does nothing there; action and dialogue split as plain text.
+ */
+export const DEFAULT_ENTER_INSIDE: EnterInsideActions = {
+  action: "line-break",
+  dialogue: "line-break",
+  transition: "nothing",
+  sceneHeading: "nothing",
+  character: "nothing",
+  parenthetical: "nothing",
+};
+
+/** Plain (Fountain) mode: a plain line break, as in a text file. */
+export const DEFAULT_ENTER_INSIDE_PLAIN: EnterInsideActions = {
+  action: "line-break",
+  dialogue: "line-break",
+  transition: "line-break",
+  sceneHeading: "line-break",
+  character: "line-break",
+  parenthetical: "line-break",
+};
+
+export const ENTER_INSIDE_LABELS: Record<EnterInsideAction, string> = {
+  nothing: "Nothing",
+  "line-break": "Line break",
+  obsidian: "Obsidian's Enter",
+  "next-element": "Next element",
+};
+
+export const ENTER_INSIDE_OPTIONS: EnterInsideAction[] = [
+  "nothing",
+  "line-break",
+  "obsidian",
+  "next-element",
+];
+
+/** Stored choices with anything missing or unknown set to its default. */
+export function normalizeEnterInside(
+  stored: unknown,
+  defaults: EnterInsideActions = DEFAULT_ENTER_INSIDE,
+): EnterInsideActions {
+  const values =
+    stored !== null && typeof stored === "object"
+      ? (stored as Record<string, unknown>)
+      : {};
+  const actions = { ...defaults };
+  for (const source of Object.keys(actions) as EnterSource[]) {
+    const value = values[source];
+    if (
+      typeof value === "string" &&
+      (ENTER_INSIDE_OPTIONS as string[]).includes(value)
+    ) {
+      actions[source] = value as EnterInsideAction;
+    }
+  }
+  return actions;
+}

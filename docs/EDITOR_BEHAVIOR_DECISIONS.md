@@ -122,16 +122,36 @@ Test cases:
 - **Enter at the end of a line in the middle of a speech** (a cue, wryly or
   dialogue line with more of the speech right below): with strict on,
   nothing happens. A new block there would cut the speech in two.
-- **Enter in the middle of a slugline** (`INT. CAR| - DAY`): with strict
-  on, nothing happens (it would mangle the heading). With strict off, a
-  plain line break that keeps the text as typed: ` - DAY` on the next line,
-  cursor at its start.
+- **Enter in the middle of a line** follows the **Enter inside a line**
+  table (below).
 - Enter's element logic has its own switch, **Smart Enter**, apart from
   **Smart Tab**, so the two keys can behave differently (as in Fade In:
   Tab after `INT. OFFICE` adds `-` and the time list; Enter starts action).
 - Each row is a setting (**Tab and Enter keys**), so writers can change it.
   Some writers expect Enter after a wryly to go to the character column; the
   default is dialogue.
+
+### Enter inside a line
+
+What Enter does with the cursor inside an element, past its first letter
+and before its end. Each element has its own setting, set separately for
+script and Fountain mode (Settings > Tab and Enter keys > Enter inside a
+line):
+
+| Element                                | Choices                                             | Script default | Fountain default |
+| -------------------------------------- | --------------------------------------------------- | -------------- | ---------------- |
+| Slugline, Character, Wryly, Transition | Nothing, Line break, Obsidian's Enter, Next element | Nothing        | Line break       |
+| Action, Dialogue                       | Nothing, Line break, Obsidian's Enter, Next element | Line break     | Line break       |
+
+- **Line break:** the rest of the line moves to a new line exactly as typed
+  (`INT. CAR| - DAY` gives ` - DAY` on the next line, cursor at its start).
+- **Obsidian's Enter:** as in a normal note; it may continue a list or a
+  quote.
+- **Next element:** the cursor goes to the start of the next element.
+- **Nothing:** the line can't be split. In script mode this is the default
+  for lines that splitting would mangle.
+- "(beat|)" counts as the end of a wryly, so Enter there goes on to the
+  dialogue as usual.
 
 ## Tab
 

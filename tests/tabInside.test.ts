@@ -17,11 +17,20 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  DEFAULT_ENTER_INSIDE,
+  DEFAULT_ENTER_INSIDE_PLAIN,
   DEFAULT_TAB_INSIDE,
+  normalizeEnterInside,
   normalizeTabInside,
+  type EnterInsideActions,
   type TabInsideActions,
 } from "../src/editor/enterTargets";
-import { getTabInsidePlan, type TabInsidePlan } from "../src/editor/tabInside";
+import {
+  getEnterInsidePlan,
+  getTabInsidePlan,
+  type EnterInsidePlan,
+  type TabInsidePlan,
+} from "../src/editor/tabInside";
 
 /**
  * Plan for a script where "|" marks the cursor. Offsets in the result are
@@ -150,5 +159,66 @@ describe("Tab inside a line", () => {
     expect(
       normalizeTabInside({ action: "next-part", character: "next-element" }),
     ).toMatchObject({ action: "nothing", character: "next-element" });
+  });
+});
+
+describe("Enter inside a line", () => {
+  function enterIn(
+    marked: string,
+    actions: Partial<EnterInsideActions> = {},
+  ): EnterInsidePlan | null {
+    const cursorAt = marked.indexOf("|");
+    const source = marked.replace("|", "");
+    const lines = source.split("\n");
+    const lineFroms: number[] = [];
+    let offset = 0;
+    for (const line of lines) {
+      lineFroms.push(offset);
+      offset += line.length + 1;
+    }
+    const index = source.slice(0, cursorAt).split("\n").length - 1;
+    return getEnterInsidePlan(
+      lines,
+      index,
+      lineFroms,
+      cursorAt - (lineFroms[index] ?? 0),
+      { ...DEFAULT_ENTER_INSIDE, ...actions },
+    );
+  }
+
+  it("does nothing inside a slugline or cue by default", () => {
+    expect(enterIn("INT. CAR| - DAY\n\nShe runs.")).toEqual({
+      type: "nothing",
+    });
+    expect(enterIn("She runs.\n\nMA|RA\nHello.")).toEqual({ type: "nothing" });
+  });
+
+  it("splits action and dialogue as a line break by default", () => {
+    expect(enterIn("She ru|ns.")).toEqual({ type: "line-break" });
+    expect(enterIn("She runs.\n\nMARA\nHel|lo.")).toEqual({
+      type: "line-break",
+    });
+  });
+
+  it("leaves the start and end of a line to Enter's other rules", () => {
+    expect(enterIn("|She runs.")).toBeNull();
+    expect(enterIn("She runs.|")).toBeNull();
+    expect(enterIn("She runs.\n\nMARA\n(beat|)\nHello.")).toBeNull();
+  });
+
+  it("moves to the next element when chosen", () => {
+    const plan = enterIn("INT. CAR| - DAY\n\nShe runs.", {
+      sceneHeading: "next-element",
+    });
+    expect(plan).toEqual({ type: "move", cursor: 16 });
+  });
+
+  it("keeps stored choices and fills in the rest", () => {
+    const actions = normalizeEnterInside(
+      { action: "nothing", dialogue: "bogus" },
+      DEFAULT_ENTER_INSIDE_PLAIN,
+    );
+    expect(actions.action).toBe("nothing");
+    expect(actions.dialogue).toBe("line-break");
   });
 });

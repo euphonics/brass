@@ -11,6 +11,13 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- **Enter inside a line** setting: what Enter does with the cursor in the
+  middle of each element (Nothing, Line break, Obsidian's Enter, Next
+  element), set separately for script and Fountain mode. Script mode
+  defaults to Nothing in sluglines, cues, wrylies and transitions, and a
+  line break in action and dialogue; Fountain mode defaults to a line
+  break everywhere. The Tab and Enter keys settings now have three
+  headings: At the end of a line, Tab inside a line, Enter inside a line.
 - **Tab inside a line** settings table: per element, what Tab does with the
   cursor in the middle of a line. Nothing, Obsidian's own Tab, Next part
   (sluglines: location, time, modifier; characters: the extension, with its
