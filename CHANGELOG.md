@@ -29,6 +29,9 @@ Scribidian changes since 0.1.0.
   more). On by default: typing `JE` opens the character list, `Je` doesn't.
   Off: `Je` opens it too, and the line moves to the character column while
   the list is open.
+- Tab at the start of an action line with text turns it into the element
+  Tab starts after action (a character by default, in capitals), like
+  **Set line to character**. The lines under it become its dialogue.
 - Setting **Mark capitals that are action** (Settings > Fountain export, on
   by default): Fountain exports put `!` in front of capitals Scribidian reads
   as action (`!BANG!`), so Final Draft, Fade In and other apps read them as

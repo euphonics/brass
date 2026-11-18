@@ -53,6 +53,7 @@ import { buildScreenplayIndex } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
 import { ScreenplayIndexCache, textOutsideLine } from "./indexCache";
 import {
+  classifySmartTabLine,
   getSmartEnterPlan,
   getSmartTabPlan,
   capitalizeLineStart,
@@ -317,9 +318,32 @@ export function createScreenplayCompletionExtension(
     return planner(source, selection.main.head, knownTimes);
   };
 
+  // Tab at the start of an action line with text after the cursor turns
+  // the line into the element Tab starts after action (Settings > Tab and
+  // Enter keys; a character by default), like "Set line to character".
+  const tabAtLineStart = (view: EditorView): boolean => {
+    if (!plugin.settings.smartTabEnabled) return false;
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    const line = doc.lineAt(selection.main.head);
+    const indent = line.text.length - line.text.trimStart().length;
+    if (line.text.trim() === "" || selection.main.head !== line.from + indent) {
+      return false;
+    }
+    const lines = doc.toString().split("\n");
+    if (classifySmartTabLine(lines, line.number - 1) !== "action") return false;
+    const target = plugin.settings.tabTargets.action;
+    if (target === "plain" || target === "dialogue") return false;
+    forceElement(view, target);
+    return true;
+  };
+
   const tab = (view: EditorView): boolean => {
     if (completionStatus(view.state) === "active")
       return acceptCompletion(view);
+    if (tabAtLineStart(view)) return true;
     const plan = smartPlan(view);
     return plan !== null && applySmartPlan(view, plan);
   };
