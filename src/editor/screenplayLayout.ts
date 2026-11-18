@@ -250,10 +250,11 @@ export function createScreenplayLayoutExtension(
     return emptyWryly(view) || shiftTab(view);
   };
 
-  // Backspace inside an empty wryly, "(|)": the wryly goes away whole and
-  // the cursor lands at the end of the line above (the dialogue), instead
-  // of leaving a stray ")".
+  // Backspace or Delete anywhere on an empty wryly, "()": the wryly goes
+  // away whole and the cursor lands at the end of the line above (the
+  // dialogue), instead of leaving a stray "(" or ")".
   const emptyWryly = (view: EditorView): boolean => {
+    if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
     const layout = view.plugin(layoutPlugin);
     if (!layout?.active) return false;
     const { state } = view;
@@ -262,15 +263,7 @@ export function createScreenplayLayoutExtension(
     const line = state.doc.lineAt(selection.head);
     if (line.number === 1) return false;
     if (layout.kinds[line.number - 1] !== "parenthetical") return false;
-    const match = /^(\s*\()\s*\)\s*$/u.exec(line.text);
-    if (match === null) return false;
-    const inside = selection.head - line.from;
-    if (
-      inside < (match[1] ?? "").length ||
-      inside > line.text.trimEnd().length - 1
-    ) {
-      return false;
-    }
+    if (!/^\s*\(\s*\)\s*$/u.test(line.text)) return false;
     closeCompletion(view);
     view.dispatch({
       changes: { from: line.from - 1, to: line.to },
@@ -308,6 +301,7 @@ export function createScreenplayLayoutExtension(
       keymap.of([
         { key: "Shift-Tab", run: shiftTab },
         { key: "Backspace", run: backspace },
+        { key: "Delete", run: emptyWryly },
       ]),
     ),
   ];
