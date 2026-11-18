@@ -85,6 +85,9 @@ export function sceneFile(
       .map((line) => line.replace(/^\uFEFF/u, "").replace(/\r$/u, "")),
   ).lines;
   const starts: { start: number; line: number; heading: string }[] = [];
+  // Section lines ("# Act One", Markdown headings): a scene ends before the
+  // next one, so moving or editing a scene never carries a section along.
+  const sections: number[] = [];
   let offset = 0;
   let comment = false;
   let note = false;
@@ -102,18 +105,15 @@ export function sceneFile(
         issue =
           "Multiline notes or boneyards are present; scene changes are disabled to preserve their boundaries.";
       }
-      if (/^#/u.test(text) || /\^\s*$/u.test(text))
-        issue =
-          "Sections or dual dialogue are present; scene changes are disabled to preserve their boundaries.";
       if (text.includes("/*")) comment = true;
       if (text.includes("[[") && !text.includes("]]")) note = true;
-      if (/^(?:```|~~~)/u.test(text)) {
-        fence = !fence;
-        issue =
-          "Fenced code is present; scene changes are disabled to preserve its boundaries.";
-      }
+      // Headings inside a fence are ignored, so a fence always sits inside
+      // one scene and moves with it.
+      if (/^(?:```|~~~)/u.test(text)) fence = !fence;
       if (!comment && !note && !fence && isSceneHeading(text))
         starts.push({ start: offset, line: index, heading: text });
+      else if (!comment && !note && !fence && /^#/u.test(text))
+        sections.push(offset);
       if (text.includes("*/")) comment = false;
       if (text.includes("]]")) note = false;
     }
@@ -121,7 +121,9 @@ export function sceneFile(
   }
   let page = pageOffset + 1;
   const scenes = starts.map((item, index): Scene => {
-    const end = starts[index + 1]?.start ?? source.length;
+    const next = starts[index + 1]?.start ?? source.length;
+    const section = sections.find((at) => at > item.start);
+    const end = section !== undefined && section < next ? section : next;
     const text = source.slice(item.start, end);
     const lines = text.split("\n");
     const synopsis: string[] = [];

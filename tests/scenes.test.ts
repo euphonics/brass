@@ -257,11 +257,8 @@ describe("source scene workspace", () => {
     );
   });
   it.each([
-    "# Act One\nINT. ROOM - DAY",
     "/*\nINT. FAKE - DAY\n*/\nINT. REAL - DAY",
     "[[\nINT. FAKE - DAY\n]]\nINT. REAL - DAY",
-    "```\nINT. FAKE - DAY\n```\nINT. REAL - DAY",
-    "INT. ROOM - DAY\n\nALEX ^\nHello.",
   ])("disables writes for unsupported boundaries: %s", (text) => {
     const file = sceneFile("Film.md", text);
     expect(file.issue).toBeTruthy();
@@ -271,6 +268,38 @@ describe("source scene workspace", () => {
     expect(() =>
       createScene(file, "INT. ROOM - NIGHT", "", null, "after"),
     ).toThrow();
+  });
+  it("keeps a fenced block inside its scene", () => {
+    const text =
+      "INT. ROOM - DAY\n\n```\nINT. FAKE - DAY\n```\n\nEXT. ROAD - DAY\n";
+    const file = sceneFile("Film.md", text);
+    expect(file.issue).toBeNull();
+    expect(file.scenes.map((scene) => scene.heading)).toEqual([
+      "INT. ROOM - DAY",
+      "EXT. ROAD - DAY",
+    ]);
+    expect(file.scenes[0]?.text).toContain("```\nINT. FAKE - DAY\n```");
+  });
+  it("keeps sections out of scenes, so scenes can still change", () => {
+    const text =
+      "# Act One\n\nINT. ROOM - DAY\n\nShe waits.\n\n## Later\n\nEXT. STREET - NIGHT\n\nRain.\n";
+    const file = sceneFile("Film.md", text);
+    expect(file.issue).toBeNull();
+    const [room, street] = file.scenes;
+    expect(room?.text).toBe("INT. ROOM - DAY\n\nShe waits.\n\n");
+    if (!room || !street) throw new Error("missing scenes");
+    const synopsis = editSynopsis(file, room, "She is waiting.");
+    expect(synopsis.after).toContain(
+      "INT. ROOM - DAY\n= She is waiting.\n\nShe waits.\n\n## Later",
+    );
+    const [moved] = moveScene(file, street, file, room, "before");
+    expect(moved?.after).toBe(
+      "# Act One\n\nEXT. STREET - NIGHT\n\nRain.\n\nINT. ROOM - DAY\n\nShe waits.\n\n## Later\n\n",
+    );
+  });
+  it("allows dual dialogue inside a scene", () => {
+    const file = sceneFile("Film.md", "INT. ROOM - DAY\n\nALEX ^\nHello.");
+    expect(file.issue).toBeNull();
   });
   it("rejects unclosed frontmatter", () =>
     expect(

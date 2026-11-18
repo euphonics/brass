@@ -808,6 +808,7 @@ export function createScreenplayCompletionExtension(
     } else if (wryly === "pick") acceptCompletion(view);
     else if (completionStatus(view.state) === "active") return false;
     if (enterOnEmptyDialogue(view)) return true;
+    if (enterInsideSpeech(view)) return true;
     const plan = smartPlan(
       view,
       (source, cursor, knownTimes) =>
@@ -820,6 +821,32 @@ export function createScreenplayCompletionExtension(
       plugin.settings.smartEnterEnabled,
     );
     return plan !== null && applySmartPlan(view, plan);
+  };
+
+  // Strict cursor placement: Enter at the end of a cue, wryly or dialogue
+  // line with more of the speech right below does nothing. A new block
+  // there would cut the speech in two (the rest would become action).
+  const enterInsideSpeech = (view: EditorView): boolean => {
+    if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    const line = doc.lineAt(selection.main.head);
+    if (selection.main.head < line.from + line.text.trimEnd().length) {
+      return false;
+    }
+    if (line.number >= doc.lines) return false;
+    if (doc.line(line.number + 1).text.trim() === "") return false;
+    const lines = doc.toString().split("\n");
+    const kinds = classifyLines(lines, { cursorLine: line.number - 1 });
+    const kind = kinds[line.number - 1];
+    const below = kinds[line.number];
+    const speech = ["character", "parenthetical", "dialogue"];
+    return (
+      speech.includes(kind ?? "") &&
+      (below === "parenthetical" || below === "dialogue")
+    );
   };
 
   // Enter on the empty dialogue line under a cue or wryly does nothing:

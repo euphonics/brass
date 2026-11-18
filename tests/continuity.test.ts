@@ -141,7 +141,12 @@ describe("read-only continuity inspector", () => {
     ).toEqual(["Two.md", "One.md"]);
   });
   it("reports unsupported/incomplete scope rather than clean continuity", () => {
-    const files = [sceneFile("One.md", "# Act\n\nINT. ROOM - DAY\n\n!Action.")];
+    const files = [
+      sceneFile(
+        "One.md",
+        "/*\nINT. FAKE - DAY\n*/\nINT. ROOM - DAY\n\n!Action.",
+      ),
+    ];
     const result = inspectContinuity(
       files,
       [page("ALEX")],

@@ -123,6 +123,13 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Scenes panel: Synopsis, Up, Down, Move and New scene work in scripts with
+  Markdown headings (Fountain sections), fenced code blocks or dual
+  dialogue. A scene ends before the next section heading. A greyed-out
+  button says why on hover.
+- Script mode, strict: Enter at the end of a line in the middle of a speech
+  (with a wryly or more dialogue below) no longer cuts the speech in two; it
+  does nothing.
 - Enter in the middle of a slugline: with strict cursor placement on it does
   nothing; with it off it is a plain line break that keeps the text as typed
   (it used to drop the space and jump the cursor past "- ").

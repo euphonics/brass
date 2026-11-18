@@ -119,6 +119,9 @@ Test cases:
 
 - Enter at the end of a capitals line turns it into a character only if it
   does not end in punctuation (a closing extension like `(V.O.)` is fine).
+- **Enter at the end of a line in the middle of a speech** (a cue, wryly or
+  dialogue line with more of the speech right below): with strict on,
+  nothing happens. A new block there would cut the speech in two.
 - **Enter in the middle of a slugline** (`INT. CAR| - DAY`): with strict
   on, nothing happens (it would mangle the heading). With strict off, a
   plain line break that keeps the text as typed: ` - DAY` on the next line,

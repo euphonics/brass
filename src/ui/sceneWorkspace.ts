@@ -56,14 +56,19 @@ async function report(
     refresh();
   }
 }
+/**
+ * A button. `disabled` is false, or why the button is off: true, or a reason
+ * shown on hover (a native tooltip, which still shows on a disabled button).
+ */
 function action(
   container: HTMLElement,
   label: string,
   run: () => void,
-  disabled = false,
+  disabled: boolean | string = false,
 ): HTMLButtonElement {
   const button = container.createEl("button", { text: label });
-  button.disabled = disabled;
+  button.disabled = disabled !== false;
+  if (typeof disabled === "string") button.title = disabled;
   button.addEventListener("click", run);
   return button;
 }
@@ -171,7 +176,7 @@ export async function renderSceneWorkspace(
         cls: "scribidian-scene-warning",
         text: issues.join("\n"),
       });
-    const canWrite = workspace.issues.length === 0;
+    const writeIssue = workspace.issues[0] ?? null;
     action(
       bar,
       "New scene",
@@ -183,7 +188,10 @@ export async function renderSceneWorkspace(
           "create",
           refresh,
         ).open(),
-      !canWrite || !workspace.files.some((file) => !file.issue),
+      writeIssue ??
+        (workspace.files.some((file) => !file.issue)
+          ? false
+          : (workspace.files[0]?.issue ?? true)),
     );
     action(
       bar,
@@ -301,7 +309,16 @@ export async function renderSceneWorkspace(
             text: scene.characters.join(", "),
           });
         const buttons = card.createDiv({ cls: "scribidian-scene-actions" });
-        const disabled = !canWrite || Boolean(file.issue);
+        const disabled: string | false = writeIssue ?? file.issue ?? false;
+        const filtered = Boolean(
+          filters.query ||
+          filters.part ||
+          filters.character ||
+          filters.location ||
+          filters.time,
+        );
+        const filteredReason =
+          "Clear the search and filters to move scenes up or down.";
         action(
           buttons,
           "Synopsis",
@@ -336,28 +353,17 @@ export async function renderSceneWorkspace(
           "Up",
           () => shift(-1),
           disabled ||
-            local === 0 ||
-            Boolean(
-              filters.query ||
-              filters.part ||
-              filters.character ||
-              filters.location ||
-              filters.time,
-            ),
+            (local === 0 && "Already the first scene in this file.") ||
+            (filtered && filteredReason),
         );
         action(
           buttons,
           "Down",
           () => shift(1),
           disabled ||
-            local === file.scenes.length - 1 ||
-            Boolean(
-              filters.query ||
-              filters.part ||
-              filters.character ||
-              filters.location ||
-              filters.time,
-            ),
+            (local === file.scenes.length - 1 &&
+              "Already the last scene in this file.") ||
+            (filtered && filteredReason),
         );
         action(
           buttons,
