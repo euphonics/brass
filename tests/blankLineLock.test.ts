@@ -68,6 +68,11 @@ describe("blank line lock", () => {
     expect(separatorRemoved(doc, line(6).to, line(7).from)).toBeNull();
   });
 
+  it("does not lock a blank dialogue line of two spaces", () => {
+    const speech = Text.of(["CODY", "Test.", "  ", "Test."]);
+    expect(isSeparatorLine(speech, 3)).toBe(false);
+  });
+
   it("does not lock a blank first or last line", () => {
     const edges = Text.of(["", "INT. ROOF - DAY", ""]);
     expect(isSeparatorLine(edges, 1)).toBe(false);

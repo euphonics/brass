@@ -40,7 +40,10 @@ import type ScribidianPlugin from "../main";
  */
 export function isSeparatorLine(doc: Text, lineNumber: number): boolean {
   if (lineNumber <= 1 || lineNumber >= doc.lines) return false;
-  if (doc.line(lineNumber).text.trim() !== "") return false;
+  const text = doc.line(lineNumber).text;
+  if (text.trim() !== "") return false;
+  // Two or more spaces: Fountain's blank line inside a speech, not a gap.
+  if (/^ {2,}$/u.test(text)) return false;
   return (
     doc.line(lineNumber - 1).text.trim() !== "" &&
     doc.line(lineNumber + 1).text.trim() !== ""

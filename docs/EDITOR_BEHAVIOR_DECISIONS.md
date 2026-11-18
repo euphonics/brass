@@ -122,6 +122,10 @@ Test cases:
 - **Enter at the end of a line in the middle of a speech** (a cue, wryly or
   dialogue line with more of the speech right below): with strict on,
   nothing happens. A new block there would cut the speech in two.
+- **Enter at the start of a dialogue or wryly line inside a speech**: with
+  strict on, adds an empty dialogue line above, as in Fade In. In the file
+  that line holds two spaces (Fountain's blank line inside dialogue), so the
+  speech goes on past it. The first letter typed there replaces the spaces.
 - **Enter in the middle of a line** follows the **Enter inside a line**
   table (below).
 - Enter's element logic has its own switch, **Smart Enter**, apart from

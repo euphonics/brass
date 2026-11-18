@@ -130,6 +130,9 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Script mode, strict: Enter at the start of a dialogue line inside a speech
+  adds an empty dialogue line (two spaces, Fountain's blank line in
+  dialogue) instead of ending the speech, as in Fade In.
 - Scenes panel: Synopsis, Up, Down, Move and New scene work in scripts with
   Markdown headings (Fountain sections), fenced code blocks or dual
   dialogue. A scene ends before the next section heading. A greyed-out

@@ -835,6 +835,7 @@ export function createScreenplayCompletionExtension(
     else if (completionStatus(view.state) === "active") return false;
     if (enterOnEmptyDialogue(view)) return true;
     if (enterInsideSpeech(view)) return true;
+    if (blankLineInSpeech(view)) return true;
     const plan = smartPlan(
       view,
       (source, cursor, knownTimes) =>
@@ -873,6 +874,43 @@ export function createScreenplayCompletionExtension(
       speech.includes(kind ?? "") &&
       (below === "parenthetical" || below === "dialogue")
     );
+  };
+
+  // Strict cursor placement: Enter at the start of a dialogue or wryly line
+  // in the middle of a speech adds an empty dialogue line above it, as in
+  // Fade In. In Fountain that line holds two spaces, so the speech goes on
+  // past it (a truly empty line would end it).
+  const blankLineInSpeech = (view: EditorView): boolean => {
+    if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    const line = doc.lineAt(selection.main.head);
+    const textStart =
+      line.from + (line.text.length - line.text.trimStart().length);
+    if (line.text.trim() === "" || selection.main.head > textStart)
+      return false;
+    if (line.number === 1) return false;
+    const lines = doc.toString().split("\n");
+    const kinds = classifyLines(lines, { cursorLine: line.number - 1 });
+    const kind = kinds[line.number - 1];
+    const above = kinds[line.number - 2];
+    if (kind !== "dialogue" && kind !== "parenthetical") return false;
+    if (
+      above !== "character" &&
+      above !== "dialogue" &&
+      above !== "parenthetical"
+    ) {
+      return false;
+    }
+    view.dispatch({
+      changes: { from: line.from, insert: "  \n" },
+      selection: { anchor: line.from + 2 },
+      scrollIntoView: true,
+      userEvent: "input",
+    });
+    return true;
   };
 
   // Enter on the empty dialogue line under a cue or wryly does nothing:
@@ -989,6 +1027,16 @@ export function createScreenplayCompletionExtension(
     tr.changes.iterChanges((fromA, _toA, fromB, toB, inserted) => {
       const text = inserted.toString();
       const line = tr.newDoc.lineAt(fromB);
+      // The first letter typed on a blank dialogue line ("  ", see
+      // blankLineInSpeech) replaces the two spaces that kept it in the speech.
+      const before = tr.startState.doc.lineAt(fromA);
+      if (/^ {2,}$/u.test(before.text) && fromA === before.to && text.trim()) {
+        fixes.push({
+          from: line.from,
+          to: line.from + before.text.length,
+          insert: "",
+        });
+      }
       // Uppercase a scene heading as it is typed (setting). The whole line,
       // so "int." becomes "INT." when the period makes it a heading. Only
       // letters that change are replaced, so the cursor stays put.
