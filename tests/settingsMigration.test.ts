@@ -40,6 +40,8 @@ describe("settings migration", () => {
     expect(settings.uppercaseTransitionsPlain).toBe(false);
     expect(settings.uppercaseSluglinesScript).toBe(true);
     expect(settings.uppercaseSluglinesPlain).toBe(false);
+    expect(settings.uppercaseCharactersScript).toBe(true);
+    expect(settings.uppercaseCharactersPlain).toBe(false);
   });
 
   it("drops the old PDF language setting", () => {

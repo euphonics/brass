@@ -524,6 +524,7 @@ export default class ScribidianPlugin extends Plugin {
       | "capitalizeLineStarts"
       | "uppercaseSluglines"
       | "uppercaseTransitions"
+      | "uppercaseCharacters"
       | "lockBlankLines",
   ): boolean {
     const mode = this.isScriptMode() ? "Script" : "Plain";

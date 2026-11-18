@@ -11,6 +11,9 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Typing on a line in the character column (after Tab, or **Set line to
+  character**) is uppercased, even for a name the script doesn't have yet.
+  Setting: "Uppercase character names as you type" (on in script mode).
 - **Screenplay: Transition** command, so the transition picker no longer
   needs the sidebar.
 - Strict cursor placement: the cursor never rests on the single blank line

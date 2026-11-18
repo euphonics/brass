@@ -21,7 +21,7 @@ import {
   isSceneHeading,
   isTransitionText,
 } from "../screenplay/lines";
-import { setTabMenuLine, tabMenuLineField } from "./tabCueLine";
+import { setTabMenuLine, tabCueLine, tabMenuLineField } from "./tabCueLine";
 import { lineKindField, setLineKind } from "./lineKindOverride";
 import { forceElementPlan, type ForcedElement } from "./forceElement";
 import { menuLineKind } from "./layoutClassifier";
@@ -443,6 +443,17 @@ export function createScreenplayCompletionExtension(
     return open;
   };
 
+  // The line starting at `from` is laid out as a character cue: set to one
+  // ("Set line to character", or Tab's cue once typing starts), or the empty
+  // line where Tab just put a cue.
+  const inCueColumn = (state: EditorState, from: number): boolean => {
+    const forced = state.field(lineKindField, false) ?? null;
+    if (forced !== null && forced.from === from) {
+      return forced.kind === "character";
+    }
+    return tabCueLine(state) === from;
+  };
+
   const uppercaseTransitions = EditorState.transactionFilter.of((tr) => {
     if (!tr.docChanged || !tr.isUserEvent("input.type")) return tr;
     // Leave text alone while a phone keyboard is composing a word: changing
@@ -452,7 +463,7 @@ export function createScreenplayCompletionExtension(
     if (file === null || !plugin.isScreenplayFile(file)) return tr;
     const fixes: { from: number; to: number; insert: string }[] = [];
     const sluglines = new Set<number>();
-    tr.changes.iterChanges((_fromA, _toA, fromB, toB, inserted) => {
+    tr.changes.iterChanges((fromA, _toA, fromB, toB, inserted) => {
       const text = inserted.toString();
       const line = tr.newDoc.lineAt(fromB);
       // Uppercase a scene heading as it is typed (setting). The whole line,
@@ -477,6 +488,18 @@ export function createScreenplayCompletionExtension(
             }
             return offset + character.length;
           }, 0);
+        }
+        return;
+      }
+      // A line in the character column is a cue: uppercase what is typed
+      // there, even a name the script doesn't have yet.
+      if (
+        plugin.typingChangeEnabled("uppercaseCharacters") &&
+        inCueColumn(tr.startState, tr.startState.doc.lineAt(fromA).from)
+      ) {
+        const upper = text.toLocaleUpperCase();
+        if (upper !== text && upper.length === text.length) {
+          fixes.push({ from: fromB, to: toB, insert: upper });
         }
         return;
       }

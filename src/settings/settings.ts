@@ -64,6 +64,8 @@ export interface ScribidianSettings {
   capitalizeLineStartsPlain: boolean;
   uppercaseTransitionsScript: boolean;
   uppercaseTransitionsPlain: boolean;
+  uppercaseCharactersScript: boolean;
+  uppercaseCharactersPlain: boolean;
   uppercaseSluglinesScript: boolean;
   uppercaseSluglinesPlain: boolean;
   /** Strict cursor placement: keep the cursor off the blank line between two elements. */
@@ -196,6 +198,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   capitalizeLineStartsPlain: false,
   uppercaseTransitionsScript: true,
   uppercaseTransitionsPlain: false,
+  uppercaseCharactersScript: true,
+  uppercaseCharactersPlain: false,
   uppercaseSluglinesScript: true,
   uppercaseSluglinesPlain: false,
   lockBlankLinesScript: true,
@@ -276,6 +280,8 @@ type TypingChangeKey =
   | "uppercaseSluglinesPlain"
   | "uppercaseTransitionsScript"
   | "uppercaseTransitionsPlain"
+  | "uppercaseCharactersScript"
+  | "uppercaseCharactersPlain"
   | "lockBlankLinesScript"
   | "lockBlankLinesPlain";
 
@@ -303,6 +309,12 @@ export const TYPING_CHANGE_ROWS: {
     desc: 'Text typed on a forced transition line ("> cut to") becomes uppercase.',
     plain: "uppercaseTransitionsPlain",
     script: "uppercaseTransitionsScript",
+  },
+  {
+    name: "Uppercase character names as you type",
+    desc: 'Text typed on a line in the character column (after Tab, or "Set line to character") becomes uppercase, even for a name not in the script yet: "jen" becomes "JEN".',
+    plain: "uppercaseCharactersPlain",
+    script: "uppercaseCharactersScript",
   },
   {
     name: "Strict cursor placement",
@@ -1222,6 +1234,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "capitalizeLineStartsPlain":
       case "uppercaseTransitionsScript":
       case "uppercaseTransitionsPlain":
+      case "uppercaseCharactersScript":
+      case "uppercaseCharactersPlain":
       case "uppercaseSluglinesScript":
       case "uppercaseSluglinesPlain":
       case "lockBlankLinesScript":
