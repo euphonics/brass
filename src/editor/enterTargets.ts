@@ -133,6 +133,16 @@ export const DEFAULT_TAB_INSIDE: TabInsideActions = {
   parenthetical: "nothing",
 };
 
+/** Plain (Fountain) mode: Tab inside a line works as in a normal note. */
+export const DEFAULT_TAB_INSIDE_PLAIN: TabInsideActions = {
+  action: "obsidian",
+  dialogue: "obsidian",
+  transition: "obsidian",
+  sceneHeading: "obsidian",
+  character: "obsidian",
+  parenthetical: "obsidian",
+};
+
 export const TAB_INSIDE_LABELS: Record<TabInsideAction, string> = {
   nothing: "Nothing",
   obsidian: "Obsidian's Tab",
@@ -157,12 +167,15 @@ export function tabInsideOptions(source: EnterSource): TabInsideAction[] {
 }
 
 /** Stored choices with anything missing or not offered set to its default. */
-export function normalizeTabInside(stored: unknown): TabInsideActions {
+export function normalizeTabInside(
+  stored: unknown,
+  defaults: TabInsideActions = DEFAULT_TAB_INSIDE,
+): TabInsideActions {
   const values =
     stored !== null && typeof stored === "object"
       ? (stored as Record<string, unknown>)
       : {};
-  const actions = { ...DEFAULT_TAB_INSIDE };
+  const actions = { ...defaults };
   for (const source of Object.keys(actions) as EnterSource[]) {
     const value = values[source];
     if (

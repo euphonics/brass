@@ -555,7 +555,9 @@ export function createScreenplayCompletionExtension(
       line.number - 1,
       lineFroms,
       head - line.from,
-      plugin.settings.tabInside,
+      plugin.isScriptMode()
+        ? plugin.settings.tabInsideScript
+        : plugin.settings.tabInsidePlain,
       isTime,
     );
     if (plan === null || plan.type === "smart") return null;

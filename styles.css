@@ -602,6 +602,16 @@
   text-align: start;
 }
 
+.scribidian-settings-subheading {
+  font-weight: var(--font-semibold);
+  margin-top: var(--size-4-4);
+  margin-bottom: var(--size-4-1);
+}
+
+.scribidian-settings-subheading:first-child {
+  margin-top: 0;
+}
+
 .scribidian-settings-table-note {
   margin-bottom: var(--size-4-2);
 }

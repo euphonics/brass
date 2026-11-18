@@ -84,6 +84,15 @@ describe("settings migration", () => {
     expect(migrateSettings({}).smartEnterEnabled).toBe(true);
   });
 
+  it("moves the old Tab inside a line table to script mode", () => {
+    const settings = migrateSettings({ tabInside: { action: "next-element" } });
+    expect(settings.tabInsideScript.action).toBe("next-element");
+    expect(settings.tabInsideScript.dialogue).toBe("wryly");
+    expect(settings.tabInsidePlain.action).toBe("obsidian");
+    expect(settings.tabInsidePlain.sceneHeading).toBe("obsidian");
+    expect("tabInside" in settings).toBe(false);
+  });
+
   it("fills in Enter targets", () => {
     const settings = migrateSettings({ enterTargets: { action: "character" } });
     expect(settings.enterTargets.action).toBe("character");

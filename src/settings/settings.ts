@@ -37,6 +37,7 @@ import {
   isEnterTarget,
   normalizeEnterTargets,
   DEFAULT_TAB_INSIDE,
+  DEFAULT_TAB_INSIDE_PLAIN,
   normalizeTabInside,
   TAB_INSIDE_LABELS,
   tabInsideOptions,
@@ -83,7 +84,9 @@ export interface ScribidianSettings {
   /** What Tab starts at the end of each element. */
   tabTargets: EnterTargets;
   /** What Tab does with the cursor inside each element. */
-  tabInside: TabInsideActions;
+  /** Tab inside a line, set separately for script and plain mode. */
+  tabInsideScript: TabInsideActions;
+  tabInsidePlain: TabInsideActions;
   editorLayout: EditorLayout;
   bottomTypingMargin: number;
   screenplayFont: string;
@@ -216,7 +219,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   lockBlankLinesPlain: false,
   enterTargets: { ...DEFAULT_ENTER_TARGETS },
   tabTargets: { ...DEFAULT_TAB_TARGETS },
-  tabInside: { ...DEFAULT_TAB_INSIDE },
+  tabInsideScript: { ...DEFAULT_TAB_INSIDE },
+  tabInsidePlain: { ...DEFAULT_TAB_INSIDE_PLAIN },
   editorLayout: "screenplay",
   bottomTypingMargin: 40,
   screenplayFont: "Courier Prime",
@@ -259,7 +263,7 @@ function valuesFromText(value: string): string[] {
 export function migrateSettings(
   stored: Record<string, unknown> | null,
 ): ScribidianSettings {
-  const { capitalizeLineStarts, ...rest } = stored ?? {};
+  const { capitalizeLineStarts, tabInside, ...rest } = stored ?? {};
   const settings = {
     ...DEFAULT_SETTINGS,
     ...(rest as Partial<ScribidianSettings>),
@@ -269,7 +273,15 @@ export function migrateSettings(
     rest.tabTargets,
     DEFAULT_TAB_TARGETS,
   );
-  settings.tabInside = normalizeTabInside(rest.tabInside);
+  // "Tab inside a line" was one table for both modes; it now sets script
+  // mode, and plain mode starts with Obsidian's Tab.
+  settings.tabInsideScript = normalizeTabInside(
+    rest.tabInsideScript ?? tabInside,
+  );
+  settings.tabInsidePlain = normalizeTabInside(
+    rest.tabInsidePlain,
+    DEFAULT_TAB_INSIDE_PLAIN,
+  );
   // Smart Tab used to switch Enter's element logic too; Smart Enter now
   // has its own setting, starting from the old value.
   if (
@@ -673,8 +685,12 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
     ];
     setting.settingEl.createDiv({
+      cls: "scribidian-settings-subheading",
+      text: "At the end of a line",
+    });
+    setting.settingEl.createDiv({
       cls: "setting-item-description scribidian-settings-table-note",
-      text: 'What pressing Tab or Enter at the end of a line starts next, with Smart Tab or Smart Enter on. Enter works this way in script mode only. Tab first completes a slugline (" - ", the time of day, a modifier); its choice applies after that. What Tab does in the middle of a line is set in the next table. Shift+Enter is always a plain line break.',
+      text: 'What pressing Tab or Enter at the end of a line starts next, with Smart Tab or Smart Enter on. Enter works this way in script mode only. Tab first completes a slugline (" - ", the time of day, a modifier); its choice applies after that. What Tab does in the middle of a line is set under Inside a line. Shift+Enter is always a plain line break.',
     });
     const table = setting.settingEl.createEl("table", {
       cls: "scribidian-settings-table scribidian-enter-table",
@@ -739,36 +755,48 @@ export class ScribidianSettingTab extends PluginSettingTab {
    * does with the cursor in the middle of the line.
    */
   private renderTabInside(parent: HTMLElement): void {
-    const actions = this.plugin.settings.tabInside;
+    parent.createDiv({
+      cls: "scribidian-settings-subheading",
+      text: "Inside a line",
+    });
     parent.createDiv({
       cls: "setting-item-description scribidian-settings-table-note",
-      text: "With the cursor inside a line, not at its end. Next part: sluglines go on to the location, time or modifier, characters to the extension, with its list open and the current one picked. Next element: the cursor goes to the start of the next element, skipping any parts. Obsidian's: the key works as in a normal note.",
+      text: "With the cursor inside a line, not at its end, in each mode. Next part: sluglines go on to the location, time or modifier, characters to the extension, with its list open and the current one picked. Next element: the cursor goes to the start of the next element, skipping any parts. Obsidian's: the key works as in a normal note.",
     });
     const table = parent.createEl("table", {
       cls: "scribidian-settings-table scribidian-enter-table",
     });
     const head = table.createEl("thead").createEl("tr");
     head.createEl("th", { text: "Element" });
-    head.createEl("th", { text: "Tab inside the line" });
+    head.createEl("th", { text: "Script" });
+    head.createEl("th", { text: "Fountain" });
     const body = table.createEl("tbody");
+    const modes: [string, TabInsideActions][] = [
+      ["script", this.plugin.settings.tabInsideScript],
+      ["Fountain", this.plugin.settings.tabInsidePlain],
+    ];
     for (const row of ENTER_SOURCE_ROWS) {
       const tr = body.createEl("tr");
       tr.createEl("td", { cls: "setting-item-name", text: row.name });
-      const select = tr.createEl("td").createEl("select", { cls: "dropdown" });
-      select.setAttr(
-        "aria-label",
-        `Inside ${row.name.toLowerCase()}, Tab does`,
-      );
-      for (const value of tabInsideOptions(row.source)) {
-        select.createEl("option", { value, text: TAB_INSIDE_LABELS[value] });
+      for (const [mode, actions] of modes) {
+        const select = tr
+          .createEl("td")
+          .createEl("select", { cls: "dropdown" });
+        select.setAttr(
+          "aria-label",
+          `Inside ${row.name.toLowerCase()} in ${mode} mode, Tab does`,
+        );
+        for (const value of tabInsideOptions(row.source)) {
+          select.createEl("option", { value, text: TAB_INSIDE_LABELS[value] });
+        }
+        select.value = actions[row.source];
+        select.addEventListener("change", () => {
+          const value = select.value as TabInsideAction;
+          if (!tabInsideOptions(row.source).includes(value)) return;
+          actions[row.source] = value;
+          void this.plugin.saveSettings();
+        });
       }
-      select.value = actions[row.source];
-      select.addEventListener("change", () => {
-        const value = select.value as TabInsideAction;
-        if (!tabInsideOptions(row.source).includes(value)) return;
-        actions[row.source] = value;
-        void this.plugin.saveSettings();
-      });
     }
   }
 

@@ -174,14 +174,16 @@ Special cases, all decided during testing:
 ### Tab inside a line
 
 What Tab does with the cursor inside an element, not at its end. Each
-element has its own setting:
+element has its own setting, set separately for script and Fountain mode
+(Settings > Tab and Enter keys > Inside a line). Fountain mode starts with
+Obsidian's Tab, as in a plain text note:
 
-| Element                   | Choices                                                 | Default          |
-| ------------------------- | ------------------------------------------------------- | ---------------- |
-| Slugline                  | Nothing, Obsidian's Tab, Next part, Next element        | Next part        |
-| Character                 | Nothing, Obsidian's Tab, Next part, Next element        | Next part        |
-| Dialogue                  | Nothing, Obsidian's Tab, Add a wryly here, Next element | Add a wryly here |
-| Action, Wryly, Transition | Nothing, Obsidian's Tab, Next element                   | Nothing          |
+| Element                   | Choices                                                 | Script default   | Fountain default |
+| ------------------------- | ------------------------------------------------------- | ---------------- | ---------------- |
+| Slugline                  | Nothing, Obsidian's Tab, Next part, Next element        | Next part        | Obsidian's Tab   |
+| Character                 | Nothing, Obsidian's Tab, Next part, Next element        | Next part        | Obsidian's Tab   |
+| Dialogue                  | Nothing, Obsidian's Tab, Add a wryly here, Next element | Add a wryly here | Obsidian's Tab   |
+| Action, Wryly, Transition | Nothing, Obsidian's Tab, Next element                   | Nothing          | Obsidian's Tab   |
 
 - **Next part** (only sluglines and characters have parts):
   - Character: from the name to the extension. With no extension yet, the

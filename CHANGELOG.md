@@ -73,6 +73,10 @@ Scribidian changes since 0.1.0.
 
 ### Changed
 
+- Tab inside a line is set separately for script and Fountain mode. Fountain
+  mode starts with Obsidian's Tab for every element; your earlier choices
+  carry over to script mode. The Tab and Enter keys settings have
+  sub-headings: At the end of a line, and Inside a line.
 - Smart Tab and Smart Enter are separate settings. Turning off Smart Tab no
   longer changes Enter; Smart Enter starts from your old Smart Tab choice.
 - Moving the cursor no longer recounts the script: the status bar and the
