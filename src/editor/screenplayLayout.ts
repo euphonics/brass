@@ -300,7 +300,8 @@ export function createScreenplayLayoutExtension(
 
   // Backspace or Delete with a whole character cue selected, right after
   // another speech (a blank line, then the cue): the cue and the blank line
-  // go, and its dialogue carries on the speech above, as in Fade In.
+  // go, and its dialogue carries on the speech above, as in Fade In. After
+  // anything else, only the cue line goes; its dialogue stays as action.
   // Deleting only the cue's text would leave an empty line in the cue's
   // column and turn the dialogue under it into action.
   const cueDelete = (view: EditorView): boolean => {
@@ -312,17 +313,29 @@ export function createScreenplayLayoutExtension(
     if (state.selection.ranges.length > 1 || selection.empty) return false;
     const line = state.doc.lineAt(selection.from);
     if (state.doc.lineAt(selection.to).number !== line.number) return false;
-    if (line.number < 3 || line.number >= state.doc.lines) return false;
+    if (line.number >= state.doc.lines) return false;
     const textFrom =
       line.from + (line.text.length - line.text.trimStart().length);
     const textTo = line.from + line.text.trimEnd().length;
     if (selection.from > textFrom || selection.to < textTo) return false;
     if (layout.kinds[line.number - 1] !== "character") return false;
-    if (state.doc.line(line.number - 1).text.trim() !== "") return false;
-    const above = layout.kinds[line.number - 3];
-    if (above !== "dialogue" && above !== "parenthetical") return false;
     if (state.doc.line(line.number + 1).text.trim() === "") return false;
+    if (line.number > 1 && state.doc.line(line.number - 1).text.trim() !== "") {
+      return false;
+    }
     closeCompletion(view);
+    const above = line.number > 2 ? layout.kinds[line.number - 3] : null;
+    if (above !== "dialogue" && above !== "parenthetical") {
+      // Not after a speech (action, a slugline, the top of the note): the
+      // cue line goes and its dialogue stays on its own as action.
+      view.dispatch({
+        changes: { from: line.from, to: line.to + 1 },
+        selection: { anchor: line.from },
+        userEvent: "delete.cue",
+        scrollIntoView: true,
+      });
+      return true;
+    }
     const from = state.doc.line(line.number - 2).to;
     view.dispatch({
       changes: { from, to: line.to },

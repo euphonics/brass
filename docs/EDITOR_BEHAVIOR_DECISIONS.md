@@ -267,7 +267,8 @@ Test cases:
   extra blank line can.
 - **A whole cue selected, then Backspace or Delete**, right after another
   speech: the cue and the blank line above it go, and its dialogue carries
-  on the speech above, as in Fade In.
+  on the speech above, as in Fade In. After action (or a slugline), only
+  the cue line goes: its dialogue stays on its own line as action.
 - Backspace and Delete never join two different elements (a character and
   its dialogue, for example). The cursor moves instead.
   **Shift+Backspace** joins them on purpose.
