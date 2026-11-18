@@ -65,6 +65,7 @@ export interface ScribidianSettings {
   activateFrontmatter: boolean;
   autocompleteEnabled: boolean;
   smartTabEnabled: boolean;
+  smartEnterEnabled: boolean;
   /** Typing settings, set separately for script and plain mode. */
   capitalizeLineStartsScript: boolean;
   capitalizeLineStartsPlain: boolean;
@@ -202,6 +203,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   activateFrontmatter: true,
   autocompleteEnabled: true,
   smartTabEnabled: true,
+  smartEnterEnabled: true,
   capitalizeLineStartsScript: true,
   capitalizeLineStartsPlain: false,
   uppercaseTransitionsScript: true,
@@ -268,6 +270,14 @@ export function migrateSettings(
     DEFAULT_TAB_TARGETS,
   );
   settings.tabInside = normalizeTabInside(rest.tabInside);
+  // Smart Tab used to switch Enter's element logic too; Smart Enter now
+  // has its own setting, starting from the old value.
+  if (
+    typeof rest.smartEnterEnabled !== "boolean" &&
+    typeof rest.smartTabEnabled === "boolean"
+  ) {
+    settings.smartEnterEnabled = rest.smartTabEnabled;
+  }
   // PDF export was removed; drop its old setting.
   delete (settings as Record<string, unknown>).pdfLanguage;
   if (
@@ -375,6 +385,7 @@ const SETTING_GROUPS: {
       "screenplayFont",
       "screenplayFontCustom",
       "smartTabEnabled",
+      "smartEnterEnabled",
       "bottomTypingMargin",
     ],
   },
@@ -663,7 +674,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
     ];
     setting.settingEl.createDiv({
       cls: "setting-item-description scribidian-settings-table-note",
-      text: 'What pressing Tab or Enter at the end of a line starts next, with Smart Tab and Enter on. Enter works this way in script mode only. Tab first completes a slugline (" - ", the time of day, a modifier); its choice applies after that. What Tab does in the middle of a line is set in the next table. Shift+Enter is always a plain line break.',
+      text: 'What pressing Tab or Enter at the end of a line starts next, with Smart Tab or Smart Enter on. Enter works this way in script mode only. Tab first completes a slugline (" - ", the time of day, a modifier); its choice applies after that. What Tab does in the middle of a line is set in the next table. Shift+Enter is always a plain line break.',
     });
     const table = setting.settingEl.createEl("table", {
       cls: "scribidian-settings-table scribidian-enter-table",
@@ -1063,12 +1074,21 @@ export class ScribidianSettingTab extends PluginSettingTab {
         render: (setting) => this.renderEnterTargets(setting),
       },
       {
-        name: "Smart Tab and Enter",
-        desc: "Tab moves you on to the next likely element: a wryly under a character, the time of day after a slugline, a character after action. In script mode Enter does the same; choose what each starts under Tab and Enter keys. Turn off to make Tab and Enter work as normal.",
+        name: "Smart Tab",
+        desc: "Tab moves you on to the next likely element: a wryly under a character, the time of day after a slugline, a character after action. Choose what it starts under Tab and Enter keys. Turn off and Tab does nothing in a screenplay (lists and tables keep their own Tab).",
         control: {
           type: "toggle",
           key: "smartTabEnabled",
           defaultValue: DEFAULT_SETTINGS.smartTabEnabled,
+        },
+      },
+      {
+        name: "Smart Enter",
+        desc: "In script mode, Enter starts the next likely element: action after a slugline, a new character after dialogue. Choose what it starts under Tab and Enter keys. Turn off to make Enter a plain line break.",
+        control: {
+          type: "toggle",
+          key: "smartEnterEnabled",
+          defaultValue: DEFAULT_SETTINGS.smartEnterEnabled,
         },
       },
       {
@@ -1279,6 +1299,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "activateFrontmatter":
       case "autocompleteEnabled":
       case "smartTabEnabled":
+      case "smartEnterEnabled":
       case "capitalizeLineStartsScript":
       case "capitalizeLineStartsPlain":
       case "uppercaseTransitionsScript":

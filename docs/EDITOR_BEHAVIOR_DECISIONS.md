@@ -119,6 +119,13 @@ Test cases:
 
 - Enter at the end of a capitals line turns it into a character only if it
   does not end in punctuation (a closing extension like `(V.O.)` is fine).
+- **Enter in the middle of a slugline** (`INT. CAR| - DAY`): with strict
+  on, nothing happens (it would mangle the heading). With strict off, a
+  plain line break that keeps the text as typed: ` - DAY` on the next line,
+  cursor at its start.
+- Enter's element logic has its own switch, **Smart Enter**, apart from
+  **Smart Tab**, so the two keys can behave differently (as in Fade In:
+  Tab after `INT. OFFICE` adds `-` and the time list; Enter starts action).
 - Each row is a setting (**Tab and Enter keys**), so writers can change it.
   Some writers expect Enter after a wryly to go to the character column; the
   default is dialogue.

@@ -73,6 +73,8 @@ Scribidian changes since 0.1.0.
 
 ### Changed
 
+- Smart Tab and Smart Enter are separate settings. Turning off Smart Tab no
+  longer changes Enter; Smart Enter starts from your old Smart Tab choice.
 - Moving the cursor no longer recounts the script: the status bar and the
   Scenes panel reuse their numbers until the text changes, and the Scenes
   panel moves its highlight instead of rebuilding. On a 3,000-line script a
@@ -112,6 +114,9 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Enter in the middle of a slugline: with strict cursor placement on it does
+  nothing; with it off it is a plain line break that keeps the text as typed
+  (it used to drop the space and jump the cursor past "- ").
 - Screenplay notes: Tab no longer puts tab characters into the script when
   Smart Tab has nothing to do (two cursors, a selection over several lines,
   Smart Tab off). Lists, tables and code blocks keep Obsidian's Tab.

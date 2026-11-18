@@ -71,7 +71,8 @@ and examples of the Fountain format.
 - Suggests character names, places, times of day, wrylies and transitions as
   you type.
 - Smart Tab and Enter move you from element to element without reaching for
-  the mouse. You choose what Enter does after each element.
+  the mouse, each with its own setting. You choose what they start after
+  each element.
 - Shows estimated page count, the page you're on, runtime, words and scenes
   in the status bar.
 - Dual dialogue, character extensions like `(V.O.)`, and slug modifiers like

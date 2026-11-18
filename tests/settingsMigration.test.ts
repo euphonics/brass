@@ -73,6 +73,17 @@ describe("settings migration", () => {
     expect(settings.smartTabEnabled).toBe(DEFAULT_SETTINGS.smartTabEnabled);
   });
 
+  it("starts Smart Enter from the old Smart Tab setting", () => {
+    expect(migrateSettings({ smartTabEnabled: false }).smartEnterEnabled).toBe(
+      false,
+    );
+    expect(
+      migrateSettings({ smartTabEnabled: false, smartEnterEnabled: true })
+        .smartEnterEnabled,
+    ).toBe(true);
+    expect(migrateSettings({}).smartEnterEnabled).toBe(true);
+  });
+
   it("fills in Enter targets", () => {
     const settings = migrateSettings({ enterTargets: { action: "character" } });
     expect(settings.enterTargets.action).toBe("character");

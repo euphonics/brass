@@ -409,8 +409,9 @@ export function createScreenplayCompletionExtension(
     view: EditorView,
     planner: typeof getSmartTabPlan = (source, cursor, knownTimes) =>
       getSmartTabPlan(source, cursor, knownTimes, plugin.settings.tabTargets),
+    enabled: boolean = plugin.settings.smartTabEnabled,
   ): SmartTabPlan | null => {
-    if (!plugin.settings.smartTabEnabled) return null;
+    if (!enabled) return null;
     const file = view.state.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return null;
     const { selection } = view.state;
@@ -690,6 +691,29 @@ export function createScreenplayCompletionExtension(
     return true;
   };
 
+  // Enter in the middle of a slugline ("INT. CAR| - DAY"), either mode.
+  // With strict cursor placement on, nothing happens: splitting would
+  // mangle the heading. With it off, a plain line break that keeps the
+  // text as typed (" - DAY") with the cursor at the start of the new line.
+  const enterInSlugline = (view: EditorView): boolean => {
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    const head = selection.main.head;
+    const line = doc.lineAt(head);
+    if (!isSceneHeading(line.text.trim())) return false;
+    const start = line.from + (line.text.length - line.text.trimStart().length);
+    const end = line.from + line.text.trimEnd().length;
+    if (head <= start || head >= end) return false;
+    if (plugin.typingChangeEnabled("lockBlankLines")) return true;
+    view.dispatch(view.state.replaceSelection("\n"), {
+      scrollIntoView: true,
+      userEvent: "input",
+    });
+    return true;
+  };
+
   // Plain mode, a "> transition" or "> centered <" line: a plain line
   // break. Obsidian's own Enter would continue it as a quote ("> "),
   // starting another forced transition.
@@ -711,7 +735,7 @@ export function createScreenplayCompletionExtension(
   // puts it in capitals, so it reads as a transition, and goes on as after
   // one (a slugline), as in Fade In.
   const transitionOnEnter = (view: EditorView): boolean => {
-    if (!plugin.settings.smartTabEnabled) return false;
+    if (!plugin.settings.smartEnterEnabled) return false;
     if (completionStatus(view.state) === "active") return false;
     const file = view.state.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return false;
@@ -757,6 +781,9 @@ export function createScreenplayCompletionExtension(
   // dialogue, a new speaker. An open suggestion menu keeps Enter for
   // accepting.
   const enter = (view: EditorView): boolean => {
+    if (completionStatus(view.state) !== "active" && enterInSlugline(view)) {
+      return true;
+    }
     // Plain mode: Enter is always Obsidian's own. An open suggestion list
     // closes rather than taking the Enter (Tab or a tap accepts it).
     if (!plugin.isScriptMode()) {
@@ -779,13 +806,16 @@ export function createScreenplayCompletionExtension(
     } else if (wryly === "pick") acceptCompletion(view);
     else if (completionStatus(view.state) === "active") return false;
     if (enterOnEmptyDialogue(view)) return true;
-    const plan = smartPlan(view, (source, cursor, knownTimes) =>
-      getSmartEnterPlan(
-        source,
-        cursor,
-        knownTimes,
-        plugin.settings.enterTargets,
-      ),
+    const plan = smartPlan(
+      view,
+      (source, cursor, knownTimes) =>
+        getSmartEnterPlan(
+          source,
+          cursor,
+          knownTimes,
+          plugin.settings.enterTargets,
+        ),
+      plugin.settings.smartEnterEnabled,
     );
     return plan !== null && applySmartPlan(view, plan);
   };
@@ -794,7 +824,7 @@ export function createScreenplayCompletionExtension(
   // a cue needs its dialogue, so there is no valid line to start yet. Type
   // the dialogue, or Backspace (back to the cue) or Shift+Tab (action).
   const enterOnEmptyDialogue = (view: EditorView): boolean => {
-    if (!plugin.settings.smartTabEnabled) return false;
+    if (!plugin.settings.smartEnterEnabled) return false;
     const file = view.state.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return false;
     const { selection, doc } = view.state;
@@ -810,7 +840,7 @@ export function createScreenplayCompletionExtension(
   const shiftEnter = (view: EditorView): boolean => {
     if (!plugin.isScriptMode()) return false;
     if (completionStatus(view.state) === "active") return false;
-    if (!plugin.settings.smartTabEnabled) return false;
+    if (!plugin.settings.smartEnterEnabled) return false;
     const file = view.state.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return false;
     view.dispatch(view.state.replaceSelection("\n"), {
