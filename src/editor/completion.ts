@@ -153,12 +153,10 @@ export function forceElement(view: EditorView, element: ForcedElement): void {
   // Whatever list is open belongs to the old element: close it. The new
   // element's own list (if it has one) opens below.
   closeCompletion(view);
-  // On a blank line, also lay the line out as the element right away, so
-  // the cursor moves to its column (a slugline at the left margin).
-  const layout =
-    line.text.trim() === ""
-      ? setLineKind.of({ from: line.from, kind: element })
-      : null;
+  // Also lay the line out as the element right away, so the cursor moves
+  // to its column (a slugline at the left margin), even on a blank line or
+  // one that was set to another element before.
+  const layout = setLineKind.of({ from: line.from, kind: element });
   if (plan === null) {
     if (layout) view.dispatch({ effects: layout });
     return;
@@ -365,11 +363,42 @@ export function createScreenplayCompletionExtension(
     return true;
   };
 
+  // Tab at the end of a wryly ("(beat|)" or "(beat)|") with dialogue right
+  // under it: move to the start of that dialogue instead of adding a line.
+  const tabToDialogueBelow = (view: EditorView): boolean => {
+    if (!plugin.settings.smartTabEnabled) return false;
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    const line = doc.lineAt(selection.main.head);
+    if (line.number >= doc.lines) return false;
+    const end = line.from + line.text.trimEnd().length;
+    const atEnd =
+      selection.main.head === end ||
+      (selection.main.head === end - 1 && line.text.trimEnd().endsWith(")"));
+    if (!atEnd) return false;
+    const lines = doc.toString().split("\n");
+    if (classifySmartTabLine(lines, line.number - 1) !== "parenthetical") {
+      return false;
+    }
+    if (classifySmartTabLine(lines, line.number) !== "dialogue") return false;
+    const below = doc.line(line.number + 1);
+    const indent = below.text.length - below.text.trimStart().length;
+    view.dispatch({
+      selection: { anchor: below.from + indent },
+      scrollIntoView: true,
+      userEvent: "select",
+    });
+    return true;
+  };
+
   const tab = (view: EditorView): boolean => {
     if (completionStatus(view.state) === "active")
       return acceptCompletion(view);
     if (tabAtLineStart(view)) return true;
     if (tabOnSetActionLine(view)) return true;
+    if (tabToDialogueBelow(view)) return true;
     const plan = smartPlan(view);
     return plan !== null && applySmartPlan(view, plan);
   };

@@ -119,6 +119,11 @@ export function forceElementPlan(
 
     case "action": {
       if (blank) return null;
+      // A wryly set to action loses its brackets: "(text)" -> "text".
+      const unwrapped = /^\(.*\)$/u.test(content)
+        ? content.slice(1, -1).trim()
+        : content;
+      if (unwrapped !== content) return plan(unwrapped);
       const readsAsOther =
         isSceneHeading(content) ||
         isTransitionText(content) ||

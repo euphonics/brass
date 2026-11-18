@@ -105,6 +105,13 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- **Set line to action** on a wryly removes its brackets: `(text)` becomes
+  `text`. Every **Set line to …** command now moves the line to the new
+  element's column at once, even when it had text.
+- A forced slugline may start with any character after the `.` except
+  another `.` or a space, so `.(FLASHBACK)` reads as a slugline.
+- Tab at the end of a wryly with dialogue right under it moves to the start
+  of that dialogue instead of adding a new line.
 - Tab on an empty line moved out of the character column (Backspace or
   Shift+Tab) moves it back and opens the character list again.
 - Deleting the `)` of a character extension (`JEN (V.O.`) no longer drops

@@ -65,7 +65,9 @@ export function frontmatterEnd(lines: readonly string[]): number {
 export function isSceneHeading(line: string): boolean {
   const text = line.trim();
   if (text.startsWith("!")) return false;
-  return /^\.[\p{L}\p{N}]/u.test(text) || SCENE_HEADING.test(text);
+  // A forced heading is "." and then anything but another "." (an
+  // ellipsis) or a space: ".KITCHEN", ".(FLASHBACK)".
+  return /^\.(?![.\s])/u.test(text) || SCENE_HEADING.test(text);
 }
 
 /**

@@ -17,6 +17,7 @@
 
 import { describe, expect, it } from "vitest";
 import { forceElementPlan } from "../src/editor/forceElement";
+import { isSceneHeading } from "../src/screenplay/lines";
 import {
   DEFAULT_COMPLETION_PREFERENCES,
   getScreenplayCompletionPlan,
@@ -76,6 +77,13 @@ describe("force element", () => {
     // Capitals ending in punctuation already read as action.
     expect(forceElementPlan("BANG!", "action")).toBeNull();
     expect(forceElementPlan(".LATER", "action")?.text).toBe("!LATER");
+    // A wryly loses its brackets.
+    expect(forceElementPlan("(text)", "action")?.text).toBe("text");
+    // A wryly made a slugline keeps them and reads as one.
+    expect(forceElementPlan("(text)", "scene-heading")?.text).toBe(".(TEXT)");
+    expect(isSceneHeading(".(TEXT)")).toBe(true);
+    expect(isSceneHeading("...")).toBe(false);
+    expect(isSceneHeading(". Later")).toBe(false);
     expect(forceElementPlan("> She leaves <", "action")?.text).toBe(
       "She leaves",
     );
