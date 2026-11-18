@@ -33,6 +33,7 @@ const {
   cursorOffSeparator,
   isSeparatorLine,
   mergeWithLineAbove,
+  separatorRemoved,
 } = await import("../src/editor/blankLineLock");
 const { editorInfoField } = await import("obsidian");
 const { lineKindField, setLineKind } =
@@ -54,6 +55,17 @@ describe("blank line lock", () => {
     expect(isSeparatorLine(doc, 5)).toBe(false);
     expect(isSeparatorLine(doc, 6)).toBe(false);
     expect(isSeparatorLine(doc, 3)).toBe(false);
+  });
+
+  it("sees a Backspace or Delete that would remove the separator", () => {
+    const line = (n: number) => doc.line(n);
+    // Backspace at the start of "EDGAR": back to the end of line 1.
+    expect(separatorRemoved(doc, line(2).to, line(3).from)).toBe(line(1).to);
+    // Delete at the end of line 1.
+    expect(separatorRemoved(doc, line(1).to, line(2).from)).toBe(line(1).to);
+    // One of two blank lines can go.
+    expect(separatorRemoved(doc, line(5).to, line(6).from)).toBeNull();
+    expect(separatorRemoved(doc, line(6).to, line(7).from)).toBeNull();
   });
 
   it("does not lock a blank first or last line", () => {

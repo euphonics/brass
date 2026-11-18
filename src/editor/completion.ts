@@ -668,6 +668,69 @@ export function createScreenplayCompletionExtension(
     return plan !== null && applySmartPlan(view, plan);
   };
 
+  // Plain mode, a "> transition" or "> centered <" line: a plain line
+  // break. Obsidian's own Enter would continue it as a quote ("> "),
+  // starting another forced transition.
+  const plainBreakAfterMarker = (view: EditorView): boolean => {
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1) return false;
+    const text = doc.lineAt(selection.main.head).text.trim();
+    if (!text.startsWith(">") || /^>\s*\[!/u.test(text)) return false;
+    view.dispatch(view.state.replaceSelection("\n"), {
+      scrollIntoView: true,
+      userEvent: "input",
+    });
+    return true;
+  };
+
+  // A transition typed in lower case on its own block ("cut to:"): Enter
+  // puts it in capitals, so it reads as a transition, and goes on as after
+  // one (a slugline), as in Fade In.
+  const transitionOnEnter = (view: EditorView): boolean => {
+    if (!plugin.settings.smartTabEnabled) return false;
+    if (completionStatus(view.state) === "active") return false;
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    const line = doc.lineAt(selection.main.head);
+    const text = line.text.trim();
+    if (selection.main.head !== line.from + line.text.trimEnd().length) {
+      return false;
+    }
+    // A short line ending in "to:" with lower case in it: "cut to:",
+    // "Smash cut to:". Up to three words ("SMASH CUT TO:"), so a sentence
+    // ("She walks over to:") isn't caught.
+    if (!/^[\p{L}][\p{L}.'’ -]* to:$/iu.test(text)) return false;
+    if (!/\p{Ll}/u.test(text) || text.split(/\s+/u).length > 3) return false;
+    const lines = doc.toString().split("\n");
+    if (classifySmartTabLine(lines, line.number - 1) !== "action") return false;
+    if (line.number > 1 && doc.line(line.number - 1).text.trim() !== "") {
+      return false;
+    }
+    const indent = line.text.length - line.text.trimStart().length;
+    view.dispatch({
+      changes: {
+        from: line.from + indent,
+        to: line.from + line.text.trimEnd().length,
+        insert: text.toLocaleUpperCase(),
+      },
+      userEvent: "input",
+    });
+    const plan = smartPlan(view, (source, cursor, knownTimes) =>
+      getSmartEnterPlan(
+        source,
+        cursor,
+        knownTimes,
+        plugin.settings.enterTargets,
+      ),
+    );
+    if (plan !== null) applySmartPlan(view, plan);
+    return true;
+  };
+
   // Enter at the end of a transition starts a slugline; at the end of
   // dialogue, a new speaker. An open suggestion menu keeps Enter for
   // accepting.
@@ -676,8 +739,9 @@ export function createScreenplayCompletionExtension(
     // closes rather than taking the Enter (Tab or a tap accepts it).
     if (!plugin.isScriptMode()) {
       if (completionStatus(view.state) !== null) closeCompletion(view);
-      return false;
+      return plainBreakAfterMarker(view);
     }
+    if (transitionOnEnter(view)) return true;
     // The wryly list: Enter in a bare "()" doesn't pick its first item, it
     // goes on to the dialogue; Enter on a typed wryly picks it and goes on,
     // in one press (as in Fade In).

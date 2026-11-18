@@ -84,6 +84,23 @@ export function offBlankUnderText(doc: Text, head: number): number | null {
 }
 
 /**
+ * When deleting `from`..`to` (one line break) removes the single blank
+ * line separating two blocks, the end of the text above it; otherwise null.
+ */
+export function separatorRemoved(
+  doc: Text,
+  from: number,
+  to: number,
+): number | null {
+  const above = doc.lineAt(from);
+  const below = doc.lineAt(to);
+  if (below.number !== above.number + 1) return null;
+  if (isSeparatorLine(doc, above.number)) return doc.line(above.number - 1).to;
+  if (isSeparatorLine(doc, below.number)) return above.to;
+  return null;
+}
+
+/**
  * Whether deleting `from`..`to` (with the cursor on line `cursorLine`,
  * 0-based) joins two lines of text that are different elements, such as a
  * character cue and the dialogue under it.
@@ -194,6 +211,12 @@ function elementJoin(
   if (!plugin.typingChangeEnabled("lockBlankLines")) return null;
   const file = start.field(editorInfoField, false)?.file ?? null;
   if (file === null || !plugin.isScreenplayFile(file)) return null;
+  // Deleting the blank line between two blocks merges them (a cue after a
+  // speech becomes its dialogue; a slugline ends up glued under action).
+  // Backspace at the start of a block goes to the end of the block above;
+  // Delete at the end of a block does nothing.
+  const separator = separatorRemoved(start.doc, from, to);
+  if (separator !== null) return { aboveEnd: separator };
   const cursorLine = start.doc.lineAt(start.selection.main.head).number - 1;
   if (!joinsDifferentElements(start.doc, from, to, cursorLine)) return null;
   return { aboveEnd: start.doc.lineAt(from).to };

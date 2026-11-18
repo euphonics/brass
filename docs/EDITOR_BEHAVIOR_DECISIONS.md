@@ -222,6 +222,10 @@ Test cases:
   column while the cursor stays on it. When the cursor leaves, a
   character with nothing under it shows as action, which is how Fountain
   reads it.
+- Backspace at the start of a block goes to the end of the block above,
+  and Delete at the end of a block does nothing: the single blank line
+  between two blocks can't be deleted this way (it would merge them). An
+  extra blank line can.
 - Backspace and Delete never join two different elements (a character and
   its dialogue, for example). The cursor moves instead.
   **Shift+Backspace** joins them on purpose.
@@ -262,6 +266,11 @@ Test cases:
 - Sluglines are uppercased as you type, once the line reads as one
   (`int.` becomes `INT.`).
 - Text after `>` (a forced transition) is uppercased.
+- Script mode: Enter on a short line ending in `to:` on its own block
+  (`cut to:`, `Smash cut to:`, up to three words) puts it in capitals as a
+  transition and starts a slugline, as in Fade In.
+- Fountain mode: Enter after a `>` line is a plain line break (Obsidian
+  would continue it as a quote).
 - The first letter of each line is capitalized, except lines starting with
   a symbol like `(`.
 - Text typed in the character column is uppercased.

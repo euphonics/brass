@@ -112,6 +112,13 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Strict cursor placement: Backspace at the start of a block or Delete at the
+  end of one no longer removes the blank line between blocks, which merged
+  them (a cue after a speech became its dialogue).
+- Fountain mode: Enter after a `> transition` or `> THE END <` line no
+  longer starts another `>` line.
+- Script mode: Enter after a lowercase `cut to:` on its own block makes it
+  the transition `CUT TO:` and starts a slugline, as in Fade In.
 - Enter on the empty dialogue line under a character or wryly does nothing,
   instead of turning the character into action.
 - A character whose dialogue was deleted keeps the character column while
