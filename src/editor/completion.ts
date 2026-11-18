@@ -319,8 +319,8 @@ export function createScreenplayCompletionExtension(
   };
 
   // Tab at the start of an action line with text after the cursor turns
-  // the line into the element Tab starts after action (Settings > Tab and
-  // Enter keys; a character by default), like "Set line to character".
+  // the line into a character, like "Set line to character". Only action;
+  // other elements keep their own Tab.
   const tabAtLineStart = (view: EditorView): boolean => {
     if (!plugin.settings.smartTabEnabled) return false;
     const file = view.state.field(editorInfoField, false)?.file ?? null;
@@ -334,9 +334,7 @@ export function createScreenplayCompletionExtension(
     }
     const lines = doc.toString().split("\n");
     if (classifySmartTabLine(lines, line.number - 1) !== "action") return false;
-    const target = plugin.settings.tabTargets.action;
-    if (target === "plain" || target === "dialogue") return false;
-    forceElement(view, target);
+    forceElement(view, "character");
     return true;
   };
 
