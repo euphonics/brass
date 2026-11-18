@@ -390,6 +390,13 @@ designed); Tab indents a second list item; undo reverts typed text and Tab's
 cue as expected; typing into the frontmatter is handled by Obsidian's
 Properties view, not Scribidian.
 
+### Scenes panel
+
+| #   | Issue                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Size |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- |
+| 145 | Seen (2026-11-18): in a screenplay with Markdown headings (`# Act 1`, `## Jen on a Run`), which Fountain reads as sections, every scene button is greyed out (Synopsis, Up, Down, Move, New scene). The only explanation is a warning line at the top of the panel. Headings are normal in an Obsidian note, so this hits most real scripts. Synopsis only adds a `= ...` line under one heading and can't cross a section, so it could stay on. Moves could also be allowed within one section. | M    |
+| 146 | Seen (2026-11-18): a greyed-out scene button gives no reason on hover. Add a tooltip with the warning (e.g. "Sections in this script: scene moves are off").                                                                                                                                                                                                                                                                                                                                     | S    |
+
 ### Names and settings
 
 | #   | Inconsistency                                                                                                                                                                                                                                                                                        | Effort |
