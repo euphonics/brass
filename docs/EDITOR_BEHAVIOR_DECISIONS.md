@@ -265,6 +265,9 @@ Test cases:
   and Delete at the end of a block does nothing: the single blank line
   between two blocks can't be deleted this way (it would merge them). An
   extra blank line can.
+- **A whole cue selected, then Backspace or Delete**, right after another
+  speech: the cue and the blank line above it go, and its dialogue carries
+  on the speech above, as in Fade In.
 - Backspace and Delete never join two different elements (a character and
   its dialogue, for example). The cursor moves instead.
   **Shift+Backspace** joins them on purpose.

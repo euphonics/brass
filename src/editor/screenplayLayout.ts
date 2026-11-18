@@ -295,7 +295,44 @@ export function createScreenplayLayoutExtension(
   // deletes as usual.
   const backspace = (view: EditorView): boolean => {
     if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
-    return wrylyDelete(view, false) || shiftTab(view);
+    return cueDelete(view) || wrylyDelete(view, false) || shiftTab(view);
+  };
+
+  // Backspace or Delete with a whole character cue selected, right after
+  // another speech (a blank line, then the cue): the cue and the blank line
+  // go, and its dialogue carries on the speech above, as in Fade In.
+  // Deleting only the cue's text would leave an empty line in the cue's
+  // column and turn the dialogue under it into action.
+  const cueDelete = (view: EditorView): boolean => {
+    if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
+    const layout = view.plugin(layoutPlugin);
+    if (!layout?.active) return false;
+    const { state } = view;
+    const selection = state.selection.main;
+    if (state.selection.ranges.length > 1 || selection.empty) return false;
+    const line = state.doc.lineAt(selection.from);
+    if (state.doc.lineAt(selection.to).number !== line.number) return false;
+    if (line.number < 3 || line.number >= state.doc.lines) return false;
+    const textFrom =
+      line.from + (line.text.length - line.text.trimStart().length);
+    const textTo = line.from + line.text.trimEnd().length;
+    if (selection.from > textFrom || selection.to < textTo) return false;
+    if (layout.kinds[line.number - 1] !== "character") return false;
+    if (state.doc.line(line.number - 1).text.trim() !== "") return false;
+    const above = layout.kinds[line.number - 3];
+    if (above !== "dialogue" && above !== "parenthetical") return false;
+    if (state.doc.line(line.number + 1).text.trim() === "") return false;
+    closeCompletion(view);
+    const from = state.doc.line(line.number - 2).to;
+    view.dispatch({
+      changes: { from, to: line.to },
+      selection: { anchor: from + 1 },
+      // Not "delete.backward": strict mode stops that from joining two
+      // elements, and here joining the speeches is the point.
+      userEvent: "delete.cue",
+      scrollIntoView: true,
+    });
+    return true;
   };
 
   // Backspace or Delete on a wryly that would leave only "(" or ")" on the
@@ -372,7 +409,10 @@ export function createScreenplayLayoutExtension(
       keymap.of([
         { key: "Shift-Tab", run: shiftTab },
         { key: "Backspace", run: backspace },
-        { key: "Delete", run: (view) => wrylyDelete(view, true) },
+        {
+          key: "Delete",
+          run: (view) => cueDelete(view) || wrylyDelete(view, true),
+        },
       ]),
     ),
   ];

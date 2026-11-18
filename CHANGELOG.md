@@ -130,6 +130,9 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Script mode, strict: deleting a whole selected character cue right after
+  another speech removes the cue and the blank line, so its dialogue carries
+  on the speech above (as in Fade In), instead of leaving an empty cue line.
 - Script mode: fenced code blocks keep Obsidian's inner margin (the text no
   longer touches the block's left edge), with the same margin on the right.
 - Script mode, strict: Enter at the start of a dialogue line inside a speech
