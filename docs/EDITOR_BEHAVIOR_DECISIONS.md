@@ -160,6 +160,9 @@ Special cases, all decided during testing:
   character list.
 - **Tab in the middle of a line** follows the **Tab inside a line** table
   (below).
+- **Tab never puts tab characters into the script.** When Tab has nothing
+  to do (two cursors, a selection over several lines, Smart Tab off), it
+  does nothing. Lists, tables and code blocks keep Obsidian's Tab.
 
 ### Tab inside a line
 

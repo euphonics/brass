@@ -665,7 +665,29 @@ export function createScreenplayCompletionExtension(
     const inside = tabInside(view);
     if (inside !== null) return inside;
     const plan = smartPlan(view);
-    return plan !== null && applySmartPlan(view, plan);
+    if (plan !== null) return applySmartPlan(view, plan);
+    return keepTabsOut(view);
+  };
+
+  // Tab with nothing to do in a screenplay (two cursors, a selection over
+  // several lines, Smart Tab off): nothing happens. Obsidian's Tab would
+  // put tab characters into the script. Lists, tables and code blocks keep
+  // Obsidian's Tab (indent, next cell).
+  const keepTabsOut = (view: EditorView): boolean => {
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { doc } = view.state;
+    for (const range of view.state.selection.ranges) {
+      const first = doc.lineAt(range.from).number;
+      const last = doc.lineAt(range.to).number;
+      for (let number = first; number <= last; number += 1) {
+        if (/^\s*(?:[-*+]|\d+[.)])\s|^\s*\|/u.test(doc.line(number).text)) {
+          return false;
+        }
+      }
+      if (inCodeBlock(doc, first)) return false;
+    }
+    return true;
   };
 
   // Plain mode, a "> transition" or "> centered <" line: a plain line

@@ -112,6 +112,9 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Screenplay notes: Tab no longer puts tab characters into the script when
+  Smart Tab has nothing to do (two cursors, a selection over several lines,
+  Smart Tab off). Lists, tables and code blocks keep Obsidian's Tab.
 - Strict cursor placement: Backspace at the start of a block or Delete at the
   end of one no longer removes the blank line between blocks, which merged
   them (a cue after a speech became its dialogue).
