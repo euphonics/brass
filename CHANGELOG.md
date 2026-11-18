@@ -103,6 +103,9 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Deleting the `)` of a character extension (`JEN (V.O.`) no longer drops
+  the cue to the action margin; it stays a character while the extension
+  is edited.
 - After Tab opens the character list on an empty line, typing a name in
   lower case ("Jen") keeps the line in the cue's column instead of jumping
   back to the action margin.

@@ -43,6 +43,8 @@ const FADE_TRANSITION = /^FADE (?:IN:|OUT\.|TO BLACK\.)$/u;
 /** Lines that are something else, never a character cue. */
 const NOT_A_CUE = /^(?:!|>|#|=|~|\[\[|\/\*|%%)/u;
 const CUE_EXTENSIONS = /(?:\s+\([^)]*\))+\s*$/u;
+/** Closed extensions, if any, then one still open: " (V.O.) (CONT". */
+const OPEN_EXTENSION = /(?:\s+\([^)]*\))*\s*\([^()]*$/u;
 const ENDS_IN_PUNCTUATION = /[.!?,;:\u2026\u2013\u2014-]$/u;
 const DUAL_DIALOGUE_CARET = /\s*\^\s*$/u;
 
@@ -133,9 +135,14 @@ export function characterCue(line: string): CharacterCue | null {
   }
   const extensionMatch = CUE_EXTENSIONS.exec(candidate);
   const extension = extensionMatch?.[0].trim() ?? null;
+  // An extension still being typed, with no ")" yet ("JEN (V.O."), keeps
+  // the line a cue, but isn't an extension until it is closed.
+  const open = extensionMatch ? null : OPEN_EXTENSION.exec(candidate);
   const name = extensionMatch
     ? candidate.slice(0, extensionMatch.index).trim()
-    : candidate;
+    : open
+      ? candidate.slice(0, open.index).trim()
+      : candidate;
   if (!name) return null;
   if (
     !forced &&

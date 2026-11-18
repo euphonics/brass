@@ -101,6 +101,9 @@ describe("editor screenplay layout", () => {
     // An extension is fine, and "@" forces a cue.
     expect(classify("Text.\n\nJEN (V.O.)\nHi.")[2]).toBe("character");
     expect(classify("Text.\n\n@BANG!\nHi.")[2]).toBe("character");
+    // An extension with its ")" deleted is still being typed.
+    expect(classify("Text.\n\nJEN (V.O.\nHi.")[2]).toBe("character");
+    expect(classify("Text.\n\nJEN (V.O.) (CONT\nHi.")[2]).toBe("character");
   });
 
   it("needs a blank line before a cue", () => {
