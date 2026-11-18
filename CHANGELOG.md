@@ -15,6 +15,8 @@ Scribidian changes since 0.1.0.
   `()`, or one that would leave only `(` or `)` (as in `(b|`), deletes the
   wryly line and puts the cursor at the end of the dialogue above. A lone
   bracket is never left on a wryly line.
+  A wryly on its own block (blank line above) is cleared instead, leaving
+  an empty action line, so the blank line between blocks stays.
 - Tab at the start of dialogue right under a wryly does nothing, as in
   Fade In, instead of adding another wryly.
 - Typing on a line in the character column (after Tab, or **Set line to

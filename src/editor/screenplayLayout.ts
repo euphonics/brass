@@ -275,6 +275,19 @@ export function createScreenplayLayoutExtension(
       if (left === line.text || !/^[()]$/u.test(left.trim())) return false;
     }
     closeCompletion(view);
+    // A wryly on its own block (a blank line above it, e.g. after "Set
+    // line to wryly"): clear it and leave an empty action line, so the
+    // blank line between blocks stays.
+    if (state.doc.line(line.number - 1).text.trim() === "") {
+      view.dispatch({
+        changes: { from: line.from, to: line.to },
+        selection: { anchor: line.from },
+        effects: setLineKind.of({ from: line.from, kind: "action" }),
+        userEvent: "delete.wryly",
+        scrollIntoView: true,
+      });
+      return true;
+    }
     view.dispatch({
       changes: { from: line.from - 1, to: line.to },
       selection: { anchor: line.from - 1 },
