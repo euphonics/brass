@@ -333,7 +333,17 @@ export function createScreenplayCompletionExtension(
       return false;
     }
     const lines = doc.toString().split("\n");
-    if (classifySmartTabLine(lines, line.number - 1) !== "action") return false;
+    const kind = classifySmartTabLine(lines, line.number - 1);
+    // Dialogue right under a wryly: Tab does nothing (as in Fade In),
+    // instead of adding another wryly between them.
+    if (
+      kind === "dialogue" &&
+      line.number > 1 &&
+      classifySmartTabLine(lines, line.number - 2) === "parenthetical"
+    ) {
+      return true;
+    }
+    if (kind !== "action") return false;
     forceElement(view, "character");
     return true;
   };

@@ -12,8 +12,11 @@ Scribidian changes since 0.1.0.
 ### Added
 
 - Strict cursor placement: Backspace or Delete anywhere on an empty wryly,
-  `()`, deletes the wryly line and puts the cursor at the end of the
-  dialogue above, so a lone `(` or `)` is never left behind.
+  `()`, or one that would leave only `(` or `)` (as in `(b|`), deletes the
+  wryly line and puts the cursor at the end of the dialogue above. A lone
+  bracket is never left on a wryly line.
+- Tab at the start of dialogue right under a wryly does nothing, as in
+  Fade In, instead of adding another wryly.
 - Typing on a line in the character column (after Tab, or **Set line to
   character**) is uppercased, even for a name the script doesn't have yet.
   Setting: "Uppercase character names as you type" (on in script mode).

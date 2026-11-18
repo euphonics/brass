@@ -247,13 +247,14 @@ export function createScreenplayLayoutExtension(
   // deletes as usual.
   const backspace = (view: EditorView): boolean => {
     if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
-    return emptyWryly(view) || shiftTab(view);
+    return wrylyDelete(view, false) || shiftTab(view);
   };
 
-  // Backspace or Delete anywhere on an empty wryly, "()": the wryly goes
-  // away whole and the cursor lands at the end of the line above (the
-  // dialogue), instead of leaving a stray "(" or ")".
-  const emptyWryly = (view: EditorView): boolean => {
+  // Backspace or Delete on a wryly that would leave only "(" or ")" on the
+  // line, or on an empty "()" with the cursor anywhere: the wryly goes away
+  // whole and the cursor lands at the end of the line above (the dialogue).
+  // A lone bracket is never left on a wryly line.
+  const wrylyDelete = (view: EditorView, forward: boolean): boolean => {
     if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
     const layout = view.plugin(layoutPlugin);
     if (!layout?.active) return false;
@@ -263,7 +264,16 @@ export function createScreenplayLayoutExtension(
     const line = state.doc.lineAt(selection.head);
     if (line.number === 1) return false;
     if (layout.kinds[line.number - 1] !== "parenthetical") return false;
-    if (!/^\s*\(\s*\)\s*$/u.test(line.text)) return false;
+    if (!/^\s*\(\s*\)\s*$/u.test(line.text)) {
+      // What one Backspace or Delete would leave on the line.
+      const at = selection.head - line.from;
+      const before = line.text.slice(0, at);
+      const after = line.text.slice(at);
+      const left = forward
+        ? before + Array.from(after).slice(1).join("")
+        : Array.from(before).slice(0, -1).join("") + after;
+      if (left === line.text || !/^[()]$/u.test(left.trim())) return false;
+    }
     closeCompletion(view);
     view.dispatch({
       changes: { from: line.from - 1, to: line.to },
@@ -301,7 +311,7 @@ export function createScreenplayLayoutExtension(
       keymap.of([
         { key: "Shift-Tab", run: shiftTab },
         { key: "Backspace", run: backspace },
-        { key: "Delete", run: emptyWryly },
+        { key: "Delete", run: (view) => wrylyDelete(view, true) },
       ]),
     ),
   ];
