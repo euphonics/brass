@@ -310,6 +310,62 @@ come from reading the code and are untested.
 | 117 | Seen (older than the feature): Tab right after a slugline's time opens the modifier list, and a second Tab adds the first modifier (FLASHBACK). Walking a slugline with Tab can add one by accident.                                                     | S      |
 | 118 | Seen (older than the feature): Tab at the end of `INT. HOUSE - KITCHEN` doesn't add `-` and the times, because the line itself makes `KITCHEN` look like a known time.                                                                                   | S      |
 
+### Fade In comparison (script mode, strict)
+
+From the 2026-11-17 run: real keystrokes sent to Fade In, the same steps
+run in Scribidian. Full results, including the 13 behaviors that match, are
+in [EDITOR_BEHAVIOR_DECISIONS.md](EDITOR_BEHAVIOR_DECISIONS.md#fade-in-comparison)
+("row" below is that table's number).
+
+**Bugs found**
+
+| #   | Issue                                                                                                                                                                                                  | Effort |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 119 | Enter in an empty `()` picks the wryly list's first item, `(beat)`, by accident. Fade In goes to dialogue and leaves `()` (row 6).                                                                     | S      |
+| 120 | Finishing a wryly takes two presses: type `beat` in `()`, then Tab or Enter only picks `(beat)` from the list; a second press goes to dialogue. Fade In does both in one press (row 5).                | S      |
+| 121 | Tab at the start of a mixed-case action line gives `@She runs to the door.` (the line becomes a forced cue). Fade In does nothing (row 10).                                                            | S      |
+| 122 | Enter on an empty dialogue line turns the character name above into action and starts a new block. Fade In turns the empty line into a new character line with the list open (row 12).                 | S      |
+| 123 | A character name with nothing under it (after deleting its dialogue or wryly) shows at the action margin while the cursor is still on it. Fade In keeps it a character (row 16).                       | S      |
+| 124 | Minor: a line marker (set to character or action, Tab's cue line) can survive when the whole note is replaced, such as by an outside sync, if the cursor lands at the same offset. Seen only in tests. | S      |
+
+Also from this run: #117 (Tab after a slugline's time adds FLASHBACK by accident, row 14) and #118 (no `-` after `INT. HOUSE - KITCHEN`).
+
+**Things Fade In does that Scribidian can't**
+
+| #   | Issue                                                                                                                                                                                      | Effort |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 125 | Automatic `(CONT'D)` when the same speaker talks again after action (row 1). Could be an editor option, an export option, or both.                                                         | M      |
+| 126 | Tab in an empty `()` on its own block turns the line into empty dialogue. Scribidian does nothing (row 15).                                                                                | S      |
+| 127 | Escape on the character list keeps the line a character line. Scribidian always makes it action (row 3); could be a setting.                                                               | S      |
+| 128 | Option: the character list after a speech puts the last speaker first. Scribidian puts the other speaker first, which is arguably better (row 2).                                          | S      |
+| 129 | Idea: an always-visible indicator of the current element (Fade In's Format panel) and per-element hotkeys like Ctrl+1–7 (Scribidian has **Set line to …** commands that can take hotkeys). | M      |
+
+**Already possible with a setting (document in the guide)**
+
+| #   | Issue                                                                                                                                                                                                                                         | Effort |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 130 | Say in the guide how to match Fade In: Tab in the middle of dialogue, a cue or a slugline does nothing (Tab inside a line → Nothing, rows 8–9); Tab after a transition starts action (Tab and Enter keys → Transition → Action line, row 13). | S      |
+
+**Writer's choices that differ from Fade In (decide: keep or switch)**
+
+| #   | Issue                                                                                                                                                  | Effort |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 131 | Backspace on an empty character line keeps the line and moves it to the left margin; Fade In deletes it and goes to the end of the line above (row 4). | S      |
+| 132 | Tab at the start of dialogue with text adds `()` above; Fade In does nothing and only adds a wryly on an empty dialogue line (row 7).                  | S      |
+| 133 | Tab at the start of an action line makes it a character; Fade In does nothing (row 10, see #121).                                                      | S      |
+| 134 | A capitals line without punctuation (`JOHN`) plus Enter becomes a character; Fade In keeps it as action (row 11).                                      | S      |
+
+**Scribidian does better (keep)**: typing `(` on a dialogue line makes a
+wryly with the list open (row 17); strict mode keeps one blank line between
+blocks (row 18); Tab inside a line has Next part with the extension list.
+
+**Still to test**
+
+| #   | Issue                                                                                                                  | Effort                                                                                                                                                                                                        |
+| --- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 135 | Not compared: Enter on an empty character line with the list closed, and a lowercase `cut to:` typed on its own block. | S                                                                                                                                                                                                             |
+| 136 | Re-run the Fade In comparison with a cheaper method: type a `                                                          | ` marker after the last key, copy the text (Fade In's RTF or HTML clipboard may carry each paragraph's element), and take only small crops when a list matters. The first run read about 50 full screenshots. | S   |
+
 ### Names and settings
 
 | #   | Inconsistency                                                                                                                                                                                                                                                                                        | Effort |
