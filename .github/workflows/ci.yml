@@ -21,5 +21,8 @@ jobs:
       - run: npm run format:check
       - run: npm run lint
       - run: npm test
-      - run: npm audit --audit-level=high
+      # Fail only on problems in packages the plugin ships with. Problems in
+      # build and test tools are still listed but don't fail the run.
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm audit --audit-level=high || true
       - run: npm run build

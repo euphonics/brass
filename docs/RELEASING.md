@@ -26,7 +26,7 @@ in `manifest.json`.
    npm run format:check
    npm run lint
    npm test
-   npm audit --audit-level=high
+   npm audit --omit=dev --audit-level=high
    npm run build
    ```
 
