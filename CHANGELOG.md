@@ -112,6 +112,11 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Enter on the empty dialogue line under a character or wryly does nothing,
+  instead of turning the character into action.
+- A character whose dialogue was deleted keeps the character column while
+  the cursor stays on it.
+- A forced slugline's `.` is styled for `.(FLASHBACK)` too.
 - Wrylies, as in Fade In: Enter in an empty `()` keeps it and starts the
   dialogue instead of picking `(beat)`; one Tab or Enter on a typed wryly
   picks it and goes on to the dialogue.

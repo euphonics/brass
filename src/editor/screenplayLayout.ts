@@ -17,6 +17,7 @@
 
 import { lineKindField, setLineKind } from "./lineKindOverride";
 import { tabCueLine } from "./tabCueLine";
+import { characterCue } from "../screenplay/lines";
 import {
   closeCompletion,
   completionStatus,
@@ -105,6 +106,14 @@ export function createScreenplayLayoutExtension(
       kinds: (LayoutLineKind | null)[] = [];
       private cursorLine = -1;
       private menuKind: LayoutLineKind | null = null;
+      /**
+       * Start of the cursor's line while it is laid out as a cue. A cue
+       * whose dialogue was deleted keeps the cue's column while the cursor
+       * stays on it, instead of dropping to the action margin.
+       */
+      private cueFrom: number | null = null;
+      /** Starts of the lines laid out as cues last time (mapped on edits). */
+      private cueStarts: number[] = [];
 
       constructor(view: EditorView) {
         this.active = this.isActive(view);
@@ -115,8 +124,17 @@ export function createScreenplayLayoutExtension(
         const cursorLine =
           update.state.doc.lineAt(update.state.selection.main.head).number - 1;
         const cursorMoved = cursorLine !== this.cursorLine;
+        if (update.docChanged) {
+          if (this.cueFrom !== null) {
+            this.cueFrom = update.changes.mapPos(this.cueFrom);
+          }
+          this.cueStarts = this.cueStarts.map((from) =>
+            update.changes.mapPos(from, -1),
+          );
+        }
         const reclassify =
           update.docChanged ||
+          (cursorMoved && this.cueFrom !== null) ||
           (cursorMoved &&
             (cursorAffectsLayout(update.state.doc, this.cursorLine) ||
               cursorAffectsLayout(update.state.doc, cursorLine))) ||
@@ -176,6 +194,36 @@ export function createScreenplayLayoutExtension(
                 ? { line: this.cursorLine, kind: this.menuKind }
                 : null,
           );
+          // Remember a cue the cursor is on. If it stops reading as one
+          // only because nothing is under it any more (its dialogue was
+          // deleted), keep its column until the cursor leaves the line.
+          const cursorFrom = doc.line(this.cursorLine + 1).from;
+          // A cue before this edit: the cursor's own, or one it landed on
+          // (Backspace from the dialogue line below).
+          const remembered =
+            this.cueFrom === cursorFrom || this.cueStarts.includes(cursorFrom);
+          this.cueFrom = null;
+          if (this.kinds[this.cursorLine] === "character") {
+            this.cueFrom = cursorFrom;
+          } else if (
+            remembered &&
+            forced === null &&
+            this.menuKind === null &&
+            this.kinds[this.cursorLine] === "action" &&
+            characterCue(lines[this.cursorLine] ?? "") !== null
+          ) {
+            this.kinds = classifyLayoutLines(lines, this.cursorLine, {
+              line: this.cursorLine,
+              kind: "character",
+            });
+            this.cueFrom = cursorFrom;
+          }
+          this.cueStarts = [];
+          let offset = 0;
+          lines.forEach((text, index) => {
+            if (this.kinds[index] === "character") this.cueStarts.push(offset);
+            offset += text.length + 1;
+          });
         }
         const builder = new RangeSetBuilder<Decoration>();
         let lastLine = 0;

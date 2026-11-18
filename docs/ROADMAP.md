@@ -319,14 +319,14 @@ in [EDITOR_BEHAVIOR_DECISIONS.md](EDITOR_BEHAVIOR_DECISIONS.md#fade-in-compariso
 
 **Bugs found**
 
-| #   | Issue                                                                                                                                                                                  | Effort |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 119 | Done (2026-11-17): Enter in an empty `()` closes the wryly list, keeps `()` and starts the dialogue line, as in Fade In.                                                               | S      |
-| 120 | Done (2026-11-17): one Tab or Enter on a typed wryly picks it and goes on to the dialogue (to the dialogue below if there is some).                                                    | S      |
-| 121 | Done (2026-11-17): Tab at the start of an action line makes a character only when the line can be a name (`jen` → `JEN`). A sentence stays action, as in Fade In.                      | S      |
-| 122 | Enter on an empty dialogue line turns the character name above into action and starts a new block. Fade In turns the empty line into a new character line with the list open (row 12). | S      |
-| 123 | A character name with nothing under it (after deleting its dialogue or wryly) shows at the action margin while the cursor is still on it. Fade In keeps it a character (row 16).       | S      |
-| 124 | Done (2026-11-17): line markers clear when the whole note is replaced.                                                                                                                 | S      |
+| #   | Issue                                                                                                                                                                                                                                                                                    | Effort |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 119 | Done (2026-11-17): Enter in an empty `()` closes the wryly list, keeps `()` and starts the dialogue line, as in Fade In.                                                                                                                                                                 | S      |
+| 120 | Done (2026-11-17): one Tab or Enter on a typed wryly picks it and goes on to the dialogue (to the dialogue below if there is some).                                                                                                                                                      | S      |
+| 121 | Done (2026-11-17): Tab at the start of an action line makes a character only when the line can be a name (`jen` → `JEN`). A sentence stays action, as in Fade In.                                                                                                                        | S      |
+| 122 | Done (2026-11-17), writer's pick: Enter on the empty dialogue line under a cue or wryly does nothing (Fade In's result, a cue over another cue, can't be written in Fountain). Type the dialogue, or Backspace (back to the cue) or Shift+Tab (action).                                  | S      |
+| 123 | Done (2026-11-17), writer's pick: a line that was a cue keeps the cue's column while the cursor stays on it, even after its dialogue or wryly is deleted. When the cursor leaves, normal rules apply (no dialogue: action). Capitals being typed still stay at the action margin (#101). | S      |
+| 124 | Done (2026-11-17): line markers clear when the whole note is replaced.                                                                                                                                                                                                                   | S      |
 
 Also from this run: #117 (Tab after a slugline's time adds FLASHBACK by accident, row 14) and #118 (no `-` after `INT. HOUSE - KITCHEN`).
 

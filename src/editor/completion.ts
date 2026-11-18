@@ -21,6 +21,7 @@ import {
   isSceneHeading,
   isTransitionText,
   looksLikeCharacterCue,
+  classifyLines,
 } from "../screenplay/lines";
 import { setTabMenuLine, tabCueLine, tabMenuLineField } from "./tabCueLine";
 import {
@@ -691,6 +692,7 @@ export function createScreenplayCompletionExtension(
       });
     } else if (wryly === "pick") acceptCompletion(view);
     else if (completionStatus(view.state) === "active") return false;
+    if (enterOnEmptyDialogue(view)) return true;
     const plan = smartPlan(view, (source, cursor, knownTimes) =>
       getSmartEnterPlan(
         source,
@@ -700,6 +702,22 @@ export function createScreenplayCompletionExtension(
       ),
     );
     return plan !== null && applySmartPlan(view, plan);
+  };
+
+  // Enter on the empty dialogue line under a cue or wryly does nothing:
+  // a cue needs its dialogue, so there is no valid line to start yet. Type
+  // the dialogue, or Backspace (back to the cue) or Shift+Tab (action).
+  const enterOnEmptyDialogue = (view: EditorView): boolean => {
+    if (!plugin.settings.smartTabEnabled) return false;
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    const line = doc.lineAt(selection.main.head);
+    if (line.text.trim() !== "" || line.number === 1) return false;
+    const lines = doc.toString().split("\n");
+    const kinds = classifyLines(lines, { cursorLine: line.number - 1 });
+    return kinds[line.number - 1] === "dialogue";
   };
 
   // Shift+Enter: a plain line break, e.g. to continue the same speech.

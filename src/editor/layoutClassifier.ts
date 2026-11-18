@@ -59,7 +59,8 @@ export function centeredMarkers(
 
 /** Offset of the "." that forces a scene heading, or -1. */
 export function forcedHeadingDot(text: string): number {
-  const match = /^\s*\.(?=[\p{L}\p{N}])/u.exec(text);
+  // Same rule as isSceneHeading: "." then anything but "." or a space.
+  const match = /^\s*\.(?![.\s])/u.exec(text);
   return match ? match[0].length - 1 : -1;
 }
 
