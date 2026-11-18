@@ -140,14 +140,21 @@ Special cases, all decided during testing:
   in a script with no characters yet (the list is empty but the column is
   right).
 - **Tab at the start of an action line with text** turns that line into a
-  character (in capitals). Only action does this; other elements keep their
-  own Tab.
+  character (in capitals), if the line can be a name (`jen`, `BOB (V.O.)`).
+  A sentence (`She runs to the door.`) stays action, as in Fade In. Only
+  action does this; other elements keep their own Tab.
+- **Tab after a slugline's time** (or its modifier) starts the action, as
+  in Fade In. Type ` (` after the time for the modifier list.
 - **Tab at the start of dialogue right under a character** adds an empty
   wryly `(|)` above the dialogue (Fade In does this).
 - **Tab at the start of dialogue right under a wryly** does nothing.
 - **Tab at the end of a wryly** (`(beat|)` or `(beat)|`) with dialogue right
   below moves the cursor to the start of that dialogue. With nothing below,
   it starts a new dialogue line.
+- **Typing a wryly with its list open** (`(bea|)`): one Tab or Enter picks
+  it and goes on to the dialogue, as in Fade In.
+- **Enter in an empty `()`** keeps it and starts the dialogue line; it never
+  picks the list's first item.
 - **Tab on an empty line that was moved to the left margin** (by Backspace,
   Shift+Tab or Escape) moves it back to the character column and opens the
   character list.
@@ -286,16 +293,16 @@ line has an element, shown in its Format panel.
 | 2   | Character list after a speech                                        | Last speaker first                                | The other speaker first                                             | Change the order                                                                  |
 | 3   | Escape with the character list open on an empty line                 | Line stays a character                            | Line becomes action                                                 | Change Escape                                                                     |
 | 4   | Backspace on an empty character line                                 | Line deleted, cursor at the end of the line above | Line stays, moves to the action margin (chosen 2026-11-17)          | Change Backspace                                                                  |
-| 5   | Type `beat` in `(                                                    | )`, then Tab or Enter                             | Closes `(beat)` and goes to a new dialogue line                     | Picks `(beat)` from the list and stays on the wryly line; a second press moves on | Accept and move in one press                 |
-| 6   | Enter in an empty `(                                                 | )`                                                | Goes to dialogue, `()` stays                                        | The wryly list's first item `(beat)` is picked                                    | No list on an empty wryly, or Enter skips it |
+| 5   | Type `beat` in `(                                                    | )`, then Tab or Enter                             | Closes `(beat)` and goes to a new dialogue line                     | Picks `(beat)` from the list and stays on the wryly line; a second press moves on | Fixed 2026-11-17: now the same as Fade In |
+| 6   | Enter in an empty `(                                                 | )`                                                | Goes to dialogue, `()` stays                                        | The wryly list's first item `(beat)` is picked                                    | Fixed 2026-11-17: now the same as Fade In |
 | 7   | Tab at the start of dialogue with text                               | Nothing                                           | `()` added above (approved 2026-11-17)                              | Change the rule                                                                   |
 | 8   | Tab in the middle of dialogue                                        | Nothing                                           | Splits the speech with a wryly                                      | Setting: Tab inside a line → Dialogue → Nothing                                   |
 | 9   | Tab in the middle of a character name or slugline                    | Nothing                                           | Next part                                                           | Setting: Tab inside a line → Nothing                                              |
-| 10  | Tab at the start of an action line with text                         | Nothing                                           | Line becomes a character. Mixed case gives `@She runs to the door.` | Change the rule                                                                   |
+| 10  | Tab at the start of an action line with text                         | Nothing                                           | Line becomes a character. Mixed case gives `@She runs to the door.` | Fixed 2026-11-17: a sentence now stays action; a name still becomes a character   |
 | 11  | `JOHN` in action, then Enter                                         | Stays action                                      | Becomes a character, dialogue next (chosen 2026-11-17)              | Change the rule                                                                   |
 | 12  | Enter on an empty dialogue line                                      | That line becomes a new character line, list open | The cue above becomes action and the cursor starts a new block      | Change Enter                                                                      |
 | 13  | Tab after a transition                                               | Action                                            | Scene heading                                                       | Setting: Tab and Enter keys → Transition → Action line                            |
-| 14  | Tab after a slugline's time (`INT. OFFICE - DAY`)                    | Action                                            | Modifier list; a second Tab adds FLASHBACK (roadmap #117)           | Change the rule                                                                   |
+| 14  | Tab after a slugline's time (`INT. OFFICE - DAY`)                    | Action                                            | Modifier list; a second Tab adds FLASHBACK (roadmap #117)           | Fixed 2026-11-17: now the same as Fade In                                         |
 | 15  | Tab in an empty `()` on its own block                                | Line becomes empty dialogue                       | Nothing                                                             | Change the rule                                                                   |
 | 16  | A cue left with no dialogue under it (after deleting the line below) | Still a character                                 | Shown at the action margin                                          | Fountain reads a lone capitals line as action; would need a "being edited" rule   |
 | 17  | Type `(` on a dialogue line                                          | Stays dialogue                                    | Becomes a wryly, list open                                          | Keep Scribidian's (it matches Fountain)                                           |

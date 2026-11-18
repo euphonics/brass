@@ -92,7 +92,11 @@ describe("Tab inside a line", () => {
     );
     // A part not there yet: Tab's end-of-line plan adds it.
     expect(tabIn("INT. KIT|CHEN\n\nAction.").plan?.type).toBe("end-tab");
-    expect(tabIn("INT. KITCHEN - D|AY\n\nAction.").plan?.type).toBe("end-tab");
+    // After the time, Tab at the end starts the action: Next part just
+    // goes to the end of the line.
+    expect(tabIn("INT. KITCHEN - D|AY\n\nAction.").text).toBe(
+      "INT. KITCHEN - DAY|\n\nAction.",
+    );
     // After the modifier: the end of the line.
     expect(tabIn("INT. KITCHEN - DAY (FLASH|BACK)\n\nAction.").text).toBe(
       "INT. KITCHEN - DAY (FLASHBACK)|\n\nAction.",

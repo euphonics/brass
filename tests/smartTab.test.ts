@@ -65,10 +65,10 @@ describe("Smart Tab", () => {
     expect(tabAtEnd(".ROOFTOP")?.text).toBe(".ROOFTOP - ");
   });
 
-  it("opens slug modifiers after the time, then starts the action", () => {
+  it("starts the action after the time or a modifier (as in Fade In)", () => {
     const afterTime = tabAtEnd("EXT. ROOF - DUSK", ["DUSK"]);
-    expect(afterTime?.text).toBe("EXT. ROOF - DUSK");
-    expect(afterTime?.plan.openCompletion).toBe(true);
+    expect(afterTime?.text).toBe("EXT. ROOF - DUSK\n\n");
+    expect(afterTime?.plan.openCompletion).toBe(false);
     const afterModifier = tabAtEnd("EXT. ROOF - DUSK (FLASHBACK)", ["DUSK"]);
     expect(afterModifier?.text).toBe("EXT. ROOF - DUSK (FLASHBACK)\n\n");
     expect(afterModifier?.plan.openCompletion).toBe(false);
@@ -416,9 +416,7 @@ describe("review fixes", () => {
     getSmartEnterPlan("JEN\nHi.", 7, times);
     getSmartTabPlan("She runs.", 9, times);
     expect(calls).toBe(0);
-    expect(getSmartTabPlan("EXT. ROOF - DUSK", 16, times)?.openCompletion).toBe(
-      true,
-    );
+    expect(getSmartTabPlan("EXT. ROOF - DUSK", 16, times)?.insert).toBe("\n\n");
     expect(calls).toBe(1);
   });
 });
@@ -439,7 +437,7 @@ describe("uppercase sluglines", () => {
     expect(apply(".car", getSmartTabPlan(".car", 4))).toBe(".CAR - ");
     const timed = "INT. car - day";
     expect(apply(timed, getSmartTabPlan(timed, timed.length, ["DAY"]))).toBe(
-      "INT. CAR - DAY",
+      "INT. CAR - DAY\n\n",
     );
   });
 
@@ -492,8 +490,8 @@ describe("key matrix fixes", () => {
 
   it(".LATER counts as a complete heading", () => {
     expect(getSmartTabPlan(".LATER", 6)).toMatchObject({
-      insert: "",
-      openCompletion: true,
+      insert: "\n\n",
+      openCompletion: false,
     });
   });
 

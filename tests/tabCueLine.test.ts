@@ -55,4 +55,14 @@ describe("Tab cue line", () => {
     const moved = state.update({ selection: EditorSelection.cursor(0) }).state;
     expect(tabCueLine(moved)).toBeNull();
   });
+
+  it("clears when the whole note is replaced, even at the same spot", () => {
+    const state = marked(true);
+    const doc = "Other text.\n";
+    const replaced = state.update({
+      changes: { from: 0, to: state.doc.length, insert: doc },
+      selection: EditorSelection.cursor(doc.length),
+    }).state;
+    expect(replaced.field(tabMenuLineField)).toBeNull();
+  });
 });

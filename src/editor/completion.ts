@@ -20,9 +20,14 @@ import {
   isMarkdownHeading,
   isSceneHeading,
   isTransitionText,
+  looksLikeCharacterCue,
 } from "../screenplay/lines";
 import { setTabMenuLine, tabCueLine, tabMenuLineField } from "./tabCueLine";
-import { lineKindField, setLineKind } from "./lineKindOverride";
+import {
+  lineKindField,
+  replacesWholeNote,
+  setLineKind,
+} from "./lineKindOverride";
 import { forceElementPlan, type ForcedElement } from "./forceElement";
 import { menuLineKind } from "./layoutClassifier";
 import { getTabInsidePlan } from "./tabInside";
@@ -88,7 +93,7 @@ const forcedListField = StateField.define<{
           : { kind: effect.value, line: tr.state.doc.lineAt(head).from };
       }
     }
-    if (value === null) return null;
+    if (value === null || replacesWholeNote(tr)) return null;
     const line = tr.changes.mapPos(value.line);
     const current = tr.state.doc.lineAt(tr.state.selection.main.head);
     if (current.from !== line) return null;
@@ -411,13 +416,19 @@ export function createScreenplayCompletionExtension(
     if (selection.ranges.length > 1 || !selection.main.empty) return null;
 
     const source = view.state.doc.toString();
-    // Only scene headings need the script's times; parse lazily.
-    const knownTimes = () => [
-      ...plugin.settings.preferredTimesOfDay,
-      ...buildScreenplayIndex(parseFountain(source)).timesOfDay.map(
-        (usage) => usage.value,
-      ),
-    ];
+    // Only scene headings need the script's times; parse lazily. Not
+    // counting the cursor's line, whose last part is the one in question
+    // ("INT. HOUSE - KITCHEN" would make KITCHEN a time).
+    const knownTimes = () => {
+      const line = view.state.doc.lineAt(selection.main.head);
+      const others = `${source.slice(0, line.from)}${source.slice(line.to)}`;
+      return [
+        ...plugin.settings.preferredTimesOfDay,
+        ...buildScreenplayIndex(parseFountain(others)).timesOfDay.map(
+          (usage) => usage.value,
+        ),
+      ];
+    };
     return planner(source, selection.main.head, knownTimes);
   };
 
@@ -447,6 +458,12 @@ export function createScreenplayCompletionExtension(
       return true;
     }
     if (kind !== "action") return false;
+    // Only a line that can be a name ("jen", "BOB (V.O.)"). A sentence
+    // ("She runs to the door.") stays action, as in Fade In, instead of
+    // becoming a forced "@" cue.
+    if (!looksLikeCharacterCue(line.text.trim().toLocaleUpperCase())) {
+      return false;
+    }
     forceElement(view, "character");
     return true;
   };
@@ -598,8 +615,29 @@ export function createScreenplayCompletionExtension(
     return label === current || label === `(${current})`;
   };
 
+  // The wryly list open on a wryly line: "empty" in a bare "()" (nothing
+  // typed yet), "pick" when a typed wryly is highlighted, else null.
+  const wrylyList = (view: EditorView): "empty" | "pick" | null => {
+    if (completionStatus(view.state) !== "active") return null;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return null;
+    const text = doc.lineAt(selection.main.head).text.trim();
+    if (!text.startsWith("(")) return null;
+    if (/^\(\s*\)?$/u.test(text)) return "empty";
+    return selectedCompletion(view.state)?.detail === "Wryly" ? "pick" : null;
+  };
+
   const tab = (view: EditorView): boolean => {
     if (completionStatus(view.state) === "active") {
+      // A typed wryly: one Tab picks it and goes on to the dialogue, as in
+      // Fade In.
+      if (wrylyList(view) === "pick") {
+        acceptCompletion(view);
+        if (tabToDialogueBelow(view)) return true;
+        const plan = smartPlan(view);
+        if (plan !== null) applySmartPlan(view, plan);
+        return true;
+      }
       if (!keepsSelectedPart(view)) return acceptCompletion(view);
       closeCompletion(view);
     }
@@ -639,7 +677,20 @@ export function createScreenplayCompletionExtension(
       if (completionStatus(view.state) !== null) closeCompletion(view);
       return false;
     }
-    if (completionStatus(view.state) === "active") return false;
+    // The wryly list: Enter in a bare "()" doesn't pick its first item, it
+    // goes on to the dialogue; Enter on a typed wryly picks it and goes on,
+    // in one press (as in Fade In).
+    const wryly = wrylyList(view);
+    if (wryly === "empty") {
+      // Keep "()" whole (no split around the cursor): from its end, Enter
+      // starts the dialogue line below.
+      closeCompletion(view);
+      const line = view.state.doc.lineAt(view.state.selection.main.head);
+      view.dispatch({
+        selection: { anchor: line.from + line.text.trimEnd().length },
+      });
+    } else if (wryly === "pick") acceptCompletion(view);
+    else if (completionStatus(view.state) === "active") return false;
     const plan = smartPlan(view, (source, cursor, knownTimes) =>
       getSmartEnterPlan(
         source,

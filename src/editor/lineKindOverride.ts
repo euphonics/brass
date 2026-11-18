@@ -16,7 +16,7 @@
  */
 
 import { isForcedTransition, isSceneHeading } from "../screenplay/lines";
-import { StateEffect, StateField } from "@codemirror/state";
+import { StateEffect, StateField, type Transaction } from "@codemirror/state";
 import type { LayoutLineKind } from "./layoutClassifier";
 
 /** The cursor's line, laid out as a chosen element. */
@@ -24,6 +24,20 @@ export interface LineKindOverride {
   /** Start of the line. */
   from: number;
   kind: LayoutLineKind;
+}
+
+/**
+ * Whether `tr` replaces the whole note (an outside change reloaded it). Line
+ * markers are for the text the writer was on, so they don't carry over,
+ * even when the cursor lands at the same offset.
+ */
+export function replacesWholeNote(tr: Transaction): boolean {
+  if (!tr.docChanged || tr.startState.doc.length === 0) return false;
+  let whole = false;
+  tr.changes.iterChanges((fromA, toA) => {
+    if (fromA === 0 && toA === tr.startState.doc.length) whole = true;
+  });
+  return whole;
 }
 
 /**
@@ -49,7 +63,7 @@ export const lineKindField = StateField.define<LineKindOverride | null>({
       });
     }
     let next =
-      value === null || merged
+      value === null || merged || replacesWholeNote(tr)
         ? null
         : { ...value, from: tr.changes.mapPos(value.from) };
     for (const effect of tr.effects) {

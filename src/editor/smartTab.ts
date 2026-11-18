@@ -372,25 +372,20 @@ function defaultTabPlan(
     case "scene-heading": {
       const times =
         typeof knownTimes === "function" ? knownTimes() : knownTimes;
-      // After a slug modifier "(FLASHBACK)": start the action.
+      // After the time of day, or a slug modifier "(FLASHBACK)": start the
+      // action, as in Fade In. (Typing " (" after the time opens the
+      // modifier list.)
       const { base, modifier } = splitSlugModifier(line);
-      if (modifier !== null && hasTimeOfDay(base, times)) {
+      if (
+        hasTimeOfDay(line, times) ||
+        (modifier !== null && hasTimeOfDay(base, times))
+      ) {
         return uppercaseHeading(source, {
           kind,
           at,
           insert: "\n\n",
           cursor: at + 2,
           openCompletion: false,
-        });
-      }
-      // After the time of day: the slug modifier list (Enter skips it).
-      if (hasTimeOfDay(line, times)) {
-        return uppercaseHeading(source, {
-          kind,
-          at,
-          insert: "",
-          cursor: at,
-          openCompletion: true,
         });
       }
       // Complete the " - " separator, whatever part of it is already typed.

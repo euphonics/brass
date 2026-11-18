@@ -112,6 +112,15 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Wrylies, as in Fade In: Enter in an empty `()` keeps it and starts the
+  dialogue instead of picking `(beat)`; one Tab or Enter on a typed wryly
+  picks it and goes on to the dialogue.
+- Tab after a slugline's time starts the action, as in Fade In (it used to
+  open the modifier list, so a second Tab added FLASHBACK). Type ` (` for
+  a modifier.
+- Tab at the end of `INT. HOUSE - KITCHEN` adds `-` and the times.
+- Tab at the start of an action line turns it into a character only when
+  it can be a name; a sentence no longer becomes `@She runs to the door.`
 - Tab inside a line: one Tab per part walks a slugline (location, time,
   modifier) without adding a second time (`NIGHTDAY`); Tab with a part
   selected after Escape carries on instead of indenting the line;

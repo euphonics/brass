@@ -307,8 +307,8 @@ come from reading the code and are untested.
 | 114 | Tested (2026-11-17), kept: plain mode opens the lists too, like Smart Tab and suggestions already do there.                                                                                                                                              | S      |
 | 115 | Tested (2026-11-17), fine: Tab takes about 50 ms in a 10,500-line script on desktop.                                                                                                                                                                     | S      |
 | 116 | Untested: phones. The Smart Tab toolbar command presses Tab, so it should behave the same, but selections and the list on touch screens weren't checked.                                                                                                 | S      |
-| 117 | Seen (older than the feature): Tab right after a slugline's time opens the modifier list, and a second Tab adds the first modifier (FLASHBACK). Walking a slugline with Tab can add one by accident.                                                     | S      |
-| 118 | Seen (older than the feature): Tab at the end of `INT. HOUSE - KITCHEN` doesn't add `-` and the times, because the line itself makes `KITCHEN` look like a known time.                                                                                   | S      |
+| 117 | Done (2026-11-17): Tab after a slugline's time (or modifier) starts the action, as in Fade In. Typing ` (` after the time still opens the modifier list.                                                                                                 | S      |
+| 118 | Done (2026-11-17): Tab at the end of a slugline doesn't count the line itself when deciding what is a time, so `INT. HOUSE - KITCHEN` gets `-` and the times.                                                                                            | S      |
 
 ### Fade In comparison (script mode, strict)
 
@@ -319,14 +319,14 @@ in [EDITOR_BEHAVIOR_DECISIONS.md](EDITOR_BEHAVIOR_DECISIONS.md#fade-in-compariso
 
 **Bugs found**
 
-| #   | Issue                                                                                                                                                                                                  | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
-| 119 | Enter in an empty `()` picks the wryly list's first item, `(beat)`, by accident. Fade In goes to dialogue and leaves `()` (row 6).                                                                     | S      |
-| 120 | Finishing a wryly takes two presses: type `beat` in `()`, then Tab or Enter only picks `(beat)` from the list; a second press goes to dialogue. Fade In does both in one press (row 5).                | S      |
-| 121 | Tab at the start of a mixed-case action line gives `@She runs to the door.` (the line becomes a forced cue). Fade In does nothing (row 10).                                                            | S      |
-| 122 | Enter on an empty dialogue line turns the character name above into action and starts a new block. Fade In turns the empty line into a new character line with the list open (row 12).                 | S      |
-| 123 | A character name with nothing under it (after deleting its dialogue or wryly) shows at the action margin while the cursor is still on it. Fade In keeps it a character (row 16).                       | S      |
-| 124 | Minor: a line marker (set to character or action, Tab's cue line) can survive when the whole note is replaced, such as by an outside sync, if the cursor lands at the same offset. Seen only in tests. | S      |
+| #   | Issue                                                                                                                                                                                  | Effort |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 119 | Done (2026-11-17): Enter in an empty `()` closes the wryly list, keeps `()` and starts the dialogue line, as in Fade In.                                                               | S      |
+| 120 | Done (2026-11-17): one Tab or Enter on a typed wryly picks it and goes on to the dialogue (to the dialogue below if there is some).                                                    | S      |
+| 121 | Done (2026-11-17): Tab at the start of an action line makes a character only when the line can be a name (`jen` → `JEN`). A sentence stays action, as in Fade In.                      | S      |
+| 122 | Enter on an empty dialogue line turns the character name above into action and starts a new block. Fade In turns the empty line into a new character line with the list open (row 12). | S      |
+| 123 | A character name with nothing under it (after deleting its dialogue or wryly) shows at the action margin while the cursor is still on it. Fade In keeps it a character (row 16).       | S      |
+| 124 | Done (2026-11-17): line markers clear when the whole note is replaced.                                                                                                                 | S      |
 
 Also from this run: #117 (Tab after a slugline's time adds FLASHBACK by accident, row 14) and #118 (no `-` after `INT. HOUSE - KITCHEN`).
 

@@ -207,7 +207,9 @@ export function getTabInsidePlan(
     // The next part isn't there yet: Tab's end-of-line plan adds it
     // (" - " and the times, or the modifier list). After the modifier
     // there is nothing left: go to the end.
-    return current < 3
+    // (A missing modifier isn't added: Tab after the time starts the
+    // action, so Next part just goes to the end.)
+    return current < 2
       ? { type: "end-tab", cursor: lineFrom + textEnd }
       : { type: "move", cursor: lineFrom + textEnd };
   }

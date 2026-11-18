@@ -16,6 +16,7 @@
  */
 
 import { StateEffect, StateField, type EditorState } from "@codemirror/state";
+import { replacesWholeNote } from "./lineKindOverride";
 
 /** The empty line where Smart Tab just opened a suggestion list. */
 export interface TabMenuLine {
@@ -43,7 +44,7 @@ export const tabMenuLineField = StateField.define<TabMenuLine | null>({
     for (const effect of tr.effects) {
       if (effect.is(setTabMenuLine)) return effect.value;
     }
-    if (value === null) return null;
+    if (value === null || replacesWholeNote(tr)) return null;
     const from = tr.changes.mapPos(value.from);
     const current = tr.state.doc.lineAt(tr.state.selection.main.head);
     return current.from === from && current.text.trim() === ""
