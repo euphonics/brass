@@ -348,10 +348,28 @@ export function createScreenplayCompletionExtension(
     return true;
   };
 
+  // Tab on an empty line set to action (Backspace or Shift+Tab out of the
+  // cue's column): back to the character column, with the character list.
+  const tabOnSetActionLine = (view: EditorView): boolean => {
+    if (!plugin.settings.smartTabEnabled) return false;
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    const line = doc.lineAt(selection.main.head);
+    if (line.text.trim() !== "") return false;
+    const set = view.state.field(lineKindField, false) ?? null;
+    if (set === null || set.kind !== "action") return false;
+    if (doc.lineAt(set.from).from !== line.from) return false;
+    forceElement(view, "character");
+    return true;
+  };
+
   const tab = (view: EditorView): boolean => {
     if (completionStatus(view.state) === "active")
       return acceptCompletion(view);
     if (tabAtLineStart(view)) return true;
+    if (tabOnSetActionLine(view)) return true;
     const plan = smartPlan(view);
     return plan !== null && applySmartPlan(view, plan);
   };

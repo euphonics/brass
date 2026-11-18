@@ -103,6 +103,8 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Tab on an empty line moved out of the character column (Backspace or
+  Shift+Tab) moves it back and opens the character list again.
 - Deleting the `)` of a character extension (`JEN (V.O.`) no longer drops
   the cue to the action margin; it stays a character while the extension
   is edited.
