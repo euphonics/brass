@@ -37,11 +37,13 @@ impractical; use BRAT.
 Phone keyboards have no Tab key. To use Smart Tab (move from action to
 character to dialogue), add its commands to the toolbar above the keyboard:
 
-1. Open **Settings → Mobile → Manage toolbar options** (called "Mobile" or
+1. In **Settings → Scribidian**, turn on **Show all commands in the command
+   palette**. Smart Tab is hidden from the command list until you do.
+2. Open **Settings → Mobile → Manage toolbar options** (called "Mobile" or
    "Toolbar" depending on the Obsidian version).
-2. Add **Scribidian: Screenplay: Smart Tab** and **Scribidian: Screenplay:
+3. Add **Scribidian: Screenplay: Smart Tab** and **Scribidian: Screenplay:
    Smart Tab back**.
-3. Optionally add the **Set line** commands (Slugline, Action, Character,
+4. Optionally add the **Set line** commands (Slugline, Action, Character,
    Wryly, Transition, Centered text).
 
 Tapping Smart Tab does exactly what pressing Tab does on a computer.

@@ -33,7 +33,7 @@ import {
   getFrontMatterInfo,
   parseYaml,
 } from "obsidian";
-import type { TFile } from "obsidian";
+import type { Command, TFile } from "obsidian";
 import { openCharacterPicker } from "./commands/character";
 import { exportFdx } from "./commands/exportFdx";
 import { exportFountain } from "./commands/exportFountain";
@@ -84,8 +84,26 @@ import { ContinuityInspectorModal } from "./ui/continuityInspectorModal";
 import { NoteContext, resolveNoteProperties } from "./ui/noteContext";
 import type { NoteProperties } from "./ui/noteContext";
 
+/**
+ * Obsidian's command palette lists matching commands shortest name first
+ * (ties alphabetically). Padding a name with zero-width spaces past every
+ * other command's length puts a group of commands last, in `rank` order.
+ */
+const PALETTE_GROUP_LENGTH = 64;
+export function paletteOrdered(name: string, rank: number): string {
+  const pad = Math.max(0, PALETTE_GROUP_LENGTH + rank - name.length);
+  return name + "\u200b".repeat(pad);
+}
+
 export default class ScribidianPlugin extends Plugin {
   settings: ScribidianSettings = { ...DEFAULT_SETTINGS };
+  /**
+   * Commands kept out of the command palette unless "Show all commands in
+   * the command palette" is on: ones with their own key or menu (Tab,
+   * Shift+Backspace, the suggestion lists) or rarely needed.
+   */
+  private readonly extraCommands: Command[] = [];
+  private extraCommandsShown = false;
   private statusBarItem: HTMLElement | null = null;
   private refreshTimer: number | null = null;
   private readonly noteContext = new NoteContext<TFile, MarkdownView>();
@@ -174,10 +192,10 @@ export default class ScribidianPlugin extends Plugin {
       ["transition", "set-line-transition", "Set line to transition"],
       ["centered", "set-line-centered", "Set line to centered text"],
     ];
-    for (const [element, id, name] of forceCommands) {
+    forceCommands.forEach(([element, id, name], rank) => {
       this.addCommand({
         id: `screenplay-${id}`,
-        name: `Screenplay: ${name}`,
+        name: paletteOrdered(`Screenplay: ${name}`, rank),
         editorCheckCallback: (checking, editor, context) => {
           if (!this.isScreenplayFile(context.file)) return false;
           const cm = (editor as { cm?: unknown }).cm;
@@ -186,7 +204,7 @@ export default class ScribidianPlugin extends Plugin {
           return true;
         },
       });
-    }
+    });
 
     // Phone keyboards have no Tab key. These commands press Tab and
     // Shift+Tab in the editor, so Smart Tab can go on the mobile toolbar.
@@ -195,7 +213,7 @@ export default class ScribidianPlugin extends Plugin {
       ["screenplay-smart-tab-back", "Screenplay: Smart Tab back", true],
     ];
     for (const [id, name, shiftKey] of smartTabCommands) {
-      this.addCommand({
+      this.addExtraCommand({
         id,
         name,
         icon: shiftKey ? "arrow-left-to-line" : "arrow-right-to-line",
@@ -212,7 +230,7 @@ export default class ScribidianPlugin extends Plugin {
     // Strict cursor placement stops Backspace from joining two different
     // elements; this joins them anyway. Shift+Backspace in the editor runs
     // it too (see createBlankLineLockExtension).
-    this.addCommand({
+    this.addExtraCommand({
       id: "screenplay-merge-with-line-above",
       name: "Screenplay: Delete and merge with line above",
       editorCheckCallback: (checking, editor, context) => {
@@ -223,7 +241,7 @@ export default class ScribidianPlugin extends Plugin {
         return true;
       },
     });
-    this.addCommand({
+    this.addExtraCommand({
       id: "screenplay-new-scene",
       name: "Screenplay: New scene",
       editorCheckCallback: (checking, editor, context) => {
@@ -232,7 +250,7 @@ export default class ScribidianPlugin extends Plugin {
         return true;
       },
     });
-    this.addCommand({
+    this.addExtraCommand({
       id: "screenplay-character",
       name: "Screenplay: Character",
       editorCheckCallback: (checking, editor, context) => {
@@ -291,7 +309,7 @@ export default class ScribidianPlugin extends Plugin {
         return true;
       },
     });
-    this.addCommand({
+    this.addExtraCommand({
       id: "screenplay-parenthetical",
       name: "Screenplay: Wryly",
       editorCheckCallback: (checking, editor, context) => {
@@ -300,7 +318,7 @@ export default class ScribidianPlugin extends Plugin {
         return true;
       },
     });
-    this.addCommand({
+    this.addExtraCommand({
       id: "screenplay-transition",
       name: "Screenplay: Transition",
       editorCheckCallback: (checking, editor, context) => {
@@ -323,7 +341,7 @@ export default class ScribidianPlugin extends Plugin {
         return true;
       },
     });
-    this.addCommand({
+    this.addExtraCommand({
       id: "screenplay-preview",
       name: "Screenplay: Preview",
       checkCallback: (checking) => {
@@ -464,6 +482,27 @@ export default class ScribidianPlugin extends Plugin {
     applyScreenplayFont(null);
     if (this.refreshTimer !== null) window.clearTimeout(this.refreshTimer);
     this.clearProjectViewClasses();
+  }
+
+  /** Register a command that only shows with "Show all commands" on. */
+  private addExtraCommand(command: Command): void {
+    // addCommand prefixes the id and name in place: keep a clean copy.
+    this.extraCommands.push({ ...command });
+    if (this.settings.showAllCommands) {
+      this.addCommand({ ...command });
+      this.extraCommandsShown = true;
+    }
+  }
+
+  /** Add or remove the extra commands to match the setting. */
+  applyCommandVisibility(): void {
+    const show = this.settings.showAllCommands;
+    if (show === this.extraCommandsShown) return;
+    for (const command of this.extraCommands) {
+      if (show) this.addCommand({ ...command });
+      else this.removeCommand(command.id);
+    }
+    this.extraCommandsShown = show;
   }
 
   async loadSettings(): Promise<void> {

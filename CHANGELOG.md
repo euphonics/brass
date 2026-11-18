@@ -73,6 +73,11 @@ Scribidian changes since 0.1.0.
 
 ### Changed
 
+- Tidier command palette: commands with their own key or menu (Smart Tab,
+  Smart Tab back, Delete and merge with line above, New scene, Character,
+  Wryly, Transition, Preview) are hidden unless **Show all commands in the
+  command palette** is on. The Set line commands are listed together, in
+  order: slugline, action, character, wryly, transition, centered text.
 - Tab inside a line is set separately for script and Fountain mode. Fountain
   mode starts with Obsidian's Tab for every element; your earlier choices
   carry over to script mode. The Tab and Enter keys settings have

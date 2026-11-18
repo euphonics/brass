@@ -67,6 +67,7 @@ export interface ScribidianSettings {
   autocompleteEnabled: boolean;
   smartTabEnabled: boolean;
   smartEnterEnabled: boolean;
+  showAllCommands: boolean;
   /** Typing settings, set separately for script and plain mode. */
   capitalizeLineStartsScript: boolean;
   capitalizeLineStartsPlain: boolean;
@@ -207,6 +208,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   autocompleteEnabled: true,
   smartTabEnabled: true,
   smartEnterEnabled: true,
+  showAllCommands: false,
   capitalizeLineStartsScript: true,
   capitalizeLineStartsPlain: false,
   uppercaseTransitionsScript: true,
@@ -388,7 +390,12 @@ const SETTING_GROUPS: {
 }[] = [
   {
     heading: "Getting started",
-    keys: ["activateFountainFiles", "activateFrontmatter", HOTKEYS_KEY],
+    keys: [
+      "activateFountainFiles",
+      "activateFrontmatter",
+      HOTKEYS_KEY,
+      "showAllCommands",
+    ],
   },
   {
     heading: "Writing",
@@ -1081,6 +1088,15 @@ export class ScribidianSettingTab extends PluginSettingTab {
         action: () => this.openPluginHotkeys(),
       },
       {
+        name: "Show all commands in the command palette",
+        desc: "Also list commands that have their own key or menu: Smart Tab and Smart Tab back, Delete and merge with line above, New scene, Character, Wryly, Transition and Preview. Turn on to give one a keyboard shortcut or put Smart Tab on the phone toolbar.",
+        control: {
+          type: "toggle",
+          key: "showAllCommands",
+          defaultValue: DEFAULT_SETTINGS.showAllCommands,
+        },
+      },
+      {
         name: ADVANCED_NAME,
         searchable: false,
         render: (setting) => this.renderMoreToggle(setting, ADVANCED_KEY),
@@ -1299,6 +1315,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
     }
 
     await this.plugin.saveSettings();
+    if (key === "showAllCommands") this.plugin.applyCommandVisibility();
     if (key === "editorLayout" || key === "bottomTypingMargin") {
       this.app.workspace.updateOptions();
     }
@@ -1328,6 +1345,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "autocompleteEnabled":
       case "smartTabEnabled":
       case "smartEnterEnabled":
+      case "showAllCommands":
       case "capitalizeLineStartsScript":
       case "capitalizeLineStartsPlain":
       case "uppercaseTransitionsScript":
