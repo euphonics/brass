@@ -29,6 +29,10 @@ Scribidian changes since 0.1.0.
   more). On by default: typing `JE` opens the character list, `Je` doesn't.
   Off: `Je` opens it too, and the line moves to the character column while
   the list is open.
+- Setting **Mark capitals that are action** (Settings > Fountain export, on
+  by default): Fountain exports put `!` in front of capitals Scribidian reads
+  as action (`!BANG!`), so Final Draft, Fade In and other apps read them as
+  action too.
 - Uppercase sluglines as you type ("int. kitchen - day" becomes "INT.
   KITCHEN - DAY"), with a setting for each mode: on in script mode, off in
   plain mode by default.

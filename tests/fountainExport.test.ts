@@ -24,8 +24,22 @@ import {
   type CodeBlockHandling,
   type LinkHandling,
   fountainExportPath,
+  markCapitalsAsAction,
   stripObsidianFrontmatter,
 } from "../src/export/fountain";
+
+describe("marking capitals as action", () => {
+  it("puts ! in front of capitals ending in punctuation with text below", () => {
+    expect(markCapitalsAsAction("She runs.\n\nBANG!\nShe falls.")).toBe(
+      "She runs.\n\n!BANG!\nShe falls.",
+    );
+  });
+
+  it("leaves cues, lone capitals and marked lines alone", () => {
+    const script = "JEN (V.O.)\nHi.\n\nSILENCE.\n\n!BOOM!\nDust.";
+    expect(markCapitalsAsAction(script)).toBe(script);
+  });
+});
 
 describe("Fountain export", () => {
   it("strips leading Obsidian frontmatter without changing screenplay text", () => {

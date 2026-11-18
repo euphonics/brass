@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { classifyLines } from "../screenplay/lines";
+
 export function stripObsidianFrontmatter(source: string): string {
   const normalized = source.replaceAll("\r\n", "\n");
   const lines = normalized.split("\n");
@@ -322,4 +324,29 @@ export function cleanFountainSource(
     output.push(line);
   }
   return output.join("\n");
+}
+
+/**
+ * Put `!` in front of lines Scribidian reads as action that plain Fountain
+ * (and Final Draft, Fade In) would read as a character: a line in capitals
+ * ending in punctuation ("BANG!") with text right under it. Other lines
+ * are left as they are.
+ */
+export function markCapitalsAsAction(source: string): string {
+  const lines = source.replaceAll("\r\n", "\n").split("\n");
+  const kinds = classifyLines(lines);
+  return lines
+    .map((line, index) => {
+      const text = line.trim();
+      if (kinds[index] !== "action" || text === "" || text.startsWith("!")) {
+        return line;
+      }
+      const startsBlock = index === 0 || (lines[index - 1] ?? "").trim() === "";
+      const textBelow = (lines[index + 1] ?? "").trim() !== "";
+      const capitals = /\p{Lu}/u.test(text) && !/\p{Ll}/u.test(text);
+      if (!startsBlock || !textBelow || !capitals) return line;
+      const indent = line.length - line.trimStart().length;
+      return `${line.slice(0, indent)}!${line.slice(indent)}`;
+    })
+    .join("\n");
 }

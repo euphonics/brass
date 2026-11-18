@@ -21,6 +21,7 @@ import type ScribidianPlugin from "../main";
 import {
   cleanFountainSource,
   fountainExportPath,
+  markCapitalsAsAction,
   normalizeCleanExportOptions,
 } from "../export/fountain";
 import { loadScreenplayContext } from "../projects/vault";
@@ -44,7 +45,7 @@ export async function exportFountain(
     plugin.isScreenplayFile(file) ? view.editor.getValue() : undefined,
   );
   const path = fountainExportPath(context.owner.path, existingPaths);
-  const content = clean
+  const exported = clean
     ? cleanFountainSource(
         context.source,
         normalizeCleanExportOptions(
@@ -52,11 +53,14 @@ export async function exportFountain(
         ),
       )
     : context.source;
+  const content = plugin.settings.markCapitalsAsAction
+    ? markCapitalsAsAction(exported)
+    : exported;
 
   try {
-    const exported = await plugin.app.vault.create(path, content);
+    const file = await plugin.app.vault.create(path, content);
     new Notice(`Exported screenplay to ${path}`);
-    await plugin.app.workspace.getLeaf(false).openFile(exported);
+    await plugin.app.workspace.getLeaf(false).openFile(file);
   } catch (error) {
     console.error("Scribidian could not export Fountain", error);
     new Notice("Scribidian could not export the screenplay.");

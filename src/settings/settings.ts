@@ -98,6 +98,8 @@ export interface ScribidianSettings {
   characterFolder: string;
   characterTemplate: string;
   cleanExport: CleanExportOptions;
+  /** Fountain export: "!" in front of capitals Scribidian reads as action. */
+  markCapitalsAsAction: boolean;
 }
 
 /** Clean Fountain export toggles, in the order shown in settings. */
@@ -225,6 +227,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   characterFolder: "Characters",
   characterTemplate: "",
   cleanExport: { ...DEFAULT_CLEAN_EXPORT_OPTIONS },
+  markCapitalsAsAction: true,
 };
 
 function valuesFromText(value: string): string[] {
@@ -1036,6 +1039,21 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         type: "group",
+        heading: "Fountain export",
+        items: [
+          {
+            name: "Mark capitals that are action",
+            desc: "Scribidian reads a line in capitals ending in punctuation (BANG!, SILENCE.) as action. Final Draft, Fade In and other Fountain apps read it as a character when text follows it. On: exports put ! in front of such lines (!BANG!) so those apps read them as action too. Your script is never changed.",
+            control: {
+              type: "toggle",
+              key: "markCapitalsAsAction",
+              defaultValue: DEFAULT_SETTINGS.markCapitalsAsAction,
+            },
+          },
+        ],
+      },
+      {
+        type: "group",
         heading: "Clean Fountain export: what to strip out",
         items: CLEAN_EXPORT_SETTINGS.map(({ option, name, desc, choices }) => {
           const key = `${CLEAN_EXPORT_PREFIX}${option}`;
@@ -1211,6 +1229,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "renderFountainCodeBlocks":
       case "sceneTypeMatchCase":
       case "characterMatchCase":
+      case "markCapitalsAsAction":
       case "statusBarEnabled":
       case "showEstimatedPages":
       case "showCurrentPage":
