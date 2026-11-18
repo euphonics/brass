@@ -11,6 +11,8 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Strict cursor placement: Backspace inside an empty wryly, `(|)`, deletes
+  the wryly line and puts the cursor at the end of the dialogue above.
 - Typing on a line in the character column (after Tab, or **Set line to
   character**) is uppercased, even for a name the script doesn't have yet.
   Setting: "Uppercase character names as you type" (on in script mode).
