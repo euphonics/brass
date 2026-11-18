@@ -253,6 +253,58 @@ Test cases:
 - Text typed in the character column is uppercased.
 - Each of these is a per-mode setting: on in script mode, off in plain mode.
 
+## Fade In comparison
+
+Tested on 2026-11-17 by sending real keystrokes to Fade In (Windows) and
+running the same steps in Scribidian (script mode, strict cursor
+placement on, default settings). Fade In has no Fountain markers: each
+line has an element, shown in its Format panel.
+
+### Same in both
+
+| Steps                                                | Result                                                  |
+| ---------------------------------------------------- | ------------------------------------------------------- |
+| Tab at the end of an action line, or on an empty one | Character column, character list open                   |
+| Type a name in the character column                  | Typed in capitals, even a new name                      |
+| Enter after dialogue                                 | New character line, list open                           |
+| Tab at the end of a character name                   | `()` wryly, cursor inside                               |
+| Tab at the end of dialogue                           | `()` wryly below                                        |
+| Tab on an empty dialogue line                        | `()` wryly                                              |
+| Backspace on an empty `()`                           | Wryly line removed, cursor at the end of the line above |
+| `int.` on an action line                             | Scene heading, whole line in capitals                   |
+| Tab at the end of `INT. OFFICE`                      | `-` and the time list                                   |
+| Enter after a scene heading                          | Action                                                  |
+| Enter after a transition                             | Scene heading, scene type list open                     |
+| Shift+Tab on an empty character line                 | Action                                                  |
+| `BANG!` then Enter                                   | Stays action                                            |
+
+### Different
+
+| #   | Steps                                                                | Fade In                                           | Scribidian                                                          | To match Fade In                                                                  |
+| --- | -------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| 1   | Same speaker again (`JEN` after JEN's speech)                        | Adds `(CONT'D)` by itself                         | Nothing                                                             | New feature                                                                       |
+| 2   | Character list after a speech                                        | Last speaker first                                | The other speaker first                                             | Change the order                                                                  |
+| 3   | Escape with the character list open on an empty line                 | Line stays a character                            | Line becomes action                                                 | Change Escape                                                                     |
+| 4   | Backspace on an empty character line                                 | Line deleted, cursor at the end of the line above | Line stays, moves to the action margin (chosen 2026-11-17)          | Change Backspace                                                                  |
+| 5   | Type `beat` in `(                                                    | )`, then Tab or Enter                             | Closes `(beat)` and goes to a new dialogue line                     | Picks `(beat)` from the list and stays on the wryly line; a second press moves on | Accept and move in one press                 |
+| 6   | Enter in an empty `(                                                 | )`                                                | Goes to dialogue, `()` stays                                        | The wryly list's first item `(beat)` is picked                                    | No list on an empty wryly, or Enter skips it |
+| 7   | Tab at the start of dialogue with text                               | Nothing                                           | `()` added above (approved 2026-11-17)                              | Change the rule                                                                   |
+| 8   | Tab in the middle of dialogue                                        | Nothing                                           | Splits the speech with a wryly                                      | Setting: Tab inside a line → Dialogue → Nothing                                   |
+| 9   | Tab in the middle of a character name or slugline                    | Nothing                                           | Next part                                                           | Setting: Tab inside a line → Nothing                                              |
+| 10  | Tab at the start of an action line with text                         | Nothing                                           | Line becomes a character. Mixed case gives `@She runs to the door.` | Change the rule                                                                   |
+| 11  | `JOHN` in action, then Enter                                         | Stays action                                      | Becomes a character, dialogue next (chosen 2026-11-17)              | Change the rule                                                                   |
+| 12  | Enter on an empty dialogue line                                      | That line becomes a new character line, list open | The cue above becomes action and the cursor starts a new block      | Change Enter                                                                      |
+| 13  | Tab after a transition                                               | Action                                            | Scene heading                                                       | Setting: Tab and Enter keys → Transition → Action line                            |
+| 14  | Tab after a slugline's time (`INT. OFFICE - DAY`)                    | Action                                            | Modifier list; a second Tab adds FLASHBACK (roadmap #117)           | Change the rule                                                                   |
+| 15  | Tab in an empty `()` on its own block                                | Line becomes empty dialogue                       | Nothing                                                             | Change the rule                                                                   |
+| 16  | A cue left with no dialogue under it (after deleting the line below) | Still a character                                 | Shown at the action margin                                          | Fountain reads a lone capitals line as action; would need a "being edited" rule   |
+| 17  | Type `(` on a dialogue line                                          | Stays dialogue                                    | Becomes a wryly, list open                                          | Keep Scribidian's (it matches Fountain)                                           |
+| 18  | Enter on an empty action line                                        | Another empty action line                         | Strict mode keeps a single blank line between blocks                | Keep (strict mode's purpose)                                                      |
+
+Not compared: Enter on an empty character line with the list closed (in
+Scribidian, Escape already turns the line into action, see #3), and a
+lowercase `cut to:` typed on its own block.
+
 ## How to test
 
 - Test in the real app, not only with unit tests. Many bugs only show when
