@@ -34,6 +34,7 @@ import {
   completionStatus,
   currentCompletions,
   pickedCompletion,
+  selectedCompletion,
   startCompletion,
   type Completion,
   type CompletionContext,
@@ -204,6 +205,9 @@ export function forceElement(view: EditorView, element: ForcedElement): void {
   if (plan.complete !== null) startCompletion(view);
 }
 
+/** Picks made over a selected part: they don't open the next list. */
+const partCompletions = new WeakSet<Completion>();
+
 function applyCandidate(
   view: EditorView,
   completion: Completion,
@@ -214,6 +218,7 @@ function applyCandidate(
 ): void {
   // Replacing a selected part (Tab's "Next part"): don't repeat what comes
   // right after it, like the ")" of an extension or a location's " - ".
+  let cursor = from + candidate.applyText.length;
   if (overSelection) {
     const after = view.state.doc.sliceString(to, view.state.doc.lineAt(to).to);
     const text = candidate.applyText;
@@ -224,13 +229,16 @@ function applyCandidate(
     ) {
       if (text.endsWith(after.slice(0, length))) {
         to += length;
+        // The cursor stays at the end of the part, before a " - " it
+        // shares with the next part, so the next Tab goes on to that part.
+        if (/^[\s-]+$/u.test(after.slice(0, length))) cursor -= length;
         break;
       }
     }
   }
   view.dispatch({
     changes: { from, to, insert: candidate.applyText },
-    selection: { anchor: from + candidate.applyText.length },
+    selection: { anchor: cursor },
     annotations: pickedCompletion.of(completion),
     // Marks the change as a picked suggestion, so activateOnCompletion can
     // open the next list (scene type -> location -> time).
@@ -381,8 +389,10 @@ export function createScreenplayCompletionExtension(
       options: candidates.map((candidate) => ({
         label: candidate.label,
         detail: candidate.detail,
-        apply: (view, completion, from, to) =>
-          applyCandidate(view, completion, from, to, candidate, overSelection),
+        apply: (view, completion, from, to) => {
+          if (overSelection) partCompletions.add(completion);
+          applyCandidate(view, completion, from, to, candidate, overSelection);
+        },
       })),
     };
   };
@@ -506,12 +516,28 @@ export function createScreenplayCompletionExtension(
       lineFroms.push(offset);
       offset += text.length + 1;
     }
+    // The times of day the settings and the script know (sluglines only).
+    // Not counting this line, whose last part is the one in question.
+    let times: Set<string> | null = null;
+    const isTime = (text: string): boolean => {
+      const others = lines.filter((_, number) => number !== line.number - 1);
+      times ??= new Set(
+        [
+          ...plugin.settings.preferredTimesOfDay,
+          ...buildScreenplayIndex(
+            parseFountain(others.join("\n")),
+          ).timesOfDay.map((usage) => usage.value),
+        ].map((time) => time.toLocaleUpperCase()),
+      );
+      return times.has(text.toLocaleUpperCase());
+    };
     const plan = getTabInsidePlan(
       lines,
       line.number - 1,
       lineFroms,
       head - line.from,
       plugin.settings.tabInside,
+      isTime,
     );
     if (plan === null || plan.type === "smart") return null;
     switch (plan.type) {
@@ -556,9 +582,44 @@ export function createScreenplayCompletionExtension(
     }
   };
 
+  // A list open over a selected part with the part's own text highlighted:
+  // keeping it needs no change, so Tab goes straight on to the next part.
+  const keepsSelectedPart = (view: EditorView): boolean => {
+    const { selection, doc } = view.state;
+    const main = selection.main;
+    if (selection.ranges.length > 1 || main.empty) return false;
+    const picked = selectedCompletion(view.state);
+    if (picked === null) return false;
+    const current = doc
+      .sliceString(main.from, main.to)
+      .trim()
+      .toLocaleUpperCase();
+    const label = picked.label.trim().toLocaleUpperCase();
+    return label === current || label === `(${current})`;
+  };
+
   const tab = (view: EditorView): boolean => {
-    if (completionStatus(view.state) === "active")
-      return acceptCompletion(view);
+    if (completionStatus(view.state) === "active") {
+      if (!keepsSelectedPart(view)) return acceptCompletion(view);
+      closeCompletion(view);
+    }
+    // Text selected on one line (a part left selected after Escape): carry
+    // on from its end, instead of Obsidian's Tab indenting the whole line.
+    {
+      const { selection, doc } = view.state;
+      const file = view.state.field(editorInfoField, false)?.file ?? null;
+      const main = selection.main;
+      if (
+        plugin.settings.smartTabEnabled &&
+        file !== null &&
+        plugin.isScreenplayFile(file) &&
+        selection.ranges.length === 1 &&
+        !main.empty &&
+        doc.lineAt(main.from).number === doc.lineAt(main.to).number
+      ) {
+        view.dispatch({ selection: { anchor: main.to }, userEvent: "select" });
+      }
+    }
     if (tabAtLineStart(view)) return true;
     if (tabOnSetActionLine(view)) return true;
     if (tabToDialogueBelow(view)) return true;
@@ -768,8 +829,12 @@ export function createScreenplayCompletionExtension(
     autocompletion({
       activateOnTyping: true,
       // Keep the slugline flowing: scene type -> location -> time.
+      // Not after a pick over a selected part: the next part is already
+      // there, and Tab goes on to it.
       activateOnCompletion: (completion) =>
-        completion.detail === "Location" || completion.detail === "Scene type",
+        !partCompletions.has(completion) &&
+        (completion.detail === "Location" ||
+          completion.detail === "Scene type"),
       maxRenderedOptions: 20,
     }),
     EditorState.languageData.of(() => [{ autocomplete: source }]),

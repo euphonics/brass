@@ -17,6 +17,7 @@
 
 import type { EnterSource, TabInsideActions } from "./enterTargets";
 import { classifySmartTabLine } from "./smartTab";
+import { classifyLines } from "../screenplay/lines";
 
 /** What Tab should do with the cursor inside a line. */
 export type TabInsidePlan =
@@ -58,8 +59,15 @@ function sourceOf(kind: string | null): EnterSource | null {
   }
 }
 
-/** Offsets (within the line) of a slugline's parts, in order. */
-function slugParts(line: string): (Part | null)[] {
+/**
+ * Offsets (within the line) of a slugline's parts, in order. Text after the
+ * last " - " is the time only when `isTime` knows it; otherwise it is part
+ * of the location ("INT. HOUSE - KITCHEN").
+ */
+function slugParts(
+  line: string,
+  isTime: (text: string) => boolean,
+): (Part | null)[] {
   const textStart = line.length - line.trimStart().length;
   // A scene number at the end ("#12#") isn't a part.
   const end = line.replace(/\s*#[^#\s]*#\s*$/u, "").trimEnd().length;
@@ -74,7 +82,9 @@ function slugParts(line: string): (Part | null)[] {
     ? line.slice(0, modifier.index).trimEnd().length
     : end;
   const separator = line.lastIndexOf(" - ", baseEnd - 1);
-  const hasTime = separator >= locationFrom;
+  const hasTime =
+    separator >= locationFrom &&
+    isTime(line.slice(separator + 3, baseEnd).trim());
   const locationTo = hasTime ? separator : baseEnd;
   return [
     locationFrom > textStart ? { from: textStart, to: locationFrom } : null,
@@ -118,6 +128,8 @@ export function getTabInsidePlan(
   lineFroms: readonly number[],
   cursor: number,
   actions: TabInsideActions,
+  /** Whether text is a time of day the script or settings know. */
+  isTime: (text: string) => boolean = () => true,
 ): TabInsidePlan | null {
   const line = lines[index] ?? "";
   const lineFrom = lineFroms[index] ?? 0;
@@ -148,9 +160,13 @@ export function getTabInsidePlan(
     case "wryly":
       return { type: "smart" };
     case "next-element": {
+      // The next line that is part of the script: not a blank line, a
+      // "# heading", a comment or a note.
+      const kinds = classifyLines(lines);
       for (let next = index + 1; next < lines.length; next += 1) {
         const text = lines[next] ?? "";
-        if (text.trim() === "") continue;
+        const kind = kinds[next] ?? null;
+        if (text.trim() === "" || kind === null || kind === "note") continue;
         const indent = text.length - text.trimStart().length;
         return { type: "move", cursor: (lineFroms[next] ?? 0) + indent };
       }
@@ -181,7 +197,7 @@ export function getTabInsidePlan(
   }
 
   // Sluglines: scene type, location, time, modifier.
-  const parts = slugParts(line);
+  const parts = slugParts(line, isTime);
   let current = 0;
   parts.forEach((part, position) => {
     if (part !== null && part.from <= cursor) current = position;

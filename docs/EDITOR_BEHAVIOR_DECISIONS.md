@@ -178,8 +178,19 @@ element has its own setting:
   - The current text is always first in the list, even when the script
     doesn't count it yet (the line's own new location), so Enter never
     changes it by accident.
+  - One Tab per part: with the part's own text highlighted, Tab keeps it
+    and goes on to the next part. Picking another choice replaces the part
+    and leaves the cursor at its end, without opening the next list by
+    itself.
+  - Text after the last `-` is the time only if it is a known time (from
+    the settings or the rest of the script). Otherwise it belongs to the
+    location: `INT. HOUSE - KITCHEN`.
+- With a part left selected (after Escape), Tab carries on from the end of
+  the selection. It never falls through to Obsidian's Tab, which would
+  indent the whole line.
 - **Next element** skips the parts and goes to the start of the next
-  element: `CHARA|CTER (V.O.)` goes to `|Dialogue.`.
+  element: `CHARA|CTER (V.O.)` goes to `|Dialogue.`. It skips lines that
+  aren't script: `#` headings, comments and notes.
 - The start of an action line and the start of dialogue keep their own Tab
   rules (see above); the table covers the rest of the line.
 

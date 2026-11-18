@@ -112,6 +112,11 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Tab inside a line: one Tab per part walks a slugline (location, time,
+  modifier) without adding a second time (`NIGHTDAY`); Tab with a part
+  selected after Escape carries on instead of indenting the line;
+  `INT. HOUSE - KITCHEN` is read as all location; Next element skips
+  headings, comments and notes.
 - **Set line to action** on a wryly removes its brackets: `(text)` becomes
   `text`. Every **Set line to …** command now moves the line to the new
   element's column at once, even when it had text.

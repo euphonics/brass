@@ -27,6 +27,8 @@ import { getTabInsidePlan, type TabInsidePlan } from "../src/editor/tabInside";
  * Plan for a script where "|" marks the cursor. Offsets in the result are
  * shown back as text: a moved cursor as "|", a selection as "[...]".
  */
+const TIMES = new Set(["DAY", "NIGHT"]);
+
 function tabIn(
   marked: string,
   actions: Partial<TabInsideActions> = {},
@@ -47,6 +49,7 @@ function tabIn(
     lineFroms,
     cursorAt - (lineFroms[index] ?? 0),
     { ...DEFAULT_TAB_INSIDE, ...actions },
+    (text) => TIMES.has(text),
   );
   let text = source;
   if (plan?.type === "move" || plan?.type === "end-tab") {
@@ -94,6 +97,24 @@ describe("Tab inside a line", () => {
     expect(tabIn("INT. KITCHEN - DAY (FLASH|BACK)\n\nAction.").text).toBe(
       "INT. KITCHEN - DAY (FLASHBACK)|\n\nAction.",
     );
+  });
+
+  it("reads text after the last dash as a time only when it is one", () => {
+    // "HOUSE - KITCHEN" is all location: the time is added, not KITCHEN.
+    expect(tabIn("INT. HO|USE - KITCHEN\n\nAction.").plan?.type).toBe(
+      "end-tab",
+    );
+    expect(tabIn("INT. HO|USE - KITCHEN - NIGHT\n\nAction.").text).toBe(
+      "INT. HOUSE - KITCHEN - [NIGHT]\n\nAction.",
+    );
+  });
+
+  it("next element skips headings, comments and notes", () => {
+    expect(
+      tabIn("She ru|ns.\n\n# Act Two\n\n%% note %%\n\nINT. CAR - DAY", {
+        action: "next-element",
+      }).text,
+    ).toBe("She runs.\n\n# Act Two\n\n%% note %%\n\n|INT. CAR - DAY");
   });
 
   it("next element skips the parts", () => {
