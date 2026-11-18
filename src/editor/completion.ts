@@ -25,6 +25,8 @@ import { setTabMenuLine, tabCueLine, tabMenuLineField } from "./tabCueLine";
 import { lineKindField, setLineKind } from "./lineKindOverride";
 import { forceElementPlan, type ForcedElement } from "./forceElement";
 import { menuLineKind } from "./layoutClassifier";
+import { getTabInsidePlan } from "./tabInside";
+import { CHARACTER_EXTENSIONS } from "../screenplay/fountain";
 import {
   acceptCompletion,
   closeCompletion,
@@ -90,6 +92,20 @@ const forcedListField = StateField.define<{
     const current = tr.state.doc.lineAt(tr.state.selection.main.head);
     if (current.from !== line) return null;
     return /\s/u.test(current.text.trim()) ? null : { ...value, line };
+  },
+});
+
+/** Tab inside a cue: list the extensions at this spot (after the name). */
+const setExtensionList = StateEffect.define<number | null>();
+
+/** Where Tab asked for the extension list; gone after any other change. */
+const extensionListField = StateField.define<number | null>({
+  create: () => null,
+  update(value, tr) {
+    for (const effect of tr.effects) {
+      if (effect.is(setExtensionList)) return effect.value;
+    }
+    return tr.docChanged || tr.selection ? null : value;
   },
 });
 
@@ -194,7 +210,24 @@ function applyCandidate(
   from: number,
   to: number,
   candidate: CompletionCandidate,
+  overSelection = false,
 ): void {
+  // Replacing a selected part (Tab's "Next part"): don't repeat what comes
+  // right after it, like the ")" of an extension or a location's " - ".
+  if (overSelection) {
+    const after = view.state.doc.sliceString(to, view.state.doc.lineAt(to).to);
+    const text = candidate.applyText;
+    for (
+      let length = Math.min(text.length, after.length);
+      length > 0;
+      length -= 1
+    ) {
+      if (text.endsWith(after.slice(0, length))) {
+        to += length;
+        break;
+      }
+    }
+  }
   view.dispatch({
     changes: { from, to, insert: candidate.applyText },
     selection: { anchor: from + candidate.applyText.length },
@@ -234,6 +267,37 @@ export function createScreenplayCompletionExtension(
       file === null
     ) {
       return null;
+    }
+
+    // Tab inside a cue with no extension: list them after the name.
+    const extensionAt = context.state.field(extensionListField, false) ?? null;
+    if (extensionAt !== null && extensionAt === context.pos) {
+      const space = /\s$/u.test(
+        context.state.doc.sliceString(
+          Math.max(0, extensionAt - 1),
+          extensionAt,
+        ),
+      )
+        ? ""
+        : " ";
+      return {
+        from: extensionAt,
+        to: extensionAt,
+        filter: false,
+        options: CHARACTER_EXTENSIONS.map((extension) => {
+          const candidate = {
+            label: extension,
+            applyText: `${space}${extension}`,
+            detail: "Character extension",
+          };
+          return {
+            label: extension,
+            detail: candidate.detail,
+            apply: (view, completion, from, to) =>
+              applyCandidate(view, completion, from, to, candidate),
+          };
+        }),
+      };
     }
 
     const editorSource = context.state.doc.toString();
@@ -279,15 +343,46 @@ export function createScreenplayCompletionExtension(
     );
     if (!plan) return null;
 
+    // A list opened over a selected part (Tab's "Next part") replaces the
+    // whole part, and lists the part's current text first, so Enter keeps it.
+    const selected = context.state.selection.main;
+    const overSelection =
+      !selected.empty &&
+      plan.from <= selected.from &&
+      plan.to >= selected.from &&
+      plan.to <= selected.to;
+    let candidates = plan.candidates;
+    if (overSelection) {
+      const current = context.state.doc
+        .sliceString(selected.from, selected.to)
+        .trim()
+        .toLocaleUpperCase();
+      const matches = (label: string) => {
+        const value = label.trim().toLocaleUpperCase();
+        return value === current || value === `(${current})`;
+      };
+      const kept = candidates.filter((candidate) => matches(candidate.label));
+      // Not in the list (the line's own location isn't counted, or an
+      // extension of the writer's own): add it, so Enter keeps it as is.
+      const own = context.state.doc.sliceString(plan.from, selected.to);
+      const label = own.trim().startsWith("(") ? `${own.trim()})` : own.trim();
+      candidates = [
+        ...(kept.length > 0
+          ? kept
+          : [{ label, applyText: own, detail: "Current" }]),
+        ...candidates.filter((candidate) => !matches(candidate.label)),
+      ];
+    }
+
     return {
       from: plan.from,
-      to: plan.to,
+      to: overSelection ? selected.to : plan.to,
       filter: false,
-      options: plan.candidates.map((candidate) => ({
+      options: candidates.map((candidate) => ({
         label: candidate.label,
         detail: candidate.detail,
         apply: (view, completion, from, to) =>
-          applyCandidate(view, completion, from, to, candidate),
+          applyCandidate(view, completion, from, to, candidate, overSelection),
       })),
     };
   };
@@ -393,12 +488,82 @@ export function createScreenplayCompletionExtension(
     return true;
   };
 
+  // Tab with the cursor inside a line: the "Tab inside a line" setting.
+  // True when handled, false to let Obsidian's Tab run, null when the
+  // end-of-line rules apply.
+  const tabInside = (view: EditorView): boolean | null => {
+    if (!plugin.settings.smartTabEnabled) return null;
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return null;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return null;
+    const head = selection.main.head;
+    const line = doc.lineAt(head);
+    const lines = doc.toString().split("\n");
+    const lineFroms: number[] = [];
+    let offset = 0;
+    for (const text of lines) {
+      lineFroms.push(offset);
+      offset += text.length + 1;
+    }
+    const plan = getTabInsidePlan(
+      lines,
+      line.number - 1,
+      lineFroms,
+      head - line.from,
+      plugin.settings.tabInside,
+    );
+    if (plan === null || plan.type === "smart") return null;
+    switch (plan.type) {
+      case "nothing":
+        return true;
+      case "obsidian":
+        return false;
+      case "move":
+        view.dispatch({
+          selection: { anchor: plan.cursor },
+          scrollIntoView: true,
+          userEvent: "select",
+        });
+        return true;
+      case "select":
+        view.dispatch({
+          selection: { anchor: plan.anchor, head: plan.head },
+          scrollIntoView: true,
+          userEvent: "select",
+        });
+        startCompletion(view);
+        return true;
+      case "extension-list":
+        view.dispatch({
+          selection: { anchor: plan.at },
+          effects: setExtensionList.of(plan.at),
+          scrollIntoView: true,
+          userEvent: "select",
+        });
+        startCompletion(view);
+        return true;
+      case "end-tab": {
+        view.dispatch({
+          selection: { anchor: plan.cursor },
+          scrollIntoView: true,
+          userEvent: "select",
+        });
+        const smart = smartPlan(view);
+        if (smart !== null) applySmartPlan(view, smart);
+        return true;
+      }
+    }
+  };
+
   const tab = (view: EditorView): boolean => {
     if (completionStatus(view.state) === "active")
       return acceptCompletion(view);
     if (tabAtLineStart(view)) return true;
     if (tabOnSetActionLine(view)) return true;
     if (tabToDialogueBelow(view)) return true;
+    const inside = tabInside(view);
+    if (inside !== null) return inside;
     const plan = smartPlan(view);
     return plan !== null && applySmartPlan(view, plan);
   };
@@ -587,6 +752,7 @@ export function createScreenplayCompletionExtension(
 
   return [
     forcedListField,
+    extensionListField,
     tabMenuLineField,
     keepTabCue,
     uppercaseTransitions,

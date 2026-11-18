@@ -151,7 +151,45 @@ Special cases, all decided during testing:
 - **Tab on an empty line that was moved to the left margin** (by Backspace,
   Shift+Tab or Escape) moves it back to the character column and opens the
   character list.
-- **Tab in the middle of a line** does nothing.
+- **Tab in the middle of a line** follows the **Tab inside a line** table
+  (below).
+
+### Tab inside a line
+
+What Tab does with the cursor inside an element, not at its end. Each
+element has its own setting:
+
+| Element                   | Choices                                                 | Default          |
+| ------------------------- | ------------------------------------------------------- | ---------------- |
+| Slugline                  | Nothing, Obsidian's Tab, Next part, Next element        | Next part        |
+| Character                 | Nothing, Obsidian's Tab, Next part, Next element        | Next part        |
+| Dialogue                  | Nothing, Obsidian's Tab, Add a wryly here, Next element | Add a wryly here |
+| Action, Wryly, Transition | Nothing, Obsidian's Tab, Next element                   | Nothing          |
+
+- **Next part** (only sluglines and characters have parts):
+  - Character: from the name to the extension. With no extension yet, the
+    cursor goes after the name and the extension list opens
+    (`CHARACTER |`). With one, it is selected and the list opens with it
+    picked (`CHARACTER ([V.O.])`): Enter or Escape keeps it, another pick
+    or typing replaces it.
+  - Slugline: scene type, then location, then time, then modifier. A part
+    that isn't there yet is added the way Tab at the end of the line adds
+    it (`-` and the times, or the modifier list).
+  - The current text is always first in the list, even when the script
+    doesn't count it yet (the line's own new location), so Enter never
+    changes it by accident.
+- **Next element** skips the parts and goes to the start of the next
+  element: `CHARA|CTER (V.O.)` goes to `|Dialogue.`.
+- The start of an action line and the start of dialogue keep their own Tab
+  rules (see above); the table covers the rest of the line.
+
+Test cases:
+
+- [ ] `CHARA|CTER` and `CHARA|CTER (V.O.)` with each choice.
+- [ ] Every part of `INT. KITCHEN - DAY (FLASHBACK)`, and the same slugline
+      with parts missing.
+- [ ] Next part on a cue whose extension isn't a standard one
+      (`JEN (FILTERED)`): Enter keeps it.
 
 ## Backspace and Delete (strict)
 

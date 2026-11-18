@@ -117,3 +117,60 @@ export function startsNewBlock(target: EnterTarget): boolean {
     target === "transition"
   );
 }
+
+/** What Tab does with the cursor inside a line (not at its end). */
+export type TabInsideAction =
+  "nothing" | "obsidian" | "next-part" | "wryly" | "next-element";
+
+export type TabInsideActions = Record<EnterSource, TabInsideAction>;
+
+export const DEFAULT_TAB_INSIDE: TabInsideActions = {
+  action: "nothing",
+  dialogue: "wryly",
+  transition: "nothing",
+  sceneHeading: "next-part",
+  character: "next-part",
+  parenthetical: "nothing",
+};
+
+export const TAB_INSIDE_LABELS: Record<TabInsideAction, string> = {
+  nothing: "Nothing",
+  obsidian: "Obsidian's Tab",
+  "next-part": "Next part",
+  wryly: "Add a wryly here",
+  "next-element": "Next element",
+};
+
+/**
+ * The choices each element offers. Only sluglines (scene type, location,
+ * time, modifier) and characters (name, extension) have parts; only
+ * dialogue can be split by a wryly.
+ */
+export function tabInsideOptions(source: EnterSource): TabInsideAction[] {
+  const options: TabInsideAction[] = ["nothing", "obsidian"];
+  if (source === "sceneHeading" || source === "character") {
+    options.push("next-part");
+  }
+  if (source === "dialogue") options.push("wryly");
+  options.push("next-element");
+  return options;
+}
+
+/** Stored choices with anything missing or not offered set to its default. */
+export function normalizeTabInside(stored: unknown): TabInsideActions {
+  const values =
+    stored !== null && typeof stored === "object"
+      ? (stored as Record<string, unknown>)
+      : {};
+  const actions = { ...DEFAULT_TAB_INSIDE };
+  for (const source of Object.keys(actions) as EnterSource[]) {
+    const value = values[source];
+    if (
+      typeof value === "string" &&
+      (tabInsideOptions(source) as string[]).includes(value)
+    ) {
+      actions[source] = value as TabInsideAction;
+    }
+  }
+  return actions;
+}

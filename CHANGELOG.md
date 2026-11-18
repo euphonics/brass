@@ -11,6 +11,11 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- **Tab inside a line** settings table: per element, what Tab does with the
+  cursor in the middle of a line. Nothing, Obsidian's own Tab, Next part
+  (sluglines: location, time, modifier; characters: the extension, with its
+  list open and the current one picked) or Next element (the start of the
+  next element). Dialogue can also add a wryly there, as before.
 - docs/EDITOR_BEHAVIOR_DECISIONS.md: how the script editor should behave
   (Enter, Tab, Backspace, menus, capitals) and the cases to test.
 - Strict cursor placement: Backspace or Delete anywhere on an empty wryly,
