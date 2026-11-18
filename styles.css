@@ -355,8 +355,9 @@
   text-align: start !important;
 }
 
-/* Indents too, except on lines Obsidian draws as a Markdown list: their
-   hanging indent keeps wrapped text under the text, not under the bullet.
+/* Indents too, except on lines Obsidian draws as a Markdown list (their
+   hanging indent keeps wrapped text under the text, not under the bullet)
+   or inside a fenced code block (which keeps Obsidian's inner margin).
    (:where keeps this rule's weight equal to the rules for each kind.) */
 .markdown-source-view.mod-cm6
   .cm-editor.scribidian-screenplay-layout
@@ -371,9 +372,17 @@
     .scribidian-sp-lyric,
     .scribidian-sp-page-break,
     .scribidian-sp-note
-  ):not(:where(.HyperMD-list-line)) {
+  ):not(:where(.HyperMD-list-line, .HyperMD-codeblock)) {
   text-indent: 0 !important;
   padding-inline: 0 !important;
+}
+
+/* Fenced code blocks (notes in a script): the same inner margin on the
+   right as Obsidian gives on the left, so text doesn't run to the edge. */
+.markdown-source-view.mod-cm6
+  .cm-editor.scribidian-screenplay-layout
+  .cm-line.HyperMD-codeblock:not(.HyperMD-list-line) {
+  padding-inline-end: var(--size-4-4);
 }
 
 /* Inline text in screenplay lines (bold, links, tags, inline code,
