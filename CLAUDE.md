@@ -98,6 +98,12 @@ than screenshots when testing other apps.
   (`npm run license:headers:check`).
 - **Write UI text in sentence case** (the Obsidian lint rule checks it) and
   in plain, short words.
+- **Live tests in the writer's vault happen only in the `Scribidian Example`
+  folder** (scratch note: `Scribidian Example/Test Bench.md`). Never open or
+  write the writer's real scripts (TIGHTER above all). A test script uses
+  the leaf it opened, never `activeLeaf`, and checks the editor's file path
+  before every change; it stops if the path is outside that folder. (A test
+  once overwrote TIGHTER this way; it was recovered with undo.)
 
 ## Checks before committing
 
