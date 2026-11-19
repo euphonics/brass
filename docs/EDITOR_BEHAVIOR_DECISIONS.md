@@ -326,7 +326,7 @@ Test cases:
   of a line, Shift+Delete joins the line with text below onto it. Blank
   lines between go, and the joined text takes the upper line's element (in
   capitals onto a slugline, cue or transition). Mid-line they delete one
-  character.
+  character. Strict on or off.
 - Backspace and Delete never join two different elements (a character and
   its dialogue, for example). The cursor moves instead.
   **Shift+Backspace** joins them on purpose.

@@ -11,8 +11,9 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
-- Strict: Shift+Delete at the end of a line joins the next line with text
-  onto it, the mirror of Shift+Backspace. Both joins cross blank lines and
+- Shift+Delete at the end of a line joins the next line with text onto it,
+  the mirror of Shift+Backspace (it used to cut the line). Both work with
+  strict cursor placement on or off. Both joins cross blank lines and
   take the upper line's element (in capitals onto a slugline, cue or
   transition). New command: Delete and merge with line below.
 - **Highlight $ variables** (Typing in each mode, script and Fountain):

@@ -387,7 +387,7 @@ export const TYPING_CHANGE_ROWS: {
   },
   {
     name: "Strict cursor placement",
-    desc: "The cursor never rests on the single blank line that separates two elements, so typing can't join them by accident. Arrow keys and clicks skip it, and Backspace on an extra empty line lands at the end of the line above. Backspace and Delete never join two different elements, like a cue and its dialogue; Shift+Backspace joins them anyway. Enter still makes room for a new element.",
+    desc: "The cursor never rests on the single blank line that separates two elements, so typing can't join them by accident. Arrow keys and clicks skip it, and Backspace on an extra empty line lands at the end of the line above. Backspace and Delete never join two different elements, like a cue and its dialogue; Shift+Backspace or Shift+Delete joins them anyway (with this off too). Enter still makes room for a new element.",
     plain: "lockBlankLinesPlain",
     script: "lockBlankLinesScript",
   },

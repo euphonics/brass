@@ -174,7 +174,7 @@ export function createBlankLineLockExtension(
       {
         key: "Shift-Backspace",
         run: (view) => {
-          if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
+          // With strict on or off: a join on purpose, in one press.
           const file = view.state.field(editorInfoField, false)?.file ?? null;
           if (file === null || !plugin.isScreenplayFile(file)) return false;
           return mergeWithLineAbove(view);
@@ -183,7 +183,7 @@ export function createBlankLineLockExtension(
       {
         key: "Shift-Delete",
         run: (view) => {
-          if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
+          // With strict on or off: a join on purpose, in one press.
           const file = view.state.field(editorInfoField, false)?.file ?? null;
           if (file === null || !plugin.isScreenplayFile(file)) return false;
           return mergeWithLineBelow(view);
