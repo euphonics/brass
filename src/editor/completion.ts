@@ -633,6 +633,35 @@ export function createScreenplayCompletionExtension(
   };
 
   const tab = (view: EditorView): boolean => {
+    // "Tab with a list open: moves to the next element" (script mode):
+    // close the list and carry on as if it weren't open.
+    if (
+      completionStatus(view.state) === "active" &&
+      plugin.settings.tabWithListScript === "move" &&
+      plugin.isScriptMode()
+    ) {
+      const file = view.state.field(editorInfoField, false)?.file ?? null;
+      if (file !== null && plugin.isScreenplayFile(file)) {
+        closeCompletion(view);
+        // An empty line where a new block starts (the scene types after a
+        // transition): the next element is the character column. Without
+        // this, Tab would only open the same list again.
+        const { selection, doc } = view.state;
+        const line = doc.lineAt(selection.main.head);
+        const set = view.state.field(lineKindField, false) ?? null;
+        if (
+          selection.ranges.length === 1 &&
+          selection.main.empty &&
+          line.text.trim() === "" &&
+          !(set !== null && doc.lineAt(set.from).from === line.from) &&
+          classifySmartTabLine(doc.toString().split("\n"), line.number - 1) ===
+            "new-block"
+        ) {
+          forceElement(view, "character");
+          return true;
+        }
+      }
+    }
     if (completionStatus(view.state) === "active") {
       // A typed wryly: one Tab picks it and goes on to the dialogue, as in
       // Fade In.

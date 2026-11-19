@@ -11,6 +11,10 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Setting **Tab with a list open** (script mode): Tab can pick the
+  highlighted suggestion, as before, or move to the next element, as if the
+  list weren't open (an empty line after a transition then goes to the
+  character column instead of picking INT.).
 - Command **Screenplay: Toggle strict cursor placement**, for the current
   mode (bind it to a key in Settings > Hotkeys).
 - Shift+Delete at the end of a line joins the next line with text onto it,

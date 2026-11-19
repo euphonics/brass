@@ -100,6 +100,12 @@ export interface ScribidianSettings {
   /** Enter inside a line, set separately for script and plain mode. */
   enterInsideScript: EnterInsideActions;
   enterInsidePlain: EnterInsideActions;
+  /**
+   * Tab with a suggestion list open, script mode only: "pick" takes the
+   * highlighted item, "move" closes the list and moves on as if it were
+   * not open.
+   */
+  tabWithListScript: TabWithList;
   editorLayout: EditorLayout;
   bottomTypingMargin: number;
   screenplayFont: string;
@@ -226,6 +232,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   smartTabEnabled: true,
   smartEnterEnabled: true,
   showAllCommands: false,
+  tabWithListScript: "pick",
   indentActionWithSpaces: true,
   capitalizeLineStartsScript: true,
   capitalizeLineStartsPlain: false,
@@ -284,6 +291,17 @@ function valuesFromText(value: string): string[] {
  * Settings as stored, brought up to date. Before 0.1.1 there was one
  * "capitalizeLineStarts" switch for both modes; it now sets script mode only.
  */
+export type TabWithList = "pick" | "move";
+
+export const TAB_WITH_LIST_LABELS: Record<TabWithList, string> = {
+  pick: "Picks the highlighted item",
+  move: "Moves to the next element",
+};
+
+function isTabWithList(value: unknown): value is TabWithList {
+  return value === "pick" || value === "move";
+}
+
 export function migrateSettings(
   stored: Record<string, unknown> | null,
 ): ScribidianSettings {
@@ -311,6 +329,9 @@ export function migrateSettings(
     rest.enterInsidePlain,
     DEFAULT_ENTER_INSIDE_PLAIN,
   );
+  if (!isTabWithList(rest.tabWithListScript)) {
+    settings.tabWithListScript = "pick";
+  }
   // Smart Tab used to switch Enter's element logic too; Smart Enter now
   // has its own setting, starting from the old value.
   if (
@@ -793,8 +814,32 @@ export class ScribidianSettingTab extends PluginSettingTab {
       update();
     });
     update();
+    this.renderTabWithList(setting.settingEl);
     this.renderTabInside(setting.settingEl);
     this.renderEnterInside(setting.settingEl);
+  }
+
+  /** What Tab does while a suggestion list is open (script mode). */
+  private renderTabWithList(parent: HTMLElement): void {
+    parent.createDiv({
+      cls: "scribidian-settings-subheading",
+      text: "Tab with a list open",
+    });
+    parent.createDiv({
+      cls: "setting-item-description scribidian-settings-table-note",
+      text: "Script mode only. Picks: the highlighted suggestion goes in. Moves to the next element: the list closes and the key works as if it weren't open, so on an empty line after a transition it goes to the character column. Enter always picks. In Fountain mode the key always picks.",
+    });
+    const select = parent.createEl("select", { cls: "dropdown" });
+    select.setAttr("aria-label", "Tab with a list open");
+    for (const [value, label] of Object.entries(TAB_WITH_LIST_LABELS)) {
+      select.createEl("option", { value, text: label });
+    }
+    select.value = this.plugin.settings.tabWithListScript;
+    select.addEventListener("change", () => {
+      if (!isTabWithList(select.value)) return;
+      this.plugin.settings.tabWithListScript = select.value;
+      void this.plugin.saveSettings();
+    });
   }
 
   /**
