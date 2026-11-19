@@ -426,13 +426,22 @@ export function layoutScreenplay(
     }
     const style = styleFor(element.type, dimensions.width);
     const text = screenplayElementText(element);
-    let lines = measure
-      ? wrapMeasuredText(
-          text,
-          dimensions.width - style.left - style.right,
-          (line) => measure(line, element.type),
-        )
-      : wrapScreenplayText(text, style.maximumCharacters);
+    // Action keeps the spaces it starts with ("    Scott --"), on every
+    // wrapped line, as Fountain says. Tabs aren't indentation here.
+    const indent =
+      element.type === "action"
+        ? (/^[ \t]*/u.exec(text)?.[0] ?? "").replace(/\t/gu, "").length
+        : 0;
+    const pad = " ".repeat(Math.min(indent, style.maximumCharacters - 10));
+    let lines = (
+      measure
+        ? wrapMeasuredText(
+            text.trimStart(),
+            dimensions.width - style.left - style.right - pad.length * 7.2,
+            (line) => measure(line, element.type),
+          )
+        : wrapScreenplayText(text, style.maximumCharacters - pad.length)
+    ).map((line) => pad + line);
     let gap = page.blocks.length === 0 ? 0 : style.gapBefore;
     const minimumHeight =
       (lines.length + minimumFollowingLines(document.elements, index)) *

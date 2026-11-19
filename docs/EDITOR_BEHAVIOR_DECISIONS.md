@@ -55,6 +55,13 @@ flowchart TD
    change how another Fountain app reads the file belongs in export options,
    not in the editor.
 
+## Indented action
+
+- Spaces at the start of an action line indent it (`    Scott --`), in the
+  editor and, with **Indent action with spaces** on (the default), in the
+  preview and FDX export, on every wrapped line.
+- Tabs don't indent action: the Tab key moves between elements.
+
 ## Line comments (Scribidian addition)
 
 - `// note` at the start of a line or after a space, to the end of the

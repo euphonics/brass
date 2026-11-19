@@ -11,6 +11,9 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- **Indent action with spaces** setting (on by default): spaces at the start
+  of an action line indent it in the preview and FDX export too, as
+  Fountain allows. Tabs don't indent action.
 - Line comments, a Scribidian addition to Fountain: `// note` at the end
   of a line (or on its own line) is shown faded, is left out of preview and
   export, and is removed by Clean Fountain export ("Remove line comments").
@@ -138,6 +141,8 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Spaces typed at the start of an empty line are no longer removed by the
+  first letter (that only applies to a blank dialogue line in a speech).
 - Notes over several lines (`[[ ... ]]`) are read as notes, not action.
 - Boneyards (`/* ... */`) show every `*` as typed. Obsidian used to hide
   them as Markdown emphasis unless the cursor was next to them.

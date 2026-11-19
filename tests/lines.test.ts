@@ -22,7 +22,7 @@ import { layoutScreenplay } from "../src/export/screenplayLayout";
 import { classifySmartTabLine } from "../src/editor/smartTab";
 import { isLikelyCharacterCue } from "../src/screenplay/characterExtension";
 import { characterCue } from "../src/screenplay/lines";
-import { parseFountain } from "../src/screenplay/parser";
+import { parseFountain, withoutActionIndent } from "../src/screenplay/parser";
 
 /** Parser elements as "type:text" for compact comparisons. */
 const parsed = (source: string) =>
@@ -273,5 +273,26 @@ describe("lyrics", () => {
     expect(serializeFdx(doc)).toContain(
       '<Text Style="Italic">Row, row, row</Text>',
     );
+  });
+});
+
+describe("indented action", () => {
+  it("keeps the spaces an action line starts with in the preview", () => {
+    const doc = parseFountain(
+      "He opens the card:\n\n    Scott --\n    Jacob Billups",
+    );
+    const lines = layoutScreenplay(doc, "us-letter").pages.flatMap((page) =>
+      page.blocks.flatMap((block) => block.lines),
+    );
+    expect(lines).toEqual([
+      "He opens the card:",
+      "    Scott --",
+      "    Jacob Billups",
+    ]);
+  });
+
+  it("drops the indent with the setting off", () => {
+    const doc = withoutActionIndent(parseFountain("    Scott --"));
+    expect(doc.elements[0]?.text).toBe("Scott --");
   });
 });

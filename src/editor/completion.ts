@@ -1063,8 +1063,16 @@ export function createScreenplayCompletionExtension(
       }
       // The first letter typed on a blank dialogue line ("  ", see
       // blankLineInSpeech) replaces the two spaces that kept it in the speech.
+      // Only inside a speech: elsewhere leading spaces indent action.
       const before = tr.startState.doc.lineAt(fromA);
-      if (/^ {2,}$/u.test(before.text) && fromA === before.to && text.trim()) {
+      if (
+        /^ {2,}$/u.test(before.text) &&
+        fromA === before.to &&
+        text.trim() &&
+        classifyLines(tr.startState.doc.toString().split("\n"))[
+          before.number - 1
+        ] === "dialogue"
+      ) {
         fixes.push({
           from: line.from,
           to: line.from + before.text.length,

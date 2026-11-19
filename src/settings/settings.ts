@@ -74,6 +74,7 @@ export interface ScribidianSettings {
   smartTabEnabled: boolean;
   smartEnterEnabled: boolean;
   showAllCommands: boolean;
+  indentActionWithSpaces: boolean;
   /** Typing settings, set separately for script and plain mode. */
   capitalizeLineStartsScript: boolean;
   capitalizeLineStartsPlain: boolean;
@@ -223,6 +224,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   smartTabEnabled: true,
   smartEnterEnabled: true,
   showAllCommands: false,
+  indentActionWithSpaces: true,
   capitalizeLineStartsScript: true,
   capitalizeLineStartsPlain: false,
   uppercaseTransitionsScript: true,
@@ -426,6 +428,7 @@ const SETTING_GROUPS: {
       "screenplayFontCustom",
       "smartTabEnabled",
       "smartEnterEnabled",
+      "indentActionWithSpaces",
       "bottomTypingMargin",
     ],
   },
@@ -1186,6 +1189,15 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Indent action with spaces",
+        desc: "Spaces at the start of an action line indent it, in the preview and in exports too, as Fountain allows (for a note, a sign, a letter). Tabs don't indent action: Tab moves between elements. Turn off to ignore those spaces in the preview and exports.",
+        control: {
+          type: "toggle",
+          key: "indentActionWithSpaces",
+          defaultValue: DEFAULT_SETTINGS.indentActionWithSpaces,
+        },
+      },
+      {
         name: "Smart Enter",
         desc: "In script mode, Enter starts the next likely element: action after a slugline, a new character after dialogue. Choose what it starts under Tab and Enter keys. Turn off to make Enter a plain line break.",
         control: {
@@ -1405,6 +1417,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "smartTabEnabled":
       case "smartEnterEnabled":
       case "showAllCommands":
+      case "indentActionWithSpaces":
       case "capitalizeLineStartsScript":
       case "capitalizeLineStartsPlain":
       case "uppercaseTransitionsScript":

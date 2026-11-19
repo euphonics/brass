@@ -87,3 +87,20 @@ export function parseFountain(source: string): ScreenplayDocument {
 
   return { elements, blankLines, ...(titlePage ? { titlePage } : {}) };
 }
+
+/**
+ * `document` with no indent on action lines ("    Scott --" -> "Scott --"),
+ * for when "Indent action with spaces" is off.
+ */
+export function withoutActionIndent(
+  document: ScreenplayDocument,
+): ScreenplayDocument {
+  return {
+    ...document,
+    elements: document.elements.map((element) =>
+      element.type === "action"
+        ? { ...element, text: element.text.trimStart() }
+        : element,
+    ),
+  };
+}
