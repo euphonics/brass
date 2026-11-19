@@ -11,6 +11,8 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Command **Screenplay: Toggle strict cursor placement**, for the current
+  mode (bind it to a key in Settings > Hotkeys).
 - Shift+Delete at the end of a line joins the next line with text onto it,
   the mirror of Shift+Backspace (it used to cut the line). Both work with
   strict cursor placement on or off. Both joins cross blank lines and

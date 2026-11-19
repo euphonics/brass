@@ -160,6 +160,12 @@ export default class ScribidianPlugin extends Plugin {
       icon: "file-type",
       callback: () => void this.toggleEditorMode(),
     });
+    this.addCommand({
+      id: "toggle-strict-cursor",
+      name: "Screenplay: Toggle strict cursor placement",
+      icon: "lock",
+      callback: () => void this.toggleStrictCursor(),
+    });
 
     this.addCommand({
       id: "use-note-as-screenplay",
@@ -600,6 +606,20 @@ export default class ScribidianPlugin extends Plugin {
       this.isScriptMode()
         ? "Scribidian: script mode (screenplay layout)"
         : "Scribidian: plain mode (Fountain text)",
+    );
+  }
+
+  /** Turn strict cursor placement on or off for the current mode. */
+  async toggleStrictCursor(): Promise<void> {
+    const key = this.isScriptMode()
+      ? "lockBlankLinesScript"
+      : "lockBlankLinesPlain";
+    this.settings[key] = !this.settings[key];
+    await this.saveSettings();
+    this.app.workspace.updateOptions();
+    const mode = this.isScriptMode() ? "script" : "Fountain";
+    new Notice(
+      `Scribidian: strict cursor placement ${this.settings[key] ? "on" : "off"} (${mode} mode)`,
     );
   }
 
