@@ -11,6 +11,9 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- **Highlight $ variables** (Typing in each mode, script and Fountain):
+  `$my_variable` or `$ABC123` shows in the theme's accent colour; dollar
+  amounts like `$123.12` or `$1,123.12` don't.
 - **Indent action with spaces** setting (on by default): spaces at the start
   of an action line indent it in the preview and FDX export too, as
   Fountain allows. Tabs don't indent action.

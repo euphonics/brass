@@ -82,6 +82,8 @@ export interface ScribidianSettings {
   uppercaseTransitionsPlain: boolean;
   uppercaseCharactersScript: boolean;
   uppercaseCharactersPlain: boolean;
+  highlightVariablesScript: boolean;
+  highlightVariablesPlain: boolean;
   uppercaseSluglinesScript: boolean;
   uppercaseSluglinesPlain: boolean;
   /** Strict cursor placement: keep the cursor off the blank line between two elements. */
@@ -231,6 +233,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   uppercaseTransitionsPlain: false,
   uppercaseCharactersScript: true,
   uppercaseCharactersPlain: false,
+  highlightVariablesScript: true,
+  highlightVariablesPlain: true,
   uppercaseSluglinesScript: true,
   uppercaseSluglinesPlain: false,
   lockBlankLinesScript: true,
@@ -339,6 +343,8 @@ type TypingChangeKey =
   | "uppercaseTransitionsPlain"
   | "uppercaseCharactersScript"
   | "uppercaseCharactersPlain"
+  | "highlightVariablesScript"
+  | "highlightVariablesPlain"
   | "lockBlankLinesScript"
   | "lockBlankLinesPlain";
 
@@ -372,6 +378,12 @@ export const TYPING_CHANGE_ROWS: {
     desc: 'Text typed on a line in the character column (after Tab, or "Set line to character") becomes uppercase, even for a name not in the script yet: "jen" becomes "JEN".',
     plain: "uppercaseCharactersPlain",
     script: "uppercaseCharactersScript",
+  },
+  {
+    name: "Highlight $ variables",
+    desc: "Text after a $ sign, like $my_variable or $ABC123, shows in the accent colour. Dollar amounts like $123, $123.12 or $1,123.12 don't.",
+    plain: "highlightVariablesPlain",
+    script: "highlightVariablesScript",
   },
   {
     name: "Strict cursor placement",
@@ -623,6 +635,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         }
         syncMaster(mode);
         void this.plugin.saveSettings();
+        // Redraw editors, e.g. for "Highlight $ variables".
+        this.app.workspace.updateOptions();
       });
     }
 
@@ -643,6 +657,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
           settings[key] = box.checked;
           syncMaster(mode);
           void this.plugin.saveSettings();
+          this.app.workspace.updateOptions();
         });
       }
     }
@@ -1387,7 +1402,12 @@ export class ScribidianSettingTab extends PluginSettingTab {
 
     await this.plugin.saveSettings();
     if (key === "showAllCommands") this.plugin.applyCommandVisibility();
-    if (key === "editorLayout" || key === "bottomTypingMargin") {
+    if (
+      key === "editorLayout" ||
+      key === "bottomTypingMargin" ||
+      key === "highlightVariablesScript" ||
+      key === "highlightVariablesPlain"
+    ) {
       this.app.workspace.updateOptions();
     }
     if (
@@ -1424,6 +1444,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "uppercaseTransitionsPlain":
       case "uppercaseCharactersScript":
       case "uppercaseCharactersPlain":
+      case "highlightVariablesScript":
+      case "highlightVariablesPlain":
       case "uppercaseSluglinesScript":
       case "uppercaseSluglinesPlain":
       case "lockBlankLinesScript":

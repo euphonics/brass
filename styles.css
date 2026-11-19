@@ -234,6 +234,11 @@
   margin-block: 6px;
 }
 
+/* "$" variables, a Scribidian addition: the theme's accent colour. */
+.markdown-source-view.mod-cm6 .scribidian-variable {
+  color: var(--text-accent);
+}
+
 /* Line comments ("// note"), a Scribidian addition to Fountain: faded,
    and not part of the script. */
 .markdown-source-view.mod-cm6 .scribidian-line-comment {

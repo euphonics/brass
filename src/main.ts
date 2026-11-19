@@ -63,6 +63,7 @@ import {
   createBoneyardMarkerExtension,
   createLineCommentExtension,
 } from "./editor/boneyardMarkers";
+import { createVariableHighlightExtension } from "./editor/variables";
 import { registerFountainCodeBlockProcessor } from "./editor/fountainCodeBlock";
 import { isCharacterFrontmatter } from "./characters/catalogue";
 import {
@@ -130,6 +131,7 @@ export default class ScribidianPlugin extends Plugin {
       createBlankLineLockExtension(this),
       createBoneyardMarkerExtension(this),
       createLineCommentExtension(this),
+      createVariableHighlightExtension(this),
       EditorView.updateListener.of((update) => {
         if (update.selectionSet && !update.docChanged) this.onCursorMoved();
       }),
@@ -570,6 +572,7 @@ export default class ScribidianPlugin extends Plugin {
       | "uppercaseSluglines"
       | "uppercaseTransitions"
       | "uppercaseCharacters"
+      | "highlightVariables"
       | "lockBlankLines",
   ): boolean {
     const mode = this.isScriptMode() ? "Script" : "Plain";

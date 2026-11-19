@@ -62,6 +62,14 @@ flowchart TD
   preview and FDX export, on every wrapped line.
 - Tabs don't indent action: the Tab key moves between elements.
 
+## $ variables (Scribidian addition)
+
+- Text after a `$` (`$my_variable`, `$ABC123`, `$1ABC`) shows in the theme's accent
+  colour, as a placeholder to fill in later.
+- Dollar amounts (`$123`, `$123.12`, `$1,123.12`) aren't variables and stay plain.
+  A trailing period or comma isn't part of the name.
+- On or off per mode: **Highlight $ variables** in Typing in each mode.
+
 ## Line comments (Scribidian addition)
 
 - `// note` at the start of a line or after a space, to the end of the
