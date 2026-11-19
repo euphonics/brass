@@ -33,6 +33,7 @@ const {
   cursorOffSeparator,
   isSeparatorLine,
   mergeWithLineAbove,
+  mergeWithLineBelow,
   separatorRemoved,
 } = await import("../src/editor/blankLineLock");
 const { editorInfoField } = await import("obsidian");
@@ -277,10 +278,15 @@ describe("blank line lock", () => {
       return { handled, state };
     };
 
-    it("joins a line to a different element above", () => {
+    it("joins a line to a different element above, in its element", () => {
       const { state } = run(["Action.", "", "CODY", "Test"], 4, 0);
-      expect(state.doc.line(3).text).toBe("CODYTest");
+      expect(state.doc.line(3).text).toBe("CODYTEST");
       expect(state.selection.main.head).toBe(state.doc.line(3).from + 4);
+    });
+
+    it("joins across blank lines to the line with text above", () => {
+      const { state } = run(["She runs.", "", "He waits."], 3, 0);
+      expect(state.doc.toString()).toBe("She runs.He waits.");
     });
 
     it("deletes one character mid-line", () => {
@@ -290,6 +296,29 @@ describe("blank line lock", () => {
 
     it("does nothing at the start of the note", () => {
       expect(run(["CODY"], 1, 0).handled).toBe(false);
+    });
+
+    it("Shift+Delete joins the next line with text onto a slugline", () => {
+      let state = EditorState.create({
+        doc: Text.of([".OFFICE", "", "computer fiona pulls open"]),
+        extensions: [editorInfoField, createBlankLineLockExtension(plugin)],
+      });
+      state = state.update({
+        selection: EditorSelection.cursor(state.doc.line(1).to),
+      }).state;
+      const view = {
+        get state() {
+          return state;
+        },
+        dispatch: (spec: Parameters<EditorState["update"]>[0]) => {
+          state = state.update(spec).state;
+        },
+      };
+      mergeWithLineBelow(
+        view as unknown as Parameters<typeof mergeWithLineBelow>[0],
+      );
+      expect(state.doc.toString()).toBe(".OFFICECOMPUTER FIONA PULLS OPEN");
+      expect(state.selection.main.head).toBe(".OFFICE".length);
     });
   });
 });

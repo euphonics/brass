@@ -321,6 +321,12 @@ Test cases:
   speech: the cue and the blank line above it go, and its dialogue carries
   on the speech above, as in Fade In. After action (or a slugline), only
   the cue line goes: its dialogue stays on its own line as action.
+- **Shift+Backspace / Shift+Delete join on purpose**: at the start of a
+  line, Shift+Backspace joins it onto the line with text above; at the end
+  of a line, Shift+Delete joins the line with text below onto it. Blank
+  lines between go, and the joined text takes the upper line's element (in
+  capitals onto a slugline, cue or transition). Mid-line they delete one
+  character.
 - Backspace and Delete never join two different elements (a character and
   its dialogue, for example). The cursor moves instead.
   **Shift+Backspace** joins them on purpose.

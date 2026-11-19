@@ -180,6 +180,15 @@ export function createBlankLineLockExtension(
           return mergeWithLineAbove(view);
         },
       },
+      {
+        key: "Shift-Delete",
+        run: (view) => {
+          if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
+          const file = view.state.field(editorInfoField, false)?.file ?? null;
+          if (file === null || !plugin.isScreenplayFile(file)) return false;
+          return mergeWithLineBelow(view);
+        },
+      },
     ]),
   );
   const filter = EditorState.transactionFilter.of((tr) => {
@@ -283,29 +292,133 @@ function elementJoin(
   return { aboveEnd: start.doc.lineAt(from).to };
 }
 
+/** Elements whose text is in capitals: text joined onto them is too. */
+const CAPITAL_KINDS = new Set(["scene-heading", "character", "transition"]);
+
+/**
+ * Join line `upper` (1-based) and the next line with text, removing the
+ * line break and any blank lines between them. The joined text takes the
+ * upper line's element: onto a slugline, cue or transition it goes in
+ * capitals. Returns the change, or null when there is no line to join.
+ */
+function joinLines(
+  state: EditorState,
+  upperLine: number,
+  lowerLine: number,
+): { from: number; to: number; insert: string } | null {
+  const doc = state.doc;
+  if (upperLine < 1 || lowerLine > doc.lines || upperLine >= lowerLine) {
+    return null;
+  }
+  const upper = doc.line(upperLine);
+  const lower = doc.line(lowerLine);
+  const kinds = classifyLines(doc.toString().split("\n"));
+  const capitals = CAPITAL_KINDS.has(kinds[upperLine - 1] ?? "");
+  const text = lower.text.trimStart();
+  return {
+    from: upper.to,
+    to: lower.to,
+    insert: capitals ? text.toLocaleUpperCase() : text,
+  };
+}
+
+/** The nearest line with text before (`step` -1) or after (+1) `line`. */
+function nearestTextLine(doc: Text, line: number, step: -1 | 1): number | null {
+  for (
+    let number = line + step;
+    number >= 1 && number <= doc.lines;
+    number += step
+  ) {
+    if (doc.line(number).text.trim() !== "") return number;
+  }
+  return null;
+}
+
 /**
  * Backspace that may join different elements ("Delete and merge with line
  * above", Shift+Backspace by default). At the start of a line it joins the
- * line to the one above, whatever elements they are; elsewhere it deletes
- * like Backspace. A selection is deleted.
+ * line onto the line with text above it (blank lines between go), and the
+ * joined text takes that line's element; elsewhere it deletes like
+ * Backspace. A selection is deleted.
  */
 export function mergeWithLineAbove(view: EditorView): boolean {
   const { state } = view;
   const range = state.selection.main;
-  let from = range.from;
-  const to = range.to;
-  if (range.empty) {
-    const line = state.doc.lineAt(to);
-    if (to === line.from) {
-      if (line.number === 1) return false;
-      from = to - 1;
-    } else {
-      from = findClusterBreak(line.text, to - line.from, false) + line.from;
-    }
+  if (!range.empty) {
+    view.dispatch({
+      changes: { from: range.from, to: range.to },
+      selection: EditorSelection.cursor(range.from),
+      scrollIntoView: true,
+      userEvent: "delete.merge",
+    });
+    return true;
   }
+  const line = state.doc.lineAt(range.head);
+  if (
+    range.head >
+    line.from + (line.text.length - line.text.trimStart().length)
+  ) {
+    const from =
+      findClusterBreak(line.text, range.head - line.from, false) + line.from;
+    view.dispatch({
+      changes: { from, to: range.head },
+      selection: EditorSelection.cursor(from),
+      scrollIntoView: true,
+      userEvent: "delete.merge",
+    });
+    return true;
+  }
+  const above = nearestTextLine(state.doc, line.number, -1);
+  if (above === null) return false;
+  const join = joinLines(state, above, line.number);
+  if (join === null) return false;
   view.dispatch({
-    changes: { from, to },
-    selection: EditorSelection.cursor(from),
+    changes: join,
+    selection: EditorSelection.cursor(join.from),
+    scrollIntoView: true,
+    userEvent: "delete.merge",
+  });
+  return true;
+}
+
+/**
+ * Delete that may join different elements ("Delete and merge with line
+ * below", Shift+Delete by default). At the end of a line it joins the line
+ * with text below onto this one (blank lines between go), and the joined
+ * text takes this line's element; elsewhere it deletes like Delete. A
+ * selection is deleted.
+ */
+export function mergeWithLineBelow(view: EditorView): boolean {
+  const { state } = view;
+  const range = state.selection.main;
+  if (!range.empty) {
+    view.dispatch({
+      changes: { from: range.from, to: range.to },
+      selection: EditorSelection.cursor(range.from),
+      scrollIntoView: true,
+      userEvent: "delete.merge",
+    });
+    return true;
+  }
+  const line = state.doc.lineAt(range.head);
+  if (range.head < line.from + line.text.trimEnd().length) {
+    const to =
+      findClusterBreak(line.text, range.head - line.from, true) + line.from;
+    view.dispatch({
+      changes: { from: range.head, to },
+      selection: EditorSelection.cursor(range.head),
+      scrollIntoView: true,
+      userEvent: "delete.merge",
+    });
+    return true;
+  }
+  const below = nearestTextLine(state.doc, line.number, 1);
+  if (below === null) return false;
+  const join = joinLines(state, line.number, below);
+  if (join === null) return false;
+  view.dispatch({
+    changes: join,
+    selection: EditorSelection.cursor(join.from),
     scrollIntoView: true,
     userEvent: "delete.merge",
   });

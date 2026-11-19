@@ -1166,7 +1166,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Show all commands in the command palette",
-        desc: "Also list commands that have their own key or menu: Smart Tab and Smart Tab back, Delete and merge with line above, New scene, Character, Wryly, Transition and Preview. Turn on to give one a keyboard shortcut or put Smart Tab on the phone toolbar.",
+        desc: "Also list commands that have their own key or menu: Smart Tab and Smart Tab back, Delete and merge with line above or below, New scene, Character, Wryly, Transition and Preview. Turn on to give one a keyboard shortcut or put Smart Tab on the phone toolbar.",
         control: {
           type: "toggle",
           key: "showAllCommands",

@@ -58,6 +58,7 @@ import type { ForcedElement } from "./editor/forceElement";
 import {
   createBlankLineLockExtension,
   mergeWithLineAbove,
+  mergeWithLineBelow,
 } from "./editor/blankLineLock";
 import {
   createBoneyardMarkerExtension,
@@ -246,6 +247,17 @@ export default class ScribidianPlugin extends Plugin {
         const cm = (editor as { cm?: unknown }).cm;
         if (!(cm instanceof EditorView)) return false;
         if (!checking) mergeWithLineAbove(cm);
+        return true;
+      },
+    });
+    this.addExtraCommand({
+      id: "screenplay-merge-with-line-below",
+      name: "Screenplay: Delete and merge with line below",
+      editorCheckCallback: (checking, editor, context) => {
+        if (!this.isScreenplayFile(context.file)) return false;
+        const cm = (editor as { cm?: unknown }).cm;
+        if (!(cm instanceof EditorView)) return false;
+        if (!checking) mergeWithLineBelow(cm);
         return true;
       },
     });
