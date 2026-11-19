@@ -417,6 +417,25 @@ live in script mode, strict on and off, about 14 scenarios.
 
 Fine, for the record: a cue after a speech cleared with Ctrl+Backspace stays a cue; Set line to wryly then typing gives `(beat)`; undo after Enter and a letter goes back to the dialogue line as one step; clicking the single blank line after a speech doesn't open a list.
 
+### Fountain spec gaps (checked 2026-11-19)
+
+Compared against fountain.io/syntax (spec 1.1, the latest). Checked with a
+test script through the parser, the editor layout and FDX export.
+Supported already: title page (including multi-line values), forced
+sluglines, action, cues, transitions and lyrics in the editor, centred
+text, page breaks, sections, synopses, single-line notes, boneyards, dual
+dialogue, lower-case extensions, `EST.` and `I/E` headings, indented action, the
+two-space blank line in dialogue, and backslash escapes.
+
+| #   | Issue                                                                                                                                                                                                                                                                  | Size |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| 164 | Seen: scene numbers (`INT. HOUSE - DAY #1A#`) aren't recognised. The `#1A#` stays part of the heading text: not shown as a number in the editor or preview, and FDX export writes it into the heading instead of the scene's Number.                                   | M    |
+| 165 | Seen: emphasis isn't exported. FDX writes `*walks*`, `**fast**` and `_under_` with the marks, not as italic, bold and underline styles. In the editor, Obsidian shows `_under_` as italics, but in Fountain underscores mean underline. Check the preview and PDF too. | M    |
+| 166 | Seen: notes over several lines (`[[A note` / `over two lines]]`) are read as action by the parser and the editor; only one-line notes work. Fountain notes can span lines (two spaces on an empty line inside one).                                                    | S–M  |
+| 167 | Seen: lyrics (`~Lyric line`) are laid out in the editor, but the parser reads them as action with the `~` kept, so preview and export show them as action.                                                                                                             | S    |
+| 168 | Not checked: a forced transition in mixed case (`>Burn to White.`), and a transition ending `TO: ` (space after the colon) staying action in the editor; the parser gets the second one right.                                                                         | S    |
+| 169 | Done (writer report, 2026-11-19): in a boneyard (`/* test */`), Obsidian hid the `*` of the markers (and any `*` inside) as Markdown emphasis unless the cursor was next to it. Every `*` in a boneyard now always shows.                                              | S    |
+
 ### Scenes panel
 
 | #   | Issue                                                                                                                                                                                                                                                                                                                                                                                                   | Size |

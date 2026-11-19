@@ -59,6 +59,7 @@ import {
   createBlankLineLockExtension,
   mergeWithLineAbove,
 } from "./editor/blankLineLock";
+import { createBoneyardMarkerExtension } from "./editor/boneyardMarkers";
 import { registerFountainCodeBlockProcessor } from "./editor/fountainCodeBlock";
 import { isCharacterFrontmatter } from "./characters/catalogue";
 import {
@@ -124,6 +125,7 @@ export default class ScribidianPlugin extends Plugin {
       createDualDialogueExtension(this),
       createBottomMarginExtension(this),
       createBlankLineLockExtension(this),
+      createBoneyardMarkerExtension(this),
       EditorView.updateListener.of((update) => {
         if (update.selectionSet && !update.docChanged) this.onCursorMoved();
       }),
