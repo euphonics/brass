@@ -28,6 +28,7 @@ const FDX_PARAGRAPH_TYPES: Record<ScreenplayElementType, string> = {
   parenthetical: "Parenthetical",
   transition: "Transition",
   centered: "Action",
+  lyric: "Action",
 };
 
 function validXmlCharacter(character: string): boolean {
@@ -75,7 +76,9 @@ export function serializeFdx(document: ScreenplayDocument): string {
     const type = FDX_PARAGRAPH_TYPES[element.type];
     const text = escapeXmlText(fdxText(element));
     const alignment = element.type === "centered" ? ' Alignment="Center"' : "";
-    return `    <Paragraph Type="${type}"${alignment}>\n      <Text>${text}</Text>\n    </Paragraph>`;
+    // Final Draft has no lyric element: action in italics.
+    const style = element.type === "lyric" ? ' Style="Italic"' : "";
+    return `    <Paragraph Type="${type}"${alignment}>\n      <Text${style}>${text}</Text>\n    </Paragraph>`;
   });
 
   return [

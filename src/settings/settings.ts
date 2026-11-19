@@ -183,6 +183,11 @@ const CLEAN_EXPORT_SETTINGS: {
     desc: "Obsidian comments: %% comment %%.",
   },
   {
+    option: "removeLineComments",
+    name: "Remove line comments",
+    desc: "Text after // at the end of a line, shown faded in the editor.",
+  },
+  {
     option: "removeCallouts",
     name: "Remove callouts",
     desc: "Callout boxes: > [!note] and the lines under them.",

@@ -234,6 +234,16 @@
   margin-block: 6px;
 }
 
+/* Line comments ("// note"), a Scribidian addition to Fountain: faded,
+   and not part of the script. */
+.markdown-source-view.mod-cm6 .scribidian-line-comment {
+  opacity: 0.45;
+}
+
+.scribidian-preview-lyric {
+  font-style: italic;
+}
+
 .scribidian-preview-scene-heading,
 .scribidian-preview-character {
   font-weight: 700;

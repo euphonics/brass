@@ -131,6 +131,7 @@ Hello.
       codeBlocks: "keep",
       removeHeadings: false,
       removeComments: false,
+      removeLineComments: false,
       removeCallouts: false,
       removeFootnotes: false,
       removeBlockIds: false,
@@ -275,5 +276,31 @@ Hello.
       });
     expect(unwrap("[[A]][[B|bee]] ![[pic.png]]")).toBe("Abee ![[pic.png]]");
     expect(unwrap("[go](x.md) ![alt](p.png)")).toBe("go ![alt](p.png)");
+  });
+});
+
+describe("line comments", () => {
+  it("strips // comments in clean export, keeping URLs and boneyards", () => {
+    const source = [
+      "MARA",
+      "Dialogue. // grayed out",
+      "",
+      "// a note on its own line",
+      "See https://example.com now.",
+      "/* keep // this */",
+      "",
+      "She runs.",
+    ].join("\n");
+    expect(cleanFountainSource(source)).toBe(
+      [
+        "MARA",
+        "Dialogue.",
+        "",
+        "See https://example.com now.",
+        "/* keep // this */",
+        "",
+        "She runs.",
+      ].join("\n"),
+    );
   });
 });

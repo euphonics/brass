@@ -48,6 +48,45 @@ const OPEN_EXTENSION = /(?:\s+\([^)]*\))*\s*\([^()]*$/u;
 const ENDS_IN_PUNCTUATION = /[.!?,;:\u2026\u2013\u2014-]$/u;
 const DUAL_DIALOGUE_CARET = /\s*\^\s*$/u;
 
+/**
+ * Where a line comment starts: "//" at the start of the line or after a
+ * space ("Dialogue. // note"), outside a boneyard ("/* ... *\/"). A
+ * Scribidian addition to Fountain: the comment is shown faded and isn't
+ * part of the script. "https://" isn't a comment (no space before "//").
+ * `inBoneyard` says whether the line starts inside a boneyard; the result
+ * says whether it ends inside one.
+ */
+export function findLineComment(
+  line: string,
+  inBoneyard = false,
+): { at: number | null; inBoneyard: boolean } {
+  let open = inBoneyard;
+  for (let index = 0; index < line.length - 1; index += 1) {
+    const pair = line.slice(index, index + 2);
+    if (open) {
+      if (pair === "*/") {
+        open = false;
+        index += 1;
+      }
+    } else if (pair === "/*") {
+      open = true;
+      index += 1;
+    } else if (
+      pair === "//" &&
+      (index === 0 || /\s/u.test(line[index - 1] ?? ""))
+    ) {
+      return { at: index, inBoneyard: false };
+    }
+  }
+  return { at: null, inBoneyard: open };
+}
+
+/** `line` without its line comment (see `findLineComment`). */
+export function stripLineComment(line: string): string {
+  const { at } = findLineComment(line);
+  return at === null ? line : line.slice(0, at).trimEnd();
+}
+
 function isBlank(line: string | undefined): boolean {
   return line === undefined || line.trim() === "";
 }
@@ -202,13 +241,14 @@ export function classifyLines(
   let inDialogue = false;
   let inBoneyard = false;
   let inComment = false;
+  let inNote = false;
   // An open ``` or ~~~ fence: its marker, and whether it is ```fountain.
   let fence: { marker: string; fountain: boolean } | null = null;
   // The line just before was a fence: the next line starts a block.
   let afterFence = false;
 
   for (let index = firstContentLine; index < lines.length; index += 1) {
-    const text = (lines[index] ?? "").trim();
+    let text = (lines[index] ?? "").trim();
 
     // Fenced code blocks aren't script: their lines (and the fences) keep
     // Obsidian's look. Only a ```fountain block is laid out, as a script
@@ -238,6 +278,27 @@ export function classifyLines(
     }
     const followsFence = afterFence;
     afterFence = false;
+
+    // A note "[[ ... ]]" over several lines. It ends at "]]", or at an
+    // empty line (a line of two spaces keeps it going), as in Fountain.
+    if (inNote) {
+      if (text === "" && !/^ {2,}$/u.test(lines[index] ?? "")) {
+        inNote = false;
+      } else {
+        kinds[index] = "note";
+        if (text.includes("]]")) inNote = false;
+        continue;
+      }
+    } else if (
+      !inBoneyard &&
+      !inComment &&
+      text.startsWith("[[") &&
+      !text.includes("]]")
+    ) {
+      kinds[index] = "note";
+      inNote = true;
+      continue;
+    }
 
     // Boneyard /* ... */ and Obsidian %% ... %% comments can span lines.
     if (
@@ -274,6 +335,21 @@ export function classifyLines(
         inDialogue = false;
       }
       continue;
+    }
+
+    // A line comment ("// note") isn't script: a line that is only a
+    // comment is a note and doesn't end a speech; otherwise the line is
+    // read without it ("JEN // note" is still a cue).
+    {
+      const comment = findLineComment(lines[index] ?? "").at;
+      if (comment !== null) {
+        const before = (lines[index] ?? "").slice(0, comment).trim();
+        if (before === "") {
+          kinds[index] = "note";
+          continue;
+        }
+        text = before;
+      }
     }
 
     // A line of two or more spaces inside a speech keeps it going

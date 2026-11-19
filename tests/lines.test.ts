@@ -202,3 +202,76 @@ describe("fenced code blocks", () => {
     ]);
   });
 });
+
+describe("line comments", () => {
+  it("reads a line without its comment", () => {
+    const lines = [
+      "She runs.",
+      "",
+      "JEN // she's late",
+      "Hi. // aside",
+      "// note",
+      "More.",
+    ];
+    expect(classifyLayoutLines(lines)).toEqual([
+      "action",
+      null,
+      "character",
+      "dialogue",
+      "note",
+      "dialogue",
+    ]);
+    const doc = parseFountain(lines.join("\n"));
+    expect(doc.elements.map((element) => element.text)).toEqual([
+      "She runs.",
+      "JEN",
+      "Hi.",
+      "More.",
+    ]);
+  });
+});
+
+describe("notes over several lines", () => {
+  it("reads a [[ ... ]] note across lines as a note", () => {
+    const lines = [
+      "She runs.",
+      "",
+      "[[A note",
+      "  ",
+      "over lines]]",
+      "",
+      "He waits.",
+    ];
+    expect(classifyLayoutLines(lines)).toEqual([
+      "action",
+      null,
+      "note",
+      "note",
+      "note",
+      null,
+      "action",
+    ]);
+    expect(parseFountain(lines.join("\n")).elements.map((e) => e.text)).toEqual(
+      ["She runs.", "He waits."],
+    );
+  });
+
+  it("ends an unclosed note at an empty line", () => {
+    const lines = ["[[Unclosed", "", "She runs."];
+    expect(classifyLayoutLines(lines)).toEqual(["note", null, "action"]);
+  });
+});
+
+describe("lyrics", () => {
+  it("parses ~ lines as lyrics without the ~", () => {
+    const doc = parseFountain("She sings.\n\n~Row, row, row\n~your boat");
+    expect(doc.elements.map((e) => `${e.type}:${e.text}`)).toEqual([
+      "action:She sings.",
+      "lyric:Row, row, row",
+      "lyric:your boat",
+    ]);
+    expect(serializeFdx(doc)).toContain(
+      '<Text Style="Italic">Row, row, row</Text>',
+    );
+  });
+});

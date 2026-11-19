@@ -20,6 +20,7 @@ import {
   characterCue,
   classifyLines,
   frontmatterEnd,
+  stripLineComment,
 } from "./lines";
 import type { ScreenplayDocument, ScreenplayElement } from "./model";
 import { extractFountainTitlePage } from "./titlePage";
@@ -45,7 +46,8 @@ export function parseFountain(source: string): ScreenplayDocument {
   let blankLines = 0;
 
   for (let index = 0; index < lines.length; index += 1) {
-    const raw = lines[index] ?? "";
+    // Line comments ("// note") aren't part of the script.
+    const raw = stripLineComment(lines[index] ?? "");
     const text = raw.trim();
     const kind = kinds[index] ?? null;
     const line = index + 1;
@@ -73,8 +75,10 @@ export function parseFountain(source: string): ScreenplayDocument {
         elements.push({ type: "centered", text: centeredContent(text), line });
         break;
       case "action":
-      case "lyric":
         elements.push({ type: "action", text: raw, line });
+        break;
+      case "lyric":
+        elements.push({ type: "lyric", text: text.slice(1).trim(), line });
         break;
       default:
         elements.push({ type: kind, text, line });

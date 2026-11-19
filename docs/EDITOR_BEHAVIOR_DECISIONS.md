@@ -55,6 +55,17 @@ flowchart TD
    change how another Fountain app reads the file belongs in export options,
    not in the editor.
 
+## Line comments (Scribidian addition)
+
+- `// note` at the start of a line or after a space, to the end of the
+  line, is a comment. It shows faded and is never part of the script.
+- It doesn't change what a line is: `JEN // late` is still a character. A
+  line that is only a comment is a note and doesn't end a speech.
+- `https://` isn't a comment (no space before the `//`), and neither is `//`
+  inside a boneyard (`/* ... */`).
+- Clean Fountain export removes comments ("Remove line comments", on by
+  default). Preview, PDF and FDX leave them out.
+
 ## Fenced code blocks
 
 - Text inside a ``` or ~~~ fenced code block isn't script: it keeps

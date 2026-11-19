@@ -22,7 +22,9 @@ export type ScreenplayElementType =
   | "dialogue"
   | "parenthetical"
   | "transition"
-  | "centered";
+  | "centered"
+  /** A "~" line, shown in italics; the "~" isn't part of the text. */
+  | "lyric";
 
 export interface ScreenplayElement {
   type: ScreenplayElementType;

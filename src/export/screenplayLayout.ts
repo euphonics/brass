@@ -127,6 +127,14 @@ function styleFor(
         gapBefore: 12,
         align: "left",
       };
+    case "lyric":
+      return {
+        left: 90,
+        right: 72,
+        maximumCharacters: 60,
+        gapBefore: 12,
+        align: "left",
+      };
     case "centered":
       return {
         left: 90,

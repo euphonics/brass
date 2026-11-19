@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { classifyLines } from "../screenplay/lines";
+import { classifyLines, findLineComment } from "../screenplay/lines";
 
 export function stripObsidianFrontmatter(source: string): string {
   const normalized = source.replaceAll("\r\n", "\n");
@@ -74,6 +74,8 @@ export interface CleanExportOptions {
   removeHeadings: boolean;
   /** `%% comment %%`, inline or across lines. */
   removeComments: boolean;
+  /** Line comments: `// note` to the end of the line (Scribidian). */
+  removeLineComments: boolean;
   /** `> [!note]` callout blocks. */
   removeCallouts: boolean;
   /** `[^1]` references and `[^1]: ...` definitions. */
@@ -94,6 +96,7 @@ export const DEFAULT_CLEAN_EXPORT_OPTIONS: CleanExportOptions = {
   codeBlocks: "remove",
   removeHeadings: false,
   removeComments: true,
+  removeLineComments: true,
   removeCallouts: true,
   removeFootnotes: true,
   removeBlockIds: true,
@@ -224,6 +227,7 @@ export function cleanFountainSource(
   let removedSinceLastLine = false;
   let inComment = false;
   let inCallout = false;
+  let inBoneyard = false;
   let fence: string | null = null;
 
   for (const rawLine of source.replaceAll("\r\n", "\n").split("\n")) {
@@ -278,6 +282,16 @@ export function cleanFountainSource(
       }
       if (kept !== line) removed = true;
       line = kept;
+    }
+
+    // Line comments: "// note" to the end of the line, outside boneyards.
+    {
+      const comment = findLineComment(line, inBoneyard);
+      inBoneyard = comment.inBoneyard;
+      if (options.removeLineComments && comment.at !== null) {
+        line = line.slice(0, comment.at).trimEnd();
+        removed = true;
+      }
     }
 
     if (options.removeCallouts) {

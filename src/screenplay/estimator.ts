@@ -40,6 +40,7 @@ const PAGE_METRICS: Record<PageSize, PageMetrics> = {
       parenthetical: 26,
       transition: 50,
       centered: 61,
+      lyric: 61,
     },
   },
   a4: {
@@ -52,6 +53,7 @@ const PAGE_METRICS: Record<PageSize, PageMetrics> = {
       parenthetical: 25,
       transition: 48,
       centered: 59,
+      lyric: 59,
     },
   },
 };

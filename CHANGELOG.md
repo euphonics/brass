@@ -11,6 +11,11 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Line comments, a Scribidian addition to Fountain: `// note` at the end
+  of a line (or on its own line) is shown faded, is left out of preview and
+  export, and is removed by Clean Fountain export ("Remove line comments").
+- Lyrics (`~` lines) are their own element: italic in preview, italic
+  action in FDX export.
 - **Enter inside a line** setting: what Enter does with the cursor in the
   middle of each element (Nothing, Line break, Obsidian's Enter, Next
   element), set separately for script and Fountain mode. Script mode
@@ -133,6 +138,7 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Notes over several lines (`[[ ... ]]`) are read as notes, not action.
 - Boneyards (`/* ... */`) show every `*` as typed. Obsidian used to hide
   them as Markdown emphasis unless the cursor was next to them.
 - Script mode: text in a fenced code block keeps Obsidian's own look and
