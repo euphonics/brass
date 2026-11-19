@@ -130,6 +130,8 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- A forced character cue with no letters (`@123`, `@???`) is a cue, as
+  Fountain allows; it used to be read as action.
 - Script mode: an empty line shown in the character column always opens the
   character list and types in capitals, however the cursor got there
   (before, deleting back to it showed the column with no list, and typing

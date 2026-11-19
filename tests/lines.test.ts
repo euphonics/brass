@@ -125,6 +125,11 @@ describe("one set of line rules", () => {
       name: "McCLANE",
       extension: null,
     });
+    // "@" forces any name, even one with no letters.
+    expect(characterCue("@||||!!!#")?.name).toBe("||||!!!#");
+    expect(characterCue("@123")?.name).toBe("123");
+    expect(characterCue("@")).toBeNull();
+    expect(characterCue("123")).toBeNull();
     expect(characterCue("ALEX (V.O.) (CONT'D) ^")).toEqual({
       name: "ALEX",
       extension: "(V.O.) (CONT'D)",

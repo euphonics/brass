@@ -129,7 +129,9 @@ export function characterCue(line: string): CharacterCue | null {
   const candidate = (forced ? text.slice(1) : text)
     .replace(DUAL_DIALOGUE_CARET, "")
     .trim();
-  if (!candidate || !HAS_LETTER.test(candidate)) return null;
+  // "@" forces a cue whatever the name ("@123", "@???"); without it a cue
+  // needs a letter.
+  if (!candidate || (!forced && !HAS_LETTER.test(candidate))) return null;
   if (!forced) {
     if (NOT_A_CUE.test(candidate)) return null;
     if (isSceneHeading(candidate) || isTransitionText(candidate)) return null;
