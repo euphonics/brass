@@ -702,6 +702,23 @@ export function createScreenplayCompletionExtension(
     if (tabAtLineStart(view)) return true;
     if (tabOnSetActionLine(view)) return true;
     if (tabToDialogueBelow(view)) return true;
+    // Under a wryly: never a second "()" (see dropEmptyWrylyAbove).
+    if (plugin.settings.smartTabEnabled) {
+      const underWryly = dropEmptyWrylyAbove(view);
+      if (underWryly === "wryly") return true;
+      if (underWryly === "dropped") {
+        // The speech ends here: on to a new character, not another wryly.
+        const at = view.state.selection.main.head;
+        view.dispatch({
+          changes: { from: at, insert: "\n\n" },
+          selection: { anchor: at + 2 },
+          scrollIntoView: true,
+          userEvent: "input",
+        });
+        forceElement(view, "character");
+        return true;
+      }
+    }
     const inside = tabInside(view);
     if (inside !== null) return inside;
     const plan = smartPlan(view);
@@ -891,6 +908,24 @@ export function createScreenplayCompletionExtension(
       });
     } else if (wryly === "pick") acceptCompletion(view);
     else if (completionStatus(view.state) === "active") return false;
+    if (
+      plugin.settings.smartEnterEnabled &&
+      dropEmptyWrylyAbove(view) === "dropped"
+    ) {
+      const plan = smartPlan(
+        view,
+        (source, cursor, knownTimes) =>
+          getSmartEnterPlan(
+            source,
+            cursor,
+            knownTimes,
+            plugin.settings.enterTargets,
+          ),
+        true,
+      );
+      if (plan !== null) applySmartPlan(view, plan);
+      return true;
+    }
     if (enterOnEmptyDialogue(view)) return true;
     if (enterInsideSpeech(view)) return true;
     if (blankLineInSpeech(view)) return true;
@@ -969,6 +1004,38 @@ export function createScreenplayCompletionExtension(
       userEvent: "input",
     });
     return true;
+  };
+
+  // The empty line under a wryly, where its dialogue goes. Under an empty
+  // "()" (Enter there leaves the cursor on this line) the wryly is dropped
+  // with this line, and the cursor goes to the end of the line above it,
+  // so Tab or Enter carry on from there ("dropped"). Under a wryly with
+  // text: "wryly" (its dialogue must be typed). Otherwise null.
+  const dropEmptyWrylyAbove = (
+    view: EditorView,
+  ): "dropped" | "wryly" | null => {
+    if (!plugin.isScriptMode()) return null;
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return null;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return null;
+    const line = doc.lineAt(selection.main.head);
+    if (line.text.trim() !== "" || line.number < 3) return null;
+    const lines = doc.toString().split("\n");
+    if (classifySmartTabLine(lines, line.number - 2) !== "parenthetical") {
+      return null;
+    }
+    const wryly = doc.line(line.number - 1);
+    if (!/^\(\s*\)$/u.test(wryly.text.trim())) return "wryly";
+    const before = doc.line(line.number - 2);
+    if (before.text.trim() === "") return null;
+    view.dispatch({
+      changes: { from: before.to, to: line.to },
+      selection: { anchor: before.to },
+      scrollIntoView: true,
+      userEvent: "delete",
+    });
+    return "dropped";
   };
 
   // Enter on the empty dialogue line under a cue or wryly does nothing:

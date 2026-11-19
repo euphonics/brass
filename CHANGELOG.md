@@ -155,6 +155,9 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Tab under an empty "()" (or under a wryly) no longer adds a second wryly:
+  under an empty "()" Tab and Enter drop it and go to a new character.
+
 - Enter inside an empty "()" with the wryly list closed no longer splits it
   into "(" and ")" on separate lines.
 

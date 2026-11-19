@@ -49,6 +49,10 @@ flowchart TD
 4. **Never leave the script in a state that isn't valid Fountain.** No text
    at the action margin glued under dialogue, no lone `(` or `)` on a wryly
    line, no typing on the single blank line that separates two blocks.
+   **Tab and Enter never produce improper formatting**, however they are
+   chained: no wryly right after a wryly, no empty `()` left behind, no
+   split `(` and `)`. The writer can still make such lines by typing them;
+   the keys that fill in and skip must not.
 5. **Match Fade In / Final Draft when in doubt.** Writers come from those apps
    and their muscle memory should work.
 6. **The text is plain Fountain.** Layout is display only. Anything that would
@@ -246,6 +250,12 @@ Special cases, all decided during testing:
 - **Tab never puts tab characters into the script.** When Tab has nothing
   to do (two cursors, a selection over several lines, Smart Tab off), it
   does nothing. Lists, tables and code blocks keep Obsidian's Tab.
+
+- **Under a wryly, never another wryly.** On the empty dialogue line under
+  an empty `()` (Enter in `(|)` leaves the cursor there), Tab drops the
+  empty `()` and goes to a new character; Enter does the same as Enter at
+  the end of the line above it (a new character after dialogue). Under a
+  wryly with text, `(beat)`, Tab does nothing: its dialogue goes there.
 
 ### Tab inside a line
 
