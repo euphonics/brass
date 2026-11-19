@@ -202,9 +202,42 @@ export function classifyLines(
   let inDialogue = false;
   let inBoneyard = false;
   let inComment = false;
+  // An open ``` or ~~~ fence: its marker, and whether it is ```fountain.
+  let fence: { marker: string; fountain: boolean } | null = null;
+  // The line just before was a fence: the next line starts a block.
+  let afterFence = false;
 
   for (let index = firstContentLine; index < lines.length; index += 1) {
     const text = (lines[index] ?? "").trim();
+
+    // Fenced code blocks aren't script: their lines (and the fences) keep
+    // Obsidian's look. Only a ```fountain block is laid out, as a script
+    // of its own.
+    if (fence === null && !inBoneyard && !inComment) {
+      const open = /^(`{3,}|~{3,})\s*([^\s`]*)/u.exec(text);
+      if (open) {
+        fence = {
+          marker: open[1] ?? "```",
+          fountain: (open[2] ?? "").toLowerCase() === "fountain",
+        };
+        inDialogue = false;
+        afterFence = true;
+        continue;
+      }
+    } else if (fence !== null) {
+      const closes =
+        text.length >= fence.marker.length &&
+        text === (fence.marker[0] ?? "`").repeat(text.length);
+      if (closes) {
+        fence = null;
+        inDialogue = false;
+        afterFence = true;
+        continue;
+      }
+      if (!fence.fountain) continue;
+    }
+    const followsFence = afterFence;
+    afterFence = false;
 
     // Boneyard /* ... */ and Obsidian %% ... %% comments can span lines.
     if (
@@ -272,7 +305,8 @@ export function classifyLines(
       continue;
     }
 
-    const startsBlock = index === firstContentLine || isBlank(lines[index - 1]);
+    const startsBlock =
+      index === firstContentLine || followsFence || isBlank(lines[index - 1]);
 
     // A "# heading" always ends a speech, even with no blank line before it.
     if (inDialogue && isMarkdownHeading(text)) inDialogue = false;

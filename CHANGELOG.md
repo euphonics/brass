@@ -130,6 +130,8 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Script mode: text in a fenced code block keeps Obsidian's own look and
+  line height; script layout applies only inside a ```fountain block.
 - Script mode: a character cue whose text is deleted stays a cue line (list
   open, capitals); an empty line after a speech with text right below no
   longer shows as the next cue or turns that text into dialogue; a pasted

@@ -55,6 +55,14 @@ flowchart TD
    change how another Fountain app reads the file belongs in export options,
    not in the editor.
 
+## Fenced code blocks
+
+- Text inside a ``` or ~~~ fenced code block isn't script: it keeps
+  Obsidian's look and line height, and no element rules (cues, dialogue,
+  Tab, Enter) apply there.
+- Only a block that starts with ```fountain is laid out as a script, on
+  its own: a speech inside it doesn't carry on past the closing fence.
+
 ## Capitals: when is a line a character?
 
 - A character cue is a line in capitals with a blank line above it and text

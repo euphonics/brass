@@ -164,3 +164,41 @@ describe("one set of line rules", () => {
     ).toEqual(kinds);
   });
 });
+
+describe("fenced code blocks", () => {
+  it("lays out nothing inside a plain fence", () => {
+    const lines = [
+      "She runs.",
+      "",
+      "```",
+      "JEN",
+      "Hello.",
+      "",
+      "```",
+      "",
+      "He waits.",
+    ];
+    expect(classifyLayoutLines(lines)).toEqual([
+      "action",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "action",
+    ]);
+  });
+
+  it("lays out a fountain fence as a script of its own", () => {
+    const lines = ["~~~fountain", "JEN", "Hello.", "~~~", "Back to notes."];
+    expect(classifyLayoutLines(lines)).toEqual([
+      null,
+      "character",
+      "dialogue",
+      null,
+      "action",
+    ]);
+  });
+});
