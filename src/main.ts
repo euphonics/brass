@@ -35,6 +35,7 @@ import {
 } from "obsidian";
 import type { Command, TFile } from "obsidian";
 import { openCharacterPicker } from "./commands/character";
+import { copyConfiguration } from "./commands/copyConfiguration";
 import { exportFdx } from "./commands/exportFdx";
 import { exportFountain } from "./commands/exportFountain";
 import {
@@ -165,6 +166,12 @@ export default class ScribidianPlugin extends Plugin {
       name: "Screenplay: Toggle strict cursor placement",
       icon: "lock",
       callback: () => void this.toggleStrictCursor(),
+    });
+    this.addCommand({
+      id: "copy-configuration",
+      name: "Copy configuration to clipboard",
+      icon: "clipboard-copy",
+      callback: () => void copyConfiguration(this),
     });
 
     this.addCommand({

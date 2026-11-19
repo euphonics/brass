@@ -295,7 +295,12 @@ export function createScreenplayLayoutExtension(
   // deletes as usual.
   const backspace = (view: EditorView): boolean => {
     if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
-    return cueDelete(view) || wrylyDelete(view, false) || shiftTab(view);
+    return (
+      selectionDelete(view) ||
+      cueDelete(view) ||
+      wrylyDelete(view, false) ||
+      shiftTab(view)
+    );
   };
 
   // Backspace or Delete with a whole character cue selected, right after
@@ -397,6 +402,79 @@ export function createScreenplayLayoutExtension(
     return true;
   };
 
+  // Backspace or Delete on a selection over several lines that starts or
+  // ends inside a one-line element (slugline, cue, wryly, transition): the
+  // touched elements go whole, so no lone "(" or ")", half cue or half
+  // slugline is left. Selections that start and end in action or dialogue
+  // delete as usual.
+  const SNAP_KINDS = new Set([
+    "scene-heading",
+    "character",
+    "parenthetical",
+    "transition",
+  ]);
+  const selectionDelete = (view: EditorView): boolean => {
+    if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
+    const layout = view.plugin(layoutPlugin);
+    if (!layout?.active) return false;
+    const { state } = view;
+    const { doc } = state;
+    const selection = state.selection.main;
+    if (state.selection.ranges.length > 1 || selection.empty) return false;
+    const first = doc.lineAt(selection.from);
+    const last = doc.lineAt(selection.to);
+    if (first.number === last.number) return false;
+    const textStart = (line: { from: number; text: string }): number =>
+      line.from + (line.text.length - line.text.trimStart().length);
+    const textEnd = (line: { from: number; text: string }): number =>
+      line.from + line.text.trimEnd().length;
+    const cutsFirst =
+      selection.from > textStart(first) &&
+      SNAP_KINDS.has(layout.kinds[first.number - 1] ?? "");
+    const cutsLast =
+      selection.to < textEnd(last) &&
+      SNAP_KINDS.has(layout.kinds[last.number - 1] ?? "");
+    if (!cutsFirst && !cutsLast) return false;
+    const fromWhole = cutsFirst || selection.from <= textStart(first);
+    const toWhole = cutsLast || selection.to >= textEnd(last);
+    if (!fromWhole || !toWhole) {
+      // Only one end snaps: widen that end to its whole line.
+      const from = cutsFirst ? first.from : selection.from;
+      const to = cutsLast ? last.to : selection.to;
+      closeCompletion(view);
+      view.dispatch({
+        changes: { from, to },
+        selection: { anchor: from },
+        userEvent: "delete.selection",
+        scrollIntoView: true,
+      });
+      return true;
+    }
+    // Whole lines go, with their line break. A whole block between blank
+    // lines takes one blank line with it, so one blank line stays.
+    let from = first.from;
+    let to = last.to;
+    if (last.number < doc.lines) to += 1;
+    else if (first.number > 1) from -= 1;
+    const blankAbove =
+      first.number > 1 && doc.line(first.number - 1).text.trim() === "";
+    const blankBelow =
+      last.number < doc.lines && doc.line(last.number + 1).text.trim() === "";
+    if (blankAbove && (blankBelow || last.number === doc.lines)) {
+      from = Math.max(0, doc.line(first.number - 1).from - 1);
+      to = last.number < doc.lines ? last.to : to;
+    }
+    closeCompletion(view);
+    view.dispatch({
+      changes: { from, to },
+      selection: { anchor: from },
+      // Not "delete.backward": strict mode would stop the lines joining.
+      userEvent: "delete.selection",
+      scrollIntoView: true,
+    });
+    return true;
+  };
+
   // Escape closing the character list on the empty next-cue line: the
   // writer chose not to add a cue, so the line becomes action (as with
   // Shift+Tab) instead of staying centred until they type. Observed, not
@@ -424,7 +502,8 @@ export function createScreenplayLayoutExtension(
         { key: "Backspace", run: backspace },
         {
           key: "Delete",
-          run: (view) => cueDelete(view) || wrylyDelete(view, true),
+          run: (view) =>
+            selectionDelete(view) || cueDelete(view) || wrylyDelete(view, true),
         },
       ]),
     ),

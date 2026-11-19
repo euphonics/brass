@@ -32,13 +32,13 @@ import type ScribidianPlugin from "../main";
  * ("$123", "$123.12", "$1,123.12") aren't variables and stay as they are.
  */
 
-const VARIABLE = /\$[\p{L}\p{N}_.,]+/gu;
+const VARIABLE = /\$[\p{L}\p{N}_.,-]+/gu;
 
 /**
  * Ranges of "$" variables in `text`, starting at `offset`: "$" and the
- * letters, digits and underscores after it. A trailing "." or "," is
- * punctuation, not part of the name; a name of only digits, "." and ","
- * is a dollar amount and is skipped.
+ * letters, digits, underscores and hyphens after it ("$dead-teacher-name").
+ * A trailing ".", "," or "-" is punctuation, not part of the name; a name
+ * of only digits, ".", "," and "-" is a dollar amount and is skipped.
  */
 export function variableRanges(
   text: string,
@@ -46,8 +46,8 @@ export function variableRanges(
 ): { from: number; to: number }[] {
   const ranges: { from: number; to: number }[] = [];
   for (const match of text.matchAll(VARIABLE)) {
-    const name = match[0].slice(1).replace(/[.,]+$/u, "");
-    if (name === "" || /^[\d.,]+$/u.test(name)) continue;
+    const name = match[0].slice(1).replace(/[.,-]+$/u, "");
+    if (name === "" || /^[\d.,-]+$/u.test(name)) continue;
     const from = offset + (match.index ?? 0);
     ranges.push({ from, to: from + 1 + name.length });
   }

@@ -40,4 +40,11 @@ describe("$ variables", () => {
   it("leaves out trailing punctuation and a lone $", () => {
     expect(names("Ask $name, then $ alone.")).toEqual(["$name"]);
   });
+
+  it("keeps hyphens inside a name", () => {
+    expect(names("Nawashi $dead-teacher-name. Then $x- and $1-2.")).toEqual([
+      "$dead-teacher-name",
+      "$x",
+    ]);
+  });
 });

@@ -11,6 +11,8 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Command **Copy configuration to clipboard**: settings, mode and the
+  cursor's context, ready to paste into a bug report.
 - Setting **Tab with a list open** (script mode): Tab can pick the
   highlighted suggestion, as before, or move to the next element, as if the
   list weren't open (an empty line after a transition then goes to the
@@ -154,6 +156,10 @@ Scribidian changes since 0.1.0.
   accepting it. Suggestions and Smart Tab still work.
 
 ### Fixed
+
+- With strict on, deleting a selection that cuts into a slugline, cue,
+  wryly or transition deletes those elements whole (no lone ")").
+- "$" variables with hyphens ("$dead-teacher-name") are highlighted whole.
 
 - With strict on, Enter in the middle of action starts a new paragraph
   (blank line between) instead of a plain line break.
