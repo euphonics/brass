@@ -55,7 +55,7 @@ import {
   type Extension,
   type Text,
 } from "@codemirror/state";
-import { EditorView, keymap } from "@codemirror/view";
+import { EditorView, keymap, tooltips } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
 import type ScribidianPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
@@ -643,7 +643,14 @@ export function createScreenplayCompletionExtension(
         if (plan !== null) applySmartPlan(view, plan);
         return true;
       }
-      if (!keepsSelectedPart(view)) return acceptCompletion(view);
+      if (!keepsSelectedPart(view)) {
+        if (acceptCompletion(view)) return true;
+        // CodeMirror ignores a pick in the first moments after a list
+        // opens. Tab pressed that fast (held down, or tapped quickly) must
+        // not fall through to Obsidian's Tab, which indents the line.
+        const file = view.state.field(editorInfoField, false)?.file ?? null;
+        return file !== null && plugin.isScreenplayFile(file);
+      }
       closeCompletion(view);
     }
     // Text selected on one line (a part left selected after Escape): carry
@@ -942,20 +949,41 @@ export function createScreenplayCompletionExtension(
     const { state } = view;
     const line = state.doc.lineAt(state.selection.main.head);
     const override = state.field(lineKindField, false) ?? null;
-    const kind =
+    // The writer's choice for the line wins (Set line to, Tab's cue
+    // column). Otherwise the element is read after the split, from the
+    // part left above: "CHARACTER|Test." is a cue once "Test." moves down.
+    const chosen =
       override !== null && override.from === line.from
         ? override.kind
-        : (classifyLines(state.doc.toString().split("\n"), {
-            cursorLine: line.number - 1,
-          })[line.number - 1] ?? null);
+        : inCueColumn(state, line.from)
+          ? "character"
+          : null;
     view.dispatch(state.replaceSelection("\n"), {
       scrollIntoView: true,
       userEvent: "input",
     });
-    if (kind !== null && state.selection.ranges.length === 1) {
-      const next = view.state.doc.lineAt(view.state.selection.main.head);
-      view.dispatch({ effects: setLineKind.of({ from: next.from, kind }) });
-    }
+    if (state.selection.ranges.length !== 1) return true;
+    const next = view.state.doc.lineAt(view.state.selection.main.head);
+    const kind =
+      chosen ??
+      classifyLines(view.state.doc.toString().split("\n"), {
+        cursorLine: next.number - 2,
+      })[next.number - 2] ??
+      null;
+    if (kind === null) return true;
+    // A new cue line holds a name: in capitals, like typing in that column.
+    const upper = next.text.toLocaleUpperCase();
+    const changes =
+      kind === "character" &&
+      plugin.typingChangeEnabled("uppercaseCharacters") &&
+      upper !== next.text &&
+      upper.length === next.text.length
+        ? { from: next.from, to: next.to, insert: upper }
+        : undefined;
+    view.dispatch({
+      changes,
+      effects: setLineKind.of({ from: next.from, kind }),
+    });
     return true;
   };
 
@@ -1246,6 +1274,11 @@ export function createScreenplayCompletionExtension(
         { key: "Shift-Enter", run: shiftEnter },
       ]),
     ),
+    // Suggestion lists fit inside the editor pane, so one opened near the
+    // right edge (a transition) moves left instead of being cut off.
+    tooltips({
+      tooltipSpace: (view) => view.scrollDOM.getBoundingClientRect(),
+    }),
     autocompletion({
       activateOnTyping: true,
       // Keep the slugline flowing: scene type -> location -> time.

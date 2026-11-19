@@ -157,7 +157,9 @@ Test cases:
   does not end in punctuation (a closing extension like `(V.O.)` is fine).
 - **Shift+Enter** is a plain line break, and the new line is the same
   element as the line the cursor was on: after dialogue the cursor stays in
-  the dialogue column. Strict on or off, Smart Enter on or off.
+  the dialogue column. Strict on or off, Smart Enter on or off. The
+  element is read after the split, from the part left above:
+  `CHARACTER|Test.` gives a cue and `TEST.` on a new cue line.
 - **Enter at the end of a line in the middle of a speech** (a cue, wryly or
   dialogue line with more of the speech right below): with strict on,
   nothing happens. A new block there would cut the speech in two.

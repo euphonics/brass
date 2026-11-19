@@ -141,6 +141,11 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Shift+Enter in the middle of a character name line keeps the moved text a
+  character line, in capitals.
+- Suggestion lists near the right edge of the editor (transitions) move
+  left instead of being cut off.
+- Pressing Tab very fast after a slugline's " - " no longer indents the line.
 - Spaces typed at the start of an empty line are no longer removed by the
   first letter (that only applies to a blank dialogue line in a speech).
 - Notes over several lines (`[[ ... ]]`) are read as notes, not action.
