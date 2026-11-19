@@ -787,6 +787,31 @@ export function createScreenplayCompletionExtension(
         });
         return true;
       case "line-break":
+        // Strict, inside action: a new paragraph (blank line between), as
+        // in Fade In. A plain break would only wrap the same paragraph,
+        // which Shift+Enter already does. Spaces at the split go.
+        if (
+          plugin.isScriptMode() &&
+          plugin.typingChangeEnabled("lockBlankLines") &&
+          classifySmartTabLine(lines, line.number - 1) === "action"
+        ) {
+          let from = head;
+          let to = head;
+          while (
+            from > line.from &&
+            /[ \t]/u.test(doc.sliceString(from - 1, from))
+          )
+            from -= 1;
+          while (to < line.to && /[ \t]/u.test(doc.sliceString(to, to + 1)))
+            to += 1;
+          view.dispatch({
+            changes: { from, to, insert: "\n\n" },
+            selection: { anchor: from + 2 },
+            scrollIntoView: true,
+            userEvent: "input",
+          });
+          return true;
+        }
         view.dispatch(view.state.replaceSelection("\n"), {
           scrollIntoView: true,
           userEvent: "input",

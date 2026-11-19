@@ -155,6 +155,9 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- With strict on, Enter in the middle of action starts a new paragraph
+  (blank line between) instead of a plain line break.
+
 - Tab under an empty "()" (or under a wryly) no longer adds a second wryly:
   under an empty "()" Tab and Enter drop it and go to a new character.
 

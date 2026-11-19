@@ -190,6 +190,11 @@ Test cases:
 
 ### Enter inside a line
 
+- **Strict on, inside action:** Enter starts a new paragraph, with a blank
+  line between and the spaces at the split dropped
+  (`Fiona laughs. |Jen reads` → `Fiona laughs.`, blank, `|Jen reads`).
+  Shift+Enter is the plain break that keeps one paragraph.
+
 What Enter does with the cursor inside an element, past its first letter
 and before its end. Each element has its own setting, set separately for
 script and Fountain mode (Settings > Tab and Enter keys > Enter inside a
