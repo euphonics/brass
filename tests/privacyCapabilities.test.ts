@@ -37,7 +37,16 @@ describe("privacy-sensitive capabilities", () => {
     expect(source).not.toMatch(/\.getAllLoadedFiles\s*\(/u);
   });
 
-  it("does not access the system clipboard", () => {
-    expect(source).not.toMatch(/navigator\.clipboard/u);
+  it("never reads the system clipboard", () => {
+    expect(source).not.toMatch(/clipboard\.read/u);
+  });
+
+  it("writes to the clipboard only from Copy configuration", () => {
+    const writers = sourceFiles(sourceRoot).filter((file) =>
+      /navigator\.clipboard/u.test(readFileSync(file, "utf8")),
+    );
+    expect(writers.map((file) => file.split("/").pop())).toEqual([
+      "copyConfiguration.ts",
+    ]);
   });
 });

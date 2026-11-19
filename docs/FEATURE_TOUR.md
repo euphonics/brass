@@ -84,7 +84,8 @@ character presence, and it never rewrites your text. See the
 
 The offline cheat sheet explains screenplay terms, Fountain syntax, and First
 Draft project concepts. Its examples are selectable and use the normal system
-copy shortcut; the plugin itself does not access the clipboard.
+copy shortcut; the plugin itself never reads the clipboard. It writes to it
+only for the command **Copy configuration to clipboard**.
 
 ![Offline screenplay cheat sheet](images/cheat-sheet.png)
 
