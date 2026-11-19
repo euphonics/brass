@@ -157,6 +157,14 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Tab and Enter no longer produce improper formatting (from a survey of
+  Tab/Enter chains): Enter doesn't stack blank lines or leave unfinished
+  sluglines (strict); an empty "()" is never left behind; no empty line
+  between a wryly and its dialogue; Tab after "INT." opens the location
+  list instead of adding " - "; in Fountain mode, Tab never inserts tab
+  characters, Enter keeps "()" and speeches whole, and no wryly goes under
+  a wryly.
+
 - With strict on, deleting a selection that cuts into a slugline, cue,
   wryly or transition deletes those elements whole (no lone ")").
 - "$" variables with hyphens ("$dead-teacher-name") are highlighted whole.
@@ -166,9 +174,6 @@ Scribidian changes since 0.1.0.
 
 - Tab under an empty "()" (or under a wryly) no longer adds a second wryly:
   under an empty "()" Tab and Enter drop it and go to a new character.
-
-- Enter inside an empty "()" with the wryly list closed no longer splits it
-  into "(" and ")" on separate lines.
 
 - Shift+Enter in the middle of a character name line keeps the moved text a
   character line, in capitals.

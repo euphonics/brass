@@ -56,6 +56,14 @@ describe("Smart Tab", () => {
     expect(result?.text).toBe(`${opening}\n()`);
   });
 
+  it("after a bare scene type, adds a space and opens the location list", () => {
+    for (const source of ["INT.", "INT. "]) {
+      const result = tabAtEnd(source);
+      expect(result?.text).toBe("INT. ");
+      expect(result?.plan.openCompletion).toBe(true);
+    }
+  });
+
   it("adds a time separator to a heading without a time of day", () => {
     const result = tabAtEnd("INT. MILITARY BASE - WARD");
     expect(result?.plan.kind).toBe("scene-heading");

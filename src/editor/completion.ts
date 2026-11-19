@@ -133,6 +133,18 @@ function followsHeading(doc: Text, lineNumber: number): boolean {
 }
 
 /**
+ * A slugline still missing its location or time: only a scene type
+ * ("INT.", "I/E."), or ending in a dash ("INT. HOUSE -", "INT. -").
+ */
+export function isUnfinishedSlugline(text: string): boolean {
+  const line = text.trim();
+  if (/^(?:INT|EXT|EST|INT\.?\/EXT|I\/E)\.$/iu.test(line)) return true;
+  return (
+    /^(?:INT|EXT|EST|INT\.?\/EXT|I\/E)[.\s]/iu.test(line) && /\s-$/u.test(line)
+  );
+}
+
+/**
  * Typing on the empty line where Tab opened the character list: the writer
  * is typing a cue. Keep the line laid out as one, so a name typed in lower
  * case ("Jen", before the list's "JEN" is picked) stays in the middle
@@ -510,6 +522,17 @@ export function createScreenplayCompletionExtension(
     if (classifySmartTabLine(lines, line.number) !== "dialogue") return false;
     const below = doc.line(line.number + 1);
     const indent = below.text.length - below.text.trimStart().length;
+    // An empty "()" isn't left behind: it goes, and the cursor lands on
+    // the dialogue.
+    if (/^\(\s*\)$/u.test(line.text.trim())) {
+      view.dispatch({
+        changes: { from: line.from, to: below.from },
+        selection: { anchor: line.from + indent },
+        scrollIntoView: true,
+        userEvent: "delete",
+      });
+      return true;
+    }
     view.dispatch({
       selection: { anchor: below.from + indent },
       scrollIntoView: true,
@@ -566,7 +589,10 @@ export function createScreenplayCompletionExtension(
       case "nothing":
         return true;
       case "obsidian":
-        return false;
+        // Obsidian's Tab, except that it never puts a tab character into
+        // the script (it would indent the line): lists, tables and code
+        // blocks keep it, other lines get nothing.
+        return keepTabsOut(view);
       case "move":
         view.dispatch({
           selection: { anchor: plan.cursor },
@@ -887,51 +913,35 @@ export function createScreenplayCompletionExtension(
   // dialogue, a new speaker. An open suggestion menu keeps Enter for
   // accepting.
   const enter = (view: EditorView): boolean => {
-    // A bare "()" with the cursor inside, the wryly list closed: same as
-    // with the list open (below). Keep "()" whole and go on from its end,
-    // instead of splitting it into "(" and ")" on separate lines.
-    if (
-      plugin.isScriptMode() &&
-      completionStatus(view.state) !== "active" &&
-      view.state.selection.ranges.length === 1 &&
-      view.state.selection.main.empty
-    ) {
-      const file = view.state.field(editorInfoField, false)?.file ?? null;
-      const line = view.state.doc.lineAt(view.state.selection.main.head);
-      const end = line.from + line.text.trimEnd().length;
-      if (
-        file !== null &&
-        plugin.isScreenplayFile(file) &&
-        /^\(\s*\)$/u.test(line.text.trim()) &&
-        view.state.selection.main.head < end
-      ) {
-        view.dispatch({ selection: { anchor: end } });
-      }
-    }
+    if (enterInEmptyWryly(view)) return true;
     if (completionStatus(view.state) !== "active") {
+      if (enterOnBlankStack(view)) return true;
+      if (enterOnUnfinishedSlugline(view)) return true;
       const inside = enterInside(view);
       if (inside !== null) return inside;
     }
     // Plain mode: Enter is always Obsidian's own. An open suggestion list
     // closes rather than taking the Enter (Tab or a tap accepts it).
+    // Strict still keeps a speech whole, as in script mode.
     if (!plugin.isScriptMode()) {
       if (completionStatus(view.state) !== null) closeCompletion(view);
+      if (enterOnBlankStack(view)) return true;
+      if (enterOnUnfinishedSlugline(view)) return true;
+      if (enterInsideSpeech(view)) return true;
+      if (blankLineInSpeech(view)) return true;
+      if (
+        plugin.typingChangeEnabled("lockBlankLines") &&
+        enterOnEmptyDialogue(view, true)
+      ) {
+        return true;
+      }
       return plainBreakAfterMarker(view);
     }
     if (transitionOnEnter(view)) return true;
-    // The wryly list: Enter in a bare "()" doesn't pick its first item, it
-    // goes on to the dialogue; Enter on a typed wryly picks it and goes on,
-    // in one press (as in Fade In).
+    // The wryly list on a typed wryly: Enter picks it and goes on, in one
+    // press (as in Fade In). (A bare "()" is enterInEmptyWryly.)
     const wryly = wrylyList(view);
-    if (wryly === "empty") {
-      // Keep "()" whole (no split around the cursor): from its end, Enter
-      // starts the dialogue line below.
-      closeCompletion(view);
-      const line = view.state.doc.lineAt(view.state.selection.main.head);
-      view.dispatch({
-        selection: { anchor: line.from + line.text.trimEnd().length },
-      });
-    } else if (wryly === "pick") acceptCompletion(view);
+    if (wryly === "pick") acceptCompletion(view);
     else if (completionStatus(view.state) === "active") return false;
     if (
       plugin.settings.smartEnterEnabled &&
@@ -966,6 +976,108 @@ export function createScreenplayCompletionExtension(
       plugin.settings.smartEnterEnabled,
     );
     return plan !== null && applySmartPlan(view, plan);
+  };
+
+  // Enter on an empty "()" (cursor anywhere on it, list open or not, both
+  // modes): the empty wryly never stays behind. With more of the speech
+  // below, the "()" line goes and the cursor moves to that line. Under a
+  // cue, the line becomes the dialogue line (as in Fade In). After
+  // dialogue, the "()" goes and Enter carries on from the end of the
+  // dialogue (a new character, in script mode).
+  const enterInEmptyWryly = (view: EditorView): boolean => {
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    const line = doc.lineAt(selection.main.head);
+    if (!/^\(\s*\)$/u.test(line.text.trim()) || line.number === 1) return false;
+    const lines = doc.toString().split("\n");
+    if (classifySmartTabLine(lines, line.number - 1) !== "parenthetical") {
+      return false;
+    }
+    if (completionStatus(view.state) !== null) closeCompletion(view);
+    const next = line.number < doc.lines ? doc.line(line.number + 1) : null;
+    if (next !== null && next.text.trim() !== "") {
+      const indent = next.text.length - next.text.trimStart().length;
+      view.dispatch({
+        changes: { from: line.from, to: next.from },
+        selection: { anchor: line.from + indent },
+        scrollIntoView: true,
+        userEvent: "delete",
+      });
+      return true;
+    }
+    const above = doc.line(line.number - 1);
+    const kinds = classifyLines(lines, { cursorLine: line.number - 1 });
+    if (
+      kinds[line.number - 2] !== "character" &&
+      plugin.isScriptMode() &&
+      plugin.settings.smartEnterEnabled &&
+      above.text.trim() !== ""
+    ) {
+      view.dispatch({
+        changes: { from: above.to, to: line.to },
+        selection: { anchor: above.to },
+        scrollIntoView: true,
+        userEvent: "delete",
+      });
+      const plan = smartPlan(
+        view,
+        (source, cursor, knownTimes) =>
+          getSmartEnterPlan(
+            source,
+            cursor,
+            knownTimes,
+            plugin.settings.enterTargets,
+          ),
+        true,
+      );
+      if (plan !== null) applySmartPlan(view, plan);
+      return true;
+    }
+    view.dispatch({
+      changes: { from: line.from, to: line.to },
+      selection: { anchor: line.from },
+      scrollIntoView: true,
+      userEvent: "delete",
+    });
+    return true;
+  };
+
+  // Strict: Enter on an empty line, or at the start of a line, that already
+  // has a blank line above does nothing. The line is already where the
+  // next element goes; another Enter would only stack blank lines.
+  const enterOnBlankStack = (view: EditorView): boolean => {
+    if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    const line = doc.lineAt(selection.main.head);
+    if (line.number === 1) return false;
+    const textStart =
+      line.from + (line.text.length - line.text.trimStart().length);
+    if (selection.main.head > textStart && line.text.trim() !== "") {
+      return false;
+    }
+    if (doc.line(line.number - 1).text.trim() !== "") return false;
+    if (inCodeBlock(doc, line.number)) return false;
+    return true;
+  };
+
+  // Strict: Enter at the end of an unfinished slugline ("INT.", "INT. ",
+  // "INT. HOUSE - ") does nothing, so it isn't left unfinished.
+  const enterOnUnfinishedSlugline = (view: EditorView): boolean => {
+    if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    const line = doc.lineAt(selection.main.head);
+    if (selection.main.head < line.from + line.text.trimEnd().length) {
+      return false;
+    }
+    return isUnfinishedSlugline(line.text);
   };
 
   // Strict cursor placement: Enter at the end of a cue, wryly or dialogue
@@ -1015,6 +1127,9 @@ export function createScreenplayCompletionExtension(
     const kind = kinds[line.number - 1];
     const above = kinds[line.number - 2];
     if (kind !== "dialogue" && kind !== "parenthetical") return false;
+    // Right under a wryly: nothing. An empty line there would sit between
+    // the wryly and its dialogue.
+    if (kind === "dialogue" && above === "parenthetical") return true;
     if (
       above !== "character" &&
       above !== "dialogue" &&
@@ -1039,7 +1154,6 @@ export function createScreenplayCompletionExtension(
   const dropEmptyWrylyAbove = (
     view: EditorView,
   ): "dropped" | "wryly" | null => {
-    if (!plugin.isScriptMode()) return null;
     const file = view.state.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return null;
     const { selection, doc } = view.state;
@@ -1066,8 +1180,10 @@ export function createScreenplayCompletionExtension(
   // Enter on the empty dialogue line under a cue or wryly does nothing:
   // a cue needs its dialogue, so there is no valid line to start yet. Type
   // the dialogue, or Backspace (back to the cue) or Shift+Tab (action).
-  const enterOnEmptyDialogue = (view: EditorView): boolean => {
-    if (!plugin.settings.smartEnterEnabled) return false;
+  // In Fountain mode (`always`) it applies with strict on, whatever Smart
+  // Enter says.
+  const enterOnEmptyDialogue = (view: EditorView, always = false): boolean => {
+    if (!always && !plugin.settings.smartEnterEnabled) return false;
     const file = view.state.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return false;
     const { selection, doc } = view.state;

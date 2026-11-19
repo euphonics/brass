@@ -388,8 +388,20 @@ function defaultTabPlan(
           openCompletion: false,
         });
       }
-      // Complete the " - " separator, whatever part of it is already typed.
+      // Only a scene type so far ("INT.", "INT. "): a space and the
+      // location list, not " - " before any location.
       const trimmed = line.trimEnd();
+      if (/^\s*(?:INT|EXT|EST|INT\.?\/EXT|I\/E)\.$/iu.test(trimmed)) {
+        const space = line.endsWith(" ") ? "" : " ";
+        return uppercaseHeading(source, {
+          kind,
+          at,
+          insert: space,
+          cursor: at + space.length,
+          openCompletion: true,
+        });
+      }
+      // Complete the " - " separator, whatever part of it is already typed.
       const insert = trimmed.endsWith(" -")
         ? line.endsWith(" ")
           ? ""

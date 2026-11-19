@@ -188,6 +188,23 @@ Test cases:
   Some writers expect Enter after a wryly to go to the character column; the
   default is dialogue.
 
+- **Enter never leaves improper formatting (strict, both modes):**
+  - On an empty line, or at the start of a line, with a blank line above:
+    nothing. The line is already where the next element goes.
+  - At the end of an unfinished slugline (`INT.`, `INT. HOUSE - `):
+    nothing.
+  - On an empty `()`: with more of the speech below, the `()` line goes and
+    the cursor moves down to it; under a cue, the line becomes the dialogue
+    line; after dialogue, the `()` goes and Enter goes on from the end of
+    the dialogue (a new character in script mode).
+  - At the start of dialogue right under a wryly: nothing.
+  - Fountain mode keeps Obsidian's Enter otherwise, but these rules and
+    "Enter inside a speech does nothing" apply there too.
+- **Tab after a bare scene type** (`INT.`) adds a space and opens the
+  location list, not `-`. **Tab on an empty `()` with dialogue below**
+  drops the `()` and lands on the dialogue. **Obsidian's Tab** (Tab inside
+  a line setting) never inserts a tab character in a screenplay.
+
 ### Enter inside a line
 
 - **Strict on, inside action:** Enter starts a new paragraph, with a blank
@@ -257,7 +274,7 @@ Special cases, all decided during testing:
   does nothing. Lists, tables and code blocks keep Obsidian's Tab.
 
 - **Under a wryly, never another wryly.** On the empty dialogue line under
-  an empty `()` (Enter in `(|)` leaves the cursor there), Tab drops the
+  an empty `()` (made by hand), Tab drops the
   empty `()` and goes to a new character; Enter does the same as Enter at
   the end of the line above it (a new character after dialogue). Under a
   wryly with text, `(beat)`, Tab does nothing: its dialogue goes there.
