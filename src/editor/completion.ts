@@ -845,6 +845,27 @@ export function createScreenplayCompletionExtension(
   // dialogue, a new speaker. An open suggestion menu keeps Enter for
   // accepting.
   const enter = (view: EditorView): boolean => {
+    // A bare "()" with the cursor inside, the wryly list closed: same as
+    // with the list open (below). Keep "()" whole and go on from its end,
+    // instead of splitting it into "(" and ")" on separate lines.
+    if (
+      plugin.isScriptMode() &&
+      completionStatus(view.state) !== "active" &&
+      view.state.selection.ranges.length === 1 &&
+      view.state.selection.main.empty
+    ) {
+      const file = view.state.field(editorInfoField, false)?.file ?? null;
+      const line = view.state.doc.lineAt(view.state.selection.main.head);
+      const end = line.from + line.text.trimEnd().length;
+      if (
+        file !== null &&
+        plugin.isScreenplayFile(file) &&
+        /^\(\s*\)$/u.test(line.text.trim()) &&
+        view.state.selection.main.head < end
+      ) {
+        view.dispatch({ selection: { anchor: end } });
+      }
+    }
     if (completionStatus(view.state) !== "active") {
       const inside = enterInside(view);
       if (inside !== null) return inside;

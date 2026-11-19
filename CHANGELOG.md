@@ -155,6 +155,9 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Enter inside an empty "()" with the wryly list closed no longer splits it
+  into "(" and ")" on separate lines.
+
 - Shift+Enter in the middle of a character name line keeps the moved text a
   character line, in capitals.
 - Suggestion lists near the right edge of the editor (transitions) move
