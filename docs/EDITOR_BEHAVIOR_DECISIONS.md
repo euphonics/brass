@@ -282,6 +282,9 @@ Test cases:
   column while the cursor stays on it. When the cursor leaves, a
   character with nothing under it shows as action, which is how Fountain
   reads it.
+- **Two action blocks join**: Backspace at the start of an action block
+  right after another one (or Delete at the end of the first) makes one
+  paragraph, with a space between, as in Fade In.
 - Backspace at the start of a block goes to the end of the block above,
   and Delete at the end of a block does nothing: the single blank line
   between two blocks can't be deleted this way (it would merge them). An

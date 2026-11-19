@@ -80,6 +80,9 @@ Scribidian changes since 0.1.0.
 
 ### Changed
 
+- Strict cursor placement: Backspace or Delete between two action blocks
+  joins them into one paragraph (with a space), as in Fade In. Other
+  elements still stay apart.
 - Tidier command palette: commands with their own key or menu (Smart Tab,
   Smart Tab back, Delete and merge with line above, New scene, Character,
   Wryly, Transition, Preview) are hidden unless **Show all commands in the

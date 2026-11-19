@@ -104,6 +104,37 @@ export function separatorRemoved(
 }
 
 /**
+ * When deleting `from`..`to` removes the blank line between two action
+ * blocks: the change that joins them into one paragraph instead (the line
+ * break and blank line become a space), as in Fade In. Null otherwise.
+ */
+export function actionBlocksJoin(
+  doc: Text,
+  from: number,
+  to: number,
+): { from: number; to: number; insert: string } | null {
+  const above = doc.lineAt(from);
+  const below = doc.lineAt(to);
+  if (below.number !== above.number + 1) return null;
+  const blank = isSeparatorLine(doc, above.number)
+    ? above.number
+    : isSeparatorLine(doc, below.number)
+      ? below.number
+      : null;
+  if (blank === null) return null;
+  const textAbove = doc.line(blank - 1);
+  const textBelow = doc.line(blank + 1);
+  // The whole note: a cue is only a cue with its dialogue below it.
+  const kinds = classifyLines(doc.toString().split("\n"));
+  if (kinds[blank - 2] !== "action" || kinds[blank] !== "action") return null;
+  const trimmedEnd = textAbove.from + textAbove.text.trimEnd().length;
+  const startBelow =
+    textBelow.from +
+    (textBelow.text.length - textBelow.text.trimStart().length);
+  return { from: trimmedEnd, to: startBelow, insert: " " };
+}
+
+/**
  * Whether deleting `from`..`to` (with the cursor on line `cursorLine`,
  * 0-based) joins two lines of text that are different elements, such as a
  * character cue and the dialogue under it.
@@ -133,7 +164,7 @@ export function joinsDifferentElements(
  * Backspace or Delete across a line break never joins two different
  * elements (a cue and its dialogue): Backspace moves to the end of the line
  * above instead, and Delete does nothing; Shift+Backspace joins them
- * anyway. Other edits and selections are left alone.
+ * anyway. Two action blocks join into one paragraph. Other edits and selections are left alone.
  */
 export function createBlankLineLockExtension(
   plugin: ScribidianPlugin,
@@ -158,6 +189,15 @@ export function createBlankLineLockExtension(
     if (backspace || forward) {
       const join = elementJoin(plugin, tr);
       if (join !== null) {
+        if (join.merge) {
+          const { from, to, insert } = join.merge;
+          return {
+            changes: { from, to, insert },
+            selection: EditorSelection.cursor(from + insert.length),
+            userEvent: backspace ? "delete.backward" : "delete.forward",
+            scrollIntoView: true,
+          };
+        }
         return backspace
           ? { selection: EditorSelection.cursor(join.aboveEnd) }
           : {};
@@ -205,7 +245,10 @@ export function createBlankLineLockExtension(
 function elementJoin(
   plugin: ScribidianPlugin,
   tr: Transaction,
-): { aboveEnd: number } | null {
+): {
+  aboveEnd: number;
+  merge?: { from: number; to: number; insert: string };
+} | null {
   const start = tr.startState;
   if (start.selection.ranges.length !== 1 || !start.selection.main.empty) {
     return null;
@@ -228,9 +271,13 @@ function elementJoin(
   // Deleting the blank line between two blocks merges them (a cue after a
   // speech becomes its dialogue; a slugline ends up glued under action).
   // Backspace at the start of a block goes to the end of the block above;
-  // Delete at the end of a block does nothing.
+  // Delete at the end of a block does nothing. Two action blocks join into
+  // one paragraph instead, as in Fade In.
   const separator = separatorRemoved(start.doc, from, to);
-  if (separator !== null) return { aboveEnd: separator };
+  if (separator !== null) {
+    const merge = actionBlocksJoin(start.doc, from, to);
+    return merge ? { aboveEnd: separator, merge } : { aboveEnd: separator };
+  }
   const cursorLine = start.doc.lineAt(start.selection.main.head).number - 1;
   if (!joinsDifferentElements(start.doc, from, to, cursorLine)) return null;
   return { aboveEnd: start.doc.lineAt(from).to };

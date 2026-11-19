@@ -174,6 +174,12 @@ describe("blank line lock", () => {
       expect(after.selection.main.head).toBe(after.doc.line(3).to);
     });
 
+    it("doesn't join action to a cue below it", () => {
+      const blocks = ["Fiona glows.", "", "BLAKE", "Hi."];
+      const after = backspace(stateAt(blocks, 3));
+      expect(after.doc.toString()).toBe(blocks.join("\n"));
+    });
+
     it("leaves the cursor on a line cleared without joining lines", () => {
       const state = stateAt(["MARA", "Hello"], 2);
       const line = state.doc.line(2);
@@ -185,6 +191,26 @@ describe("blank line lock", () => {
       }).state;
       expect(after.doc.toString()).toBe("MARA\n");
       expect(after.selection.main.head).toBe(after.doc.line(2).from);
+    });
+
+    it("joins two action blocks into one paragraph", () => {
+      const blocks = ["Fiona glows.", "", "Blake eyes a camera."];
+      const after = backspace(stateAt(blocks, 3));
+      expect(after.doc.toString()).toBe("Fiona glows. Blake eyes a camera.");
+      expect(after.selection.main.head).toBe("Fiona glows. ".length);
+    });
+
+    it("joins two action blocks with Delete too", () => {
+      const blocks = ["Fiona glows.", "", "Blake eyes a camera."];
+      const state = stateAt(blocks, 1);
+      const end = state.doc.line(1).to;
+      const after = state
+        .update({ selection: EditorSelection.cursor(end) })
+        .state.update({
+          changes: { from: end, to: end + 1 },
+          userEvent: "delete.forward",
+        }).state;
+      expect(after.doc.toString()).toBe("Fiona glows. Blake eyes a camera.");
     });
 
     it("still joins two lines of the same element", () => {
