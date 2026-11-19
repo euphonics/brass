@@ -164,6 +164,17 @@ export function createBlankLineLockExtension(
       }
       if (forward) return tr;
     }
+    // A Backspace that removed no line break (e.g. Ctrl+Backspace clearing
+    // the words on a line) leaves the cursor where it is.
+    if (backspace) {
+      let joined = false;
+      tr.changes.iterChanges((fromA, toA) => {
+        if (tr.startState.doc.sliceString(fromA, toA).includes("\n")) {
+          joined = true;
+        }
+      });
+      if (!joined) return tr;
+    }
     const selection = tr.selection ?? (backspace ? tr.newSelection : null);
     if (selection === null) return tr;
     if (selection.ranges.length !== 1 || !selection.main.empty) return tr;

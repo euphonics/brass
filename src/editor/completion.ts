@@ -18,6 +18,7 @@
 import {
   isForcedTransition,
   isMarkdownHeading,
+  characterCue,
   isSceneHeading,
   isTransitionText,
   looksLikeCharacterCue,
@@ -1031,7 +1032,10 @@ export function createScreenplayCompletionExtension(
   };
 
   const uppercaseTransitions = EditorState.transactionFilter.of((tr) => {
-    if (!tr.docChanged || !tr.isUserEvent("input.type")) return tr;
+    const pasted = tr.isUserEvent("input.paste");
+    if (!tr.docChanged || (!tr.isUserEvent("input.type") && !pasted)) {
+      return tr;
+    }
     // Leave text alone while a phone keyboard is composing a word: changing
     // it mid-composition makes the keyboard duplicate or garble letters.
     if (tr.isUserEvent("input.type.compose")) return tr;
@@ -1042,6 +1046,21 @@ export function createScreenplayCompletionExtension(
     tr.changes.iterChanges((fromA, _toA, fromB, toB, inserted) => {
       const text = inserted.toString();
       const line = tr.newDoc.lineAt(fromB);
+      // A name pasted on a line in the character column is a cue too. Other
+      // pasted text is left as it is.
+      if (pasted) {
+        if (
+          plugin.typingChangeEnabled("uppercaseCharacters") &&
+          !text.includes("\n") &&
+          inCueColumn(tr.startState, tr.startState.doc.lineAt(fromA).from)
+        ) {
+          const upper = text.toLocaleUpperCase();
+          if (upper !== text && upper.length === text.length) {
+            fixes.push({ from: fromB, to: toB, insert: upper });
+          }
+        }
+        return;
+      }
       // The first letter typed on a blank dialogue line ("  ", see
       // blankLineInSpeech) replaces the two spaces that kept it in the speech.
       const before = tr.startState.doc.lineAt(fromA);
@@ -1138,12 +1157,66 @@ export function createScreenplayCompletionExtension(
       });
       return kinds[line.number - 1] === "character" ? line.from : null;
     };
-    const from = emptyCueLine(update.state);
+    // A cue whose text was just deleted (e.g. Ctrl+Backspace): the line
+    // stays where the cue goes, so it stays a cue line.
+    const clearedCue = (): number | null => {
+      if (!update.docChanged || !plugin.isScriptMode()) return null;
+      const { state, startState } = update;
+      if (state.selection.ranges.length > 1 || !state.selection.main.empty) {
+        return null;
+      }
+      const line = state.doc.lineAt(state.selection.main.head);
+      if (line.text.trim() !== "" || tabCueLine(state) !== null) return null;
+      const old = startState.doc.lineAt(startState.selection.main.head);
+      if (old.text.trim() === "") return null;
+      if (update.changes.mapPos(old.from, -1) !== line.from) return null;
+      const kinds = classifyLines(startState.doc.toString().split("\n"), {
+        cursorLine: old.number - 1,
+      });
+      return kinds[old.number - 1] === "character" ? line.from : null;
+    };
+    const from = emptyCueLine(update.state) ?? clearedCue();
     if (from === null) return;
     const view = update.view;
     window.setTimeout(() => {
-      if (emptyCueLine(view.state) !== from) return;
+      const { state } = view;
+      if (state.selection.ranges.length > 1) return;
+      const line = state.doc.lineAt(state.selection.main.head);
+      if (line.from !== from || line.text.trim() !== "") return;
+      if (tabCueLine(state) !== null) return;
       view.dispatch({ effects: setTabMenuLine.of({ from, cue: true }) });
+      if (completionStatus(view.state) === null) startCompletion(view);
+    }, 0);
+  });
+
+  // Deleting back into an empty part reopens its list, as Tab does going
+  // forward: a bare "()" (wrylies), "INT. |" (locations), "INT. CAR - |"
+  // (times), "JEN (|" (extensions).
+  const partListAfterDelete = EditorView.updateListener.of((update) => {
+    if (!update.docChanged) return;
+    if (!update.transactions.some((tr) => tr.isUserEvent("delete"))) return;
+    const { state } = update;
+    const file = state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return;
+    if (state.selection.ranges.length > 1 || !state.selection.main.empty) {
+      return;
+    }
+    const head = state.selection.main.head;
+    const line = state.doc.lineAt(head);
+    const before = line.text.slice(0, head - line.from);
+    const after = line.text.slice(head - line.from);
+    const emptyPart =
+      (/^\s*\($/u.test(before) && /^\)\s*$/u.test(after)) ||
+      (after.trim() === "" &&
+        isSceneHeading(line.text.trim()) &&
+        (/^\S+\s+$/u.test(before) || / - $/u.test(before))) ||
+      (after.trim() === "" &&
+        / \($/u.test(before) &&
+        characterCue(before.slice(0, -1)) !== null);
+    if (!emptyPart) return;
+    const view = update.view;
+    window.setTimeout(() => {
+      if (view.state.selection.main.head !== head) return;
       if (completionStatus(view.state) === null) startCompletion(view);
     }, 0);
   });
@@ -1154,6 +1227,7 @@ export function createScreenplayCompletionExtension(
     tabMenuLineField,
     keepTabCue,
     cueColumnMenu,
+    partListAfterDelete,
     uppercaseTransitions,
     // Before autocompletion, so plain mode's Enter runs ahead of the
     // suggestion list's own Enter.

@@ -93,6 +93,12 @@ Test cases:
 - Typing `JOHN (` or `JOHN(` opens the extension list ((V.O.), (O.S.),
   (CONT'D)), even for a name not yet in the script, if the line starts a
   block.
+- **A cue whose text is deleted stays a cue line** (list open, capitals),
+  and a name pasted there is put in capitals.
+- **An empty line after a speech is the next cue's line only when nothing
+  is right below it.** With text right below, it stays a plain line.
+- **Deleting back into an empty part reopens its list**: "()" (wrylies),
+  "INT. " (locations), "INT. CAR - " (times), "JEN (" (extensions).
 - **An empty line in the character column always acts as a cue line,**
   however the cursor got there (Tab, Enter, deleting back to it, arrowing
   onto it): the character list opens and typing is in capitals. Escape or

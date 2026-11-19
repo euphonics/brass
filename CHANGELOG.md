@@ -130,6 +130,14 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Script mode: a character cue whose text is deleted stays a cue line (list
+  open, capitals); an empty line after a speech with text right below no
+  longer shows as the next cue or turns that text into dialogue; a pasted
+  name in the character column is put in capitals.
+- Strict: Ctrl+Backspace that clears a line's words no longer moves the
+  cursor to the line above (typing used to join the character's name).
+- Deleting back into an empty part reopens its list: wrylies in "()",
+  locations after "INT. ", times after " - ", extensions after "(".
 - A forced character cue with no letters (`@123`, `@???`) is a cue, as
   Fountain allows; it used to be read as action.
 - Script mode: an empty line shown in the character column always opens the

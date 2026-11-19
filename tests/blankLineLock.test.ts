@@ -174,6 +174,19 @@ describe("blank line lock", () => {
       expect(after.selection.main.head).toBe(after.doc.line(3).to);
     });
 
+    it("leaves the cursor on a line cleared without joining lines", () => {
+      const state = stateAt(["MARA", "Hello"], 2);
+      const line = state.doc.line(2);
+      // Ctrl+Backspace at the end: the word goes, the line break stays.
+      const after = state.update({
+        changes: { from: line.from, to: line.to },
+        selection: EditorSelection.cursor(line.from),
+        userEvent: "delete.backward",
+      }).state;
+      expect(after.doc.toString()).toBe("MARA\n");
+      expect(after.selection.main.head).toBe(after.doc.line(2).from);
+    });
+
     it("still joins two lines of the same element", () => {
       const speech = ["CODY", "Line one", "line two"];
       const after = backspace(stateAt(speech, 3));
