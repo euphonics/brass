@@ -93,6 +93,10 @@ Test cases:
 - Typing `JOHN (` or `JOHN(` opens the extension list ((V.O.), (O.S.),
   (CONT'D)), even for a name not yet in the script, if the line starts a
   block.
+- **An empty line in the character column always acts as a cue line,**
+  however the cursor got there (Tab, Enter, deleting back to it, arrowing
+  onto it): the character list opens and typing is in capitals. Escape or
+  Shift+Tab makes it action.
 - When the line was moved to the character column (Tab, or after a speech),
   only character suggestions show: no transitions, sluglines or wrylies.
 - Escape on an empty character-column line closes the list and moves the

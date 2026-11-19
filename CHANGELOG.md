@@ -130,6 +130,10 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Script mode: an empty line shown in the character column always opens the
+  character list and types in capitals, however the cursor got there
+  (before, deleting back to it showed the column with no list, and typing
+  made action).
 - Script mode: Shift+Enter starts a new line of the same element as the
   line the cursor was on (after dialogue, the cursor stays in the dialogue
   column).

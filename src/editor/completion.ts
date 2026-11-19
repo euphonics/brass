@@ -54,7 +54,7 @@ import {
   type Extension,
   type Text,
 } from "@codemirror/state";
-import { keymap, type EditorView } from "@codemirror/view";
+import { EditorView, keymap } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
 import type ScribidianPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
@@ -1114,11 +1114,46 @@ export function createScreenplayCompletionExtension(
     return fixes.length === 0 ? tr : [tr, { changes: fixes, sequential: true }];
   });
 
+  // The cursor on an empty line laid out in the character column (e.g. the
+  // next cue's line after a speech, reached by deleting back to it): mark
+  // it as a cue line and open the character list, as Tab does. Otherwise
+  // the line looks like a cue but typing on it makes action, with no list
+  // and no capitals.
+  const cueColumnMenu = EditorView.updateListener.of((update) => {
+    if (!update.docChanged && !update.selectionSet) return;
+    const emptyCueLine = (state: EditorState): number | null => {
+      if (!plugin.isScriptMode()) return null;
+      const file = state.field(editorInfoField, false)?.file ?? null;
+      if (file === null || !plugin.isScreenplayFile(file)) return null;
+      const { selection, doc } = state;
+      if (selection.ranges.length > 1 || !selection.main.empty) return null;
+      const line = doc.lineAt(selection.main.head);
+      if (line.text.trim() !== "" || tabCueLine(state) !== null) return null;
+      const forced = state.field(lineKindField, false) ?? null;
+      if (forced !== null && forced.from === line.from) {
+        return forced.kind === "character" ? line.from : null;
+      }
+      const kinds = classifyLines(doc.toString().split("\n"), {
+        cursorLine: line.number - 1,
+      });
+      return kinds[line.number - 1] === "character" ? line.from : null;
+    };
+    const from = emptyCueLine(update.state);
+    if (from === null) return;
+    const view = update.view;
+    window.setTimeout(() => {
+      if (emptyCueLine(view.state) !== from) return;
+      view.dispatch({ effects: setTabMenuLine.of({ from, cue: true }) });
+      if (completionStatus(view.state) === null) startCompletion(view);
+    }, 0);
+  });
+
   return [
     forcedListField,
     extensionListField,
     tabMenuLineField,
     keepTabCue,
+    cueColumnMenu,
     uppercaseTransitions,
     // Before autocompletion, so plain mode's Enter runs ahead of the
     // suggestion list's own Enter.
