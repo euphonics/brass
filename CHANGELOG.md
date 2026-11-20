@@ -11,6 +11,9 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Command **Screenplay: Select element**: selects the whole element at the
+  cursor, a speech (cue, wrylies and dialogue) or a run of action lines with
+  no blank line between them. Give it a hotkey under Settings → Hotkeys.
 - Command **Copy configuration to clipboard**: settings, mode and the
   cursor's context, ready to paste into a bug report.
 - Setting **Tab with a list open** (script mode): Tab can pick the

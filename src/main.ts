@@ -36,6 +36,7 @@ import {
 import type { Command, TFile } from "obsidian";
 import { openCharacterPicker } from "./commands/character";
 import { copyConfiguration } from "./commands/copyConfiguration";
+import { elementLines } from "./commands/selectElement";
 import { exportFdx } from "./commands/exportFdx";
 import { exportFountain } from "./commands/exportFountain";
 import {
@@ -172,6 +173,23 @@ export default class ScribidianPlugin extends Plugin {
       name: "Copy configuration to clipboard",
       icon: "clipboard-copy",
       callback: () => void copyConfiguration(this),
+    });
+    this.addCommand({
+      id: "screenplay-select-element",
+      name: "Screenplay: Select element",
+      icon: "text-select",
+      editorCheckCallback: (checking, editor, context) => {
+        if (!this.isScreenplayFile(context.file)) return false;
+        if (checking) return true;
+        const lines = editor.getValue().split("\n");
+        const range = elementLines(lines, editor.getCursor("head").line);
+        if (range === null) return true;
+        editor.setSelection(
+          { line: range.from, ch: 0 },
+          { line: range.to, ch: (lines[range.to] ?? "").length },
+        );
+        return true;
+      },
     });
 
     this.addCommand({
