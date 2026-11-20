@@ -156,6 +156,11 @@ Test cases:
   `SMASH`) list the transitions, after any matching characters. A pick
   writes `CUT TO:` as it is and adds `>` to others (`> FADE OUT.`).
 - `@` or `@j` (a forced cue) lists the characters, in any case.
+- Setting **Suggest character names in action** (off by default): capitals
+  typed inside an action line (`She sees JE`) list the characters starting
+  with them, like Final Draft's SmartType. Enter writes the name in the
+  line (no `@`, no line break). Not at the start of a block (that is the
+  cue list), nor in dialogue or a slugline.
 - Typing `)` right before the `)` closing a wryly or extension steps over
   it, as in Fade In.
 - A line set to dialogue (Shift+Enter) that starts with `(` is a wryly.

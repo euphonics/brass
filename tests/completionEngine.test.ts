@@ -431,3 +431,40 @@ describe("forced character cues", () => {
     expect(plan(`${script}MC`)?.candidates[0]?.applyText).toBe("@McCLANE\n");
   });
 });
+
+describe("character names in action", () => {
+  const script = "JENNY\nHi.\n\nTHEO\nYo.\n\n";
+  const plan = (source: string, namesInAction = true) =>
+    getScreenplayCompletionPlan(source, source.length, {
+      ...DEFAULT_COMPLETION_PREFERENCES,
+      namesInAction,
+    });
+
+  it("lists characters for capitals inside an action line", () => {
+    const source = `${script}She sees JE`;
+    expect(plan(source)).toEqual({
+      kind: "character-name",
+      from: source.length - 2,
+      to: source.length,
+      candidates: [{ label: "JENNY", applyText: "JENNY", detail: "Character" }],
+    });
+  });
+
+  it("works on a later line of an action paragraph", () => {
+    expect(plan(`${script}She runs.\nTH`)?.candidates[0]?.label).toBe("THEO");
+  });
+
+  it("is off by default", () => {
+    expect(plan(`${script}She sees JE`, false)).toBeNull();
+  });
+
+  it("leaves cues, dialogue, sluglines and finished names alone", () => {
+    expect(plan(`${script}JE`)?.kind).toBe("character");
+    expect(plan(`${script}JENNY AND TH`)).toBeNull();
+    expect(plan(`JENNY\nI saw TH`)).toBeNull();
+    expect(plan(`${script}INT. HOUSE - TH`)?.kind).not.toBe("character-name");
+    expect(plan(`${script}She sees JENNY`)).toBeNull();
+    expect(plan(`${script}She sees J`)).toBeNull();
+    expect(plan(`${script}She sees je`)).toBeNull();
+  });
+});

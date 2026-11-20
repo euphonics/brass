@@ -11,6 +11,9 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Setting **Suggest character names in action** (off by default): a name
+  typed in capitals inside an action line (`She sees JE`) lists the
+  characters, like Final Draft's SmartType.
 - Strict: Enter at the end of a wryly with dialogue below moves the cursor
   to the start of that dialogue, as in Final Draft and Fade In.
 - `cut to:` typed on its own block goes into capitals when the `:` is

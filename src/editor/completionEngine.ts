@@ -46,6 +46,7 @@ import { isInDialogueBlock, recentSceneSpeakers } from "./smartTab";
 
 export type ScreenplayCompletionKind =
   | "character"
+  | "character-name"
   | "character-extension"
   | "parenthetical"
   | "transition"
@@ -81,6 +82,11 @@ export interface CompletionPreferences {
    * Off: any case opens it. Default on.
    */
   characterMatchCase?: boolean;
+  /**
+   * A name typed in capitals inside an action line ("She sees JE") lists
+   * the characters, like Final Draft's SmartType. Default off.
+   */
+  namesInAction?: boolean;
   /** Slug modifiers offered after the time of day. */
   preferredSlugModifiers?: readonly string[];
 }
@@ -487,6 +493,63 @@ function parentheticalPlan(
   };
 }
 
+/** The capitals being typed at the end of `before`: "JE" in "She sees JE". */
+const NAME_AT_END = /(^|[^\p{L}\p{N}_'’@#$])(\p{Lu}[\p{Lu}\p{N}'’.-]*)$/u;
+
+/**
+ * A character's name typed in capitals inside an action line ("She sees
+ * JE"): the characters starting with it, written in the line as they are
+ * (no "@", no line break). Not at the start of a block, where the same
+ * capitals are a cue and get the cue list; not in a speech, slugline,
+ * transition or other marked line.
+ */
+function namePlan(
+  source: string,
+  before: string,
+  lineFrom: number,
+  cursorOffset: number,
+  startsBlock: boolean,
+  index: ReturnType<typeof buildScreenplayIndex>,
+  preferences: CompletionPreferences,
+): ScreenplayCompletionPlan | null {
+  if (preferences.namesInAction !== true) return null;
+  const match = NAME_AT_END.exec(before);
+  const word = match?.[2] ?? "";
+  if (word.length < 2) return null;
+  const leading = before.slice(0, before.length - word.length);
+  // Capitals alone at the start of a block are a cue ("JEN", "JEN AND JO").
+  if (startsBlock && UPPERCASE_ONLY.test(before.trim())) return null;
+  if (startsBlock && leading.trim() === "") return null;
+  const lineEnd = source.indexOf("\n", cursorOffset);
+  const text = source
+    .slice(lineFrom, lineEnd === -1 ? source.length : lineEnd)
+    .trim();
+  if (/^[>@~=#.[]/u.test(text) || isSceneHeading(text)) return null;
+  const lines = source.split("\n");
+  const lineIndex = source.slice(0, lineFrom).split("\n").length - 1;
+  if (isInDialogueBlock(lines, lineIndex)) return null;
+  const candidates = rankUsages(
+    index.characters,
+    word,
+    preferences.recentItemsWeighting,
+    preferences.maximumSuggestions,
+  )
+    .filter((usage) => usage.value.toLocaleUpperCase() !== word)
+    .map((usage) => ({
+      label: usage.value,
+      applyText: usage.value,
+      detail: "Character",
+    }));
+  return candidates.length === 0
+    ? null
+    : {
+        kind: "character-name",
+        from: cursorOffset - word.length,
+        to: cursorOffset,
+        candidates,
+      };
+}
+
 export function getScreenplayCompletionPlan(
   source: string,
   cursorOffset: number,
@@ -674,6 +737,17 @@ export function getScreenplayCompletionPlan(
     ...characterCandidates,
     ...transitionCandidates,
   ];
+  if (candidates.length === 0 && !characterOnly) {
+    return namePlan(
+      source,
+      before,
+      from,
+      cursorOffset,
+      plausiblePosition,
+      index,
+      preferences,
+    );
+  }
   return candidates.length === 0
     ? null
     : {

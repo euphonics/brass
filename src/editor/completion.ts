@@ -384,7 +384,7 @@ export function createScreenplayCompletionExtension(
       forced?.kind,
     );
     if (!plan) return null;
-    if (actionLine) {
+    if (actionLine && plan.kind !== "character-name") {
       if (plan.kind !== "scene-type" && plan.kind !== "character") {
         return null;
       }

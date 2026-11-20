@@ -121,6 +121,7 @@ export interface ScribidianSettings {
   sceneTypeMinimumLetters: number;
   sceneTypeMatchCase: boolean;
   characterMatchCase: boolean;
+  namesInAction: boolean;
   recentItemsWeighting: number;
   maximumSuggestions: number;
   preferredSceneTypes: string[];
@@ -271,6 +272,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   sceneTypeMinimumLetters: 2,
   sceneTypeMatchCase: false,
   characterMatchCase: true,
+  namesInAction: false,
   recentItemsWeighting: 0.65,
   maximumSuggestions: 8,
   preferredSceneTypes: DEFAULT_SCENE_TYPES,
@@ -512,6 +514,7 @@ const SETTING_GROUPS: {
       "sceneTypeMinimumLetters",
       "sceneTypeMatchCase",
       "characterMatchCase",
+      "namesInAction",
     ],
   },
   {
@@ -1227,6 +1230,15 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Suggest character names in action",
+        desc: "Typing a name in capitals inside an action line (JE in \"She sees JE\") lists the script's characters that start with it, like Final Draft's SmartType for a character's first appearance. Enter picks the name, which stays in the action line. Off by default, so action typing stays quiet; when on, Enter after capitals that start a name (THE for THEO) picks the name, so press Escape first.",
+        control: {
+          type: "toggle",
+          key: "namesInAction",
+          defaultValue: DEFAULT_SETTINGS.namesInAction,
+        },
+      },
+      {
         name: "Maximum suggestions",
         desc: "The most suggestions shown at once.",
         control: {
@@ -1553,6 +1565,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "renderFountainCodeBlocks":
       case "sceneTypeMatchCase":
       case "characterMatchCase":
+      case "namesInAction":
       case "markCapitalsAsAction":
       case "statusBarEnabled":
       case "showEstimatedPages":
