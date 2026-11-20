@@ -307,9 +307,43 @@ export function createScreenplayLayoutExtension(
       selectionDelete(view) ||
       cueDelete(view) ||
       wrylyDelete(view, false) ||
+      blankSpeechLineDelete(view, false) ||
       emptyCueDelete(view) ||
       shiftTab(view)
     );
+  };
+
+  // Backspace or Delete on a blank line inside a speech (two spaces, the
+  // empty dialogue line Enter adds): the whole line goes, so the speech is
+  // whole again. Deleting only a space would leave a truly empty line,
+  // which ends the speech (the rest becomes action), or "  No." indented.
+  const blankSpeechLineDelete = (
+    view: EditorView,
+    forward: boolean,
+  ): boolean => {
+    const layout = view.plugin(layoutPlugin);
+    if (!layout?.active) return false;
+    const { state } = view;
+    const selection = state.selection.main;
+    if (state.selection.ranges.length > 1 || !selection.empty) return false;
+    const line = state.doc.lineAt(selection.head);
+    if (!/^ +$/u.test(line.text)) return false;
+    const kind = layout.kinds[line.number - 1];
+    if (kind !== "dialogue" && kind !== "parenthetical") return false;
+    if (line.number === 1 || line.number === state.doc.lines) return false;
+    const above = state.doc.line(line.number - 1);
+    const below = state.doc.line(line.number + 1);
+    view.dispatch({
+      changes: { from: above.to, to: line.to },
+      selection: {
+        anchor: forward
+          ? above.to + 1 + (below.text.length - below.text.trimStart().length)
+          : above.to,
+      },
+      userEvent: forward ? "delete.forward" : "delete.backward",
+      scrollIntoView: true,
+    });
+    return true;
   };
 
   // Setting off (Fade In's behaviour): Backspace on the empty line in the
@@ -556,7 +590,10 @@ export function createScreenplayLayoutExtension(
         {
           key: "Delete",
           run: (view) =>
-            selectionDelete(view) || cueDelete(view) || wrylyDelete(view, true),
+            selectionDelete(view) ||
+            cueDelete(view) ||
+            wrylyDelete(view, true) ||
+            blankSpeechLineDelete(view, true),
         },
       ]),
     ),

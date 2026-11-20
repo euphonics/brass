@@ -49,6 +49,9 @@ const OPEN_EXTENSION = /(?:\s+\([^)]*\))*\s*\([^()]*$/u;
 const ENDS_IN_PUNCTUATION = /[.!?,;:\u2026\u2013\u2014-]$/u;
 const DUAL_DIALOGUE_CARET = /\s*\^\s*$/u;
 
+const SLASH = 47; // "/"
+const STAR = 42; // "*"
+
 /**
  * Where a line comment starts: "//" at the start of the line or after a
  * space ("Dialogue. // note"), outside a boneyard ("/* ... *\/"). A
@@ -61,19 +64,24 @@ export function findLineComment(
   line: string,
   inBoneyard = false,
 ): { at: number | null; inBoneyard: boolean } {
+  // Most lines have no "/" at all: nothing to find (and a boneyard that
+  // started above can only close with "*/").
+  if (!line.includes("/")) return { at: null, inBoneyard };
   let open = inBoneyard;
   for (let index = 0; index < line.length - 1; index += 1) {
-    const pair = line.slice(index, index + 2);
+    const first = line.charCodeAt(index);
+    const second = line.charCodeAt(index + 1);
     if (open) {
-      if (pair === "*/") {
+      if (first === STAR && second === SLASH) {
         open = false;
         index += 1;
       }
-    } else if (pair === "/*") {
+    } else if (first === SLASH && second === STAR) {
       open = true;
       index += 1;
     } else if (
-      pair === "//" &&
+      first === SLASH &&
+      second === SLASH &&
       (index === 0 || /\s/u.test(line[index - 1] ?? ""))
     ) {
       return { at: index, inBoneyard: false };
@@ -330,7 +338,11 @@ export function classifyLines(
     }
 
     if (forced !== null && index === forced.line) {
-      kinds[index] = forced.kind;
+      // A dialogue line that now starts with "(" is a wryly, as in Fade In.
+      kinds[index] =
+        forced.kind === "dialogue" && isParentheticalText(text)
+          ? "parenthetical"
+          : forced.kind;
       if (forced.kind === "character") inDialogue = true;
       else if (forced.kind !== "parenthetical" && forced.kind !== "dialogue") {
         inDialogue = false;

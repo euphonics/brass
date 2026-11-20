@@ -341,18 +341,15 @@ export function createScreenplayCompletionExtension(
       return buildScreenplayIndex(screenplay.document);
     });
     // A line set to an element (Set line, Shift+Tab) only gets that
-    // element's list: none for action or centred text, scene parts at the
-    // left margin, characters in the middle.
+    // element's list: none for centred text, only scene parts for action
+    // (Escape said "no cue", not "no slugline"), scene parts at the left
+    // margin, characters in the middle.
     const lineKind = context.state.field(lineKindField, false) ?? null;
     const onSetLine =
       lineKind !== null &&
       context.state.doc.lineAt(lineKind.from).from === line.from;
-    if (
-      onSetLine &&
-      (lineKind.kind === "action" || lineKind.kind === "centered")
-    ) {
-      return null;
-    }
+    if (onSetLine && lineKind.kind === "centered") return null;
+    const actionLine = onSetLine && lineKind.kind === "action";
     const forced =
       context.state.field(forcedListField, false) ??
       (onSetLine && lineKind.kind === "scene-heading"
@@ -370,6 +367,16 @@ export function createScreenplayCompletionExtension(
       forced?.kind,
     );
     if (!plan) return null;
+    if (actionLine) {
+      if (plan.kind !== "scene-type" && plan.kind !== "character") {
+        return null;
+      }
+      plan.candidates = plan.candidates.filter(
+        (candidate) => candidate.detail === "Scene type",
+      );
+      if (plan.candidates.length === 0) return null;
+      plan.kind = "scene-type";
+    }
 
     // A list opened over a selected part (Tab's "Next part") replaces the
     // whole part, and lists the part's current text first, so Enter keeps it.
@@ -1172,16 +1179,12 @@ export function createScreenplayCompletionExtension(
     const kind = kinds[line.number - 1];
     const above = kinds[line.number - 2];
     if (kind !== "dialogue" && kind !== "parenthetical") return false;
-    // Right under a wryly: nothing. An empty line there would sit between
-    // the wryly and its dialogue.
+    // Right under a cue or a wryly: nothing. An empty line there would sit
+    // between the cue or wryly and its dialogue (under a cue, Fountain
+    // would no longer read the cue as one).
+    if (above === "character") return true;
     if (kind === "dialogue" && above === "parenthetical") return true;
-    if (
-      above !== "character" &&
-      above !== "dialogue" &&
-      above !== "parenthetical"
-    ) {
-      return false;
-    }
+    if (above !== "dialogue" && above !== "parenthetical") return false;
     view.dispatch({
       changes: { from: line.from, insert: "  \n" },
       selection: { anchor: line.from + 2 },
@@ -1610,6 +1613,24 @@ export function createScreenplayCompletionExtension(
         { key: "Shift-Enter", run: shiftEnter },
       ]),
     ),
+    // Typing ")" right before the ")" that closes a wryly or an extension
+    // ("(beat|)", "JEN (V.O.|)") steps over it, as in Fade In, instead of
+    // leaving "(beat))". Tab's "()" isn't one of CodeMirror's own brackets,
+    // so its bracket closing doesn't do this.
+    EditorView.inputHandler.of((view, from, to, text) => {
+      if (text !== ")" || from !== to) return false;
+      const { state } = view;
+      if (state.selection.ranges.length > 1) return false;
+      const file = state.field(editorInfoField, false)?.file ?? null;
+      if (file === null || !plugin.isScreenplayFile(file)) return false;
+      const line = state.doc.lineAt(from);
+      const after = line.text.slice(from - line.from);
+      if (after.trimEnd() !== ")") return false;
+      const before = line.text.slice(0, from - line.from);
+      if (!before.includes("(") || before.includes(")")) return false;
+      view.dispatch({ selection: { anchor: from + 1 }, userEvent: "select" });
+      return true;
+    }),
     // Suggestion lists fit inside the editor pane, so one opened near the
     // right edge (a transition) moves left instead of being cut off.
     tooltips({

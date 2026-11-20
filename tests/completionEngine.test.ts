@@ -375,3 +375,59 @@ INT. `;
     );
   });
 });
+
+describe("transitions typed without >", () => {
+  const plan = (source: string) =>
+    getScreenplayCompletionPlan(
+      source,
+      source.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+    );
+
+  it("lists transitions for capitals at the start of a block", () => {
+    const cut = plan("Jen waits.\n\nCUT T");
+    expect(cut?.kind).toBe("transition");
+    expect(cut?.candidates).toEqual([
+      { label: "CUT TO:", applyText: "CUT TO:", detail: "Transition" },
+    ]);
+    // Without "TO:" a transition needs its ">".
+    expect(
+      plan("Jen waits.\n\nFADE O")?.candidates.map((c) => c.applyText),
+    ).toEqual(["> FADE OUT."]);
+  });
+
+  it("lists matching characters first", () => {
+    const labels = plan("FARLEY\nHi.\n\nJen waits.\n\nFA")?.candidates.map(
+      (candidate) => candidate.label,
+    );
+    expect(labels).toEqual(["FARLEY", "FADE IN:", "FADE OUT."]);
+  });
+
+  it("stays quiet for lower case, one letter or mid-paragraph", () => {
+    expect(plan("Jen waits.\n\nCu")).toBeNull();
+    expect(plan("Jen waits.\n\nC")).toBeNull();
+    expect(plan("Jen waits.\nCUT")).toBeNull();
+  });
+});
+
+describe("forced character cues", () => {
+  const plan = (source: string) =>
+    getScreenplayCompletionPlan(
+      source,
+      source.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+    );
+
+  it("lists characters after @, in any case", () => {
+    const script = "JEN\nHi.\n\nJen waits.\n\n";
+    expect(plan(`${script}@j`)?.candidates).toEqual([
+      { label: "JEN", applyText: "JEN\n", detail: "1 dialogue block" },
+    ]);
+    expect(plan(`${script}@`)?.kind).toBe("character");
+  });
+
+  it("keeps the @ on a name with lower case", () => {
+    const script = "@McCLANE\nYo.\n\nJen waits.\n\n";
+    expect(plan(`${script}MC`)?.candidates[0]?.applyText).toBe("@McCLANE\n");
+  });
+});

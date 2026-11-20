@@ -89,6 +89,9 @@ const SCENE_LINE = new RegExp(`^(${SCENE_TYPE_SOURCE})\\s+(.*)$`, "iu");
 // Fountain forced scene heading: a single leading "." (not "..", which is an ellipsis).
 const FORCED_SCENE_LINE = /^\.(?![.\s])(.*)$/u;
 const POSSIBLE_CHARACTER = /^[\p{Lu}\p{N} ._'’-]+$/u;
+/** Capitals and the marks a transition uses, no lower case: "SMASH CUT T". */
+const LOWERCASE = /\p{Ll}/u;
+const UPPERCASE_ONLY = /^(?=.*\p{Lu})[^\p{Ll}]+$/u;
 
 function lineContext(
   source: string,
@@ -164,18 +167,10 @@ function transitionValue(text: string): string {
   return text.trim().replace(/^>\s*/u, "").trim().toLocaleUpperCase();
 }
 
-function transitionPlan(
-  before: string,
-  lineFrom: number,
-  cursorOffset: number,
+/** Transitions used in the script first, then the common ones. */
+function transitionUsages(
   index: ReturnType<typeof buildScreenplayIndex>,
-  preferences: CompletionPreferences,
-): ScreenplayCompletionPlan | null {
-  const match = /^(\s*)>\s*([^<]*)$/u.exec(before);
-  // "> [!note]" is an Obsidian callout, not a transition.
-  if (!match || /^\s*\[!/u.test(match[2] ?? "")) return null;
-
-  // Transitions used in the script first, then the common ones.
+): Usage[] {
   const usages = new Map<string, Usage>();
   for (const usage of index.transitions) {
     const value = transitionValue(usage.value);
@@ -195,9 +190,32 @@ function transitionPlan(
       usages.set(value, { value, count: 0, lastUsedPosition: 0 });
     }
   }
+  return [...usages.values()];
+}
 
+/**
+ * How a picked transition is written: "CUT TO:" as it is (Fountain reads a
+ * line in capitals ending in "TO:" as a transition), others with the ">"
+ * that makes them one ("> FADE OUT.").
+ */
+function transitionText(value: string): string {
+  return value.endsWith("TO:") ? value : `> ${value}`;
+}
+
+function transitionPlan(
+  before: string,
+  lineFrom: number,
+  cursorOffset: number,
+  index: ReturnType<typeof buildScreenplayIndex>,
+  preferences: CompletionPreferences,
+): ScreenplayCompletionPlan | null {
+  const match = /^(\s*)>\s*([^<]*)$/u.exec(before);
+  // "> [!note]" is an Obsidian callout, not a transition.
+  if (!match || /^\s*\[!/u.test(match[2] ?? "")) return null;
+
+  const usages = transitionUsages(index);
   const candidates = rankUsages(
-    [...usages.values()],
+    usages,
     match[2] ?? "",
     preferences.recentItemsWeighting,
     preferences.maximumSuggestions,
@@ -604,19 +622,23 @@ export function getScreenplayCompletionPlan(
   // but once it is open on purpose (Tab, Enter, Ctrl+Space) any case
   // matches: "f" finds FIONA. With "match capitals" off, typing in any
   // case opens it too: "Je" finds JEN.
-  const anyCase = explicit || preferences.characterMatchCase === false;
-  const characterQuery = anyCase ? query.toLocaleUpperCase() : query;
+  // A forced cue ("@", "@j", "@mc"): the name after the "@", in any case.
+  const forcedCue = query.startsWith("@");
+  const nameQuery = forcedCue ? query.slice(1) : query;
+  const anyCase =
+    explicit || forcedCue || preferences.characterMatchCase === false;
+  const characterQuery = anyCase ? nameQuery.toLocaleUpperCase() : nameQuery;
   const characterCandidates =
     !plausiblePosition ||
     // Typing needs two capitals ("JE"): one is just a capitalized action
     // line ("S" for "She runs").
-    (!explicit && query.length < 2) ||
-    (query.length > 0 && !POSSIBLE_CHARACTER.test(characterQuery))
+    (!explicit && !forcedCue && query.length < 2) ||
+    (nameQuery.length > 0 && !POSSIBLE_CHARACTER.test(characterQuery))
       ? []
       : orderByTurn(
           rankUsages(
             index.characters,
-            query,
+            nameQuery,
             preferences.recentItemsWeighting,
             Number.MAX_SAFE_INTEGER,
           ),
@@ -624,15 +646,43 @@ export function getScreenplayCompletionPlan(
           preferences.maximumSuggestions,
         ).map((usage) => ({
           label: usage.value,
-          applyText: `${usage.value}\n`,
+          // A name with lower case ("McCLANE") is only a cue with its "@".
+          applyText: `${LOWERCASE.test(usage.value) ? "@" : ""}${usage.value}\n`,
           detail: `${usage.count} dialogue ${usage.count === 1 ? "block" : "blocks"}`,
         }));
 
-  const candidates = [...sceneTypeCandidates, ...characterCandidates];
+  // Transitions typed without ">" ("CUT T", "SMASH"): in capitals at the
+  // start of a block, after the characters that match.
+  const transitionCandidates =
+    characterOnly ||
+    !plausiblePosition ||
+    query.length < 2 ||
+    !UPPERCASE_ONLY.test(query)
+      ? []
+      : transitionUsages(index)
+          .filter((usage) => usage.value.startsWith(query))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, preferences.maximumSuggestions)
+          .map((usage) => ({
+            label: usage.value,
+            applyText: transitionText(usage.value),
+            detail: "Transition",
+          }));
+
+  const candidates = [
+    ...sceneTypeCandidates,
+    ...characterCandidates,
+    ...transitionCandidates,
+  ];
   return candidates.length === 0
     ? null
     : {
-        kind: characterCandidates.length === 0 ? "scene-type" : "character",
+        kind:
+          characterCandidates.length > 0
+            ? "character"
+            : sceneTypeCandidates.length > 0
+              ? "scene-type"
+              : "transition",
         from: from + leadingWhitespace,
         to: cursorOffset,
         candidates,

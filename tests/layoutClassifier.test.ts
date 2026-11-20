@@ -266,3 +266,18 @@ describe("cursorAffectsLayout", () => {
     expect(cursorAffectsLayout(doc, -1)).toBe(true);
   });
 });
+
+describe("a line set to dialogue", () => {
+  it("becomes a wryly once it starts with (", () => {
+    const lines = ["JEN", "Hi.", "(quietly"];
+    expect(
+      classifyLayoutLines(lines, 2, { line: 2, kind: "dialogue" })[2],
+    ).toBe("parenthetical");
+    expect(
+      classifyLayoutLines(["JEN", "Hi.", "(laughs) okay"], 2, {
+        line: 2,
+        kind: "dialogue",
+      })[2],
+    ).toBe("dialogue");
+  });
+});

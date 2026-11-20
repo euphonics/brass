@@ -80,9 +80,16 @@ export function createVariableHighlightExtension(
       constructor(view: EditorView) {
         this.decorations = build(view);
       }
-      // Every update, so switching the mode or the setting shows at once.
+      // Switching the mode or the setting reconfigures the editor, so it
+      // shows at once; cursor moves alone change nothing here.
       update(update: ViewUpdate): void {
-        this.decorations = build(update.view);
+        if (
+          update.docChanged ||
+          update.viewportChanged ||
+          update.transactions.some((tr) => tr.reconfigured)
+        ) {
+          this.decorations = build(update.view);
+        }
       }
     },
     { decorations: (value) => value.decorations },

@@ -150,6 +150,15 @@ Test cases:
   column. The slugline list never shows in the character column.
 - Typing `IN` on an action line opens the slugline list and keeps the cursor
   at the left margin.
+- A line set to action (Escape, Shift+Tab) gets only the slugline list
+  (`IN`), never the character list.
+- Capitals at the start of a block that begin a transition (`CUT T`,
+  `SMASH`) list the transitions, after any matching characters. A pick
+  writes `CUT TO:` as it is and adds `>` to others (`> FADE OUT.`).
+- `@` or `@j` (a forced cue) lists the characters, in any case.
+- Typing `)` right before the `)` closing a wryly or extension steps over
+  it, as in Fade In.
+- A line set to dialogue (Shift+Enter) that starts with `(` is a wryly.
 - Typing `JOHN (` or `JOHN(` opens the extension list ((V.O.), (O.S.),
   (CONT'D)), even for a name not yet in the script, if the line starts a
   block.
@@ -204,6 +213,12 @@ Test cases:
   strict on, adds an empty dialogue line above, as in Fade In. In the file
   that line holds two spaces (Fountain's blank line inside dialogue), so the
   speech goes on past it. The first letter typed there replaces the spaces.
+  Right under the cue or a wryly (the first dialogue line), nothing
+  happens: a blank line there would part the cue or wryly from its
+  dialogue, and Fountain would no longer read the cue as one.
+- **Backspace or Delete on that blank speech line** (two spaces) removes the
+  whole line, so the speech is whole again. Backspace ends at the end of
+  the line above, Delete at the start of the text below.
 - **Enter in the middle of a line** follows the **Enter inside a line**
   table (below).
 - Enter's element logic has its own switch, **Smart Enter**, apart from

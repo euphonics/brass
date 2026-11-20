@@ -11,6 +11,13 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Transitions typed without `>` get the transition list: `CUT T`, `SMASH`
+  or `FADE O` in capitals at the start of a block, after any matching
+  characters. `CUT TO:` is written as it is; others get their `>`.
+- A forced cue lists the characters: `@` or `@j`, in any case.
+- Typing `)` right before the `)` that closes a wryly or extension steps
+  over it, as in Fade In (no more `(beat))`).
+
 - **Threads**, a Scribidian addition: `[&name]` ties lines together by name
   (setups and payoffs, red herrings). Shown as 🧵. Click: next place in the
   note; Shift+click: previous; Alt+click: next place across the project and
@@ -181,6 +188,22 @@ Scribidian changes since 0.1.0.
   accepting it. Suggestions and Smart Tab still work.
 
 ### Fixed
+
+- Strict: Enter at the start of the first dialogue line, right under the
+  cue, no longer adds a blank line there (the cursor showed indented, and
+  Backspace then broke the speech into action). It does nothing, as under
+  a wryly.
+- Strict: Backspace or Delete on the blank line Enter adds inside a speech
+  removes the whole line, instead of leaving an empty line that ends the
+  speech or `  Never.` indented.
+- A line set to action (Escape, Shift+Tab) gets the slugline list again
+  when a scene type is typed (`IN`).
+- A line set to dialogue that starts with `(` is laid out as a wryly.
+- A picked character whose name has lower case (`McCLANE`) keeps its `@`.
+- Faster typing in long scripts: line comments are found without copying
+  every character, arrow keys no longer re-read the note for threads, and
+  `$` highlights don't rebuild on cursor moves (an 11,000-line script went
+  from 30–49 ms to 24–28 ms a key).
 
 - Typing at the end of a cue already in the script (`HELIOS` with its
   dialogue below) is in capitals, so the cue stays a cue.

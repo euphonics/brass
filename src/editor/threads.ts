@@ -119,7 +119,6 @@ function visibleThreads(view: EditorView): ThreadMark[] {
 export function createThreadExtension(open: OpenThread): Extension {
   const raw = Decoration.mark({ class: "scribidian-thread-text" });
   const build = (view: EditorView): DecorationSet => {
-    if (!view.state.doc.toString().includes("[&")) return Decoration.none;
     const builder = new RangeSetBuilder<Decoration>();
     const ranges = view.state.selection.ranges;
     let last = -1;
@@ -148,10 +147,12 @@ export function createThreadExtension(open: OpenThread): Extension {
         this.decorations = build(view);
       }
       update(update: ViewUpdate): void {
+        // Moving the cursor only matters when a thread is on screen (it
+        // shows its text when the cursor is in it).
         if (
           update.docChanged ||
-          update.selectionSet ||
-          update.viewportChanged
+          update.viewportChanged ||
+          (update.selectionSet && this.decorations.size > 0)
         ) {
           this.decorations = build(update.view);
         }

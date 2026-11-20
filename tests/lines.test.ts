@@ -21,7 +21,7 @@ import { serializeFdx } from "../src/export/fdx";
 import { layoutScreenplay } from "../src/export/screenplayLayout";
 import { classifySmartTabLine } from "../src/editor/smartTab";
 import { isLikelyCharacterCue } from "../src/screenplay/characterExtension";
-import { characterCue } from "../src/screenplay/lines";
+import { characterCue, findLineComment } from "../src/screenplay/lines";
 import { parseFountain, withoutActionIndent } from "../src/screenplay/parser";
 
 /** Parser elements as "type:text" for compact comparisons. */
@@ -228,6 +228,33 @@ describe("line comments", () => {
       "Hi.",
       "More.",
     ]);
+  });
+});
+
+describe("findLineComment", () => {
+  it("finds // after a space or at the start, not in a URL", () => {
+    expect(findLineComment("// note").at).toBe(0);
+    expect(findLineComment("Hi. // aside").at).toBe(4);
+    expect(findLineComment("See https://example.com").at).toBeNull();
+    expect(findLineComment("No slash here").at).toBeNull();
+  });
+
+  it("tracks boneyards across lines", () => {
+    expect(findLineComment("Text /* cut")).toEqual({
+      at: null,
+      inBoneyard: true,
+    });
+    // Still inside: no "/" on the line at all.
+    expect(findLineComment("more cut text", true)).toEqual({
+      at: null,
+      inBoneyard: true,
+    });
+    expect(findLineComment("end */ // note", true)).toEqual({
+      at: 7,
+      inBoneyard: false,
+    });
+    expect(findLineComment("/* a */ b // c").at).toBe(10);
+    expect(findLineComment("/* // inside */").at).toBeNull();
   });
 });
 
