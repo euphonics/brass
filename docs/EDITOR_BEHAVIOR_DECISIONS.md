@@ -208,7 +208,10 @@ Test cases:
   `CHARACTER|Test.` gives a cue and `TEST.` on a new cue line.
 - **Enter at the end of a line in the middle of a speech** (a cue, wryly or
   dialogue line with more of the speech right below): with strict on,
-  nothing happens. A new block there would cut the speech in two.
+  no line is added. A new block there would cut the speech in two. After
+  a wryly (`(quietly)|` or `(quietly|)`) the cursor moves to the start of
+  the dialogue below, as in Final Draft and Fade In; after a cue or
+  dialogue it stays.
 - **Enter at the start of a dialogue or wryly line inside a speech**: with
   strict on, adds an empty dialogue line above, as in Fade In. In the file
   that line holds two spaces (Fountain's blank line inside dialogue), so the
@@ -220,7 +223,9 @@ Test cases:
   whole line, so the speech is whole again. Backspace ends at the end of
   the line above, Delete at the start of the text below.
 - **Enter in the middle of a line** follows the **Enter inside a line**
-  table (below).
+  table (below). Where it splits the line, spaces at the split go:
+  `Hi |there.` gives `Hi` and `there.`, with no space left at the end of
+  the line above.
 - Enter's element logic has its own switch, **Smart Enter**, apart from
   **Smart Tab**, so the two keys can behave differently (as in Fade In:
   Tab after `INT. OFFICE` adds `-` and the time list; Enter starts action).
@@ -457,6 +462,9 @@ Test cases:
 - Sluglines are uppercased as you type, once the line reads as one
   (`int.` becomes `INT.`).
 - Text after `>` (a forced transition) is uppercased.
+- A short line ending in `to:` on its own block (`cut to:`, up to three
+  words, blank line above) goes into capitals when the `:` is typed, as a
+  slugline does at `int.`. Same setting as above.
 - Script mode: Enter on a short line ending in `to:` on its own block
   (`cut to:`, `Smash cut to:`, up to three words) puts it in capitals as a
   transition and starts a slugline, as in Fade In.

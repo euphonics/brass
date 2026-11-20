@@ -11,6 +11,10 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Strict: Enter at the end of a wryly with dialogue below moves the cursor
+  to the start of that dialogue, as in Final Draft and Fade In.
+- `cut to:` typed on its own block goes into capitals when the `:` is
+  typed (setting: Uppercase transitions as you type).
 - Transitions typed without `>` get the transition list: `CUT T`, `SMASH`
   or `FADE O` in capitals at the start of a block, after any matching
   characters. `CUT TO:` is written as it is; others get their `>`.
@@ -188,6 +192,9 @@ Scribidian changes since 0.1.0.
   accepting it. Suggestions and Smart Tab still work.
 
 ### Fixed
+
+- Enter splitting a dialogue line no longer leaves a space at the end of
+  the line above (`Hi |there.` gives `Hi`, not `Hi `).
 
 - Strict: Enter at the start of the first dialogue line, right under the
   cue, no longer adds a blank line there (the cursor showed indented, and

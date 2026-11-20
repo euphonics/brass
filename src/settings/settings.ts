@@ -412,7 +412,7 @@ export const TYPING_CHANGE_ROWS: {
   },
   {
     name: "Uppercase transitions as you type",
-    desc: 'Text typed on a forced transition line ("> cut to") becomes uppercase.',
+    desc: 'Text typed on a forced transition line ("> cut to") becomes uppercase. So does a short line on its own block once its "to:" is typed ("cut to:" becomes "CUT TO:").',
     plain: "uppercaseTransitionsPlain",
     script: "uppercaseTransitionsScript",
   },

@@ -119,6 +119,23 @@ const extensionListField = StateField.define<number | null>({
 });
 
 /**
+ * Whether line `lineNumber` (1-based) is a transition typed with lower case
+ * on its own block: a short action line ending in "to:" ("cut to:", "Smash
+ * cut to:"), with a blank line (or nothing) above. Up to three words, so a
+ * sentence ("She walks over to:") isn't caught.
+ */
+function lowercaseTransitionLine(doc: Text, lineNumber: number): boolean {
+  const text = doc.line(lineNumber).text.trim();
+  if (!/^[\p{L}][\p{L}.'’ -]* to:$/iu.test(text)) return false;
+  if (!/\p{Ll}/u.test(text) || text.split(/\s+/u).length > 3) return false;
+  if (lineNumber > 1 && doc.line(lineNumber - 1).text.trim() !== "") {
+    return false;
+  }
+  const lines = doc.toString().split("\n");
+  return classifySmartTabLine(lines, lineNumber - 1) === "action";
+}
+
+/**
  * Whether the last text above line `lineNumber` is a "# heading", a
  * transition or centred text, after which a slugline (not a cue) comes.
  */
@@ -864,37 +881,35 @@ export function createScreenplayCompletionExtension(
           userEvent: "select",
         });
         return true;
-      case "line-break":
+      case "line-break": {
+        // Spaces at the split go: "Hi |there." gives "Hi" and "there.", not
+        // "Hi " with a space left at the end of the line.
+        let from = head;
+        let to = head;
+        while (
+          from > line.from &&
+          /[ \t]/u.test(doc.sliceString(from - 1, from))
+        )
+          from -= 1;
+        while (to < line.to && /[ \t]/u.test(doc.sliceString(to, to + 1)))
+          to += 1;
         // Strict, inside action: a new paragraph (blank line between), as
         // in Fade In. A plain break would only wrap the same paragraph,
-        // which Shift+Enter already does. Spaces at the split go.
-        if (
+        // which Shift+Enter already does.
+        const insert =
           plugin.isScriptMode() &&
           plugin.typingChangeEnabled("lockBlankLines") &&
           classifySmartTabLine(lines, line.number - 1) === "action"
-        ) {
-          let from = head;
-          let to = head;
-          while (
-            from > line.from &&
-            /[ \t]/u.test(doc.sliceString(from - 1, from))
-          )
-            from -= 1;
-          while (to < line.to && /[ \t]/u.test(doc.sliceString(to, to + 1)))
-            to += 1;
-          view.dispatch({
-            changes: { from, to, insert: "\n\n" },
-            selection: { anchor: from + 2 },
-            scrollIntoView: true,
-            userEvent: "input",
-          });
-          return true;
-        }
-        view.dispatch(view.state.replaceSelection("\n"), {
+            ? "\n\n"
+            : "\n";
+        view.dispatch({
+          changes: { from, to, insert },
+          selection: { anchor: from + insert.length },
           scrollIntoView: true,
           userEvent: "input",
         });
         return true;
+      }
     }
   };
 
@@ -930,16 +945,7 @@ export function createScreenplayCompletionExtension(
     if (selection.main.head !== line.from + line.text.trimEnd().length) {
       return false;
     }
-    // A short line ending in "to:" with lower case in it: "cut to:",
-    // "Smash cut to:". Up to three words ("SMASH CUT TO:"), so a sentence
-    // ("She walks over to:") isn't caught.
-    if (!/^[\p{L}][\p{L}.'’ -]* to:$/iu.test(text)) return false;
-    if (!/\p{Ll}/u.test(text) || text.split(/\s+/u).length > 3) return false;
-    const lines = doc.toString().split("\n");
-    if (classifySmartTabLine(lines, line.number - 1) !== "action") return false;
-    if (line.number > 1 && doc.line(line.number - 1).text.trim() !== "") {
-      return false;
-    }
+    if (!lowercaseTransitionLine(doc, line.number)) return false;
     const indent = line.text.length - line.text.trimStart().length;
     view.dispatch({
       changes: {
@@ -1133,8 +1139,10 @@ export function createScreenplayCompletionExtension(
   };
 
   // Strict cursor placement: Enter at the end of a cue, wryly or dialogue
-  // line with more of the speech right below does nothing. A new block
+  // line with more of the speech right below adds no line. A new block
   // there would cut the speech in two (the rest would become action).
+  // After a wryly the cursor moves to the dialogue below; otherwise it
+  // stays.
   const enterInsideSpeech = (view: EditorView): boolean => {
     if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
     const file = view.state.field(editorInfoField, false)?.file ?? null;
@@ -1142,9 +1150,11 @@ export function createScreenplayCompletionExtension(
     const { selection, doc } = view.state;
     if (selection.ranges.length > 1 || !selection.main.empty) return false;
     const line = doc.lineAt(selection.main.head);
-    if (selection.main.head < line.from + line.text.trimEnd().length) {
-      return false;
-    }
+    const end = line.from + line.text.trimEnd().length;
+    // "(beat|)" counts as the end of the wryly.
+    const beforeBracket =
+      selection.main.head === end - 1 && line.text.trimEnd().endsWith(")");
+    if (selection.main.head < end && !beforeBracket) return false;
     if (line.number >= doc.lines) return false;
     if (doc.line(line.number + 1).text.trim() === "") return false;
     const lines = doc.toString().split("\n");
@@ -1152,10 +1162,25 @@ export function createScreenplayCompletionExtension(
     const kind = kinds[line.number - 1];
     const below = kinds[line.number];
     const speech = ["character", "parenthetical", "dialogue"];
-    return (
-      speech.includes(kind ?? "") &&
-      (below === "parenthetical" || below === "dialogue")
-    );
+    if (
+      !speech.includes(kind ?? "") ||
+      (below !== "parenthetical" && below !== "dialogue")
+    ) {
+      return false;
+    }
+    // At the end of a wryly, the cursor goes on to the start of its
+    // dialogue, as in Final Draft and Fade In.
+    if (kind === "parenthetical" && below === "dialogue") {
+      const next = doc.line(line.number + 1);
+      view.dispatch({
+        selection: {
+          anchor: next.from + (next.text.length - next.text.trimStart().length),
+        },
+        scrollIntoView: true,
+        userEvent: "select",
+      });
+    }
+    return true;
   };
 
   // Strict cursor placement: Enter at the start of a dialogue or wryly line
@@ -1453,6 +1478,29 @@ export function createScreenplayCompletionExtension(
             return offset + character.length;
           }, 0);
         }
+        return;
+      }
+      // The ":" that makes a lower-case line on its own block a transition
+      // ("cut to:"): the line goes into capitals, as a slugline does at
+      // "int.".
+      if (
+        text.endsWith(":") &&
+        toB === line.from + line.text.trimEnd().length &&
+        plugin.typingChangeEnabled("uppercaseTransitions") &&
+        lowercaseTransitionLine(tr.newDoc, line.number)
+      ) {
+        // Only letters that change are replaced, so the cursor stays put.
+        [...line.text].reduce((offset, character) => {
+          const upper = character.toLocaleUpperCase();
+          if (upper !== character && upper.length === character.length) {
+            fixes.push({
+              from: line.from + offset,
+              to: line.from + offset + character.length,
+              insert: upper,
+            });
+          }
+          return offset + character.length;
+        }, 0);
         return;
       }
       // A line in the character column is a cue: uppercase what is typed
