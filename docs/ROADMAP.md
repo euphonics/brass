@@ -32,24 +32,23 @@ FDX improvements come after it (see Export at the end).
 - **Clear boundary between the editor modes.** Done (2026-11-15): plain mode
   never changes Enter; see [Editor modes](EDITOR_MODES.md).
 - **Strict typing in script mode.** See the plan below.
-- **Setups and payoffs (#199, writer's wish, 2026-11-19).** Tag a line as a
-  setup and a later line as its payoff, so a writer can see the ripple
-  effects of a change and jump between linked lines. The tag stays hidden
-  unless the cursor is in the tagged text, and every export removes it.
-  To decide:
-  - **Syntax.** It must be invisible to other Fountain apps. A Fountain note
-    such as `[[setup: knife]]` / `[[payoff: knife]]` qualifies: other apps
-    and Scribidian's exports already drop notes. But in a `.md` screenplay
-    Obsidian reads `[[…]]` as a wikilink (an unresolved link in the graph),
-    so it may need another form there. Alternatives are a
-    `// setup: knife` line comment (Scribidian only) or an Obsidian block ID.
-  - **Display.** Hide the tag (like boneyard markers) until the cursor is on
-    it. Show a small marker in the margin instead.
-  - **Navigation.** Commands: jump to the payoff or setup, and list every
-    link for the current line. Possibly a "Setups and payoffs" view in the
-    Scenes panel showing unpaid setups and payoffs with no setup.
-  - **Export.** Fountain, Clean Fountain and FDX drop the tags (FDX could
-    keep them as ScriptNotes).
+- **Threads (#199, writer's wish, 2026-11-19).** Done: `[&zosia red herring]`
+  ties lines together by name, anywhere in a script or a note linked to it
+  (setups and payoffs, red herrings, motifs). Shown as 🧵; the text shows
+  while the cursor is on or next to it. Click: next place in this note
+  (Shift+click: previous). Alt+click: next place across the project's
+  parts, its character pages and notes linked to or from them (Ctrl/Cmd:
+  in a new tab). Typing `[&` lists the names already used, with counts.
+  Commands **Next in thread**, **Previous in thread**, **Next in thread,
+  across notes**. Names match without case or extra spaces. The preview,
+  page count, word count and every export leave threads out. No
+  vault-wide search: only notes connected to the script are read.
+  Still to do:
+  - A **Threads panel** (sidebar): every place of a thread, grouped by note,
+    with the line's text, like Obsidian's tag search. See below.
+  - Flag a thread used only once (a setup with no payoff), in the Scenes
+    panel or continuity inspector.
+  - Reading view and the preview show nothing for threads yet.
 - **Use Fade In behaviour preset (#202, writer, 2026-11-19).** A settings
   button that sets every option where Scribidian differs from Fade In to
   Fade In's value, for writers who want familiar keys. The list is

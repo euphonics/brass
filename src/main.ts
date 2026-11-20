@@ -37,6 +37,8 @@ import type { Command, TFile } from "obsidian";
 import { openCharacterPicker } from "./commands/character";
 import { copyConfiguration } from "./commands/copyConfiguration";
 import { elementLines } from "./commands/selectElement";
+import { createThreadExtension } from "./editor/threads";
+import { ThreadNavigator, ThreadSuggest } from "./threads/threadNavigator";
 import { exportFdx } from "./commands/exportFdx";
 import { exportFountain } from "./commands/exportFountain";
 import {
@@ -129,6 +131,8 @@ export default class ScribidianPlugin extends Plugin {
   private readonly extraCommands: Command[] = [];
   private extraCommandsShown = false;
   private statusBarItem: HTMLElement | null = null;
+  /** Threads ("[&name]"): the vault index and going between places. */
+  threads!: ThreadNavigator;
   private refreshTimer: number | null = null;
   private readonly noteContext = new NoteContext<TFile, MarkdownView>();
 
@@ -136,6 +140,7 @@ export default class ScribidianPlugin extends Plugin {
     await this.loadSettings();
     this.applyScreenplayFont();
     this.registerFountainExtension();
+    this.threads = new ThreadNavigator(this);
     this.statusBarItem = this.addStatusBarItem();
     this.statusBarItem.addClass("scribidian-status");
     this.statusBarItem.hide();
@@ -151,10 +156,14 @@ export default class ScribidianPlugin extends Plugin {
       createBoneyardMarkerExtension(this),
       createLineCommentExtension(this),
       createVariableHighlightExtension(this),
+      createThreadExtension((view, mark, step, newTab, across) => {
+        void this.threads.open(view, mark, step, newTab, across);
+      }),
       EditorView.updateListener.of((update) => {
         if (update.selectionSet && !update.docChanged) this.onCursorMoved();
       }),
     ]);
+    this.registerEditorSuggest(new ThreadSuggest(this.threads));
     registerFountainCodeBlockProcessor(this);
     this.registerView(SCENES_VIEW_TYPE, (leaf) => new ScenesView(leaf, this));
     this.addRibbonIcon("clapperboard", "Open scenes", () => {
@@ -189,6 +198,30 @@ export default class ScribidianPlugin extends Plugin {
       name: "Copy configuration to clipboard",
       icon: "clipboard-copy",
       callback: () => void copyConfiguration(this),
+    });
+    this.addCommand({
+      id: "thread-next",
+      name: "Next in thread",
+      icon: "spool",
+      editorCallback: (editor) => {
+        this.threads.openFromCursor(editor, 1);
+      },
+    });
+    this.addCommand({
+      id: "thread-previous",
+      name: "Previous in thread",
+      icon: "spool",
+      editorCallback: (editor) => {
+        this.threads.openFromCursor(editor, -1);
+      },
+    });
+    this.addCommand({
+      id: "thread-next-across",
+      name: "Next in thread, across notes",
+      icon: "spool",
+      editorCallback: (editor) => {
+        this.threads.openFromCursor(editor, 1, true);
+      },
     });
     this.addCommand({
       id: "screenplay-select-element",

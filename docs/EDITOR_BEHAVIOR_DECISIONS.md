@@ -85,6 +85,22 @@ flowchart TD
 - Clean Fountain export removes comments ("Remove line comments", on by
   default). Preview, PDF and FDX leave them out.
 
+## Threads (Scribidian addition)
+
+- `[&name]` ties lines together by name: every `[&…]` with the same name
+  (case and extra spaces don't count) is one thread, in the script or in a
+  note linked to it. For setups and payoffs, red herrings, motifs.
+- It shows as 🧵. With the cursor on it or right next to it, the text shows
+  (faded) so the name can be read or edited.
+- Click: the next place in this note, wrapping at the end. Shift+click:
+  the previous one. Alt+click: the next place across the project's parts
+  (in order), its character pages and notes linked to or from them.
+  Ctrl/Cmd+click opens another note in a new tab.
+- Typing `[&` lists the thread names already used, most used first.
+- It isn't script: a cue with a thread (`ZORANA [&x]`) is still a cue, a
+  line holding only a thread is a note, and the preview, counts and every
+  export leave threads out.
+
 ## Fenced code blocks
 
 - Text inside a ``` or ~~~ fenced code block isn't script: it keeps

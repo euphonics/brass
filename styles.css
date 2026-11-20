@@ -239,6 +239,25 @@
   color: var(--text-accent);
 }
 
+/* Threads ("[&name]"), a Scribidian addition: a small 🧵 that goes to the
+   next place in the thread; the text, faded, while the cursor is on it. */
+.markdown-source-view.mod-cm6 .scribidian-thread {
+  cursor: pointer;
+  font-size: 0.85em;
+  opacity: 0.8;
+  padding-inline: 1px;
+}
+.markdown-source-view.mod-cm6 .scribidian-thread:hover {
+  opacity: 1;
+}
+.markdown-source-view.mod-cm6 .scribidian-thread-text {
+  opacity: 0.5;
+}
+.scribidian-thread-count {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
 /* Line comments ("// note"), a Scribidian addition to Fountain: faded,
    and not part of the script. */
 .markdown-source-view.mod-cm6 .scribidian-line-comment {

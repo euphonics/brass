@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { stripThreadsFromSource } from "../screenplay/threads";
 import { Notice } from "obsidian";
 import type { MarkdownView } from "obsidian";
 import type ScribidianPlugin from "../main";
@@ -53,9 +54,11 @@ export async function exportFountain(
         ),
       )
     : context.source;
+  // Threads ("[&name]") are Scribidian's own: no export keeps them.
+  const withoutThreads = stripThreadsFromSource(exported);
   const content = plugin.settings.markCapitalsAsAction
-    ? markCapitalsAsAction(exported)
-    : exported;
+    ? markCapitalsAsAction(withoutThreads)
+    : withoutThreads;
 
   try {
     const file = await plugin.app.vault.create(path, content);

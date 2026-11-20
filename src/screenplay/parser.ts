@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { stripThreads } from "./threads";
 import {
   centeredContent,
   characterCue,
@@ -47,7 +48,8 @@ export function parseFountain(source: string): ScreenplayDocument {
 
   for (let index = 0; index < lines.length; index += 1) {
     // Line comments ("// note") aren't part of the script.
-    const raw = stripLineComment(lines[index] ?? "");
+    // Threads ("[&name]") aren't either.
+    const raw = stripThreads(stripLineComment(lines[index] ?? ""));
     const text = raw.trim();
     const kind = kinds[index] ?? null;
     const line = index + 1;

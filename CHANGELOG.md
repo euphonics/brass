@@ -11,6 +11,12 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- **Threads**, a Scribidian addition: `[&name]` ties lines together by name
+  (setups and payoffs, red herrings). Shown as 🧵. Click: next place in the
+  note; Shift+click: previous; Alt+click: next place across the project and
+  notes linked to it. Typing `[&` lists the names already used. Commands
+  **Next in thread**, **Previous in thread**, **Next in thread, across
+  notes**. Preview, counts and exports leave threads out.
 - **Tab inside a line** has a new choice, **As at the end of the line**:
   Tab does what it does at the end of the line, so Tab in the middle of
   action starts a new character with its list (as in Arc Studio Pro).

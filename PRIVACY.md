@@ -13,8 +13,10 @@ makes to your notes is ordinary text that you can undo.
   doesn't run code from your notes. Character page templates are plain text:
   placeholders like `{{character}}` are filled in, and nothing in a template is
   executed.
-- **No clipboard.** It doesn't read or write the clipboard. You copy cheat
-  sheet examples yourself with your normal shortcut.
+- **Clipboard: write only, on request.** It never reads the clipboard. The
+  only time it writes to it is the command **Copy configuration to
+  clipboard**, which you run yourself. You copy cheat sheet examples with
+  your normal shortcut.
 - **No vault-wide scanning.** It doesn't list or read every file in your vault.
 
 ## What it reads
@@ -25,6 +27,9 @@ Only what a feature needs:
   (found through the project note's own list of parts and the folders above
   the note, not by searching the vault);
 - character pages in the character folder you set;
+- for threads (`[&name]`): the notes linked to or from the screenplay, its
+  project note and its parts, found through Obsidian's own link index, read
+  only when you follow a thread or type `[&`;
 - the character page template you choose in settings;
 - the folder set in Obsidian's core **Templates** plugin, to narrow the
   template picker. This uses an internal Obsidian setting; if Obsidian changes

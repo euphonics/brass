@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { stripThreads } from "./threads";
 
 /*
  * The one set of rules for what kind of screenplay line a line is. The editor
@@ -350,6 +351,16 @@ export function classifyLines(
         }
         text = before;
       }
+    }
+    // Threads ("[&name]") aren't script either: a line holding only threads
+    // is a note; otherwise the line is read without them.
+    if (text.includes("[&")) {
+      const without = stripThreads(text).trim();
+      if (without === "") {
+        kinds[index] = "note";
+        continue;
+      }
+      text = without;
     }
 
     // A line of two or more spaces inside a speech keeps it going
