@@ -253,6 +253,57 @@
 .markdown-source-view.mod-cm6 .scribidian-thread-text {
   opacity: 0.5;
 }
+/* Threads panel (sidebar). */
+.scribidian-threads {
+  padding: var(--size-4-2);
+}
+.scribidian-threads-title {
+  font-weight: var(--font-semibold);
+  margin-block: var(--size-4-2);
+}
+.scribidian-threads-row,
+.scribidian-threads-place,
+.scribidian-threads-back {
+  cursor: pointer;
+  border-radius: var(--radius-s);
+  padding: var(--size-2-2) var(--size-4-2);
+}
+.scribidian-threads-row {
+  display: flex;
+  gap: var(--size-4-2);
+  align-items: baseline;
+}
+.scribidian-threads-row:hover,
+.scribidian-threads-place:hover,
+.scribidian-threads-back:hover {
+  background: var(--background-modifier-hover);
+}
+.scribidian-threads-name {
+  flex: 1;
+}
+.scribidian-threads-count,
+.scribidian-threads-summary,
+.scribidian-threads-back {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+.scribidian-threads-once {
+  color: var(--text-warning);
+  font-size: var(--font-ui-smaller);
+}
+.scribidian-threads-note {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  font-weight: var(--font-semibold);
+  margin-top: var(--size-4-3);
+  text-transform: uppercase;
+}
+.scribidian-threads-place {
+  font-size: var(--font-ui-small);
+}
+.scribidian-threads-empty {
+  color: var(--text-muted);
+}
 .scribidian-thread-count {
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);

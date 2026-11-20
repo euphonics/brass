@@ -95,7 +95,13 @@ flowchart TD
 - Click: the next place in this note, wrapping at the end. Shift+click:
   the previous one. Alt+click: the next place across the project's parts
   (in order), its character pages and notes linked to or from them.
-  Ctrl/Cmd+click opens another note in a new tab.
+- Obsidian's **Follow link** hotkey (Alt+Enter by default) with the cursor
+  on, in or right next to a thread (`|[&x]`, `[&x|]`, `[&x]|`) does what a
+  click does. Elsewhere it follows links as usual.
+- Ctrl/Cmd+click, or **Show threads**, opens the **Threads panel**: every
+  thread the note can reach, with counts ("Used once" for a thread with
+  one place), and for one thread every place grouped by note in script
+  order, with its line. Click a place to go there (Ctrl/Cmd: new tab).
 - Typing `[&` lists the thread names already used, most used first.
 - It isn't script: a cue with a thread (`ZORANA [&x]`) is still a cue, a
   line holding only a thread is a note, and the preview, counts and every

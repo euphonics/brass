@@ -17,6 +17,11 @@ Scribidian changes since 0.1.0.
   notes linked to it. Typing `[&` lists the names already used. Commands
   **Next in thread**, **Previous in thread**, **Next in thread, across
   notes**. Preview, counts and exports leave threads out.
+- **Threads panel** (command **Show threads**, or Ctrl/Cmd+click a 🧵):
+  every thread with counts, and every place of one thread grouped by
+  note, with the line's text. Threads used once are marked.
+- Obsidian's **Follow link** hotkey with the cursor on or next to a thread
+  goes to the next place in it, like a click.
 - **Tab inside a line** has a new choice, **As at the end of the line**:
   Tab does what it does at the end of the line, so Tab in the middle of
   action starts a new character with its list (as in Arc Studio Pro).

@@ -105,16 +105,22 @@ export function threadScope(
 
 /** The threads in each reachable note, read when asked and cached. */
 export class ThreadIndex {
-  private cache = new Map<string, { mtime: number; marks: ThreadMark[] }>();
+  private cache = new Map<
+    string,
+    { mtime: number; marks: ThreadMark[]; text: string }
+  >();
 
   constructor(private readonly plugin: ScribidianPlugin) {}
 
-  private async marksIn(file: TFile): Promise<ThreadMark[]> {
+  private async read(
+    file: TFile,
+  ): Promise<{ marks: ThreadMark[]; text: string }> {
     const cached = this.cache.get(file.path);
-    if (cached && cached.mtime === file.stat.mtime) return cached.marks;
-    const marks = findThreads(await this.plugin.app.vault.cachedRead(file));
-    this.cache.set(file.path, { mtime: file.stat.mtime, marks });
-    return marks;
+    if (cached && cached.mtime === file.stat.mtime) return cached;
+    const text = await this.plugin.app.vault.cachedRead(file);
+    const entry = { mtime: file.stat.mtime, marks: findThreads(text), text };
+    this.cache.set(file.path, entry);
+    return entry;
   }
 
   /**
@@ -124,19 +130,27 @@ export class ThreadIndex {
   async places(
     file: TFile,
     liveText: string,
-  ): Promise<{ places: Map<string, ThreadMark[]>; firstPaths: string[] }> {
+  ): Promise<{
+    places: Map<string, ThreadMark[]>;
+    firstPaths: string[];
+    texts: Map<string, string>;
+  }> {
     const { files, firstPaths } = threadScope(this.plugin, file);
     const places = new Map<string, ThreadMark[]>();
+    const texts = new Map<string, string>();
     await Promise.all(
       files.map(async (other) => {
-        const marks =
+        const { marks, text } =
           other.path === file.path
-            ? findThreads(liveText)
-            : await this.marksIn(other);
-        if (marks.length > 0) places.set(other.path, marks);
+            ? { marks: findThreads(liveText), text: liveText }
+            : await this.read(other);
+        if (marks.length > 0) {
+          places.set(other.path, marks);
+          texts.set(other.path, text);
+        }
       }),
     );
-    return { places, firstPaths };
+    return { places, firstPaths, texts };
   }
 
   /** Every thread name `file` can reach, with how often it's used. */
@@ -209,17 +223,66 @@ export class ThreadNavigator {
       view.focus();
       return;
     }
-    const targetFile = this.plugin.app.vault.getAbstractFileByPath(target.path);
-    if (!(targetFile instanceof TFile)) return;
-    const leaf = this.plugin.app.workspace.getLeaf(newTab ? "tab" : false);
-    await leaf.openFile(targetFile);
+    await this.goTo(target.path, target.to, newTab);
+  }
+
+  /**
+   * Open `path` (in the note's open tab if it has one, else this tab or a
+   * new one) with the cursor at `offset`, scrolled into view.
+   */
+  async goTo(path: string, offset: number, newTab = false): Promise<void> {
+    const { workspace, vault } = this.plugin.app;
+    const file = vault.getAbstractFileByPath(path);
+    if (!(file instanceof TFile)) return;
+    const open = newTab
+      ? undefined
+      : workspace
+          .getLeavesOfType("markdown")
+          .find(
+            (leaf) =>
+              leaf.view instanceof MarkdownView &&
+              leaf.view.file?.path === path,
+          );
+    const leaf = open ?? workspace.getLeaf(newTab ? "tab" : false);
+    if (open) workspace.setActiveLeaf(open, { focus: true });
+    else await leaf.openFile(file);
     const opened = leaf.view;
     if (!(opened instanceof MarkdownView)) return;
     const editor = opened.editor;
-    const pos = editor.offsetToPos(target.to);
+    const pos = editor.offsetToPos(offset);
     editor.setCursor(pos);
     editor.scrollIntoView({ from: pos, to: pos }, true);
     editor.focus();
+  }
+
+  /**
+   * The thread the cursor is on, in, or right next to (`|[&x]`, `[&x|]`,
+   * `[&x]|`), or null.
+   */
+  markAtCursor(view: EditorView): ThreadMark | null {
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return null;
+    const head = selection.main.head;
+    const line = doc.lineAt(head);
+    for (const mark of findThreads(line.text)) {
+      const from = line.from + mark.from;
+      const to = line.from + mark.to;
+      if (head >= from && head <= to) return { ...mark, from, to };
+    }
+    return null;
+  }
+
+  /** The key of the thread on the cursor's line nearest the cursor. */
+  keyAtCursor(editor: Editor): string | null {
+    const cursor = editor.getCursor("head");
+    const marks = findThreads(editor.getLine(cursor.line));
+    if (marks.length === 0) return null;
+    const nearest = marks.reduce((best, mark) =>
+      Math.abs(mark.from - cursor.ch) < Math.abs(best.from - cursor.ch)
+        ? mark
+        : best,
+    );
+    return nearest.key;
   }
 
   /** The command: the thread on the cursor's line nearest the cursor. */

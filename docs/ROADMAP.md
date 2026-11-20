@@ -43,11 +43,13 @@ FDX improvements come after it (see Export at the end).
   across notes**. Names match without case or extra spaces. The preview,
   page count, word count and every export leave threads out. No
   vault-wide search: only notes connected to the script are read.
+  Ctrl/Cmd+click, or the command **Show threads**, opens the **Threads
+  panel**: every thread the note can reach with counts ("Used once" marks
+  a setup with no payoff yet), and for one thread every place grouped by
+  note in script order, with the line's text; click to go there. Obsidian's
+  **Follow link** hotkey (Alt+Enter by default) with the cursor on, in or
+  next to a thread goes to the next place, for mouse-free cycling.
   Still to do:
-  - A **Threads panel** (sidebar): every place of a thread, grouped by note,
-    with the line's text, like Obsidian's tag search. See below.
-  - Flag a thread used only once (a setup with no payoff), in the Scenes
-    panel or continuity inspector.
   - Reading view and the preview show nothing for threads yet.
 - **Use Fade In behaviour preset (#202, writer, 2026-11-19).** A settings
   button that sets every option where Scribidian differs from Fade In to

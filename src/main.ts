@@ -32,6 +32,7 @@ import {
   Plugin,
   getFrontMatterInfo,
   parseYaml,
+  type WorkspaceLeaf,
 } from "obsidian";
 import type { Command, TFile } from "obsidian";
 import { openCharacterPicker } from "./commands/character";
@@ -90,6 +91,7 @@ import {
   type ScribidianSettings,
 } from "./settings/settings";
 import { SCENES_VIEW_TYPE, ScenesView } from "./ui/scenesView";
+import { THREADS_VIEW_TYPE, ThreadsView } from "./ui/threadsView";
 import { CheatSheetModal } from "./ui/cheatSheetModal";
 import { StatisticsModal } from "./ui/statisticsModal";
 import { ContinuityInspectorModal } from "./ui/continuityInspectorModal";
@@ -156,16 +158,20 @@ export default class ScribidianPlugin extends Plugin {
       createBoneyardMarkerExtension(this),
       createLineCommentExtension(this),
       createVariableHighlightExtension(this),
-      createThreadExtension((view, mark, step, newTab, across) => {
-        void this.threads.open(view, mark, step, newTab, across);
+      createThreadExtension((view, mark, step, panel, across) => {
+        // Ctrl/Cmd+click: the thread in the Threads panel.
+        if (panel) void this.openThreads(mark.key);
+        else void this.threads.open(view, mark, step, false, across);
       }),
       EditorView.updateListener.of((update) => {
         if (update.selectionSet && !update.docChanged) this.onCursorMoved();
       }),
     ]);
     this.registerEditorSuggest(new ThreadSuggest(this.threads));
+    this.app.workspace.onLayoutReady(() => this.followLinkOnThreads());
     registerFountainCodeBlockProcessor(this);
     this.registerView(SCENES_VIEW_TYPE, (leaf) => new ScenesView(leaf, this));
+    this.registerView(THREADS_VIEW_TYPE, (leaf) => new ThreadsView(leaf, this));
     this.addRibbonIcon("clapperboard", "Open scenes", () => {
       void this.openScenes();
     });
@@ -213,6 +219,17 @@ export default class ScribidianPlugin extends Plugin {
       icon: "spool",
       editorCallback: (editor) => {
         this.threads.openFromCursor(editor, -1);
+      },
+    });
+    this.addCommand({
+      id: "show-threads",
+      name: "Show threads",
+      icon: "spool",
+      callback: () => {
+        const editor = this.activeMarkdownView()?.editor ?? null;
+        void this.openThreads(
+          editor === null ? null : this.threads.keyAtCursor(editor),
+        );
       },
     });
     this.addCommand({
@@ -559,7 +576,7 @@ export default class ScribidianPlugin extends Plugin {
       }),
     );
     const onVaultChange = () => {
-      if (this.scenesOpen()) this.scheduleRefresh();
+      if (this.scenesOpen() || this.threadsOpen()) this.scheduleRefresh();
     };
     this.registerEvent(this.app.vault.on("modify", onVaultChange));
     this.registerEvent(this.app.vault.on("rename", onVaultChange));
@@ -757,6 +774,7 @@ export default class ScribidianPlugin extends Plugin {
   refreshStatus(): void {
     this.refreshProjectViewClasses();
     this.refreshScenes();
+    this.refreshThreads();
     if (this.refreshTimer !== null) {
       window.clearTimeout(this.refreshTimer);
       this.refreshTimer = null;
@@ -937,6 +955,77 @@ export default class ScribidianPlugin extends Plugin {
     await this.app.workspace.revealLeaf(leaf);
   }
 
+  /**
+   * Obsidian's "Follow link" (Alt+Enter by default, or the writer's own
+   * hotkey) with the cursor on, in or right next to a thread goes to the
+   * next place in it, as a click on the 🧵 does. Anywhere else the command
+   * works as before. Undone when Scribidian is turned off.
+   */
+  private followLinkOnThreads(): void {
+    const registry = (
+      this.app as unknown as {
+        commands?: { commands?: Record<string, Command | undefined> };
+      }
+    ).commands?.commands;
+    const command = registry?.["editor:follow-link"];
+    if (!command) return;
+    const original = {
+      checkCallback: command.checkCallback,
+      editorCheckCallback: command.editorCheckCallback,
+      editorCallback: command.editorCallback,
+    };
+    const onThread = (checking: boolean): boolean => {
+      const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+      const cm = (view?.editor as { cm?: unknown } | undefined)?.cm;
+      if (!(cm instanceof EditorView)) return false;
+      const mark = this.threads.markAtCursor(cm);
+      if (mark === null) return false;
+      if (!checking) void this.threads.open(cm, mark, 1, false, false);
+      return true;
+    };
+    if (original.checkCallback) {
+      const call = original.checkCallback;
+      command.checkCallback = (checking) =>
+        onThread(checking) || call(checking);
+    }
+    if (original.editorCheckCallback) {
+      const call = original.editorCheckCallback;
+      command.editorCheckCallback = (checking, editor, context) =>
+        onThread(checking) || call(checking, editor, context);
+    }
+    if (original.editorCallback) {
+      const call = original.editorCallback;
+      command.editorCallback = (editor, context) => {
+        if (!onThread(false)) void call(editor, context);
+      };
+    }
+    this.register(() => Object.assign(command, original));
+  }
+
+  /** Open the Threads sidebar, showing thread `key` (or all of them). */
+  async openThreads(key: string | null): Promise<void> {
+    this.activeMarkdownView();
+    let leaf: WorkspaceLeaf | null =
+      this.app.workspace.getLeavesOfType(THREADS_VIEW_TYPE)[0] ?? null;
+    if (leaf === null) {
+      leaf = this.app.workspace.getRightLeaf(false);
+      if (leaf === null) return;
+      await leaf.setViewState({ type: THREADS_VIEW_TYPE, active: false });
+    }
+    await this.app.workspace.revealLeaf(leaf);
+    if (leaf.view instanceof ThreadsView) leaf.view.select(key);
+  }
+
+  private threadsOpen(): boolean {
+    return this.app.workspace.getLeavesOfType(THREADS_VIEW_TYPE).length > 0;
+  }
+
+  private refreshThreads(): void {
+    for (const leaf of this.app.workspace.getLeavesOfType(THREADS_VIEW_TYPE)) {
+      if (leaf.view instanceof ThreadsView) leaf.view.refresh();
+    }
+  }
+
   openContinuityInspector(): void {
     new ContinuityInspectorModal(this).open();
   }
@@ -951,7 +1040,8 @@ export default class ScribidianPlugin extends Plugin {
       direct,
       this.app.workspace.getActiveFile(),
       views,
-      this.app.workspace.getActiveViewOfType(ScenesView) !== null,
+      this.app.workspace.getActiveViewOfType(ScenesView) !== null ||
+        this.app.workspace.getActiveViewOfType(ThreadsView) !== null,
     );
   }
 

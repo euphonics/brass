@@ -180,8 +180,10 @@ toolbar above the keyboard.
 - Lines starting with `~` are lyrics.
 - `[&name]` is a **thread**, a Scribidian addition: lines with the same
   name are tied together (a setup and its payoff, a red herring). It shows
-  as 🧵; click it to go to the next place in the note, Alt+click to go on
-  through the project and notes linked to it. Exports leave threads out.
+  as 🧵; click it (or press Obsidian's Follow link hotkey on it) to go to
+  the next place in the note, Alt+click to go on through the project and
+  notes linked to it. **Show threads** lists every place in a sidebar.
+  Exports leave threads out.
 - While Scribidian is turned off, `.fountain` files disappear from Obsidian's
   file list unless **Settings → Files and links → Detect all file extensions**
   is on.

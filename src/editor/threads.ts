@@ -29,7 +29,8 @@ import { findThreads, type ThreadMark } from "../screenplay/threads";
 /*
  * Threads in the editor: each `[&name]` shows as a small 🧵. Click: the next
  * place in this note (Shift+click: the previous one). Alt+click: the next
- * place in the project and linked notes (Ctrl/Cmd+click: in a new tab). With the cursor in it or right next to
+ * place in the project and linked notes. Ctrl/Cmd+click: the thread in
+ * the Threads panel. With the cursor in it or right next to
  * it, the text shows (faded) so the name can be read and edited.
  */
 
@@ -38,7 +39,8 @@ export type OpenThread = (
   view: EditorView,
   mark: ThreadMark,
   step: 1 | -1,
-  newTab: boolean,
+  /** Ctrl/Cmd+click: show the thread in the Threads panel. */
+  panel: boolean,
   across: boolean,
 ) => void;
 
@@ -63,7 +65,7 @@ class ThreadWidget extends WidgetType {
     el.setAttribute("aria-label", `Thread: ${this.mark.name}`);
     el.setAttribute(
       "title",
-      `${this.mark.name} (click: next in this note, Shift+click: previous, Alt+click: next in the project and linked notes)`,
+      `${this.mark.name} (click: next in this note, Shift+click: previous, Alt+click: next in the project and linked notes, Ctrl/Cmd+click: Threads panel)`,
     );
     el.addEventListener("mousedown", (event) => {
       if (event.button !== 0) return;
