@@ -391,9 +391,26 @@ export function createScreenplayLayoutExtension(
       });
       return true;
     }
+    // An empty "()" in the middle of a speech (Tab inside dialogue): the
+    // dialogue it split joins back into one line, as before the Tab.
+    const joinsSpeech =
+      line.number < state.doc.lines &&
+      layout.kinds[line.number - 2] === "dialogue" &&
+      layout.kinds[line.number] === "dialogue";
+    const below = joinsSpeech ? state.doc.line(line.number + 1) : null;
+    const left = state.doc.line(line.number - 1).text;
+    const gap =
+      below !== null &&
+      /[.!?,;:)]$/u.test(left) &&
+      /^[\p{L}\p{N}"'“‘]/u.test(below.text)
+        ? " "
+        : "";
     view.dispatch({
-      changes: { from: line.from - 1, to: line.to },
-      selection: { anchor: line.from - 1 },
+      changes:
+        below !== null
+          ? { from: line.from - 1, to: below.from, insert: gap }
+          : { from: line.from - 1, to: line.to },
+      selection: { anchor: line.from - 1 + gap.length },
       // Not "delete.backward": strict mode stops that from joining two
       // elements, and here the whole line goes.
       userEvent: "delete.wryly",

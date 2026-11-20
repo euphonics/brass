@@ -134,11 +134,18 @@ describe("Smart Tab", () => {
     };
     const source = "HELIOS\nThey want to tie you down. They don't mean to.";
     const result = apply(source, source.indexOf(" They don't"));
+    // The space stays (unseen) at the end of the line above, so deleting
+    // the empty "()" joins the speech back exactly.
     expect(result?.text).toBe(
-      "HELIOS\nThey want to tie you down.\n()\nThey don't mean to.",
+      "HELIOS\nThey want to tie you down. \n()\nThey don't mean to.",
     );
     expect(result?.text.slice(0, result.cursor).endsWith("(")).toBe(true);
     expect(result?.open).toBe(true);
+    // Mid-word: nothing is added or lost.
+    const word = "HELIOS\nto the next level";
+    expect(apply(word, word.indexOf("e next"))?.text).toBe(
+      "HELIOS\nto th\n()\ne next level",
+    );
     // At the very start of a dialogue line, the wryly goes above it.
     const start = apply("JEN\nHi.", 4);
     expect(start?.text).toBe("JEN\n()\nHi.");

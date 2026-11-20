@@ -321,7 +321,10 @@ function defaultTabPlan(
     while (to < textEnd && /[ \t]/u.test(source.charAt(to))) to += 1;
     const atLineStart = source.slice(lineStart, from).trim() === "";
     const insert = atLineStart ? "()\n" : "\n()\n";
-    const replaceFrom = atLineStart ? lineStart : from;
+    // The spaces at the split stay at the end of the line above (unseen),
+    // so deleting the empty "()" joins the speech back exactly: "to the"
+    // and a split mid-word ("th|e") both come back as they were.
+    const replaceFrom = atLineStart ? lineStart : to;
     return {
       kind,
       at: to,

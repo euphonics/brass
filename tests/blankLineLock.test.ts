@@ -30,6 +30,7 @@ vi.mock("obsidian", async () => {
 
 const {
   createBlankLineLockExtension,
+  cueGetsDialogue,
   cursorOffSeparator,
   isSeparatorLine,
   mergeWithLineAbove,
@@ -320,5 +321,41 @@ describe("blank line lock", () => {
       expect(state.doc.toString()).toBe(".OFFICECOMPUTER FIONA PULLS OPEN");
       expect(state.selection.main.head).toBe(".OFFICE".length);
     });
+  });
+});
+
+describe("cueGetsDialogue", () => {
+  const text = (lines: string[]) => Text.of(lines);
+  it("removes the blank line under a lone name so it becomes a cue", () => {
+    const d = text(["Silence.", "", "GEORGE", "", "Mm. I have worked."]);
+    // Delete on the blank line (line 4): its line break goes.
+    const from = d.line(4).to;
+    const change = cueGetsDialogue(d, from, from + 1);
+    expect(change).not.toBeNull();
+    if (change === null) return;
+    const after =
+      d.sliceString(0, change.from) + change.insert + d.sliceString(change.to);
+    expect(after).toBe(
+      ["Silence.", "", "GEORGE", "Mm. I have worked."].join("\n"),
+    );
+    expect(change.cursor).toBe(d.line(3).to + 1);
+  });
+  it("leaves action, sluglines and names with text above alone", () => {
+    const action = text(["Jen sits.", "", "She waits."]);
+    expect(
+      cueGetsDialogue(action, action.line(2).to, action.line(2).to + 1),
+    ).toBeNull();
+    const slug = text(["GEORGE", "", "INT. HALL - DAY"]);
+    expect(
+      cueGetsDialogue(slug, slug.line(2).to, slug.line(2).to + 1),
+    ).toBeNull();
+    const glued = text(["Jen sits.", "GEORGE", "", "Mm."]);
+    expect(
+      cueGetsDialogue(glued, glued.line(3).to, glued.line(3).to + 1),
+    ).toBeNull();
+    const bang = text(["BANG!", "", "Glass falls."]);
+    expect(
+      cueGetsDialogue(bang, bang.line(2).to, bang.line(2).to + 1),
+    ).toBeNull();
   });
 });

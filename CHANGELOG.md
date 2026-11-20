@@ -157,6 +157,15 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Typing at the end of a cue already in the script (`HELIOS` with its
+  dialogue below) is in capitals, so the cue stays a cue.
+- Strict: Backspace or Delete on an empty `()` in the middle of a speech
+  joins the dialogue back into one line, exactly as before the Tab that
+  split it (Tab now keeps the space at the split, at the end of the line
+  above).
+- Strict: Delete on the blank line under a name in capitals (or Backspace
+  at the start of the line below) makes the name a cue with that line as
+  its dialogue, instead of joining them as action (`GEORGE Mm.`).
 - Tab and Enter no longer produce improper formatting (from a survey of
   Tab/Enter chains): Enter doesn't stack blank lines or leave unfinished
   sluglines (strict); an empty "()" is never left behind; no empty line

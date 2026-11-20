@@ -24,7 +24,13 @@ import {
 import { keymap, type EditorView } from "@codemirror/view";
 import type { Extension, Text, Transaction } from "@codemirror/state";
 import { editorInfoField } from "obsidian";
-import { classifyLines } from "../screenplay/lines";
+import {
+  classifyLines,
+  isForcedTransition,
+  isSceneHeading,
+  isTransitionText,
+  looksLikeCharacterCue,
+} from "../screenplay/lines";
 import type ScribidianPlugin from "../main";
 
 /*
@@ -135,6 +141,47 @@ export function actionBlocksJoin(
 }
 
 /**
+ * When deleting `from`..`to` removes the blank line under a name in
+ * capitals standing on its own (a blank line or the top above it) with a
+ * speech-like line below: the change that removes the whole blank line, so
+ * the name becomes a cue and the line below its dialogue. Without it the
+ * name reads as action and the two would join as action paragraphs
+ * ("GEORGE Mm."). Null otherwise.
+ */
+export function cueGetsDialogue(
+  doc: Text,
+  from: number,
+  to: number,
+): { from: number; to: number; insert: string; cursor: number } | null {
+  const above = doc.lineAt(from);
+  const below = doc.lineAt(to);
+  if (below.number !== above.number + 1) return null;
+  const blank = isSeparatorLine(doc, above.number)
+    ? above.number
+    : isSeparatorLine(doc, below.number)
+      ? below.number
+      : null;
+  if (blank === null) return null;
+  const name = doc.line(blank - 1);
+  const speech = doc.line(blank + 1);
+  if (!looksLikeCharacterCue(name.text)) return null;
+  if (blank - 1 > 1 && doc.line(blank - 2).text.trim() !== "") return null;
+  const text = speech.text.trim();
+  if (
+    isSceneHeading(text) ||
+    isTransitionText(text) ||
+    isForcedTransition(text) ||
+    looksLikeCharacterCue(text)
+  ) {
+    return null;
+  }
+  const start =
+    speech.from + (speech.text.length - speech.text.trimStart().length);
+  // The speech line's leading spaces go too: dialogue starts at its text.
+  return { from: name.to, to: start, insert: "\n", cursor: name.to + 1 };
+}
+
+/**
  * Whether deleting `from`..`to` (with the cursor on line `cursorLine`,
  * 0-based) joins two lines of text that are different elements, such as a
  * character cue and the dialogue under it.
@@ -199,10 +246,10 @@ export function createBlankLineLockExtension(
       const join = elementJoin(plugin, tr);
       if (join !== null) {
         if (join.merge) {
-          const { from, to, insert } = join.merge;
+          const { from, to, insert, cursor } = join.merge;
           return {
             changes: { from, to, insert },
-            selection: EditorSelection.cursor(from + insert.length),
+            selection: EditorSelection.cursor(cursor ?? from + insert.length),
             userEvent: backspace ? "delete.backward" : "delete.forward",
             scrollIntoView: true,
           };
@@ -256,7 +303,7 @@ function elementJoin(
   tr: Transaction,
 ): {
   aboveEnd: number;
-  merge?: { from: number; to: number; insert: string };
+  merge?: { from: number; to: number; insert: string; cursor?: number };
 } | null {
   const start = tr.startState;
   if (start.selection.ranges.length !== 1 || !start.selection.main.empty) {
@@ -284,6 +331,8 @@ function elementJoin(
   // one paragraph instead, as in Fade In.
   const separator = separatorRemoved(start.doc, from, to);
   if (separator !== null) {
+    const cue = cueGetsDialogue(start.doc, from, to);
+    if (cue !== null) return { aboveEnd: separator, merge: cue };
     const merge = actionBlocksJoin(start.doc, from, to);
     return merge ? { aboveEnd: separator, merge } : { aboveEnd: separator };
   }

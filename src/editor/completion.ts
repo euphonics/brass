@@ -1317,6 +1317,23 @@ export function createScreenplayCompletionExtension(
     return tabCueLine(state) === from;
   };
 
+  // Typing at `at` on a cue the script already reads as one: a name in
+  // capitals on its own line (blank line or the top above), with text right
+  // below. "HELIOS|" + "test" stays a cue as "HELIOSTEST" instead of turning
+  // into action with its dialogue. Not inside the extension's brackets,
+  // which may be lower case ("(v.o.)").
+  const typingOnCue = (doc: Text, at: number): boolean => {
+    const line = doc.lineAt(at);
+    if (line.number >= doc.lines) return false;
+    if (line.number > 1 && doc.line(line.number - 1).text.trim() !== "") {
+      return false;
+    }
+    if (doc.line(line.number + 1).text.trim() === "") return false;
+    if (line.text.slice(0, at - line.from).includes("(")) return false;
+    if (!looksLikeCharacterCue(line.text)) return false;
+    return !inFrontmatter(doc, line.number) && !inCodeBlock(doc, line.number);
+  };
+
   const uppercaseTransitions = EditorState.transactionFilter.of((tr) => {
     const pasted = tr.isUserEvent("input.paste");
     if (!tr.docChanged || (!tr.isUserEvent("input.type") && !pasted)) {
@@ -1394,7 +1411,8 @@ export function createScreenplayCompletionExtension(
       // there, even a name the script doesn't have yet.
       if (
         plugin.typingChangeEnabled("uppercaseCharacters") &&
-        inCueColumn(tr.startState, tr.startState.doc.lineAt(fromA).from)
+        (inCueColumn(tr.startState, tr.startState.doc.lineAt(fromA).from) ||
+          typingOnCue(tr.startState.doc, fromA))
       ) {
         const upper = text.toLocaleUpperCase();
         if (upper !== text && upper.length === text.length) {
