@@ -85,3 +85,29 @@ export const lineKindField = StateField.define<LineKindOverride | null>({
     return next;
   },
 });
+
+/**
+ * The empty next-cue line the writer turned into action (Escape, Shift+Tab
+ * or Backspace), so arrowing away and back doesn't make it a cue again
+ * with the list open. Forgotten once the line has text or is gone.
+ */
+export const setDismissedCueLine = StateEffect.define<number | null>();
+
+export const dismissedCueLineField = StateField.define<number | null>({
+  create: () => null,
+  update(value, tr) {
+    let next = value;
+    if (next !== null && tr.docChanged) {
+      let merged = false;
+      tr.changes.iterChanges((fromA, toA) => {
+        if (fromA < next! && toA >= next!) merged = true;
+      });
+      next = merged || replacesWholeNote(tr) ? null : tr.changes.mapPos(next);
+    }
+    for (const effect of tr.effects) {
+      if (effect.is(setDismissedCueLine)) next = effect.value;
+    }
+    if (next === null) return null;
+    return tr.state.doc.lineAt(next).text.trim() === "" ? next : null;
+  },
+});

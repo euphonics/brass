@@ -140,6 +140,12 @@ describe("Tab inside a line", () => {
     ).toBe("She runs.\n\n|JEN\nHi.");
   });
 
+  it("as at the end of the line runs Tab's end-of-line plan", () => {
+    const result = tabIn("My |action.", { action: "line-end" });
+    expect(result.plan?.type).toBe("end-tab");
+    expect(result.text).toBe("My action.|");
+  });
+
   it("nothing, Obsidian's Tab and the wryly split", () => {
     expect(tabIn("She ru|ns.").plan).toEqual({ type: "nothing" });
     expect(tabIn("She ru|ns.", { action: "obsidian" }).plan).toEqual({

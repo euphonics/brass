@@ -11,6 +11,17 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- **Tab inside a line** has a new choice, **As at the end of the line**:
+  Tab does what it does at the end of the line, so Tab in the middle of
+  action starts a new character with its list (as in Arc Studio Pro).
+- Settings **Tab at the start of dialogue adds a wryly** and **Backspace on
+  an empty character line makes it action** (both on). Turn them off for
+  Fade In's behaviour.
+- Setting **Current element** (status bar, off by default): the element the
+  cursor is on.
+- Escape (or Shift+Tab) on the empty next-cue line is remembered: arrowing
+  away and back keeps the line action, with no character list.
+- Tab in an empty `()` with no cue above clears it to an empty action line.
 - Command **Screenplay: Select element**: selects the whole element at the
   cursor, a speech (cue, wrylies and dialogue) or a run of action lines with
   no blank line between them. Give it a hotkey under Settings → Hotkeys.

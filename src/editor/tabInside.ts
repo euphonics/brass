@@ -176,6 +176,10 @@ export function getTabInsidePlan(
       }
       return { type: "move", cursor: lineFrom + textEnd };
     }
+    case "line-end":
+      // As if the cursor were at the end of the line (Arc Studio): after
+      // action, a new block in the character column with its list.
+      return { type: "end-tab", cursor: lineFrom + textEnd };
     case "next-part":
       break;
   }

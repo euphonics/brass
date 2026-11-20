@@ -120,7 +120,7 @@ export function startsNewBlock(target: EnterTarget): boolean {
 
 /** What Tab does with the cursor inside a line (not at its end). */
 export type TabInsideAction =
-  "nothing" | "obsidian" | "next-part" | "wryly" | "next-element";
+  "nothing" | "obsidian" | "next-part" | "wryly" | "next-element" | "line-end";
 
 export type TabInsideActions = Record<EnterSource, TabInsideAction>;
 
@@ -149,6 +149,7 @@ export const TAB_INSIDE_LABELS: Record<TabInsideAction, string> = {
   "next-part": "Next part",
   wryly: "Add a wryly here",
   "next-element": "Next element",
+  "line-end": "As at the end of the line",
 };
 
 /**
@@ -162,7 +163,7 @@ export function tabInsideOptions(source: EnterSource): TabInsideAction[] {
     options.push("next-part");
   }
   if (source === "dialogue") options.push("wryly");
-  options.push("next-element");
+  options.push("next-element", "line-end");
   return options;
 }
 

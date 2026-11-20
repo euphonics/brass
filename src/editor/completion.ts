@@ -26,6 +26,7 @@ import {
 } from "../screenplay/lines";
 import { setTabMenuLine, tabCueLine, tabMenuLineField } from "./tabCueLine";
 import {
+  dismissedCueLineField,
   lineKindField,
   replacesWholeNote,
   setLineKind,
@@ -444,7 +445,25 @@ export function createScreenplayCompletionExtension(
         ),
       ];
     };
-    return planner(source, selection.main.head, knownTimes);
+    const plan = planner(source, selection.main.head, knownTimes);
+    // Setting off (Fade In): Tab at the start of dialogue with text doesn't
+    // add a wryly above it.
+    if (
+      plan !== null &&
+      !plugin.settings.tabAtDialogueStartAddsWryly &&
+      plan.kind === "dialogue" &&
+      plan.insert === "()\n"
+    ) {
+      const head = selection.main.head;
+      return {
+        kind: "none",
+        at: head,
+        insert: "",
+        cursor: head,
+        openCompletion: false,
+      };
+    }
+    return plan;
   };
 
   // Tab at the start of an action line with text after the cursor turns
@@ -658,6 +677,31 @@ export function createScreenplayCompletionExtension(
     return selectedCompletion(view.state)?.detail === "Wryly" ? "pick" : null;
   };
 
+  // Tab in an empty "()" on its own block (no cue above it, e.g. after "Set
+  // line to wryly"): a wryly can't stand alone, so the line becomes an
+  // empty action line. Fade In makes it dialogue, which would be just as
+  // stranded without a cue.
+  const tabInLoneWryly = (view: EditorView): boolean => {
+    if (!plugin.settings.smartTabEnabled) return false;
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    const line = doc.lineAt(selection.main.head);
+    if (!/^\s*\(\s*\)\s*$/u.test(line.text)) return false;
+    if (line.number > 1 && doc.line(line.number - 1).text.trim() !== "") {
+      return false;
+    }
+    closeCompletion(view);
+    view.dispatch({
+      changes: { from: line.from, to: line.to },
+      selection: { anchor: line.from },
+      effects: setLineKind.of({ from: line.from, kind: "action" }),
+      userEvent: "input",
+    });
+    return true;
+  };
+
   const tab = (view: EditorView): boolean => {
     // "Tab with a list open: moves to the next element" (script mode):
     // close the list and carry on as if it weren't open.
@@ -688,6 +732,7 @@ export function createScreenplayCompletionExtension(
         }
       }
     }
+    if (tabInLoneWryly(view)) return true;
     if (completionStatus(view.state) === "active") {
       // A typed wryly: one Tab picks it and goes on to the dialogue, as in
       // Fade In.
@@ -1463,6 +1508,21 @@ export function createScreenplayCompletionExtension(
       const forced = state.field(lineKindField, false) ?? null;
       if (forced !== null && forced.from === line.from) {
         return forced.kind === "character" ? line.from : null;
+      }
+      // The writer already said "not a cue" here (Escape, Shift+Tab): keep
+      // the line action instead of reopening the list.
+      if (state.field(dismissedCueLineField, false) === line.from) {
+        const view = update.view;
+        window.setTimeout(() => {
+          const now = view.state;
+          if (now.doc.lineAt(now.selection.main.head).from !== line.from) {
+            return;
+          }
+          view.dispatch({
+            effects: setLineKind.of({ from: line.from, kind: "action" }),
+          });
+        }, 0);
+        return null;
       }
       const kinds = classifyLines(doc.toString().split("\n"), {
         cursorLine: line.number - 1,

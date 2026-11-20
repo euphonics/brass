@@ -79,6 +79,8 @@ import { isScreenplayProjectFrontmatter } from "./projects/model";
 import { isScreenplayMode } from "./screenplay/mode";
 import { calculateStatistics } from "./screenplay/statistics";
 import { formatScreenplayStatus } from "./screenplay/status";
+import { classifyLines, type LineKind } from "./screenplay/lines";
+import { lineKindField } from "./editor/lineKindOverride";
 import {
   DEFAULT_SETTINGS,
   migrateSettings,
@@ -98,6 +100,20 @@ import type { NoteProperties } from "./ui/noteContext";
  * other command's length puts a group of commands last, in `rank` order.
  */
 const PALETTE_GROUP_LENGTH = 64;
+
+/** How each element is named in the status bar ("Current element"). */
+const ELEMENT_LABELS: Partial<Record<LineKind, string>> = {
+  "scene-heading": "Scene heading",
+  action: "Action",
+  character: "Character",
+  parenthetical: "Wryly",
+  dialogue: "Dialogue",
+  transition: "Transition",
+  centered: "Centered",
+  lyric: "Lyrics",
+  "page-break": "Page break",
+  note: "Note",
+};
 export function paletteOrdered(name: string, rank: number): string {
   const pad = Math.max(0, PALETTE_GROUP_LENGTH + rank - name.length);
   return name + "\u200b".repeat(pad);
@@ -800,7 +816,10 @@ export default class ScribidianPlugin extends Plugin {
 
   /** The cursor moved: update the current page without recounting. */
   onCursorMoved(): void {
-    if (!this.settings.statusBarEnabled || !this.settings.showCurrentPage) {
+    if (
+      !this.settings.statusBarEnabled ||
+      (!this.settings.showCurrentPage && !this.settings.showCurrentElement)
+    ) {
       return;
     }
     if (this.cursorTimer !== null) window.clearTimeout(this.cursorTimer);
@@ -824,19 +843,47 @@ export default class ScribidianPlugin extends Plugin {
             this.settings.pageSize,
           )
         : null;
-    const status = formatScreenplayStatus(last.statistics, {
+    const counts = formatScreenplayStatus(last.statistics, {
       estimatedPages: this.settings.showEstimatedPages,
       currentPage,
       estimatedRuntime: this.settings.showEstimatedRuntime,
       words: this.settings.showWordCount,
       scenes: this.settings.showSceneCount,
     });
+    const element =
+      this.settings.showCurrentElement && this.isScreenplayFile(last.file)
+        ? this.currentElementLabel(view)
+        : null;
+    const status = [element, counts].filter(Boolean).join(" · ");
     this.statusBarItem?.setText(status);
     this.statusBarItem?.setAttribute(
       "aria-label",
       `Scribidian screenplay statistics: ${status}`,
     );
     this.statusBarItem?.show();
+  }
+
+  /**
+   * The element the cursor is on, as the status bar shows it ("Dialogue"),
+   * or null on a blank line or a line that isn't part of the script. A line
+   * set to an element (Shift+Tab, Set line to…) counts as that element.
+   */
+  private currentElementLabel(view: MarkdownView): string | null {
+    const cm = (view.editor as { cm?: unknown }).cm;
+    const lines = view.editor.getValue().split("\n");
+    const cursorLine = view.editor.getCursor("head").line;
+    let forced: { line: number; kind: LineKind } | null = null;
+    if (cm instanceof EditorView) {
+      const set = cm.state.field(lineKindField, false) ?? null;
+      if (set !== null) {
+        forced = {
+          line: cm.state.doc.lineAt(set.from).number - 1,
+          kind: set.kind,
+        };
+      }
+    }
+    const kind = classifyLines(lines, { cursorLine, forced })[cursorLine];
+    return kind ? (ELEMENT_LABELS[kind] ?? null) : null;
   }
 
   /** Open the Scenes sidebar, or bring it forward if it is already open. */

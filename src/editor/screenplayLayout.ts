@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { lineKindField, setLineKind } from "./lineKindOverride";
+import {
+  dismissedCueLineField,
+  lineKindField,
+  setDismissedCueLine,
+  setLineKind,
+} from "./lineKindOverride";
 import { tabCueLine } from "./tabCueLine";
 import { characterCue } from "../screenplay/lines";
 import {
@@ -284,7 +289,10 @@ export function createScreenplayLayoutExtension(
     if (layout.kinds[line.number - 1] !== "character") return false;
     closeCompletion(view);
     view.dispatch({
-      effects: setLineKind.of({ from: line.from, kind: "action" }),
+      effects: [
+        setLineKind.of({ from: line.from, kind: "action" }),
+        setDismissedCueLine.of(line.from),
+      ],
     });
     return true;
   };
@@ -299,8 +307,35 @@ export function createScreenplayLayoutExtension(
       selectionDelete(view) ||
       cueDelete(view) ||
       wrylyDelete(view, false) ||
+      emptyCueDelete(view) ||
       shiftTab(view)
     );
+  };
+
+  // Setting off (Fade In's behaviour): Backspace on the empty line in the
+  // cue column deletes it at once, with the blank lines above, and the
+  // cursor goes to the end of the text above.
+  const emptyCueDelete = (view: EditorView): boolean => {
+    if (plugin.settings.backspaceEmptyCueToAction) return false;
+    const layout = view.plugin(layoutPlugin);
+    if (!layout?.active) return false;
+    const { state } = view;
+    const selection = state.selection.main;
+    if (state.selection.ranges.length > 1 || !selection.empty) return false;
+    const line = state.doc.lineAt(selection.head);
+    if (line.text.trim() !== "" || line.number === 1) return false;
+    if (layout.kinds[line.number - 1] !== "character") return false;
+    let above = line.number - 1;
+    while (above > 1 && state.doc.line(above).text.trim() === "") above -= 1;
+    const from = state.doc.line(above).to;
+    closeCompletion(view);
+    view.dispatch({
+      changes: { from, to: line.to },
+      selection: { anchor: from },
+      userEvent: "delete.cue",
+      scrollIntoView: true,
+    });
+    return true;
   };
 
   // Backspace or Delete with a whole character cue selected, right after
@@ -511,6 +546,7 @@ export function createScreenplayLayoutExtension(
 
   return [
     lineKindField,
+    dismissedCueLineField,
     layoutPlugin,
     escape,
     Prec.highest(

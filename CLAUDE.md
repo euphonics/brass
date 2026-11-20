@@ -96,6 +96,12 @@ than screenshots when testing other apps.
 - **Keep Apache 2.0 credit.** Changed or new code files carry the license
   header with the "Modifications copyright 2026 arvn" line
   (`npm run license:headers:check`).
+- **No `(CONT'D)`, ever.** Scribidian doesn't handle CONT'D, in the editor
+  or exports (roadmap #125). Don't propose it or raise it again.
+- **Fade In differences:** a behaviour where Scribidian differs from Fade
+  In gets a setting with ours as the default; its description says Off is
+  Fade In's behaviour, and it goes in `FADE_IN_DEFAULTS` (for the preset,
+  #202).
 - **Write UI text in sentence case** (the Obsidian lint rule checks it) and
   in plain, short words.
 - **Live tests in the writer's vault happen only in the `Scribidian Example`

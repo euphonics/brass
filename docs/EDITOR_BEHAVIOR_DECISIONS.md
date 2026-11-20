@@ -145,6 +145,9 @@ Test cases:
   only character suggestions show: no transitions, sluglines or wrylies.
 - Escape on an empty character-column line closes the list and moves the
   line to the left margin.
+- **Escape is remembered for that line:** arrowing away and back keeps it
+  action with no list (also after Shift+Tab or Backspace), until it has
+  text.
 
 Test cases:
 
@@ -254,16 +257,23 @@ Special cases, all decided during testing:
   action does this; other elements keep their own Tab.
 - **Tab after a slugline's time** (or its modifier) starts the action, as
   in Fade In. Type ` (` after the time for the modifier list.
-- **Tab at the start of dialogue right under a character** adds an empty
-  wryly `(|)` above the dialogue (Fade In does this).
+- **Tab at the start of dialogue with text** adds an empty wryly `(|)`
+  above it. Setting **Tab at the start of dialogue adds a wryly**; off,
+  Tab does nothing there, as in Fade In.
+- **Tab in an empty `()` on its own block** (no cue above, e.g. after Set
+  line to wryly) clears it to an empty action line: a wryly can't stand
+  without a cue.
+- **Tab in the middle of dialogue** (Add a wryly here) splits the speech
+  around `()` and leaves the spaces at the split at the end of the line
+  above, unseen, so deleting the empty `()` joins the speech back exactly.
 - **Tab at the start of dialogue right under a wryly** does nothing.
 - **Tab at the end of a wryly** (`(beat|)` or `(beat)|`) with dialogue right
   below moves the cursor to the start of that dialogue. With nothing below,
   it starts a new dialogue line.
 - **Typing a wryly with its list open** (`(bea|)`): one Tab or Enter picks
   it and goes on to the dialogue, as in Fade In.
-- **Enter in an empty `()`** keeps it and starts the dialogue line; it never
-  picks the list's first item.
+- **Enter in an empty `()`** never picks the list's first item; it
+  follows the empty-`()` rules under Enter.
 - **Tab on an empty line that was moved to the left margin** (by Backspace,
   Shift+Tab or Escape) moves it back to the character column and opens the
   character list.
@@ -286,12 +296,12 @@ element has its own setting, set separately for script and Fountain mode
 (Settings > Tab and Enter keys > Inside a line). Fountain mode starts with
 Obsidian's Tab, as in a plain text note:
 
-| Element                   | Choices                                                 | Script default   | Fountain default |
-| ------------------------- | ------------------------------------------------------- | ---------------- | ---------------- |
-| Slugline                  | Nothing, Obsidian's Tab, Next part, Next element        | Next part        | Obsidian's Tab   |
-| Character                 | Nothing, Obsidian's Tab, Next part, Next element        | Next part        | Obsidian's Tab   |
-| Dialogue                  | Nothing, Obsidian's Tab, Add a wryly here, Next element | Add a wryly here | Obsidian's Tab   |
-| Action, Wryly, Transition | Nothing, Obsidian's Tab, Next element                   | Nothing          | Obsidian's Tab   |
+| Element                   | Choices                                                                            | Script default   | Fountain default |
+| ------------------------- | ---------------------------------------------------------------------------------- | ---------------- | ---------------- |
+| Slugline                  | Nothing, Obsidian's Tab, Next part, Next element, As at the end of the line        | Next part        | Obsidian's Tab   |
+| Character                 | Nothing, Obsidian's Tab, Next part, Next element, As at the end of the line        | Next part        | Obsidian's Tab   |
+| Dialogue                  | Nothing, Obsidian's Tab, Add a wryly here, Next element, As at the end of the line | Add a wryly here | Obsidian's Tab   |
+| Action, Wryly, Transition | Nothing, Obsidian's Tab, Next element, As at the end of the line                   | Nothing          | Obsidian's Tab   |
 
 - **Next part** (only sluglines and characters have parts):
   - Character: from the name to the extension. With no extension yet, the
@@ -318,6 +328,9 @@ Obsidian's Tab, as in a plain text note:
 - **Next element** skips the parts and goes to the start of the next
   element: `CHARA|CTER (V.O.)` goes to `|Dialogue.`. It skips lines that
   aren't script: `#` headings, comments and notes.
+- **As at the end of the line:** Tab does what it does at the end of the
+  line. `My |action.` + Tab gives `My action.`, a blank line, and the
+  character column with its list (as in Arc Studio Pro).
 - The start of an action line and the start of dialogue keep their own Tab
   rules (see above); the table covers the rest of the line.
 
@@ -334,7 +347,13 @@ Test cases:
 - Backspace on an **empty character-column line** does not delete the line.
   It moves the cursor to the left margin on the same line (an empty action
   line). The next Backspace goes to the end of the line above, never onto
-  the blank separator line.
+  the blank separator line. Setting **Backspace on an empty character line
+  makes it action**; off, the first Backspace deletes the line and goes to
+  the end of the text above, as in Fade In.
+- **Delete on the blank line under a name in capitals standing alone** (or
+  Backspace at the start of the line below) removes the blank line: the
+  name becomes a cue and that line its dialogue. It never joins them as
+  action (`GEORGE Mm.`).
 - Enter on the empty dialogue line under a character or wryly does
   nothing: a character needs its dialogue. Type it, or Backspace (back to
   the character) or Shift+Tab (action).
@@ -364,7 +383,9 @@ Test cases:
   **Shift+Backspace** joins them on purpose.
 - **Wrylies never leave a lone bracket:**
   - Backspace or Delete anywhere on an empty `()` removes the whole line and
-    puts the cursor at the end of the dialogue above.
+    puts the cursor at the end of the dialogue above. In the middle of a
+    speech (dialogue above and below), the two dialogue lines join back
+    into one.
   - Backspace or Delete that would leave only `(` or `)` (for example
     Backspace at `(b|`) removes the whole line the same way.
   - A wryly with text in it edits one character at a time as normal.
@@ -406,7 +427,9 @@ Test cases:
   would continue it as a quote).
 - The first letter of each line is capitalized, except lines starting with
   a symbol like `(`.
-- Text typed in the character column is uppercased.
+- Text typed in the character column is uppercased, and so is text typed
+  on a cue already in the script (`HELIOS|` + `test` → `HELIOSTEST`), so
+  it stays a cue. Not inside the extension's brackets.
 - Each of these is a per-mode setting: on in script mode, off in plain mode.
 
 ## Fade In comparison
@@ -438,21 +461,20 @@ line has an element, shown in its Format panel.
 
 | #   | Steps                                                                | Fade In                                           | Scribidian                                                          | To match Fade In                                                                             |
 | --- | -------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| 1   | Same speaker again (`JEN` after JEN's speech)                        | Adds `(CONT'D)` by itself                         | Nothing                                                             | New feature                                                                                  |
-| 2   | Character list after a speech                                        | Last speaker first                                | The other speaker first                                             | Change the order                                                                             |
-| 3   | Escape with the character list open on an empty line                 | Line stays a character                            | Line becomes action                                                 | Change Escape                                                                                |
-| 4   | Backspace on an empty character line                                 | Line deleted, cursor at the end of the line above | Line stays, moves to the action margin (chosen 2026-11-17)          | Change Backspace                                                                             |
+| 2   | Character list after a speech                                        | Alternates: the other speaker first               | The other speaker first                                             | Same (corrected 2026-11-19)                                                                  |
+| 3   | Escape with the character list open on an empty line                 | Line stays a character                            | Line becomes action, remembered for that line                       | Keep Scribidian's (decided 2026-11-19)                                                       |
+| 4   | Backspace on an empty character line                                 | Line deleted, cursor at the end of the line above | Line stays, moves to the action margin                              | Setting: Backspace on an empty character line makes it action → off                          |
 | 5   | Type `beat` in `(                                                    | )`, then Tab or Enter                             | Closes `(beat)` and goes to a new dialogue line                     | Picks `(beat)` from the list and stays on the wryly line; a second press moves on            | Fixed 2026-11-17: now the same as Fade In |
 | 6   | Enter in an empty `(                                                 | )`                                                | Goes to dialogue, `()` stays                                        | The wryly list's first item `(beat)` is picked                                               | Fixed 2026-11-17: now the same as Fade In |
-| 7   | Tab at the start of dialogue with text                               | Nothing                                           | `()` added above (approved 2026-11-17)                              | Change the rule                                                                              |
+| 7   | Tab at the start of dialogue with text                               | Nothing                                           | `()` added above                                                    | Setting: Tab at the start of dialogue adds a wryly → off                                     |
 | 8   | Tab in the middle of dialogue                                        | Nothing                                           | Splits the speech with a wryly                                      | Setting: Tab inside a line → Dialogue → Nothing                                              |
 | 9   | Tab in the middle of a character name or slugline                    | Nothing                                           | Next part                                                           | Setting: Tab inside a line → Nothing                                                         |
 | 10  | Tab at the start of an action line with text                         | Nothing                                           | Line becomes a character. Mixed case gives `@She runs to the door.` | Fixed 2026-11-17: a sentence now stays action; a name still becomes a character              |
-| 11  | `JOHN` in action, then Enter                                         | Stays action                                      | Becomes a character, dialogue next (chosen 2026-11-17)              | Change the rule                                                                              |
+| 11  | `JOHN` in action, then Enter                                         | Stays action                                      | Becomes a character, dialogue next                                  | Keep Scribidian's (decided 2026-11-19: Fountain reads it as a cue)                           |
 | 12  | Enter on an empty dialogue line                                      | That line becomes a new character line, list open | The cue above becomes action and the cursor starts a new block      | Decided 2026-11-17: Enter does nothing there (Fade In's result can't be written in Fountain) |
 | 13  | Tab after a transition                                               | Action                                            | Scene heading                                                       | Setting: Tab and Enter keys → Transition → Action line                                       |
 | 14  | Tab after a slugline's time (`INT. OFFICE - DAY`)                    | Action                                            | Modifier list; a second Tab adds FLASHBACK (roadmap #117)           | Fixed 2026-11-17: now the same as Fade In                                                    |
-| 15  | Tab in an empty `()` on its own block                                | Line becomes empty dialogue                       | Nothing                                                             | Change the rule                                                                              |
+| 15  | Tab in an empty `()` on its own block                                | Line becomes empty dialogue                       | Line becomes an empty action line (2026-11-19)                      | Keep Scribidian's (a wryly or dialogue can't stand without a cue)                            |
 | 16  | A cue left with no dialogue under it (after deleting the line below) | Still a character                                 | Shown at the action margin                                          | Fixed 2026-11-17: keeps the character column while the cursor stays on it                    |
 | 17  | Type `(` on a dialogue line                                          | Stays dialogue                                    | Becomes a wryly, list open                                          | Keep Scribidian's (it matches Fountain)                                                      |
 | 18  | Enter on an empty action line                                        | Another empty action line                         | Strict mode keeps a single blank line between blocks                | Keep (strict mode's purpose)                                                                 |

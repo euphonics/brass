@@ -106,6 +106,13 @@ export interface ScribidianSettings {
    * not open.
    */
   tabWithListScript: TabWithList;
+  /**
+   * Strict, script mode: Backspace on the empty line in the cue column
+   * first makes it action (on), or deletes it at once as Fade In does (off).
+   */
+  backspaceEmptyCueToAction: boolean;
+  /** Tab at the start of dialogue with text adds "()" above (off: Fade In). */
+  tabAtDialogueStartAddsWryly: boolean;
   editorLayout: EditorLayout;
   bottomTypingMargin: number;
   screenplayFont: string;
@@ -125,6 +132,8 @@ export interface ScribidianSettings {
   showEstimatedRuntime: boolean;
   showWordCount: boolean;
   showSceneCount: boolean;
+  /** The element the cursor is on (Action, Dialogue…) in the status bar. */
+  showCurrentElement: boolean;
   pageSize: PageSize;
   minutesPerPage: number;
   updateDelayMs: number;
@@ -233,6 +242,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   smartEnterEnabled: true,
   showAllCommands: false,
   tabWithListScript: "pick",
+  backspaceEmptyCueToAction: true,
+  tabAtDialogueStartAddsWryly: true,
   indentActionWithSpaces: true,
   capitalizeLineStartsScript: true,
   capitalizeLineStartsPlain: false,
@@ -271,6 +282,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   showEstimatedRuntime: true,
   showWordCount: true,
   showSceneCount: true,
+  showCurrentElement: false,
   pageSize: "us-letter",
   minutesPerPage: 1,
   updateDelayMs: 300,
@@ -278,6 +290,16 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   characterTemplate: "",
   cleanExport: { ...DEFAULT_CLEAN_EXPORT_OPTIONS },
   markCapitalsAsAction: true,
+};
+
+/**
+ * Settings where Scribidian's default differs from Fade In, with Fade In's
+ * value. For a future "Use Fade In behaviour" preset button; each such
+ * setting says "Off is Fade In's behaviour" in its description.
+ */
+export const FADE_IN_DEFAULTS: Partial<ScribidianSettings> = {
+  backspaceEmptyCueToAction: false,
+  tabAtDialogueStartAddsWryly: false,
 };
 
 function valuesFromText(value: string): string[] {
@@ -471,7 +493,11 @@ const SETTING_GROUPS: {
   },
   {
     heading: "Tab and Enter keys",
-    keys: [ENTER_TARGETS_KEY],
+    keys: [
+      ENTER_TARGETS_KEY,
+      "tabAtDialogueStartAddsWryly",
+      "backspaceEmptyCueToAction",
+    ],
   },
   {
     heading: "Suggestions",
@@ -497,6 +523,7 @@ const SETTING_GROUPS: {
       "showEstimatedRuntime",
       "showWordCount",
       "showSceneCount",
+      "showCurrentElement",
       "pageSize",
       "minutesPerPage",
     ],
@@ -849,7 +876,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
   private renderTabInside(parent: HTMLElement): void {
     this.renderInsideTable(parent, {
       heading: "Tab inside a line",
-      note: "With the cursor inside a line, not at its end. Next part: sluglines go on to the location, time or modifier, characters to the extension, with its list open and the current one picked. Next element: the cursor goes to the start of the next element, skipping any parts. Obsidian's: the key works as in a normal note.",
+      note: "With the cursor inside a line, not at its end. Next part: sluglines go on to the location, time or modifier, characters to the extension, with its list open and the current one picked. Next element: the cursor goes to the start of the next element, skipping any parts. As at the end of the line: Tab does what it does at the end of the line, so after action it starts a new character with its list (Arc Studio). Obsidian's: the key works as in a normal note.",
       key: "Tab",
       script: this.plugin.settings.tabInsideScript,
       plain: this.plugin.settings.tabInsidePlain,
@@ -1056,6 +1083,15 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Current element",
+        desc: "The element the cursor is on: Scene heading, Action, Character, Wryly, Dialogue or Transition.",
+        control: {
+          type: "toggle",
+          key: "showCurrentElement",
+          defaultValue: DEFAULT_SETTINGS.showCurrentElement,
+        },
+      },
+      {
         name: "Page size",
         desc: "US Letter or A4. Used for page counts and the preview.",
         control: {
@@ -1246,6 +1282,24 @@ export class ScribidianSettingTab extends PluginSettingTab {
           type: "toggle",
           key: "smartTabEnabled",
           defaultValue: DEFAULT_SETTINGS.smartTabEnabled,
+        },
+      },
+      {
+        name: "Tab at the start of dialogue adds a wryly",
+        desc: "Script mode. On: Tab with the cursor at the start of a line of dialogue puts an empty () above it, ready for a wryly. Off: Tab does nothing there, as in Fade In (a wryly then only goes on an empty dialogue line).",
+        control: {
+          type: "toggle",
+          key: "tabAtDialogueStartAddsWryly",
+          defaultValue: DEFAULT_SETTINGS.tabAtDialogueStartAddsWryly,
+        },
+      },
+      {
+        name: "Backspace on an empty character line makes it action",
+        desc: "Script mode, strict cursor placement on. On: the first Backspace on the empty line in the character column moves it to the action margin; the next deletes it. Off: Backspace deletes the line at once and goes to the end of the line above, as in Fade In.",
+        control: {
+          type: "toggle",
+          key: "backspaceEmptyCueToAction",
+          defaultValue: DEFAULT_SETTINGS.backspaceEmptyCueToAction,
         },
       },
       {
@@ -1464,6 +1518,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       key === "showEstimatedRuntime" ||
       key === "showWordCount" ||
       key === "showSceneCount" ||
+      key === "showCurrentElement" ||
       key === "pageSize" ||
       key === "minutesPerPage"
     ) {
@@ -1505,6 +1560,9 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "showEstimatedRuntime":
       case "showWordCount":
       case "showSceneCount":
+      case "showCurrentElement":
+      case "backspaceEmptyCueToAction":
+      case "tabAtDialogueStartAddsWryly":
         this.plugin.settings[key] = value;
     }
   }
