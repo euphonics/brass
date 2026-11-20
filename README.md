@@ -72,11 +72,14 @@ and examples of the Fountain format.
   you type.
 - Smart Tab and Enter move you from element to element without reaching for
   the mouse, each with its own setting. You choose what they start after
-  each element.
+  each element. With strict cursor placement on, they never leave broken
+  formatting behind, such as an empty `()` or a stack of blank lines.
 - Shows estimated page count, the page you're on, runtime, words and scenes
   in the status bar.
 - Dual dialogue, character extensions like `(V.O.)`, and slug modifiers like
   `(FLASHBACK)`.
+- Placeholders like `$dead-teacher-name` show in your theme's accent colour,
+  so blanks to fill in later stand out. Dollar amounts don't.
 
 **Organising a script**
 
@@ -118,6 +121,16 @@ but Enter and your text are left alone. Switch with
 **Screenplay: Toggle script/Fountain mode**. Each kind of typing help can be
 turned on or off for each mode in settings. See
 [Editor modes](docs/EDITOR_MODES.md).
+
+**Strict cursor placement** keeps the cursor off the blank line between
+elements and stops Tab and Enter from making broken formatting. It's on in
+script mode and off in plain mode by default; switch it for the current mode
+with **Screenplay: Toggle strict cursor placement**.
+
+**Reporting a problem.** Run **Copy configuration to clipboard** with the
+cursor where the problem happens, and paste the result into your report. It
+holds your Scribidian settings, mode and the few lines around the cursor, and
+nothing else from your vault.
 
 **Themes.** Scribidian supports Obsidian's Default theme and Minimal, on
 computers and phones. Other themes should work but aren't tested. In scripts,
@@ -161,7 +174,10 @@ toolbar above the keyboard.
   line with a full stop: `.INNEN. HAUS - TAG`.
 - Transitions must end in `TO:`. For others, start with `>`: `> FADE OUT.`
 - A line with just two spaces keeps a speech going across a gap.
-  `%% comments %%` and `/* notes */` are left out of the script.
+- `%% comments %%`, `[[notes]]`, `/* boneyard */` and `// line comments` are
+  left out of the preview. Line comments are a Scribidian addition; other
+  apps show them as text, so use **Export to clean Fountain** to remove them.
+- Lines starting with `~` are lyrics.
 - While Scribidian is turned off, `.fountain` files disappear from Obsidian's
   file list unless **Settings → Files and links → Detect all file extensions**
   is on.

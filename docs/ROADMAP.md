@@ -485,7 +485,7 @@ two-space blank line in dialogue, and backslash escapes.
 | #   | Inconsistency                                                                                                                                                                                                         | Effort |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | 93  | The README feature list still says the screenplay layout is "display only (Settings > Editor layout, or plain Fountain text)". The setting is now Editor mode, and script mode changes typing.                        | S      |
-| 94  | The README writes commands in Title Case ("Scribidian: Create Example Screenplay", "Open Screenplay Cheat Sheet"); the real names are sentence case.                                                                  | S      |
+| 94  | Done (2026-11-19): the README now uses the real sentence-case names. Was: the README wrote commands in Title Case ("Scribidian: Create Example Screenplay", "Open Screenplay Cheat Sheet").                           | S      |
 | 95  | The roadmap plans wikilink options for export (#29), but clean Fountain export already has them (keep, unwrap or remove links, plus comments, tags, highlights and more). PDF and FDX export don't use those options. | S      |
 | 96  | The editor font is a setting, but the page preview always uses Courier.                                                                                                                                               | S      |
 

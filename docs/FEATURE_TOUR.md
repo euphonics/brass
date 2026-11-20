@@ -15,6 +15,17 @@ locations, times of day, character cues, character extensions,
 wrylies, and transitions. Statistics in the status bar update while the
 source remains ordinary portable text.
 
+Smart Tab and Smart Enter move from element to element; you choose what each
+starts after every element under **Tab and Enter keys**. **Tab with a list
+open** decides whether Tab picks the highlighted suggestion or skips to the
+next element. With strict cursor placement on, Tab and Enter never leave
+broken formatting such as an empty `()`, a wryly under a wryly or stacked
+blank lines, and deleting a selection removes whole sluglines, cues and
+wrylies rather than leaving a stray `)`.
+
+`$placeholders` show in the accent colour, `// line comments` are faded, and
+`~` lyrics are their own element.
+
 ## Combine a screenplay from several files
 
 A project note owns the explicit reading order. Parts can live in different
