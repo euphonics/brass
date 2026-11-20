@@ -160,7 +160,7 @@ describe("read-only continuity inspector", () => {
       [sceneFile("One.md", "ALEX\nHello.\n\nINT. ROOM - DAY\n\n!Action.")],
       [page("ALEX")],
     );
-    expect(result.incomplete[0]).toContain("outside recognised scenes");
+    expect(result.incomplete[0]).toContain("outside recognized scenes");
     expect(result.findings).toEqual([]);
   });
   it("retains relationship evidence and optional unused-page advice", () => {

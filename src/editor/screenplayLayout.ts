@@ -188,7 +188,7 @@ export function createScreenplayLayoutExtension(
           for (const line of doc.iterLines()) lines.push(line);
           const forced = view.state.field(lineKindField, false) ?? null;
           // An open suggestion list on an empty line puts the cursor in its
-          // element's column (the character list centres it).
+          // element's column (the character list centers it).
           this.menuKind = openMenuKind(view.state);
           this.kinds = classifyLayoutLines(
             lines,
@@ -251,7 +251,7 @@ export function createScreenplayLayoutExtension(
               ) {
                 builder.add(line.from + dot, line.from + dot + 1, HIDDEN);
               }
-              // Centred text "> THE END <": hide both markers off the cursor line.
+              // Centered text "> THE END <": hide both markers off the cursor line.
               const markers =
                 kind === "centered" && line.number - 1 !== this.cursorLine
                   ? centeredMarkers(line.text)
@@ -346,7 +346,7 @@ export function createScreenplayLayoutExtension(
     return true;
   };
 
-  // Setting off (Fade In's behaviour): Backspace on the empty line in the
+  // Setting off (Fade In's behavior): Backspace on the empty line in the
   // cue column deletes it at once, with the blank lines above, and the
   // cursor goes to the end of the text above.
   const emptyCueDelete = (view: EditorView): boolean => {
@@ -563,7 +563,7 @@ export function createScreenplayLayoutExtension(
 
   // Escape closing the character list on the empty next-cue line: the
   // writer chose not to add a cue, so the line becomes action (as with
-  // Shift+Tab) instead of staying centred until they type. Observed, not
+  // Shift+Tab) instead of staying centered until they type. Observed, not
   // handled, so the list's own Escape still runs.
   const escape = EditorView.domEventObservers({
     keydown(event, view) {

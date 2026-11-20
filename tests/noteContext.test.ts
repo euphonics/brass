@@ -105,7 +105,7 @@ describe("current note properties", () => {
   };
   const settings = { activateFountainFiles: true, activateFrontmatter: true };
 
-  it("recognises activated source before metadata is available", () => {
+  it("recognizes activated source before metadata is available", () => {
     expect(resolveNoteProperties("enabled", false, undefined, parse)).toEqual({
       state: "ready",
       frontmatter: { screenplay: true },

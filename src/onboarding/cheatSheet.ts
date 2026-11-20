@@ -89,7 +89,7 @@ export const CHEAT_SHEET_SECTIONS: CheatSheetSection[] = [
   {
     title: "Fountain quick syntax",
     introduction:
-      "These are the six core element types Scribidian recognises and exports to FDX.",
+      "These are the six core element types Scribidian recognizes and exports to FDX.",
     entries: [
       {
         term: "Slugline",
@@ -125,7 +125,7 @@ export const CHEAT_SHEET_SECTIONS: CheatSheetSection[] = [
   },
   {
     title: "Scribidian terms",
-    introduction: "How Scribidian organises portable screenplay material.",
+    introduction: "How Scribidian organizes portable screenplay material.",
     entries: [
       {
         term: "Screenplay mode",

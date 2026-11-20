@@ -667,7 +667,7 @@ export default class ScribidianPlugin extends Plugin {
    * - Plain mode ("Plain Fountain text"): plain text with free typing.
    *   Suggestions and Smart Tab still work; Enter is always Obsidian's own.
    *
-   * Behaviour that changes typing beyond suggestions and Tab belongs to
+   * Behavior that changes typing beyond suggestions and Tab belongs to
    * script mode only. See docs/EDITOR_MODES.md for the full list.
    */
   isScriptMode(): boolean {

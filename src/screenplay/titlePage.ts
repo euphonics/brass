@@ -39,7 +39,7 @@ export function titlePageFromFrontmatter(
   return result;
 }
 
-/** Strip only a leading, recognised title block, retaining source line positions. */
+/** Strip only a leading, recognized title block, retaining source line positions. */
 export function extractFountainTitlePage(lines: string[]): {
   lines: string[];
   titlePage?: ScreenplayTitlePage;

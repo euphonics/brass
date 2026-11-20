@@ -51,7 +51,7 @@ describe("force element", () => {
     expect(forceElementPlan("!JEN", "character")?.text).toBe("JEN");
   });
 
-  it("transition, parenthetical and centred text", () => {
+  it("transition, parenthetical and centered text", () => {
     expect(forceElementPlan("", "transition")).toMatchObject({
       text: "> ",
       complete: "transition",

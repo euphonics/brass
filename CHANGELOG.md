@@ -41,7 +41,7 @@ Scribidian changes since 0.1.0.
   action starts a new character with its list (as in Arc Studio Pro).
 - Settings **Tab at the start of dialogue adds a wryly** and **Backspace on
   an empty character line makes it action** (both on). Turn them off for
-  Fade In's behaviour.
+  Fade In's behavior.
 - Setting **Current element** (status bar, off by default): the element the
   cursor is on.
 - Escape (or Shift+Tab) on the empty next-cue line is remembered: arrowing
@@ -64,7 +64,7 @@ Scribidian changes since 0.1.0.
   take the upper line's element (in capitals onto a slugline, cue or
   transition). New command: Delete and merge with line below.
 - **Highlight $ variables** (Typing in each mode, script and Fountain):
-  `$my_variable` or `$ABC123` shows in the theme's accent colour; dollar
+  `$my_variable` or `$ABC123` shows in the theme's accent color; dollar
   amounts like `$123.12` or `$1,123.12` don't.
 - **Indent action with spaces** setting (on by default): spaces at the start
   of an action line indent it in the preview and FDX export too, as
@@ -110,7 +110,7 @@ Scribidian changes since 0.1.0.
   mode, which was "Text changes while typing").
 - Settings > Tab and Enter keys: choose what Tab and what Enter start at the
   end of each element (action, dialogue, transition; slugline, character
-  and wryly under Show more). The defaults keep the old behaviour. "New line
+  and wryly under Show more). The defaults keep the old behavior. "New line
   (no change)" is a plain line break. Tab completes a slugline first; its
   choice applies after that.
 - Setting **Character suggestions match capitals** (Suggestions > Show
@@ -172,7 +172,7 @@ Scribidian changes since 0.1.0.
 
 - The editor layouts are now called script mode and plain mode. New command
   **Screenplay: Toggle script/Fountain mode**.
-- The settings page is reorganised for writers: Getting started, Writing,
+- The settings page is reorganized for writers: Getting started, Writing,
   Typing in each mode, Tab and Enter keys, Suggestions, Page count and status bar,
   Character pages, Clean Fountain export, and a collapsed Advanced section.
   Suggestion order and scene type matching sit under Show more in
@@ -282,7 +282,7 @@ Scribidian changes since 0.1.0.
   dialogue) instead of ending the speech, as in Fade In.
 - Scenes panel: Synopsis, Up, Down, Move and New scene work in scripts with
   Markdown headings (Fountain sections), fenced code blocks or dual
-  dialogue. A scene ends before the next section heading. A greyed-out
+  dialogue. A scene ends before the next section heading. A grayed-out
   button says why on hover.
 - Script mode, strict: Enter at the end of a line in the middle of a speech
   (with a wryly or more dialogue below) no longer cuts the speech in two; it
@@ -379,7 +379,7 @@ Scribidian changes since 0.1.0.
 - Don't change text while a phone keyboard is composing a word.
 - Lock the screenplay layout in screenplay notes so themes can't move it
   (first-line indents, their own fonts, padded or narrowed content, inline
-  text styles). Colours, dark mode and text size still follow the theme.
+  text styles). Colors, dark mode and text size still follow the theme.
 - Read every trailing extension on a cue, e.g. `ALEX (V.O.) (CONT'D)`.
 - Treat `!` lines as action, keep a speech going over a two-space line, and
   ignore `%%` comments (including ones that open with text) and boneyard.
@@ -399,7 +399,7 @@ Scribidian changes since 0.1.0.
 
 - Keep the active Markdown note context when the First Draft palette takes focus;
   reject stale editors during note navigation.
-- Recognise current screenplay properties while metadata catches up, and show
+- Recognize current screenplay properties while metadata catches up, and show
   waiting feedback instead of activation for unknown or malformed properties.
 - Refresh the palette after activation and report an already-active note.
 - Embed bundled Latin PDF fonts as literal byte arrays, removing native
@@ -506,7 +506,7 @@ Scribidian changes since 0.1.0.
 ### Changed
 
 - Split the First Draft Palette into focused character, project, screenplay,
-  and recent-item modules while preserving its existing behaviour.
+  and recent-item modules while preserving its existing behavior.
 - Update the GitHub Actions runtime and compatible development dependencies.
 - Adopt TypeScript 6 and remove deprecated compiler configuration.
 

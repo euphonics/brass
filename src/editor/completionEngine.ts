@@ -647,7 +647,7 @@ export function getScreenplayCompletionPlan(
   const matchCase = preferences.sceneTypeMatchCase ?? false;
   const lastContentLine = source.slice(0, from).trimEnd().split("\n").pop();
   // After a "# heading" or a transition, a slugline comes next.
-  // After a "# heading", a transition or centred text (a title), a
+  // After a "# heading", a transition or centered text (a title), a
   // slugline comes next.
   const afterHeading =
     isMarkdownHeading(lastContentLine ?? "") ||

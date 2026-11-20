@@ -46,13 +46,15 @@ flowchart TD
    not jump to the middle of the page.
 3. **The writer's explicit choice wins.** Tab, Shift+Tab and the **Set line to
    …** commands override the automatic guess for the line the cursor is on.
-4. **Never leave the script in a state that isn't valid Fountain.** No text
-   at the action margin glued under dialogue, no lone `(` or `)` on a wryly
-   line, no typing on the single blank line that separates two blocks.
-   **Tab and Enter never produce improper formatting**, however they are
+4. **Valid Fountain by default, broken formatting by choice.** **Tab and
+   Enter never produce improper formatting**, in any mode, however they are
    chained: no wryly right after a wryly, no empty `()` left behind, no
-   split `(` and `)`. The writer can still make such lines by typing them;
-   the keys that fill in and skip must not.
+   split `(` and `)`. With strict cursor placement on (the script mode
+   default), accidents are guarded against too: no text at the action margin
+   glued under dialogue, no lone `(` or `)` on a wryly line, no typing on
+   the single blank line that separates two blocks. In plain mode, or with
+   strict off, the writer is free to break formatting on purpose by typing
+   it; the keys that fill in and skip still must not.
 5. **Match Fade In / Final Draft when in doubt.** Writers come from those apps
    and their muscle memory should work.
 6. **The text is plain Fountain.** Layout is display only. Anything that would
@@ -69,7 +71,7 @@ flowchart TD
 ## $ variables (Scribidian addition)
 
 - Text after a `$` (`$my_variable`, `$ABC123`, `$1ABC`) shows in the theme's accent
-  colour, as a placeholder to fill in later.
+  color, as a placeholder to fill in later.
 - Dollar amounts (`$123`, `$123.12`, `$1,123.12`) aren't variables and stay plain.
   A trailing period or comma isn't part of the name.
 - On or off per mode: **Highlight $ variables** in Typing in each mode.

@@ -78,10 +78,10 @@ and examples of the Fountain format.
   in the status bar.
 - Dual dialogue, character extensions like `(V.O.)`, and slug modifiers like
   `(FLASHBACK)`.
-- Placeholders like `$dead-teacher-name` show in your theme's accent colour,
+- Placeholders like `$dead-teacher-name` show in your theme's accent color,
   so blanks to fill in later stand out. Dollar amounts don't.
 
-**Organising a script**
+**Organizing a script**
 
 - A **Scenes** panel in the sidebar to see every scene, jump to it, add a
   synopsis, and move scenes around. Click the clapperboard icon or run
@@ -135,7 +135,7 @@ nothing else from your vault.
 **Themes.** Scribidian supports Obsidian's Default theme and Minimal, on
 computers and phones. Other themes should work but aren't tested. In scripts,
 Scribidian keeps control of the layout (font, the 60-character line, indents,
-spacing) so a theme can't knock it out of line; colours, dark mode and text
+spacing) so a theme can't knock it out of line; colors, dark mode and text
 size still follow your theme.
 
 - To change the script font, use **Settings → Scribidian → Screenplay font**.
@@ -267,7 +267,7 @@ Tab and Enter, element hotkeys, dual dialogue, slug modifiers, typing help,
 font and margin settings and more. "First Draft" is Christian Grobmeier's
 project name; this project is not affiliated with or endorsed by him.
 
-## Licence
+## License
 
 [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) and
 [third-party notices](THIRD_PARTY_NOTICES.md).

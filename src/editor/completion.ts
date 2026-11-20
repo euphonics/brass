@@ -137,7 +137,7 @@ function lowercaseTransitionLine(doc: Text, lineNumber: number): boolean {
 
 /**
  * Whether the last text above line `lineNumber` is a "# heading", a
- * transition or centred text, after which a slugline (not a cue) comes.
+ * transition or centered text, after which a slugline (not a cue) comes.
  */
 function followsHeading(doc: Text, lineNumber: number): boolean {
   for (let number = lineNumber - 1; number >= 1; number -= 1) {
@@ -358,7 +358,7 @@ export function createScreenplayCompletionExtension(
       return buildScreenplayIndex(screenplay.document);
     });
     // A line set to an element (Set line, Shift+Tab) only gets that
-    // element's list: none for centred text, only scene parts for action
+    // element's list: none for centered text, only scene parts for action
     // (Escape said "no cue", not "no slugline"), scene parts at the left
     // margin, characters in the middle.
     const lineKind = context.state.field(lineKindField, false) ?? null;

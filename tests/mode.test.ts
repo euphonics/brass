@@ -41,7 +41,7 @@ describe("isScreenplayMode", () => {
     );
   });
 
-  it("honours disabled activation settings", () => {
+  it("honors disabled activation settings", () => {
     expect(
       isScreenplayMode(
         { extension: "fountain" },

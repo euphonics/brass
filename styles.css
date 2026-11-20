@@ -234,7 +234,7 @@
   margin-block: 6px;
 }
 
-/* "$" variables, a Scribidian addition: the theme's accent colour. */
+/* "$" variables, a Scribidian addition: the theme's accent color. */
 .markdown-source-view.mod-cm6 .scribidian-variable {
   color: var(--text-accent);
 }
@@ -356,7 +356,7 @@
 /*
  * Layout lock. In screenplay notes Scribidian owns everything that decides
  * where text sits and where lines break: the font, the 60-character column,
- * indents, spacing and alignment. Themes keep colours, background, text size,
+ * indents, spacing and alignment. Themes keep colors, background, text size,
  * cursor and selection. The !important flags are deliberate and limited to
  * these properties, so a theme rule (first-line indents, its own line font,
  * padded or narrowed content) can't knock the screenplay out of line. Markdown
@@ -472,7 +472,7 @@
 
 /* Inline text in screenplay lines (bold, links, tags, inline code,
    highlights) uses the line's font, size and spacing, so a theme styling it
-   can't change where lines wrap. Colours and decoration stay the theme's. */
+   can't change where lines wrap. Colors and decoration stay the theme's. */
 .markdown-source-view.mod-cm6
   .cm-editor.scribidian-screenplay-layout
   .cm-line:is(

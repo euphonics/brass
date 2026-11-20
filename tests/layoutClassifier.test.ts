@@ -120,7 +120,7 @@ describe("editor screenplay layout", () => {
     ).toEqual([null, null, null, null, "note", "note", "note"]);
   });
 
-  it("centres the next cue and the dialogue line while they are typed", () => {
+  it("centers the next cue and the dialogue line while they are typed", () => {
     // After a speech, the empty line where the next cue goes.
     expect(classify("BLAKE\nYou sure?\n\n", 3)[3]).toBe("character");
     // Not after action, and not when the cursor is elsewhere.
@@ -158,7 +158,7 @@ describe("editor screenplay layout", () => {
     ).toEqual(["character", "dialogue", null, "action"]);
   });
 
-  it("finds the markers to hide on centred text", () => {
+  it("finds the markers to hide on centered text", () => {
     expect(centeredMarkers("> TIGHTER <")).toEqual([
       [0, 2],
       [9, 11],
@@ -190,7 +190,7 @@ describe("comments and two-space lines", () => {
     ]);
   });
 
-  it("recognises a comment that opens with text on the same line", () => {
+  it("recognizes a comment that opens with text on the same line", () => {
     expect(kinds("%% to do\nfix this\n%%\n\nJOKER\nChoose.")).toEqual([
       "note",
       "note",

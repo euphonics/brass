@@ -8,7 +8,7 @@ Scribidian supports languages written in the Latin alphabet. Support for
 right-to-left scripts (Hebrew, Arabic) and scripts without capital letters
 (Chinese, Japanese, Korean) is out of scope for the maintainer, but welcome as a
 contribution from people who write screenplays in those languages. Fountain
-recognises character names by capital letters, so such support needs a
+recognizes character names by capital letters, so such support needs a
 thought-through way to tell names apart, and tests written with real scripts.
 
 ## Before opening a change
@@ -17,7 +17,7 @@ thought-through way to tell names apart, and tests written with real scripts.
 2. Keep domain parsing independent from Obsidian UI code.
 3. Prefer documented Obsidian APIs and browser-compatible runtime APIs.
 4. Do not add telemetry, cloud dependencies, or screenplay-content logging.
-5. Add focused tests for behavioural changes.
+5. Add focused tests for behavioral changes.
 
 ## Verification
 

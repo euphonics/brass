@@ -41,8 +41,8 @@ export function classifyLayoutLines(
 }
 
 /**
- * The "> " and " <" around centred text ("> THE END <") as [from, to]
- * offsets in the line, or null when the line is not centred text.
+ * The "> " and " <" around centered text ("> THE END <") as [from, to]
+ * offsets in the line, or null when the line is not centered text.
  */
 export function centeredMarkers(
   text: string,
@@ -66,7 +66,7 @@ export function forcedHeadingDot(text: string): number {
 
 /**
  * The element a suggestion list is for, from its first suggestion: the
- * character list centres an empty line like a cue, scene parts keep it at
+ * character list centers an empty line like a cue, scene parts keep it at
  * the left margin, and so on.
  */
 export function menuLineKind(

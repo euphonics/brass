@@ -40,7 +40,7 @@ describe("Enter targets", () => {
     ).toEqual({ ...DEFAULT_ENTER_TARGETS, action: "character" });
   });
 
-  it("keeps the old behaviour with the defaults", () => {
+  it("keeps the old behavior with the defaults", () => {
     expect(enter("BLAKE\nHello.", {})).toMatchObject({
       insert: "\n\n",
       openCompletion: true,

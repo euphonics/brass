@@ -28,7 +28,7 @@ import type ScribidianPlugin from "../main";
 
 /*
  * "$" variables ("$my_variable", "$ABC123"), a Scribidian addition: shown
- * in the theme's accent colour so placeholders stand out. Dollar amounts
+ * in the theme's accent color so placeholders stand out. Dollar amounts
  * ("$123", "$123.12", "$1,123.12") aren't variables and stay as they are.
  */
 
@@ -54,7 +54,7 @@ export function variableRanges(
   return ranges;
 }
 
-/** Colour "$" variables in screenplay notes, per the mode's setting. */
+/** Color "$" variables in screenplay notes, per the mode's setting. */
 export function createVariableHighlightExtension(
   plugin: ScribidianPlugin,
 ): Extension {

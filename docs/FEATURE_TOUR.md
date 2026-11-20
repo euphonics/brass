@@ -23,7 +23,7 @@ broken formatting such as an empty `()`, a wryly under a wryly or stacked
 blank lines, and deleting a selection removes whole sluglines, cues and
 wrylies rather than leaving a stray `)`.
 
-`$placeholders` show in the accent colour, `// line comments` are faded, and
+`$placeholders` show in the accent color, `// line comments` are faded, and
 `~` lyrics are their own element. Threads (`[&zosia red herring]`, shown
 as 🧵) tie lines together: click to go to the next place in the thread.
 

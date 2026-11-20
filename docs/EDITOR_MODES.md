@@ -18,7 +18,7 @@ typing help differ.
 placement on, in either mode, Tab and Enter never leave a tab character, an
 empty `()`, a wryly under a wryly, a split `(` `)`, an unfinished slugline
 followed by a new element, or a stack of blank lines. You can still type any
-of these by hand. See [Editor behaviour decisions](EDITOR_BEHAVIOR_DECISIONS.md).
+of these by hand. See [Editor behavior decisions](EDITOR_BEHAVIOR_DECISIONS.md).
 
 The rule for new features: anything that changes typing beyond suggestions and
 the Tab key belongs to script mode only. In code, check `plugin.isScriptMode()`.
@@ -26,9 +26,9 @@ Text changes while typing, and strict cursor placement (the cursor lock on blank
 elements), get a setting for each mode, on in script mode and off in plain mode
 by default; check `plugin.typingChangeEnabled(...)`.
 
-## Current behaviour
+## Current behavior
 
-| Behaviour                                                                           | Script mode  | Plain mode                                         |
+| Behavior                                                                            | Script mode  | Plain mode                                         |
 | ----------------------------------------------------------------------------------- | ------------ | -------------------------------------------------- |
 | Screenplay layout (indents, 60-character column, lock)                              | Yes          | No                                                 |
 | Dual dialogue shown side by side                                                    | Yes          | No                                                 |

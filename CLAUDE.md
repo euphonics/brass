@@ -14,26 +14,33 @@ Scribidian exists so a writer can type a scene without thinking about the
 tool. Every keystroke has to land where the writer expects: the cursor in
 the right column, the right list open, nothing jumping around. A
 half-second of surprise ("why is my cursor in the middle of the page?") is
-a bug, even if the text is right. When I change typing behaviour, I judge it
+a bug, even if the text is right. When I change typing behavior, I judge it
 by how it feels mid-scene, not by how clean the code is.
 
-### 2. Never leave the script invalid
+### 2. Valid Fountain by default, broken formatting by choice
 
-The text is Fountain, and it must stay valid Fountain. If an action would
-leave something no Fountain app can read the same way (text glued under
-dialogue, a lone `(` on a wryly line, typing on the blank line that
-separates two blocks), the editor prevents it or does something sensible
-instead. Refusing a keystroke is better than producing a broken script.
-Strict cursor placement is this principle as a feature.
+Scribidian never breaks the formatting on its own. Tab, Enter, the lists
+and the other keys that fill in or skip always leave valid Fountain, in
+every mode. With strict cursor placement on (the script mode default), the
+editor also guards against accidents: if a keystroke would leave something
+no Fountain app reads the same way (text glued under dialogue, a lone `(`
+on a wryly line, typing on the blank line that separates two blocks), it is
+refused or does something sensible instead.
+
+But the writer is in charge, not the format. Part of writing here rather
+than in Final Draft or Fade In is the freedom to break formatting on
+purpose: plain mode, or strict turned off, lets the writer type anything,
+anywhere, and the editor stays out of the way. A rule that protects the
+script must never trap the writer.
 
 ### 3. Industry tools are the reference, not the master
 
 Writers arrive with Final Draft and Fade In muscle memory, so their
-behaviour is the default answer to "what should this key do?". When in
+behavior is the default answer to "what should this key do?". When in
 doubt, match them. But the writer's considered choice wins over parity, and
 some things Fade In does can't exist in Fountain (it stores an element on
 every line; Fountain infers elements from text). Then I pick the closest
-valid behaviour and say so.
+valid behavior and say so.
 
 ### 4. Plain text is the truth; display is a view
 
@@ -46,7 +53,7 @@ screenwriting software, so I don't rebuild what those apps do better.
 
 ### 5. Good defaults, with the writer in charge
 
-Where behaviour is a matter of taste (case-sensitive suggestions, what Tab
+Where behavior is a matter of taste (case-sensitive suggestions, what Tab
 does inside a line, Enter after a wryly), it becomes a setting with a
 sensible default. Settings are explained in plain words and grouped where a
 writer would look for them. I don't add settings for things that have one
@@ -54,7 +61,7 @@ right answer.
 
 ### 6. Concrete over abstract
 
-Behaviour is specified as exact before/after states, with `|` for the
+Behavior is specified as exact before/after states, with `|` for the
 cursor:
 
 ```
@@ -84,7 +91,7 @@ than screenshots when testing other apps.
 
 ## Working rules
 
-- **Ask before changing a decided behaviour.** If a rule in
+- **Ask before changing a decided behavior.** If a rule in
   EDITOR_BEHAVIOR_DECISIONS.md is in the way, say so and propose a change;
   don't silently override it.
 - **Bug surveys: document first.** When hunting for bugs, test and record
@@ -98,9 +105,9 @@ than screenshots when testing other apps.
   (`npm run license:headers:check`).
 - **No `(CONT'D)`, ever.** Scribidian doesn't handle CONT'D, in the editor
   or exports (roadmap #125). Don't propose it or raise it again.
-- **Fade In differences:** a behaviour where Scribidian differs from Fade
+- **Fade In differences:** a behavior where Scribidian differs from Fade
   In gets a setting with ours as the default; its description says Off is
-  Fade In's behaviour, and it goes in `FADE_IN_DEFAULTS` (for the preset,
+  Fade In's behavior, and it goes in `FADE_IN_DEFAULTS` (for the preset,
   #202).
 - **Write UI text in sentence case** (the Obsidian lint rule checks it) and
   in plain, short words.
@@ -122,7 +129,7 @@ npm run build
 npm run license:headers:check
 ```
 
-`npm run build` also checks the bundle size. For typing behaviour, also test
+`npm run build` also checks the bundle size. For typing behavior, also test
 in Obsidian: build, copy `main.js`, `styles.css` and `manifest.json` into a
 vault's `.obsidian/plugins/scribidian/`, reload the plugin, and run the
 keystrokes in a note with `screenplay: true` in its frontmatter, in script

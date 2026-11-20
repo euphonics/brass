@@ -19,7 +19,7 @@ import { describe, expect, it } from "vitest";
 import { parseFountain } from "../src/screenplay/parser";
 
 describe("parseFountain", () => {
-  it("recognises scenes, characters, dialogue, and parentheticals", () => {
+  it("recognizes scenes, characters, dialogue, and parentheticals", () => {
     const document = parseFountain(`INT. MILITARY BASE - THERAPY ROOM - DAY
 
 DR. JANE MORROW, 42, enters.

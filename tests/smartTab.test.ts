@@ -484,7 +484,7 @@ describe("key matrix fixes", () => {
         source.slice(plan.at)
       : null;
 
-  it("centred text: Tab starts a slugline", () => {
+  it("centered text: Tab starts a slugline", () => {
     const source = "> THE END <";
     expect(apply(source, getSmartTabPlan(source, source.length))).toBe(
       "> THE END <\n\n",

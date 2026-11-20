@@ -146,7 +146,7 @@ export function classifySmartTabLine(
     return "under-block";
   }
   if (isMarkdownHeading(text)) return "heading";
-  // Centred text ("> THE END <", a title): like a heading, a slugline next.
+  // Centered text ("> THE END <", a title): like a heading, a slugline next.
   if (/^>.*<$/u.test(text)) return "heading";
   // Markdown list items and tasks keep Obsidian's own Tab (indent).
   if (/^(?:[-*+]|\d+[.)])\s/u.test(text)) return null;
@@ -491,7 +491,7 @@ export function getSmartEnterPlan(
     lineEnd === -1 ? source.length : lineEnd,
   );
   if (plan?.kind === "dialogue" && rest.trim() !== "") return null;
-  // After a "# heading" (or centred text): a blank line and the slugline
+  // After a "# heading" (or centered text): a blank line and the slugline
   // list, like Tab.
   if (plan?.kind === "heading") return plan;
   const from = plan === null ? null : enterSourceOf(plan.kind);

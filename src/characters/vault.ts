@@ -205,7 +205,7 @@ export async function screenplayProjectName(
   return guessed;
 }
 
-/** Add the properties Scribidian uses to recognise a character page. */
+/** Add the properties Scribidian uses to recognize a character page. */
 async function markAsCharacterPage(
   app: App,
   file: TFile,

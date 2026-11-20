@@ -296,8 +296,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
 
 /**
  * Settings where Scribidian's default differs from Fade In, with Fade In's
- * value. For a future "Use Fade In behaviour" preset button; each such
- * setting says "Off is Fade In's behaviour" in its description.
+ * value. For a future "Use Fade In behavior" preset button; each such
+ * setting says "Off is Fade In's behavior" in its description.
  */
 export const FADE_IN_DEFAULTS: Partial<ScribidianSettings> = {
   backspaceEmptyCueToAction: false,
@@ -426,7 +426,7 @@ export const TYPING_CHANGE_ROWS: {
   },
   {
     name: "Highlight $ variables",
-    desc: "Text after a $ sign, like $my_variable or $ABC123, shows in the accent colour. Dollar amounts like $123, $123.12 or $1,123.12 don't.",
+    desc: "Text after a $ sign, like $my_variable or $ABC123, shows in the accent color. Dollar amounts like $123, $123.12 or $1,123.12 don't.",
     plain: "highlightVariablesPlain",
     script: "highlightVariablesScript",
   },

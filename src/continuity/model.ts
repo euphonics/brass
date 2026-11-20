@@ -109,7 +109,7 @@ export function inspectContinuity(
       .filter((item) => item.path === file.path).length;
     if (total !== located)
       incomplete.push(
-        `${file.path}: Some character cues are outside recognised scenes and were not checked.`,
+        `${file.path}: Some character cues are outside recognized scenes and were not checked.`,
       );
   }
   // An incomplete screenplay must not produce misleading unused-dossier advice.
