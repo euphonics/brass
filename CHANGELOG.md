@@ -200,6 +200,14 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- One Ctrl+Z undoes Enter on an empty `()`, Enter or Tab under an empty
+  `()`, and Enter on a lower-case `cut to:` (each took two).
+- Two reloads of Scribidian at once (Hot Reload and a manual reload) no
+  longer leave a second copy of its editor setup, which stopped settings
+  from redrawing editors until Obsidian restarted.
+- Enter and Tab are faster in long scripts: they share the layout's reading
+  of the note instead of each reading it again.
+
 - Enter splitting a dialogue line no longer leaves a space at the end of
   the line above (`Hi |there.` gives `Hi`, not `Hi `).
 

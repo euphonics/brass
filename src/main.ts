@@ -17,6 +17,7 @@
 
 import { createDualDialogueExtension } from "./editor/dualDialogueView";
 import { EditorView } from "@codemirror/view";
+import type { Extension } from "@codemirror/state";
 import { pressTab } from "./editor/pressTab";
 import { estimateCurrentPage } from "./screenplay/currentPage";
 import type { ScreenplayStatistics } from "./screenplay/model";
@@ -123,6 +124,12 @@ export function paletteOrdered(name: string, rank: number): string {
   return name + "\u200b".repeat(pad);
 }
 
+/**
+ * Marks the editor extensions this plugin registered, across reloads (a
+ * reloaded plugin is new code, so only a global symbol is shared).
+ */
+const EXTENSIONS_TAG = Symbol.for("scribidian.editorExtensions");
+
 export default class ScribidianPlugin extends Plugin {
   settings: ScribidianSettings = { ...DEFAULT_SETTINGS };
   /**
@@ -149,7 +156,7 @@ export default class ScribidianPlugin extends Plugin {
     this.addSettingTab(new ScribidianSettingTab(this.app, this));
     // One call, in this order: each call makes Obsidian reconfigure every
     // open editor.
-    this.registerEditorExtension([
+    const editorExtensions = [
       createScreenplayCompletionExtension(this),
       createScreenplayLayoutExtension(this),
       createDualDialogueExtension(this),
@@ -166,7 +173,8 @@ export default class ScribidianPlugin extends Plugin {
       EditorView.updateListener.of((update) => {
         if (update.selectionSet && !update.docChanged) this.onCursorMoved();
       }),
-    ]);
+    ];
+    this.registerOwnEditorExtensions(editorExtensions);
     this.registerEditorSuggest(new ThreadSuggest(this.threads));
     this.app.workspace.onLayoutReady(() => this.followLinkOnThreads());
     registerFountainCodeBlockProcessor(this);
@@ -646,6 +654,37 @@ export default class ScribidianPlugin extends Plugin {
    * Extensions) may have claimed .fountain already; Obsidian then refuses a
    * second claim, which would otherwise stop Scribidian from loading.
    */
+  /**
+   * Register the editor extensions, first dropping any left by an earlier
+   * load. Two reloads at once (Hot Reload and a manual reload) could leave
+   * a second copy; Obsidian's next reconfigure then failed ("Config merge
+   * conflict") before it could note how to remove the new copy, so every
+   * reload leaked another one and settings stopped redrawing editors until
+   * a restart. Our own clean-up runs on unload whatever Obsidian managed.
+   */
+  private registerOwnEditorExtensions(extensions: Extension[]): void {
+    const workspace = this.app.workspace as unknown as {
+      editorExtensions?: unknown[];
+    };
+    const list = workspace.editorExtensions;
+    const ours = (item: unknown): boolean =>
+      Array.isArray(item) &&
+      (item as unknown as Record<symbol, unknown>)[EXTENSIONS_TAG] === true;
+    Object.defineProperty(extensions, EXTENSIONS_TAG, { value: true });
+    if (Array.isArray(list)) {
+      for (let index = list.length - 1; index >= 0; index -= 1) {
+        if (ours(list[index])) list.splice(index, 1);
+      }
+      this.register(() => {
+        const at = list.indexOf(extensions);
+        if (at === -1) return;
+        list.splice(at, 1);
+        this.app.workspace.updateOptions();
+      });
+    }
+    this.registerEditorExtension(extensions);
+  }
+
   private registerFountainExtension(): void {
     try {
       this.registerExtensions(["fountain"], "markdown");

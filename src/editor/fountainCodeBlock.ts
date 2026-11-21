@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { MarkdownPreviewRenderer } from "obsidian";
 import type ScribidianPlugin from "../main";
 import { classifyLayoutLines } from "./layoutClassifier";
 
@@ -34,6 +35,34 @@ const BLOCK_CLASS = "scribidian-fountain-codeblock";
 export function registerFountainCodeBlockProcessor(
   plugin: ScribidianPlugin,
 ): void {
+  // A processor an earlier load of Scribidian never removed (two reloads at
+  // once): drop it, or registering again fails and stops the plugin
+  // loading halfway. One from another plugin is left alone.
+  const marker = window as unknown as Record<symbol, boolean | undefined>;
+  const registry = (
+    MarkdownPreviewRenderer as unknown as {
+      codeBlockPostProcessors?: Record<string, unknown>;
+    }
+  ).codeBlockPostProcessors;
+  if (marker[OWN_PROCESSOR] === true && registry !== undefined) {
+    delete registry.fountain;
+  }
+  try {
+    registerProcessor(plugin);
+  } catch {
+    // Another plugin shows fountain code blocks: keep its look.
+    return;
+  }
+  marker[OWN_PROCESSOR] = true;
+  plugin.register(() => {
+    marker[OWN_PROCESSOR] = false;
+  });
+}
+
+/** Set while a Scribidian load has the "fountain" processor registered. */
+const OWN_PROCESSOR = Symbol.for("scribidian.fountainCodeBlock");
+
+function registerProcessor(plugin: ScribidianPlugin): void {
   plugin.registerMarkdownCodeBlockProcessor("fountain", (source, el) => {
     if (!plugin.settings.renderFountainCodeBlocks) {
       // Recreate the default code block appearance.

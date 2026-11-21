@@ -32,6 +32,7 @@ import {
   looksLikeCharacterCue,
 } from "../screenplay/lines";
 import type ScribidianPlugin from "../main";
+import { docLineKinds } from "./docLines";
 
 /*
  * Keep the cursor off blank lines between elements. A single blank line
@@ -131,7 +132,7 @@ export function actionBlocksJoin(
   const textAbove = doc.line(blank - 1);
   const textBelow = doc.line(blank + 1);
   // The whole note: a cue is only a cue with its dialogue below it.
-  const kinds = classifyLines(doc.toString().split("\n"));
+  const kinds = docLineKinds(doc);
   if (kinds[blank - 2] !== "action" || kinds[blank] !== "action") return null;
   const trimmedEnd = textAbove.from + textAbove.text.trimEnd().length;
   const startBelow =
@@ -361,7 +362,7 @@ function joinLines(
   }
   const upper = doc.line(upperLine);
   const lower = doc.line(lowerLine);
-  const kinds = classifyLines(doc.toString().split("\n"));
+  const kinds = docLineKinds(doc);
   const capitals = CAPITAL_KINDS.has(kinds[upperLine - 1] ?? "");
   const text = lower.text.trimStart();
   return {

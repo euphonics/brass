@@ -40,6 +40,7 @@ import {
 } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
 import type ScribidianPlugin from "../main";
+import { docLineKinds, docLines } from "./docLines";
 import {
   centeredMarkers,
   classifyLayoutLines,
@@ -108,7 +109,7 @@ export function createScreenplayLayoutExtension(
     class {
       decorations: DecorationSet = Decoration.none;
       active = false;
-      kinds: (LayoutLineKind | null)[] = [];
+      kinds: readonly (LayoutLineKind | null)[] = [];
       private cursorLine = -1;
       private menuKind: LayoutLineKind | null = null;
       /**
@@ -184,21 +185,29 @@ export function createScreenplayLayoutExtension(
         const { doc } = view.state;
         this.cursorLine = doc.lineAt(view.state.selection.main.head).number - 1;
         if (reclassify || this.kinds.length !== doc.lines) {
-          const lines: string[] = [];
-          for (const line of doc.iterLines()) lines.push(line);
+          const lines = docLines(doc);
           const forced = view.state.field(lineKindField, false) ?? null;
           // An open suggestion list on an empty line puts the cursor in its
           // element's column (the character list centers it).
           this.menuKind = openMenuKind(view.state);
-          this.kinds = classifyLayoutLines(
-            lines,
-            this.cursorLine,
-            forced !== null
-              ? { line: doc.lineAt(forced.from).number - 1, kind: forced.kind }
-              : this.menuKind !== null
-                ? { line: this.cursorLine, kind: this.menuKind }
-                : null,
-          );
+          // With nothing set for a line, the same result Enter and Tab ask
+          // for on this keystroke: shared, so the note is classified once.
+          this.kinds =
+            forced === null && this.menuKind === null
+              ? docLineKinds(doc, this.cursorLine)
+              : classifyLayoutLines(
+                  lines,
+                  this.cursorLine,
+                  forced !== null
+                    ? {
+                        line: doc.lineAt(forced.from).number - 1,
+                        kind: forced.kind,
+                      }
+                    : {
+                        line: this.cursorLine,
+                        kind: this.menuKind ?? "action",
+                      },
+                );
           // Remember a cue the cursor is on. If it stops reading as one
           // only because nothing is under it any more (its dialogue was
           // deleted), keep its column until the cursor leaves the line.

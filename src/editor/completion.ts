@@ -22,7 +22,6 @@ import {
   isSceneHeading,
   isTransitionText,
   looksLikeCharacterCue,
-  classifyLines,
 } from "../screenplay/lines";
 import { setTabMenuLine, tabCueLine, tabMenuLineField } from "./tabCueLine";
 import {
@@ -33,6 +32,7 @@ import {
 } from "./lineKindOverride";
 import { forceElementPlan, type ForcedElement } from "./forceElement";
 import { menuLineKind } from "./layoutClassifier";
+import { docLineKinds, docLines } from "./docLines";
 import { getEnterInsidePlan, getTabInsidePlan } from "./tabInside";
 import { CHARACTER_EXTENSIONS } from "../screenplay/fountain";
 import {
@@ -55,6 +55,7 @@ import {
   StateField,
   type Extension,
   type Text,
+  type Transaction,
 } from "@codemirror/state";
 import { EditorView, keymap, tooltips } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
@@ -131,7 +132,7 @@ function lowercaseTransitionLine(doc: Text, lineNumber: number): boolean {
   if (lineNumber > 1 && doc.line(lineNumber - 1).text.trim() !== "") {
     return false;
   }
-  const lines = doc.toString().split("\n");
+  const lines = docLines(doc);
   return classifySmartTabLine(lines, lineNumber - 1) === "action";
 }
 
@@ -448,19 +449,21 @@ export function createScreenplayCompletionExtension(
     planner: typeof getSmartTabPlan = (source, cursor, knownTimes) =>
       getSmartTabPlan(source, cursor, knownTimes, plugin.settings.tabTargets),
     enabled: boolean = plugin.settings.smartTabEnabled,
+    // The state to plan from: a pending edit's (see applySmartPlan).
+    state: EditorState = view.state,
   ): SmartTabPlan | null => {
     if (!enabled) return null;
-    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    const file = state.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return null;
-    const { selection } = view.state;
+    const { selection } = state;
     if (selection.ranges.length > 1 || !selection.main.empty) return null;
 
-    const source = view.state.doc.toString();
+    const source = state.doc.toString();
     // Only scene headings need the script's times; parse lazily. Not
     // counting the cursor's line, whose last part is the one in question
     // ("INT. HOUSE - KITCHEN" would make KITCHEN a time).
     const knownTimes = () => {
-      const line = view.state.doc.lineAt(selection.main.head);
+      const line = state.doc.lineAt(selection.main.head);
       const others = `${source.slice(0, line.from)}${source.slice(line.to)}`;
       return [
         ...plugin.settings.preferredTimesOfDay,
@@ -504,7 +507,7 @@ export function createScreenplayCompletionExtension(
     if (line.text.trim() === "" || selection.main.head !== line.from + indent) {
       return false;
     }
-    const lines = doc.toString().split("\n");
+    const lines = docLines(doc);
     const kind = classifySmartTabLine(lines, line.number - 1);
     // Dialogue right under a wryly: Tab does nothing (as in Fade In),
     // instead of adding another wryly between them.
@@ -558,7 +561,7 @@ export function createScreenplayCompletionExtension(
       selection.main.head === end ||
       (selection.main.head === end - 1 && line.text.trimEnd().endsWith(")"));
     if (!atEnd) return false;
-    const lines = doc.toString().split("\n");
+    const lines = docLines(doc);
     if (classifySmartTabLine(lines, line.number - 1) !== "parenthetical") {
       return false;
     }
@@ -595,7 +598,7 @@ export function createScreenplayCompletionExtension(
     if (selection.ranges.length > 1 || !selection.main.empty) return null;
     const head = selection.main.head;
     const line = doc.lineAt(head);
-    const lines = doc.toString().split("\n");
+    const lines = docLines(doc);
     const lineFroms: number[] = [];
     let offset = 0;
     for (const text of lines) {
@@ -748,8 +751,7 @@ export function createScreenplayCompletionExtension(
           selection.main.empty &&
           line.text.trim() === "" &&
           !(set !== null && doc.lineAt(set.from).from === line.from) &&
-          classifySmartTabLine(doc.toString().split("\n"), line.number - 1) ===
-            "new-block"
+          classifySmartTabLine(docLines(doc), line.number - 1) === "new-block"
         ) {
           forceElement(view, "character");
           return true;
@@ -801,11 +803,14 @@ export function createScreenplayCompletionExtension(
     if (plugin.settings.smartTabEnabled) {
       const underWryly = dropEmptyWrylyAbove(view);
       if (underWryly === "wryly") return true;
-      if (underWryly === "dropped") {
+      if (underWryly !== null) {
         // The speech ends here: on to a new character, not another wryly.
-        const at = view.state.selection.main.head;
+        // One edit with the dropped "()", so one Ctrl+Z undoes it.
+        const at = underWryly.state.selection.main.head;
         view.dispatch({
-          changes: { from: at, insert: "\n\n" },
+          changes: underWryly.changes.compose(
+            underWryly.state.changes({ from: at, insert: "\n\n" }),
+          ),
           selection: { anchor: at + 2 },
           scrollIntoView: true,
           userEvent: "input",
@@ -852,7 +857,7 @@ export function createScreenplayCompletionExtension(
     if (selection.ranges.length > 1 || !selection.main.empty) return null;
     const head = selection.main.head;
     const line = doc.lineAt(head);
-    const lines = doc.toString().split("\n");
+    const lines = docLines(doc);
     const lineFroms: number[] = [];
     let offset = 0;
     for (const text of lines) {
@@ -933,6 +938,9 @@ export function createScreenplayCompletionExtension(
   // A transition typed in lower case on its own block ("cut to:"): Enter
   // puts it in capitals, so it reads as a transition, and goes on as after
   // one (a slugline), as in Fade In.
+  const enterPlanner: typeof getSmartTabPlan = (source, cursor, knownTimes) =>
+    getSmartEnterPlan(source, cursor, knownTimes, plugin.settings.enterTargets);
+
   const transitionOnEnter = (view: EditorView): boolean => {
     if (!plugin.settings.smartEnterEnabled) return false;
     if (completionStatus(view.state) === "active") return false;
@@ -947,7 +955,7 @@ export function createScreenplayCompletionExtension(
     }
     if (!lowercaseTransitionLine(doc, line.number)) return false;
     const indent = line.text.length - line.text.trimStart().length;
-    view.dispatch({
+    const before = view.state.update({
       changes: {
         from: line.from + indent,
         to: line.from + line.text.trimEnd().length,
@@ -955,15 +963,11 @@ export function createScreenplayCompletionExtension(
       },
       userEvent: "input",
     });
-    const plan = smartPlan(view, (source, cursor, knownTimes) =>
-      getSmartEnterPlan(
-        source,
-        cursor,
-        knownTimes,
-        plugin.settings.enterTargets,
-      ),
+    applySmartPlan(
+      view,
+      smartPlan(view, enterPlanner, undefined, before.state),
+      before,
     );
-    if (plan !== null) applySmartPlan(view, plan);
     return true;
   };
 
@@ -1001,22 +1005,15 @@ export function createScreenplayCompletionExtension(
     const wryly = wrylyList(view);
     if (wryly === "pick") acceptCompletion(view);
     else if (completionStatus(view.state) === "active") return false;
-    if (
-      plugin.settings.smartEnterEnabled &&
-      dropEmptyWrylyAbove(view) === "dropped"
-    ) {
-      const plan = smartPlan(
+    const dropped = plugin.settings.smartEnterEnabled
+      ? dropEmptyWrylyAbove(view)
+      : null;
+    if (dropped !== null && dropped !== "wryly") {
+      applySmartPlan(
         view,
-        (source, cursor, knownTimes) =>
-          getSmartEnterPlan(
-            source,
-            cursor,
-            knownTimes,
-            plugin.settings.enterTargets,
-          ),
-        true,
+        smartPlan(view, enterPlanner, true, dropped.state),
+        dropped,
       );
-      if (plan !== null) applySmartPlan(view, plan);
       return true;
     }
     if (enterOnEmptyDialogue(view)) return true;
@@ -1049,7 +1046,7 @@ export function createScreenplayCompletionExtension(
     if (selection.ranges.length > 1 || !selection.main.empty) return false;
     const line = doc.lineAt(selection.main.head);
     if (!/^\(\s*\)$/u.test(line.text.trim()) || line.number === 1) return false;
-    const lines = doc.toString().split("\n");
+    const lines = docLines(doc);
     if (classifySmartTabLine(lines, line.number - 1) !== "parenthetical") {
       return false;
     }
@@ -1066,31 +1063,25 @@ export function createScreenplayCompletionExtension(
       return true;
     }
     const above = doc.line(line.number - 1);
-    const kinds = classifyLines(lines, { cursorLine: line.number - 1 });
+    const kinds = docLineKinds(doc, line.number - 1);
     if (
       kinds[line.number - 2] !== "character" &&
       plugin.isScriptMode() &&
       plugin.settings.smartEnterEnabled &&
       above.text.trim() !== ""
     ) {
-      view.dispatch({
+      // One edit with the new line, so one Ctrl+Z undoes the key press.
+      const before = view.state.update({
         changes: { from: above.to, to: line.to },
         selection: { anchor: above.to },
         scrollIntoView: true,
         userEvent: "delete",
       });
-      const plan = smartPlan(
+      applySmartPlan(
         view,
-        (source, cursor, knownTimes) =>
-          getSmartEnterPlan(
-            source,
-            cursor,
-            knownTimes,
-            plugin.settings.enterTargets,
-          ),
-        true,
+        smartPlan(view, enterPlanner, true, before.state),
+        before,
       );
-      if (plan !== null) applySmartPlan(view, plan);
       return true;
     }
     view.dispatch({
@@ -1157,8 +1148,7 @@ export function createScreenplayCompletionExtension(
     if (selection.main.head < end && !beforeBracket) return false;
     if (line.number >= doc.lines) return false;
     if (doc.line(line.number + 1).text.trim() === "") return false;
-    const lines = doc.toString().split("\n");
-    const kinds = classifyLines(lines, { cursorLine: line.number - 1 });
+    const kinds = docLineKinds(doc, line.number - 1);
     const kind = kinds[line.number - 1];
     const below = kinds[line.number];
     const speech = ["character", "parenthetical", "dialogue"];
@@ -1199,8 +1189,7 @@ export function createScreenplayCompletionExtension(
     if (line.text.trim() === "" || selection.main.head > textStart)
       return false;
     if (line.number === 1) return false;
-    const lines = doc.toString().split("\n");
-    const kinds = classifyLines(lines, { cursorLine: line.number - 1 });
+    const kinds = docLineKinds(doc, line.number - 1);
     const kind = kinds[line.number - 1];
     const above = kinds[line.number - 2];
     if (kind !== "dialogue" && kind !== "parenthetical") return false;
@@ -1222,18 +1211,19 @@ export function createScreenplayCompletionExtension(
   // The empty line under a wryly, where its dialogue goes. Under an empty
   // "()" (Enter there leaves the cursor on this line) the wryly is dropped
   // with this line, and the cursor goes to the end of the line above it,
-  // so Tab or Enter carry on from there ("dropped"). Under a wryly with
-  // text: "wryly" (its dialogue must be typed). Otherwise null.
+  // so Tab or Enter carry on from there: that edit is returned, not yet
+  // dispatched, so the caller's next step joins it (one undo). Under a
+  // wryly with text: "wryly" (its dialogue must be typed). Otherwise null.
   const dropEmptyWrylyAbove = (
     view: EditorView,
-  ): "dropped" | "wryly" | null => {
+  ): Transaction | "wryly" | null => {
     const file = view.state.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return null;
     const { selection, doc } = view.state;
     if (selection.ranges.length > 1 || !selection.main.empty) return null;
     const line = doc.lineAt(selection.main.head);
     if (line.text.trim() !== "" || line.number < 3) return null;
-    const lines = doc.toString().split("\n");
+    const lines = docLines(doc);
     if (classifySmartTabLine(lines, line.number - 2) !== "parenthetical") {
       return null;
     }
@@ -1241,13 +1231,12 @@ export function createScreenplayCompletionExtension(
     if (!/^\(\s*\)$/u.test(wryly.text.trim())) return "wryly";
     const before = doc.line(line.number - 2);
     if (before.text.trim() === "") return null;
-    view.dispatch({
+    return view.state.update({
       changes: { from: before.to, to: line.to },
       selection: { anchor: before.to },
       scrollIntoView: true,
       userEvent: "delete",
     });
-    return "dropped";
   };
 
   // Enter on the empty dialogue line under a cue or wryly does nothing:
@@ -1263,8 +1252,7 @@ export function createScreenplayCompletionExtension(
     if (selection.ranges.length > 1 || !selection.main.empty) return false;
     const line = doc.lineAt(selection.main.head);
     if (line.text.trim() !== "" || line.number === 1) return false;
-    const lines = doc.toString().split("\n");
-    const kinds = classifyLines(lines, { cursorLine: line.number - 1 });
+    const kinds = docLineKinds(doc, line.number - 1);
     return kinds[line.number - 1] === "dialogue";
   };
 
@@ -1297,9 +1285,7 @@ export function createScreenplayCompletionExtension(
     const next = view.state.doc.lineAt(view.state.selection.main.head);
     const kind =
       chosen ??
-      classifyLines(view.state.doc.toString().split("\n"), {
-        cursorLine: next.number - 2,
-      })[next.number - 2] ??
+      docLineKinds(view.state.doc, next.number - 2)[next.number - 2] ??
       null;
     if (kind === null) return true;
     // A new cue line holds a name: in capitals, like typing in that column.
@@ -1318,18 +1304,35 @@ export function createScreenplayCompletionExtension(
     return true;
   };
 
-  const applySmartPlan = (view: EditorView, plan: SmartTabPlan): boolean => {
+  // `before`: an edit not yet dispatched that the plan was made after (see
+  // smartPlan's `state`). Both go in as one transaction, so one Ctrl+Z
+  // undoes the whole key press. A null plan dispatches `before` alone.
+  const applySmartPlan = (
+    view: EditorView,
+    plan: SmartTabPlan | null,
+    before?: Transaction,
+  ): boolean => {
+    if (plan === null) {
+      if (before !== undefined) view.dispatch(before);
+      return before !== undefined;
+    }
     if (plan.insert) {
+      const change = {
+        from: plan.replaceFrom ?? plan.at,
+        to: plan.at,
+        insert: plan.insert,
+      };
       view.dispatch({
-        changes: {
-          from: plan.replaceFrom ?? plan.at,
-          to: plan.at,
-          insert: plan.insert,
-        },
+        changes:
+          before === undefined
+            ? change
+            : before.changes.compose(before.state.changes(change)),
         selection: { anchor: plan.cursor },
         scrollIntoView: true,
         userEvent: "input",
       });
+    } else if (before !== undefined) {
+      view.dispatch(before);
     }
     if (plan.forceAfter) forceElement(view, plan.forceAfter);
     else if (plan.openCompletion) {
@@ -1445,9 +1448,7 @@ export function createScreenplayCompletionExtension(
         /^ {2,}$/u.test(before.text) &&
         fromA === before.to &&
         text.trim() &&
-        classifyLines(tr.startState.doc.toString().split("\n"))[
-          before.number - 1
-        ] === "dialogue"
+        docLineKinds(tr.startState.doc)[before.number - 1] === "dialogue"
       ) {
         fixes.push({
           from: line.from,
@@ -1575,9 +1576,7 @@ export function createScreenplayCompletionExtension(
         }, 0);
         return null;
       }
-      const kinds = classifyLines(doc.toString().split("\n"), {
-        cursorLine: line.number - 1,
-      });
+      const kinds = docLineKinds(doc, line.number - 1);
       return kinds[line.number - 1] === "character" ? line.from : null;
     };
     // A cue whose text was just deleted (e.g. Ctrl+Backspace): the line
@@ -1593,9 +1592,7 @@ export function createScreenplayCompletionExtension(
       const old = startState.doc.lineAt(startState.selection.main.head);
       if (old.text.trim() === "") return null;
       if (update.changes.mapPos(old.from, -1) !== line.from) return null;
-      const kinds = classifyLines(startState.doc.toString().split("\n"), {
-        cursorLine: old.number - 1,
-      });
+      const kinds = docLineKinds(startState.doc, old.number - 1);
       return kinds[old.number - 1] === "character" ? line.from : null;
     };
     const from = emptyCueLine(update.state) ?? clearedCue();
