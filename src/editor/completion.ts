@@ -1008,7 +1008,14 @@ export function createScreenplayCompletionExtension(
   // dialogue, a new speaker. An open suggestion menu keeps Enter for
   // accepting.
   const enter = (view: EditorView): boolean => {
-    if (enterInEmptyWryly(view)) return true;
+    // Script mode, the wryly list open on a bare "()": Enter picks the
+    // highlighted wryly and goes on, as with a typed one (below). With the
+    // list closed, the empty-"()" rules apply.
+    const emptyPick =
+      plugin.isScriptMode() &&
+      wrylyList(view) === "empty" &&
+      selectedCompletion(view.state)?.detail === "Wryly";
+    if (!emptyPick && enterInEmptyWryly(view)) return true;
     if (completionStatus(view.state) !== "active") {
       if (enterOnBlankStack(view)) return true;
       if (enterOnUnfinishedSlugline(view)) return true;
@@ -1033,10 +1040,13 @@ export function createScreenplayCompletionExtension(
       return plainBreakAfterMarker(view);
     }
     if (transitionOnEnter(view)) return true;
-    // The wryly list on a typed wryly: Enter picks it and goes on, in one
-    // press (as in Fade In). (A bare "()" is enterInEmptyWryly.)
+    // The wryly list on a typed wryly or a bare "()": Enter picks it and
+    // goes on, in one press (as in Fade In). A pick CodeMirror refuses
+    // (pressed in the list's first moments) leaves the "()" as it is.
     const wryly = wrylyList(view);
-    if (wryly === "pick") acceptCompletion(view);
+    if (emptyPick) {
+      if (!acceptCompletion(view)) return true;
+    } else if (wryly === "pick") acceptCompletion(view);
     else if (completionStatus(view.state) === "active") return false;
     const dropped = plugin.settings.smartEnterEnabled
       ? dropEmptyWrylyAbove(view)
@@ -1066,8 +1076,9 @@ export function createScreenplayCompletionExtension(
     return plan !== null && applySmartPlan(view, plan);
   };
 
-  // Enter on an empty "()" (cursor anywhere on it, list open or not, both
-  // modes): the empty wryly never stays behind. With more of the speech
+  // Enter on an empty "()" (cursor anywhere on it; list closed, or any
+  // list in plain mode; script mode with the wryly list open picks from
+  // it instead, see enter): the empty wryly never stays behind. With more of the speech
   // below, the "()" line goes and the cursor moves to that line. Under a
   // cue, the line becomes the dialogue line (as in Fade In). After
   // dialogue, the "()" goes and Enter carries on from the end of the

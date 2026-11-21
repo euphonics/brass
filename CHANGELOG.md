@@ -143,6 +143,9 @@ Scribidian changes since 0.1.0.
 
 ### Changed
 
+- Script mode: Enter in an empty `()` with the wryly list open picks the
+  highlighted wryly and goes on to the dialogue, instead of removing the
+  `()`. With the list closed, Enter still removes it.
 - A thread's text (`[&name]`, while the cursor is on it) shows in its own
   color (orange) instead of a faded link color. A snippet can change it
   with `--scribidian-thread-color`.

@@ -245,7 +245,8 @@ Test cases:
     nothing. The line is already where the next element goes.
   - At the end of an unfinished slugline (`INT.`, `INT. HOUSE - `):
     nothing.
-  - On an empty `()`: with more of the speech below, the `()` line goes and
+  - On an empty `()` with the wryly list closed (or in plain mode): with
+    more of the speech below, the `()` line goes and
     the cursor moves down to it; under a cue, the line becomes the dialogue
     line; after dialogue, the `()` goes and Enter goes on from the end of
     the dialogue (a new character in script mode).
@@ -321,8 +322,10 @@ Special cases, all decided during testing:
   it starts a new dialogue line.
 - **Typing a wryly with its list open** (`(bea|)`): one Tab or Enter picks
   it and goes on to the dialogue, as in Fade In.
-- **Enter in an empty `()`** never picks the list's first item; it
-  follows the empty-`()` rules under Enter.
+- **Enter in an empty `()` with the wryly list open** (script mode) picks
+  the highlighted wryly and goes on to the dialogue, like a typed one
+  (changed 2026-11-21: the list shows a highlighted item, so Enter picks
+  it). With the list closed, it follows the empty-`()` rules under Enter.
 - **Tab on an empty line that was moved to the left margin** (by Backspace,
   Shift+Tab or Escape) moves it back to the character column and opens the
   character list.
