@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { RangeSetBuilder, type Extension } from "@codemirror/state";
+import { Prec, RangeSetBuilder, type Extension } from "@codemirror/state";
 import {
   Decoration,
   ViewPlugin,
@@ -140,24 +140,28 @@ export function createThreadExtension(open: OpenThread): Extension {
     }
     return builder.finish();
   };
-  return ViewPlugin.fromClass(
-    class {
-      decorations: DecorationSet;
-      constructor(view: EditorView) {
-        this.decorations = build(view);
-      }
-      update(update: ViewUpdate): void {
-        // Moving the cursor only matters when a thread is on screen (it
-        // shows its text when the cursor is in it).
-        if (
-          update.docChanged ||
-          update.viewportChanged ||
-          (update.selectionSet && this.decorations.size > 0)
-        ) {
-          this.decorations = build(update.view);
+  // High precedence: the thread's mark wraps Obsidian's own syntax marks
+  // ("[&name]" can read as a link), so its color wins over theirs.
+  return Prec.high(
+    ViewPlugin.fromClass(
+      class {
+        decorations: DecorationSet;
+        constructor(view: EditorView) {
+          this.decorations = build(view);
         }
-      }
-    },
-    { decorations: (value) => value.decorations },
+        update(update: ViewUpdate): void {
+          // Moving the cursor only matters when a thread is on screen (it
+          // shows its text when the cursor is in it).
+          if (
+            update.docChanged ||
+            update.viewportChanged ||
+            (update.selectionSet && this.decorations.size > 0)
+          ) {
+            this.decorations = build(update.view);
+          }
+        }
+      },
+      { decorations: (value) => value.decorations },
+    ),
   );
 }

@@ -143,6 +143,10 @@ Scribidian changes since 0.1.0.
 
 ### Changed
 
+- A thread's text (`[&name]`, while the cursor is on it) shows in its own
+  color (orange) instead of a faded link color. A snippet can change it
+  with `--scribidian-thread-color`.
+
 - Strict cursor placement: Backspace or Delete between two action blocks
   joins them into one paragraph (with a space), as in Fade In. Other
   elements still stay apart.

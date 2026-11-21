@@ -240,7 +240,11 @@
 }
 
 /* Threads ("[&name]"), a Scribidian addition: a small 🧵 that goes to the
-   next place in the thread; the text, faded, while the cursor is on it. */
+   next place in the thread; the text, in its own color, while the cursor is
+   on it. A snippet can set --scribidian-thread-color. */
+body {
+  --scribidian-thread-color: var(--color-orange);
+}
 .markdown-source-view.mod-cm6 .scribidian-thread {
   cursor: pointer;
   font-size: 0.85em;
@@ -250,8 +254,11 @@
 .markdown-source-view.mod-cm6 .scribidian-thread:hover {
   opacity: 1;
 }
-.markdown-source-view.mod-cm6 .scribidian-thread-text {
-  opacity: 0.5;
+.markdown-source-view.mod-cm6 .scribidian-thread-text,
+.markdown-source-view.mod-cm6 .scribidian-thread-text * {
+  color: var(--scribidian-thread-color);
+  opacity: 1;
+  text-decoration: none;
 }
 /* Threads panel (sidebar). */
 .scribidian-threads {
