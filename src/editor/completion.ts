@@ -1016,6 +1016,14 @@ export function createScreenplayCompletionExtension(
       wrylyList(view) === "empty" &&
       selectedCompletion(view.state)?.detail === "Wryly";
     if (!emptyPick && enterInEmptyWryly(view)) return true;
+    // "(beat|)" counts as the end of the wryly: step past the ")" and
+    // handle Enter from there, instead of breaking the line before it.
+    if (
+      (completionStatus(view.state) !== "active" || !plugin.isScriptMode()) &&
+      stepPastWrylyClose(view)
+    ) {
+      return enter(view);
+    }
     if (completionStatus(view.state) !== "active") {
       if (enterOnBlankStack(view)) return true;
       if (enterOnUnfinishedSlugline(view)) return true;
@@ -1074,6 +1082,27 @@ export function createScreenplayCompletionExtension(
       plugin.settings.smartEnterEnabled,
     );
     return plan !== null && applySmartPlan(view, plan);
+  };
+
+  // The cursor right before the ")" that closes a wryly ("(beat|)"): move
+  // it past the ")". True when it moved.
+  const stepPastWrylyClose = (view: EditorView): boolean => {
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    const line = doc.lineAt(selection.main.head);
+    const text = line.text.trimEnd();
+    if (!text.endsWith(")") || text.trim() === "()") return false;
+    const end = line.from + text.length;
+    if (selection.main.head !== end - 1) return false;
+    if (
+      classifySmartTabLine(docLines(doc), line.number - 1) !== "parenthetical"
+    ) {
+      return false;
+    }
+    view.dispatch({ selection: { anchor: end }, userEvent: "select" });
+    return true;
   };
 
   // Enter on an empty "()" (cursor anywhere on it; list closed, or any

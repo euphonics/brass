@@ -203,6 +203,9 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Enter right before the `)` of a wryly (`(beat|)`) no longer splits it
+  onto two lines; it goes on as from the end of the wryly.
+
 - One Ctrl+Z undoes Enter on an empty `()`, Enter or Tab under an empty
   `()`, and Enter on a lower-case `cut to:` (each took two).
 - Two reloads of Scribidian at once (Hot Reload and a manual reload) no
