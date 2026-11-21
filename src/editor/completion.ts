@@ -56,6 +56,7 @@ import {
   type Extension,
   type Text,
   type Transaction,
+  type TransactionSpec,
 } from "@codemirror/state";
 import { EditorView, keymap, tooltips } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
@@ -230,17 +231,49 @@ export function forceElement(view: EditorView, element: ForcedElement): void {
   const lineStart = line.from + above.length;
   const effects: StateEffect<unknown>[] = [setForcedList.of(forced)];
   if (layout) effects.push(setLineKind.of({ from: lineStart, kind: element }));
+  const start = plan.complete !== null ? startCompletionEffects(view) : [];
   view.dispatch({
     changes:
       insert === line.text
         ? undefined
         : { from: line.from, to: line.to, insert },
     selection: { anchor: lineStart + plan.cursor },
-    effects,
+    effects: [...effects, ...(start ?? [])],
     scrollIntoView: true,
     userEvent: "input",
   });
-  if (plan.complete !== null) startCompletion(view);
+  if (start === null) startCompletion(view);
+}
+
+/**
+ * The effects startCompletion would dispatch, read without dispatching, so
+ * they can go in the caller's own transaction: in a long script each extra
+ * transaction costs several ms (#221). Empty when there's no
+ * autocompletion to start; null when the effects can't be read, and then
+ * the caller calls startCompletion after its own dispatch.
+ */
+function startCompletionEffects(
+  view: EditorView,
+): readonly StateEffect<unknown>[] | null {
+  let captured: readonly StateEffect<unknown>[] | null = null;
+  const probe = {
+    state: view.state,
+    dispatch: (spec: TransactionSpec) => {
+      const { effects } = spec;
+      captured =
+        effects === undefined
+          ? []
+          : Array.isArray(effects)
+            ? effects
+            : [effects as StateEffect<unknown>];
+    },
+  };
+  try {
+    if (!startCompletion(probe as unknown as EditorView)) return [];
+  } catch {
+    return null;
+  }
+  return captured;
 }
 
 /** Picks made over a selected part: they don't open the next list. */
@@ -1316,43 +1349,63 @@ export function createScreenplayCompletionExtension(
       if (before !== undefined) view.dispatch(before);
       return before !== undefined;
     }
+    const openList = !plan.forceAfter && plan.openCompletion;
+    // A new block: remember the line, so typing a cue there keeps the
+    // cue's column (see keepTabCue), even with no characters to list.
+    const menuLine = (doc: Text, head: number): StateEffect<unknown>[] => {
+      if (
+        plan.kind !== "new-block" &&
+        plan.kind !== "under-block" &&
+        plan.kind !== "action"
+      ) {
+        return [];
+      }
+      const line = doc.lineAt(head);
+      return line.text.trim() === ""
+        ? [
+            setTabMenuLine.of({
+              from: line.from,
+              cue: !followsHeading(doc, line.number),
+            }),
+          ]
+        : [];
+    };
     if (plan.insert) {
       const change = {
         from: plan.replaceFrom ?? plan.at,
         to: plan.at,
         insert: plan.insert,
       };
+      const changes =
+        before === undefined
+          ? view.state.changes(change)
+          : before.changes.compose(before.state.changes(change));
+      // The list's effects go in the insert's own transaction: in a long
+      // script each extra transaction costs several ms (#221).
+      const start = openList ? startCompletionEffects(view) : [];
+      const effects = openList
+        ? [
+            ...menuLine(changes.apply(view.state.doc), plan.cursor),
+            ...(start ?? []),
+          ]
+        : [];
       view.dispatch({
-        changes:
-          before === undefined
-            ? change
-            : before.changes.compose(before.state.changes(change)),
+        changes,
         selection: { anchor: plan.cursor },
+        effects,
         scrollIntoView: true,
         userEvent: "input",
       });
-    } else if (before !== undefined) {
-      view.dispatch(before);
+      if (start === null) startCompletion(view);
+      if (plan.forceAfter) forceElement(view, plan.forceAfter);
+      return true;
     }
+    if (before !== undefined) view.dispatch(before);
     if (plan.forceAfter) forceElement(view, plan.forceAfter);
-    else if (plan.openCompletion) {
-      // A new block: remember the line, so typing a cue there keeps the
-      // cue's column (see keepTabCue), even with no characters to list.
-      if (
-        plan.kind === "new-block" ||
-        plan.kind === "under-block" ||
-        plan.kind === "action"
-      ) {
-        const line = view.state.doc.lineAt(view.state.selection.main.head);
-        if (line.text.trim() === "") {
-          view.dispatch({
-            effects: setTabMenuLine.of({
-              from: line.from,
-              cue: !followsHeading(view.state.doc, line.number),
-            }),
-          });
-        }
-      }
+    else if (openList) {
+      const { state } = view;
+      const effects = menuLine(state.doc, state.selection.main.head);
+      if (effects.length > 0) view.dispatch({ effects });
       startCompletion(view);
     }
     return true;

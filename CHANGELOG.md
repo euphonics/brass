@@ -206,7 +206,10 @@ Scribidian changes since 0.1.0.
   longer leave a second copy of its editor setup, which stopped settings
   from redrawing editors until Obsidian restarted.
 - Enter and Tab are faster in long scripts: they share the layout's reading
-  of the note instead of each reading it again.
+  of the note instead of each reading it again. Enter after dialogue and
+  Tab after action now open their list in the same edit as the new line,
+  instead of two or three edits in a row (about 3 times faster in a long
+  script).
 
 - Enter splitting a dialogue line no longer leaves a space at the end of
   the line above (`Hi |there.` gives `Hi`, not `Hi `).
