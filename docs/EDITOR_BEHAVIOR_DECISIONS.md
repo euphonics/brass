@@ -524,6 +524,10 @@ Test cases:
   (`She runs. he follows.` → `He`), but not after an ellipsis, an
   abbreviation (`Mr.`, `INT.`, `p.m.`) or an initial (`J.`), and not in
   pasted text (added 2026-11-21).
+- **The location list** shows each location with the time it had last
+  (`KITCHEN - NIGHT`). Picking it fills in `KITCHEN - ` and opens the
+  times with that time first, so Enter takes it and the arrows pick
+  another (added 2026-11-21).
 - **Times of day after a location**: the time that location had last
   comes first (`INT. KITCHEN - ` after `INT. KITCHEN - NIGHT` puts NIGHT at
   the top), when it matches what is typed (added 2026-11-21).

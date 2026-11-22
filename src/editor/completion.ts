@@ -557,6 +557,9 @@ export function createScreenplayCompletionExtension(
       filter: false,
       options: candidates.map((candidate) => ({
         label: candidate.label,
+        ...(candidate.displayLabel
+          ? { displayLabel: candidate.displayLabel }
+          : {}),
         detail: candidate.detail,
         apply: (view, completion, from, to) => {
           if (overSelection) partCompletions.add(completion);

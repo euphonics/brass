@@ -57,6 +57,8 @@ export type ScreenplayCompletionKind =
 
 export interface CompletionCandidate {
   label: string;
+  /** Shown in the list instead of `label` (e.g. "KITCHEN - NIGHT"). */
+  displayLabel?: string;
   applyText: string;
   detail: string;
 }
@@ -369,11 +371,17 @@ function scenePlan(
       value,
       preferences.recentItemsWeighting,
       preferences.maximumSuggestions,
-    ).map((usage) => ({
-      label: usage.value,
-      applyText: `${usage.value} - `,
-      detail: "Location",
-    }));
+    ).map((usage) => {
+      // Shown with the time it had last ("KITCHEN - NIGHT"); picking it
+      // still fills in "KITCHEN - " and opens the times, that time first.
+      const last = index.lastTimeByLocation?.[usage.value.toLocaleUpperCase()];
+      return {
+        label: usage.value,
+        ...(last ? { displayLabel: `${usage.value} - ${last}` } : {}),
+        applyText: `${usage.value} - `,
+        detail: "Location",
+      };
+    });
     // After a bare ".", times used on their own (".LATER") are offered too.
     if (untypedForced) {
       candidates.push(

@@ -113,6 +113,35 @@ describe("screenplay completion engine", () => {
     expect(labels(source.replace(/KITCHEN - $/u, "HALL - "))?.[0]).toBe("DAY");
   });
 
+  it("shows each location with the time it had last", () => {
+    const source = [
+      "INT. KITCHEN - DAY",
+      "",
+      "Toast.",
+      "",
+      "INT. KITCHEN - NIGHT (FLASHBACK)",
+      "",
+      "Dark.",
+      "",
+      "INT. KITCHEN HALLWAY",
+      "",
+      "Steps.",
+      "",
+      "INT. KI",
+    ].join("\n");
+    const plan = getScreenplayCompletionPlan(
+      source,
+      source.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+    );
+    expect(plan?.kind).toBe("scene-location");
+    const kitchen = plan?.candidates.find((c) => c.label === "KITCHEN");
+    expect(kitchen?.displayLabel).toBe("KITCHEN - NIGHT");
+    expect(kitchen?.applyText).toBe("KITCHEN - ");
+    const hall = plan?.candidates.find((c) => c.label === "KITCHEN HALLWAY");
+    expect(hall?.displayLabel).toBeUndefined();
+  });
+
   it("opens the character list for lowercase typing with match capitals off", () => {
     const source = `${screenplay}\n\nJa`;
     const plan = (characterMatchCase: boolean) =>
