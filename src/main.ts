@@ -19,9 +19,6 @@ import { createDualDialogueExtension } from "./editor/dualDialogueView";
 import { EditorView } from "@codemirror/view";
 import type { Extension } from "@codemirror/state";
 import { pressTab } from "./editor/pressTab";
-import { estimateCurrentPage } from "./screenplay/currentPage";
-import { exportedFountainSource } from "./commands/exportFountain";
-import { parseFountain } from "./screenplay/parser";
 import { stripObsidianFrontmatter } from "./export/fountain";
 import type { ScreenplayStatistics } from "./screenplay/model";
 import {
@@ -82,11 +79,11 @@ import {
   loadScreenplayContext,
   openAdjacentProjectPart,
   projectForFile,
+  frontmatterTitlePage,
   projectForPart,
 } from "./projects/vault";
 import { isScreenplayProjectFrontmatter } from "./projects/model";
 import { isScreenplayMode } from "./screenplay/mode";
-import { calculateStatistics } from "./screenplay/statistics";
 import { formatScreenplayStatus } from "./screenplay/status";
 import { classifyLines, type LineKind } from "./screenplay/lines";
 import { lineKindField } from "./editor/lineKindOverride";
@@ -100,6 +97,7 @@ import { SCENES_VIEW_TYPE, ScenesView } from "./ui/scenesView";
 import { THREADS_VIEW_TYPE, ThreadsView } from "./ui/threadsView";
 import { CheatSheetModal } from "./ui/cheatSheetModal";
 import { StatisticsModal } from "./ui/statisticsModal";
+import { StatisticsWorker } from "./workers/statisticsClient";
 import { ContinuityInspectorModal } from "./ui/continuityInspectorModal";
 import { NoteContext, resolveNoteProperties } from "./ui/noteContext";
 import type { NoteProperties } from "./ui/noteContext";
@@ -668,6 +666,7 @@ export default class ScribidianPlugin extends Plugin {
     const holder = window as unknown as Record<symbol, unknown>;
     if (holder[LIVE_INSTANCE] === this) delete holder[LIVE_INSTANCE];
     applyScreenplayFont(null);
+    this.statisticsWorker.dispose();
     applyLineCommentColor("");
     if (this.refreshTimer !== null) window.clearTimeout(this.refreshTimer);
     this.clearProjectViewClasses();
@@ -978,35 +977,46 @@ export default class ScribidianPlugin extends Plugin {
     ) {
       return cached.statistics;
     }
-    const context = await loadScreenplayContext(
-      this.app,
-      file,
-      this.settings.characterFolder,
-      this.isScreenplayFile(file) ? view.editor.getValue() : undefined,
-    );
-    // Cursor moves refresh the status too; recount only when the text or
-    // a setting it depends on changed.
-    const key = JSON.stringify([
-      context.source,
-      context.document.titlePage ?? null,
-      this.settings.pageSize,
-      this.settings.minutesPerPage,
-      this.settings.cleanExport,
-      this.settings.markCapitalsAsAction,
-    ]);
-    if (this.statisticsCache?.key === key) {
-      return this.statisticsCache.statistics;
-    }
-    // Count what a clean Fountain export would hold: tasks, comments,
-    // callouts and the other elements it strips don't add pages.
-    const document = {
-      ...parseFountain(exportedFountainSource(this, context.source, true)),
-      titlePage: context.document.titlePage,
-    };
-    const statistics = calculateStatistics(document, {
+    const counts = {
+      cleanExport: this.settings.cleanExport,
+      markCapitalsAsAction: this.settings.markCapitalsAsAction,
       pageSize: this.settings.pageSize,
       minutesPerPage: this.settings.minutesPerPage,
-    });
+    };
+    let key = "";
+    let statistics: ScreenplayStatistics;
+    if (single) {
+      // A single note: everything but the frontmatter title is counted in
+      // the background worker, so the main thread only copies the text.
+      const text = view.editor.getValue();
+      statistics = await this.statisticsWorker.compute({
+        source: stripObsidianFrontmatter(text),
+        titlePage: frontmatterTitlePage(text),
+        ...counts,
+      });
+    } else {
+      const context = await loadScreenplayContext(
+        this.app,
+        file,
+        this.settings.characterFolder,
+        this.isScreenplayFile(file) ? view.editor.getValue() : undefined,
+      );
+      // Cursor moves refresh the status too; recount only when the text
+      // or a setting it depends on changed.
+      key = JSON.stringify([
+        context.source,
+        context.document.titlePage ?? null,
+        settingsKey,
+      ]);
+      if (this.statisticsCache?.key === key) {
+        return this.statisticsCache.statistics;
+      }
+      statistics = await this.statisticsWorker.compute({
+        source: context.source,
+        titlePage: context.document.titlePage,
+        ...counts,
+      });
+    }
     this.statisticsCache = {
       key,
       statistics,
@@ -1015,6 +1025,8 @@ export default class ScribidianPlugin extends Plugin {
     };
     return statistics;
   }
+
+  private readonly statisticsWorker = new StatisticsWorker();
 
   private statisticsCache: {
     key: string;
@@ -1075,8 +1087,12 @@ export default class ScribidianPlugin extends Plugin {
     }, 150);
   }
 
-  /** The page the cursor is on, counted as in a clean Fountain export. */
-  private currentPage(view: MarkdownView): number {
+  /**
+   * The page the cursor is on, counted as in a clean Fountain export, in
+   * the background worker. Returns the last known page (or null) while a
+   * new count runs; the status redraws when it arrives.
+   */
+  private currentPage(view: MarkdownView): number | null {
     // Same text, same line: the same page (the status refreshing after a
     // count, or the cursor moving within a line).
     const doc = editorDoc(view);
@@ -1084,24 +1100,38 @@ export default class ScribidianPlugin extends Plugin {
     const cached = this.currentPageCache;
     if (cached !== null && cached.doc === doc && cached.line === line)
       return cached.page;
-    // Only the text up to the end of the cursor's line is needed.
-    const upToLine = view.editor.getRange(
-      { line: 0, ch: 0 },
-      { line, ch: view.editor.getLine(line).length },
-    );
-    const before = exportedFountainSource(
-      this,
-      stripObsidianFrontmatter(upToLine),
-      true,
-    );
-    const page = estimateCurrentPage(
-      before,
-      before.length,
-      this.settings.pageSize,
-    );
-    this.currentPageCache = { doc, line, page };
-    return page;
+    const pending = this.pendingPage;
+    if (pending === null || pending.doc !== doc || pending.line !== line) {
+      this.pendingPage = { doc, line };
+      // Only the text up to the end of the cursor's line is needed.
+      const upToLine = view.editor.getRange(
+        { line: 0, ch: 0 },
+        { line, ch: view.editor.getLine(line).length },
+      );
+      this.statisticsWorker
+        .currentPage({
+          upToLine,
+          cleanExport: this.settings.cleanExport,
+          markCapitalsAsAction: this.settings.markCapitalsAsAction,
+          pageSize: this.settings.pageSize,
+        })
+        .then((page) => {
+          const waiting = this.pendingPage;
+          if (waiting !== null && waiting.doc === doc && waiting.line === line)
+            this.pendingPage = null;
+          this.currentPageCache = { doc, line, page };
+          const current = this.activeMarkdownView();
+          if (current !== null && editorDoc(current) === doc)
+            this.renderStatus(current);
+        })
+        .catch(() => {
+          this.pendingPage = null;
+        });
+    }
+    return cached?.page ?? null;
   }
+
+  private pendingPage: { doc: unknown; line: number } | null = null;
 
   private currentPageCache: {
     doc: unknown;

@@ -15,16 +15,11 @@
  * limitations under the License.
  */
 
-import { stripThreadsFromSource } from "../screenplay/threads";
 import { Notice } from "obsidian";
 import type { MarkdownView } from "obsidian";
 import type ScribidianPlugin from "../main";
-import {
-  cleanFountainSource,
-  fountainExportPath,
-  markCapitalsAsAction,
-  normalizeCleanExportOptions,
-} from "../export/fountain";
+import { fountainExportPath } from "../export/fountain";
+import { exportedFountainText } from "../export/exportedText";
 import { loadScreenplayContext } from "../projects/vault";
 import { parseFountain, withoutActionIndent } from "../screenplay/parser";
 import type { ScreenplayDocument } from "../screenplay/model";
@@ -40,19 +35,11 @@ export function exportedFountainSource(
   source: string,
   clean: boolean,
 ): string {
-  const exported = clean
-    ? cleanFountainSource(
-        source,
-        normalizeCleanExportOptions(
-          plugin.settings.cleanExport as unknown as Record<string, unknown>,
-        ),
-      )
-    : source;
-  // Threads ("[&name]") are Scribidian's own: no export keeps them.
-  const withoutThreads = stripThreadsFromSource(exported);
-  return plugin.settings.markCapitalsAsAction
-    ? markCapitalsAsAction(withoutThreads)
-    : withoutThreads;
+  return exportedFountainText(source, {
+    clean,
+    cleanExport: plugin.settings.cleanExport,
+    markCapitalsAsAction: plugin.settings.markCapitalsAsAction,
+  });
 }
 
 /**

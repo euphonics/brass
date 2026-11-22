@@ -19,6 +19,7 @@ import process from "node:process";
 import { builtinModules } from "node:module";
 import { readFileSync } from "node:fs";
 import { fontBytesEsbuildPlugin } from "./scripts/font-bytes.mjs";
+import { workerSourceEsbuildPlugin } from "./scripts/worker-source.mjs";
 
 const fontLicense = readFileSync(
   new URL("./assets/fonts/courier-prime/LICENSE", import.meta.url),
@@ -61,7 +62,10 @@ ${thirdPartyNotices
   },
   entryPoints: ["src/main.ts"],
   bundle: true,
-  plugins: [fontBytesEsbuildPlugin()],
+  plugins: [
+    fontBytesEsbuildPlugin(),
+    workerSourceEsbuildPlugin({ minify: production }),
+  ],
   external: [
     "obsidian",
     "electron",

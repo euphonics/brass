@@ -91,6 +91,8 @@ const WINDOW_LIMIT = 400;
 const FRONTMATTER_GUARD = 60;
 /** Pause in typing before the full pass, in milliseconds. */
 const FULL_PASS_DELAY = 800;
+/** Notes longer than this skip the safety full pass (about 120 pages). */
+const FULL_PASS_MAX_LINES = 6000;
 
 /**
  * Element of the open suggestion list on an empty cursor line, or null. A
@@ -300,13 +302,18 @@ export function createScreenplayLayoutExtension(
             this.cueStarts.push(doc.line(start + index + 1).from);
         });
         // A full pass once typing pauses, in case anything further away
-        // depended on this edit.
+        // depended on this edit. Skipped in long notes, where it would be a
+        // noticeable pause of its own: the cases where a far line could
+        // change already take the full pass above.
         if (this.fullTimer !== null) window.clearTimeout(this.fullTimer);
-        const view = update.view;
-        this.fullTimer = window.setTimeout(() => {
-          this.fullTimer = null;
-          view.dispatch({ effects: fullLayout.of(null) });
-        }, FULL_PASS_DELAY);
+        this.fullTimer = null;
+        if (doc.lines <= FULL_PASS_MAX_LINES) {
+          const view = update.view;
+          this.fullTimer = window.setTimeout(() => {
+            this.fullTimer = null;
+            view.dispatch({ effects: fullLayout.of(null) });
+          }, FULL_PASS_DELAY);
+        }
         return true;
       }
 

@@ -19,6 +19,11 @@ declare module "*.ttf?bytes" {
   export default data;
 }
 
+declare module "*?worker-source" {
+  const source: string;
+  export default source;
+}
+
 declare module "linebreak" {
   export class LineBreaker {
     constructor(text: string);

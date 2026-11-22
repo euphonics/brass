@@ -22,6 +22,27 @@ import type { ScreenplayDocument } from "../screenplay/model";
 import { titlePageFromFrontmatter } from "../screenplay/titlePage";
 import { listedCharacters } from "../screenplay/listedCharacters";
 
+/**
+ * The title page from a note's frontmatter properties, or undefined. Reads
+ * only the frontmatter, not the script.
+ */
+export function frontmatterTitlePage(
+  source: string,
+): ScreenplayDocument["titlePage"] {
+  const info = getFrontMatterInfo(source);
+  if (!info.exists) return undefined;
+  const properties: unknown = parseYaml(info.frontmatter);
+  if (
+    typeof properties !== "object" ||
+    properties === null ||
+    Array.isArray(properties)
+  )
+    return undefined;
+  return (
+    titlePageFromFrontmatter(properties as Record<string, unknown>) ?? undefined
+  );
+}
+
 function documentWithProperties(source: string): ScreenplayDocument {
   const document = parseFountain(source);
   const info = getFrontMatterInfo(source);

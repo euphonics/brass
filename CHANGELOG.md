@@ -15,6 +15,10 @@ project follows
   frontmatter check no longer copies the whole note, dual dialogue no longer
   rescans the script, and the status bar counts only when the editor is
   idle. See docs/PERFORMANCE.md.
+- Typing performance, round 2: Scribidian on its own now types about as
+  fast as a plain Obsidian note, even at 500 pages. Line comments and
+  boneyard markers scan only edited lines, and the status bar's statistics
+  and current page are counted in a background worker.
 
 ### Added (PDF, 2026-11-22)
 

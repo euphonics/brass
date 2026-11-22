@@ -2,10 +2,10 @@
 
 The question (2026-11-22): can Scribidian be as responsive as a dedicated
 screenwriting app inside Obsidian, or does it need to become a separate
-app? **Answer: it can stay in Obsidian.** With the fixes below, typing in
-script mode costs about one display frame, even in a 500-page script. The
-remaining lag in a busy vault comes from other plugins, not Scribidian or
-Obsidian.
+app? **Answer: it can stay in Obsidian.** Typing in script mode now costs
+about the same as typing in a plain Obsidian note (within 1–2 ms, about
+the measurement noise), even in a 500-page script. Lag in a busy vault comes
+from other plugins, not from Scribidian or Obsidian.
 
 ## How it was measured
 
@@ -14,24 +14,33 @@ through the editor's input path (`document.execCommand("insertText")`) into
 an action line in the middle of a long script. It times each keystroke from
 input to the next painted frame, and records long tasks (over 50 ms) during
 and just after typing. The CPU profiler (Chrome DevTools Protocol, through
-`obsidian dev:cdp`) showed where the time went. Test scripts were 2 and 8
-copies of EXFILTRATION (about 120 and 500 pages; 5,025 and 20,091 lines).
-Each run typed 40 keystrokes, 90 ms apart.
+`obsidian dev:cdp`), on an unminified build, showed where the time went.
+Test scripts were 2 and 8 copies of EXFILTRATION (about 120 and 500 pages;
+5,025 and 20,091 lines). Runs typed 40–60 keystrokes, 80–90 ms apart; the
+"with pauses" runs also stopped for 0.6 s after every 8 keystrokes, which
+lets background work start between bursts.
 
 ## Results (median ms per keystroke, input to next frame)
 
-| Script                         | Before | After  | Scribidian off |
-| ------------------------------ | ------ | ------ | -------------- |
-| 120 pages, script mode         | 38     | 22     | 18             |
-| 500 pages, script mode         | 112    | 48     | 43             |
-| 500 pages, plain mode          | 67     | 48     | 43             |
-| 500 pages, script mode, solo\* | —      | **19** | 12             |
-| 120 pages, script mode, solo\* | —      | **14** | —              |
+With all of the writer's plugins on:
 
-\*Solo: every other community plugin turned off for the run.
+| Script                 | Before | After round 1 | Scribidian off |
+| ---------------------- | ------ | ------------- | -------------- |
+| 120 pages, script mode | 38     | 22            | 18             |
+| 500 pages, script mode | 112    | 48            | 43             |
+| 500 pages, plain mode  | 67     | 48            | 43             |
+
+With every other plugin off (Scribidian alone), after round 2:
+
+| Script                              | Median    | 95th percentile | Scribidian off |
+| ----------------------------------- | --------- | --------------- | -------------- |
+| 500 pages, script mode              | 11.7–13.3 | 16              | 9.8–11.8       |
+| 500 pages, plain mode               | 10.2–12.4 | 16              | 9.8–11.8       |
+| 500 pages, script mode, with pauses | 13.4      | 19 (was 147)    | 11.8           |
+| 120 pages, script mode              | 11.5      | 15              | 10.2           |
 
 Before the fixes, script mode at 500 pages had a 70–220 ms long task on
-every keystroke; after, at 120 pages, there are none.
+every keystroke. Now typing produces none, at either size.
 
 ## What was slow in Scribidian, and the fixes
 
@@ -46,35 +55,52 @@ every keystroke; after, at 120 pages, there are none.
    a full pass when the edit adds or removes a multi-line construct (`/*`,
    `*/`, `%%`, `[[`, `]]`, a code fence), when the note has code fences,
    near the frontmatter, or when the suggestion list or a forced line kind is
-   involved. A full pass also runs 0.8 s after typing pauses, as a safety
-   net. A live check in the Dev vault compared the two after random edits:
-   they matched, except where the suggestion list had opened in between
-   (which is meant to change the layout).
+   involved. In notes up to 6,000 lines (about 120 pages) a full pass also
+   runs 0.8 s after typing pauses, as a safety net; longer notes skip it,
+   because it would be a 60 ms pause of its own. A live check in the Dev
+   vault compared the two after random edits: they matched, except where
+   the suggestion list had opened in between (which is meant to change the
+   layout).
 3. **Dual dialogue rescanned the whole script on every edit.** Now it
    rebuilds only when an edit touches a line ending in `^`, a pair, or the
    top of the note; otherwise the pairs just move.
-4. **Status bar statistics ran on every pause, and re-parsed the script
-   before checking their cache.** The cache now keys on the editor's
-   document (unchanged text skips the work), and the count waits for the
-   browser to be idle (`requestIdleCallback`), so it can't delay a keystroke.
+4. **Line comments and boneyard markers scanned the whole note on every
+   edit** (`doc.toString()` and a full scan). Now line comments rescan only
+   the edited lines, and the boneyard scan is skipped when the note has no
+   boneyard. Both scan in full when the note has boneyards or code fences,
+   when an edit adds one, or near the frontmatter.
+5. **Status bar statistics and the current page ran on the main thread.**
+   They could take 40 ms (120 pages) to 170 ms (500 pages) after a pause and
+   delay the next keystroke. Now they're counted in a Web Worker
+   (`src/workers/`), bundled into `main.js` as text by
+   `scripts/worker-source.mjs` and started from a Blob URL; the main thread
+   only copies the text (about 6 ms at 500 pages). If a worker can't start,
+   they're counted on the main thread as before. The statistics cache keys
+   on the editor's document, the current page is cached per line, and both
+   wait for the browser to be idle.
 
-## Other plugins in the writer's vault (500 pages, plain mode, per keystroke)
+## Other plugins in the writer's vault (500 pages, per keystroke)
 
-| Plugin                                | About |
-| ------------------------------------- | ----- |
-| Dataview (inline fields on each edit) | 65 ms |
-| Arvnfig (heading guard on each edit)  | 41 ms |
-| Templater                             | 14 ms |
-| Better Word Count                     | 10 ms |
+| Plugin                                   | About    |
+| ---------------------------------------- | -------- |
+| Dataview (inline fields in live preview) | 35–65 ms |
+| Arvnfig (heading guard on each edit)     | 41 ms    |
+| Templater                                | 14 ms    |
+| Better Word Count                        | 10 ms    |
 
-These run on every keystroke in every note, so they slow typing in long
-scripts whatever Scribidian does. Dataview's inline-field highlighting can be
-turned off in its settings. Arvnfig is the writer's own plugin; its guard
-scans the note on each edit and could be made incremental.
+These run on every keystroke in every note. Dataview's setting **Render
+inline fields in live preview** (`prettyRenderInlineFieldsInLivePreview`)
+is the single biggest cost: turned off (and Dataview reloaded), a keystroke
+in a 500-page script with all plugins on went from about 62 ms to about
+22 ms. Arvnfig is the writer's own plugin; its guard scans the note on each
+edit and could be made incremental.
 
 ## Still to check
 
 - Enter and Tab still classify the whole note once per press (the Smart
   Enter and Tab plans). That's one keystroke at a time, but in a 500-page
   script it may be noticeable.
+- Screenplay projects: completion builds its index from every part when the
+  text outside the cursor's line changes; worth profiling in a large
+  project.
 - Phones and slower computers: these numbers are from a desktop.
