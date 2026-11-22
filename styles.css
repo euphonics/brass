@@ -780,3 +780,36 @@ body {
 .scribidian-dual-dialogue {
   padding-inline-end: 4%;
 }
+
+/* Settings: a short list to drag into order (slug suggestions). */
+.scribidian-order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.scribidian-order-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background: var(--background-secondary);
+  font-size: var(--font-ui-small);
+  cursor: grab;
+}
+
+.scribidian-order-item span:nth-child(2) {
+  flex: 1;
+}
+
+.scribidian-order-item.is-dragging {
+  opacity: 0.5;
+}
+
+.scribidian-order-handle {
+  color: var(--text-faint);
+}

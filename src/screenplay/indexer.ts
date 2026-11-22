@@ -115,6 +115,7 @@ export function buildScreenplayIndex(
   const parentheticals = new Map<string, Usage>();
   const transitions = new Map<string, Usage>();
   const lastTimeByLocation: Record<string, string> = {};
+  const lastSlugByLocation: Record<string, string> = {};
 
   for (const element of document.elements) {
     if (element.type === "character") {
@@ -135,7 +136,14 @@ export function buildScreenplayIndex(
         addUsage(timesOfDay, parts.location, element.line);
         continue;
       }
-      if (parts.location) addUsage(locations, parts.location, element.line);
+      if (parts.location) {
+        addUsage(locations, parts.location, element.line);
+        lastSlugByLocation[parts.location.toLocaleUpperCase()] = [
+          parts.location,
+          parts.timeOfDay ? ` - ${parts.timeOfDay}` : "",
+          modifier ? ` (${modifier})` : "",
+        ].join("");
+      }
       if (parts.timeOfDay) {
         addUsage(timesOfDay, parts.timeOfDay, element.line);
         if (parts.location) {
@@ -161,6 +169,7 @@ export function buildScreenplayIndex(
     parentheticals: [...parentheticals.values()],
     transitions: [...transitions.values()],
     lastTimeByLocation,
+    lastSlugByLocation,
   };
 }
 

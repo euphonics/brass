@@ -19,6 +19,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_COMPLETION_PREFERENCES,
   getScreenplayCompletionPlan,
+  slugOrder,
 } from "../src/editor/completionEngine";
 import { parseFountain } from "../src/screenplay/parser";
 
@@ -140,6 +141,49 @@ describe("screenplay completion engine", () => {
     expect(kitchen?.applyText).toBe("KITCHEN - ");
     const hall = plan?.candidates.find((c) => c.label === "KITCHEN HALLWAY");
     expect(hall?.displayLabel).toBeUndefined();
+  });
+
+  it("offers each location's last whole slug in the order set", () => {
+    const source = [
+      "INT. KITCHEN - DAY",
+      "",
+      "Toast.",
+      "",
+      "INT. KITCHEN - NIGHT (FLASHBACK)",
+      "",
+      "Dark.",
+      "",
+      "INT. KITCHEN HALLWAY",
+      "",
+      "Steps.",
+      "",
+      "INT. KI",
+    ].join("\n");
+    const items = (order?: ("recent" | "shortest")[]) =>
+      getScreenplayCompletionPlan(source, source.length, {
+        ...DEFAULT_COMPLETION_PREFERENCES,
+        offerFullSlugs: true,
+        slugSuggestionOrder: order,
+      })?.candidates.map((c) => [c.label, c.applyText]);
+    const recentFirst = items(["recent", "shortest"]);
+    const at = recentFirst?.findIndex(([label]) => label === "KITCHEN") ?? -1;
+    expect(recentFirst?.[at - 1]).toEqual([
+      "KITCHEN - NIGHT (FLASHBACK)",
+      "KITCHEN - NIGHT (FLASHBACK)",
+    ]);
+    const shortestFirst = items(["shortest", "recent"]);
+    const at2 =
+      shortestFirst?.findIndex(([label]) => label === "KITCHEN") ?? -1;
+    expect(shortestFirst?.[at2]).toEqual(["KITCHEN", "KITCHEN - "]);
+    expect(shortestFirst?.[at2 + 1]?.[0]).toBe("KITCHEN - NIGHT (FLASHBACK)");
+    // A location never used with a time or modifier has one item.
+    expect(
+      shortestFirst?.filter(([label]) => label.startsWith("KITCHEN HALLWAY")),
+    ).toEqual([["KITCHEN HALLWAY", "KITCHEN HALLWAY - "]]);
+    expect(slugOrder(["shortest", "bogus", "shortest"])).toEqual([
+      "shortest",
+      "recent",
+    ]);
   });
 
   it("opens the character list for lowercase typing with match capitals off", () => {

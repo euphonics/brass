@@ -528,6 +528,13 @@ Test cases:
   (`KITCHEN - NIGHT`). Picking it fills in `KITCHEN - ` and opens the
   times with that time first, so Enter takes it and the arrows pick
   another (added 2026-11-21).
+- **Offer full slugs** (setting, off by default): the location list also
+  offers each location's last whole slug (`KITCHEN - NIGHT (FLASHBACK)`),
+  which fills in the whole line at once. **Order of slug suggestions**
+  (drag, or the Move button) sets which of a location's two items comes
+  first: most recent (the whole slug) or shortest (the location, then the
+  times). A location never used with a time or modifier has one item
+  (added 2026-11-21).
 - **Times of day after a location**: the time that location had last
   comes first (`INT. KITCHEN - ` after `INT. KITCHEN - NIGHT` puts NIGHT at
   the top), when it matches what is typed (added 2026-11-21).

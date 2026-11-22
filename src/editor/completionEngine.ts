@@ -91,6 +91,35 @@ export interface CompletionPreferences {
   namesInAction?: boolean;
   /** Slug modifiers offered after the time of day. */
   preferredSlugModifiers?: readonly string[];
+  /**
+   * The location list also offers each location's last whole slug
+   * ("KITCHEN - NIGHT (FLASHBACK)"), filled in at once. Default off.
+   */
+  offerFullSlugs?: boolean;
+  /** With full slugs on: which of a location's two items comes first. */
+  slugSuggestionOrder?: readonly SlugSuggestionKind[];
+}
+
+/** The two items a location can have in the slugline list. */
+export type SlugSuggestionKind = "recent" | "shortest";
+
+export const DEFAULT_SLUG_SUGGESTION_ORDER: readonly SlugSuggestionKind[] = [
+  "recent",
+  "shortest",
+];
+
+/** A usable order of the two slug items: both, once each. */
+export function slugOrder(
+  order: readonly unknown[] | undefined,
+): SlugSuggestionKind[] {
+  const kinds = (order ?? []).filter(
+    (kind, at, all): kind is SlugSuggestionKind =>
+      (kind === "recent" || kind === "shortest") && all.indexOf(kind) === at,
+  );
+  for (const kind of DEFAULT_SLUG_SUGGESTION_ORDER) {
+    if (!kinds.includes(kind)) kinds.push(kind);
+  }
+  return kinds;
 }
 
 const SCENE_LINE = new RegExp(`^(${SCENE_TYPE_SOURCE})\\s+(.*)$`, "iu");
@@ -371,17 +400,45 @@ function scenePlan(
       value,
       preferences.recentItemsWeighting,
       preferences.maximumSuggestions,
-    ).map((usage) => {
+    ).flatMap((usage): CompletionCandidate[] => {
+      const key = usage.value.toLocaleUpperCase();
+      const last = index.lastTimeByLocation?.[key];
+      const slug = index.lastSlugByLocation?.[key];
+      // Full slugs on: the location ("KITCHEN", then the times list) and
+      // its last whole slug ("KITCHEN - NIGHT (FLASHBACK)", filled in at
+      // once), in the order set in settings.
+      if (
+        preferences.offerFullSlugs === true &&
+        slug !== undefined &&
+        slug.toLocaleUpperCase() !== key
+      ) {
+        const items: Record<SlugSuggestionKind, CompletionCandidate> = {
+          shortest: {
+            label: usage.value,
+            applyText: `${usage.value} - `,
+            detail: "Location",
+          },
+          recent: { label: slug, applyText: slug, detail: "Last slug" },
+        };
+        return slugOrder(preferences.slugSuggestionOrder).map(
+          (kind) => items[kind],
+        );
+      }
       // Shown with the time it had last ("KITCHEN - NIGHT"); picking it
       // still fills in "KITCHEN - " and opens the times, that time first.
-      const last = index.lastTimeByLocation?.[usage.value.toLocaleUpperCase()];
-      return {
-        label: usage.value,
-        ...(last ? { displayLabel: `${usage.value} - ${last}` } : {}),
-        applyText: `${usage.value} - `,
-        detail: "Location",
-      };
+      return [
+        {
+          label: usage.value,
+          ...(last ? { displayLabel: `${usage.value} - ${last}` } : {}),
+          applyText: `${usage.value} - `,
+          detail: "Location",
+        },
+      ];
     });
+    candidates.length = Math.min(
+      candidates.length,
+      preferences.maximumSuggestions,
+    );
     // After a bare ".", times used on their own (".LATER") are offered too.
     if (untypedForced) {
       candidates.push(

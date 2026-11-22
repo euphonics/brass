@@ -23,6 +23,11 @@ import {
 } from "../editor/screenplayFont";
 import { Notice, PluginSettingTab } from "obsidian";
 import { triggerProblem } from "../editor/triggers";
+import {
+  DEFAULT_SLUG_SUGGESTION_ORDER,
+  slugOrder,
+  type SlugSuggestionKind,
+} from "../editor/completionEngine";
 import type {
   App,
   Setting,
@@ -134,6 +139,10 @@ export interface ScribidianSettings {
   preferredSceneTypes: string[];
   preferredTimesOfDay: string[];
   preferredSlugModifiers: string[];
+  /** The location list also offers each location's last whole slug. */
+  offerFullSlugs: boolean;
+  /** With full slugs on: which of a location's two items comes first. */
+  slugSuggestionOrder: SlugSuggestionKind[];
   statusBarEnabled: boolean;
   showEstimatedPages: boolean;
   showCurrentPage: boolean;
@@ -289,6 +298,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   preferredSceneTypes: DEFAULT_SCENE_TYPES,
   preferredTimesOfDay: DEFAULT_TIMES_OF_DAY,
   preferredSlugModifiers: DEFAULT_SLUG_MODIFIERS,
+  offerFullSlugs: false,
+  slugSuggestionOrder: [...DEFAULT_SLUG_SUGGESTION_ORDER],
   statusBarEnabled: true,
   showEstimatedPages: true,
   showCurrentPage: true,
@@ -383,6 +394,11 @@ export function migrateSettings(
   ) {
     settings.capitalizeLineStartsScript = capitalizeLineStarts;
   }
+  settings.slugSuggestionOrder = slugOrder(
+    Array.isArray(settings.slugSuggestionOrder)
+      ? settings.slugSuggestionOrder
+      : undefined,
+  );
   // Trigger characters: back to the defaults if unusable or the same.
   if (
     typeof settings.variablePrefix !== "string" ||
@@ -485,6 +501,8 @@ const ADVANCED_NAME = "Advanced settings";
 const ADVANCED_KEY = "advancedToggle";
 const MORE_SUGGESTIONS_NAME = "More suggestion settings";
 const MORE_SUGGESTIONS_KEY = "moreSuggestionsToggle";
+const SLUG_ORDER_NAME = "Order of slug suggestions";
+const SLUG_ORDER_KEY = "slugOrderList";
 /** Items without a control, placed in their section by name. */
 const NAMED_ITEM_KEYS: Record<string, string> = {
   [TYPING_CHANGES_NAME]: TYPING_CHANGES_KEY,
@@ -492,6 +510,7 @@ const NAMED_ITEM_KEYS: Record<string, string> = {
   [HOTKEYS_NAME]: HOTKEYS_KEY,
   [ADVANCED_NAME]: ADVANCED_KEY,
   [MORE_SUGGESTIONS_NAME]: MORE_SUGGESTIONS_KEY,
+  [SLUG_ORDER_NAME]: SLUG_ORDER_KEY,
 };
 
 /**
@@ -545,6 +564,8 @@ const SETTING_GROUPS: {
       "preferredSceneTypes",
       "preferredTimesOfDay",
       "preferredSlugModifiers",
+      "offerFullSlugs",
+      SLUG_ORDER_KEY,
       MORE_SUGGESTIONS_KEY,
       "recentItemsWeighting",
       "sceneTypeMinimumLetters",
@@ -761,6 +782,65 @@ export class ScribidianSettingTab extends PluginSettingTab {
    * A row with a button that shows or hides the settings after it in the
    * same section. Searching shows matching hidden settings anyway.
    */
+  /** A list to drag into order: which slug item comes first. */
+  private renderSlugOrder(setting: Setting): void {
+    setting.setName(SLUG_ORDER_NAME);
+    setting.setDesc(
+      "With full slugs on, each location has two items. Drag to choose which comes first.",
+    );
+    const labels: Record<SlugSuggestionKind, string> = {
+      recent:
+        "Most recent: the last slug used with that location (KITCHEN - NIGHT (FLASHBACK))",
+      shortest: "Shortest: the location alone (KITCHEN), then the times",
+    };
+    const list = setting.settingEl.createDiv({ cls: "scribidian-order-list" });
+    let dragged: SlugSuggestionKind | null = null;
+    const draw = (): void => {
+      list.empty();
+      const order = slugOrder(this.plugin.settings.slugSuggestionOrder);
+      order.forEach((kind, at) => {
+        const row = list.createDiv({
+          cls: "scribidian-order-item",
+          attr: { draggable: "true", "data-kind": kind },
+        });
+        row.createSpan({ cls: "scribidian-order-handle", text: "⋮⋮" });
+        row.createSpan({ text: `${at + 1}. ${labels[kind]}` });
+        const move = row.createEl("button", {
+          text: at === 0 ? "Move down" : "Move up",
+          attr: { "aria-label": `Move ${kind} ${at === 0 ? "down" : "up"}` },
+        });
+        move.addEventListener("click", () => {
+          void this.saveSlugOrder([...order].reverse());
+          draw();
+        });
+        row.addEventListener("dragstart", (event) => {
+          dragged = kind;
+          event.dataTransfer?.setData("text/plain", kind);
+          row.addClass("is-dragging");
+        });
+        row.addEventListener("dragend", () => {
+          dragged = null;
+          row.removeClass("is-dragging");
+        });
+        row.addEventListener("dragover", (event) => event.preventDefault());
+        row.addEventListener("drop", (event) => {
+          event.preventDefault();
+          if (dragged === null || dragged === kind) return;
+          const next = order.filter((item) => item !== dragged);
+          next.splice(next.indexOf(kind) + (at === 0 ? 0 : 1), 0, dragged);
+          void this.saveSlugOrder(next);
+          draw();
+        });
+      });
+    };
+    draw();
+  }
+
+  private async saveSlugOrder(order: SlugSuggestionKind[]): Promise<void> {
+    this.plugin.settings.slugSuggestionOrder = slugOrder(order);
+    await this.plugin.saveSettings();
+  }
+
   private renderMoreToggle(setting: Setting, key: string): void {
     setting.settingEl.addClass("scribidian-more-toggle");
     const advanced = key === ADVANCED_KEY;
@@ -1330,6 +1410,19 @@ export class ScribidianSettingTab extends PluginSettingTab {
         render: (setting) => this.renderMoreToggle(setting, ADVANCED_KEY),
       },
       {
+        name: "Offer full slugs",
+        desc: "The slugline list also offers each location's last whole slug, such as KITCHEN - NIGHT (FLASHBACK); picking it fills in the whole slug. Off: each location shows once, with the time it had last (KITCHEN - NIGHT), and picking it opens the times with that time first.",
+        control: {
+          type: "toggle",
+          key: "offerFullSlugs",
+          defaultValue: DEFAULT_SETTINGS.offerFullSlugs,
+        },
+      },
+      {
+        name: SLUG_ORDER_NAME,
+        render: (setting) => this.renderSlugOrder(setting),
+      },
+      {
         name: MORE_SUGGESTIONS_NAME,
         searchable: false,
         render: (setting) =>
@@ -1641,6 +1734,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "sceneTypeMatchCase":
       case "characterMatchCase":
       case "namesInAction":
+      case "offerFullSlugs":
       case "markCapitalsAsAction":
       case "statusBarEnabled":
       case "showEstimatedPages":

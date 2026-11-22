@@ -89,6 +89,11 @@ export interface ScreenplayIndex {
   transitions: Usage[];
   /** The time of day last used with each location, keyed in capitals. */
   lastTimeByLocation?: Record<string, string>;
+  /**
+   * The whole slug last used with each location, after the scene type
+   * ("KITCHEN - NIGHT (FLASHBACK)"), keyed in capitals.
+   */
+  lastSlugByLocation?: Record<string, string>;
 }
 
 export interface ScreenplayStatistics {
