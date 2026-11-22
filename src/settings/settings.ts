@@ -173,6 +173,8 @@ export interface ScribidianSettings {
   markCapitalsAsAction: boolean;
   /** PDF export (and the page preview): which parts print in bold. */
   pdfBold: PdfBoldOptions;
+  /** Color of line comments ("// note") in the editor; "" for the theme's. */
+  lineCommentColor: string;
 }
 
 /** Clean Fountain export toggles, in the order shown in settings. */
@@ -330,6 +332,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   characterTemplate: "",
   cleanExport: { ...DEFAULT_CLEAN_EXPORT_OPTIONS },
   pdfBold: { ...DEFAULT_PDF_BOLD },
+  lineCommentColor: "",
   markCapitalsAsAction: true,
 };
 
@@ -557,6 +560,7 @@ const SETTING_GROUPS: {
       "editorLayout",
       "screenplayFont",
       "screenplayFontCustom",
+      "lineCommentColor",
       "smartTabEnabled",
       "smartEnterEnabled",
       "indentActionWithSpaces",
@@ -1292,6 +1296,15 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Line comment color",
+        desc: "The color of line comments (// note) in the editor. Leave it unset for your theme's muted text color.",
+        control: {
+          type: "color",
+          key: "lineCommentColor",
+          defaultValue: DEFAULT_SETTINGS.lineCommentColor,
+        },
+      },
+      {
         name: "Bottom typing margin",
         desc: "Empty space below the last line, so the status bar never covers what you're typing. 0 turns it off.",
         control: {
@@ -1696,6 +1709,10 @@ export class ScribidianSettingTab extends PluginSettingTab {
       const folder = value.trim().replace(/\/+$/gu, "");
       if (!folder || folder === "/") return;
       this.plugin.settings.characterFolder = folder;
+    } else if (key === "lineCommentColor") {
+      if (typeof value !== "string") return;
+      this.plugin.settings.lineCommentColor = value.trim();
+      this.plugin.applyScreenplayFont();
     } else if (key === "screenplayFont" || key === "screenplayFontCustom") {
       if (typeof value !== "string") return;
       this.plugin.settings[key] = value.trim();

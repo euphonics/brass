@@ -16,9 +16,10 @@
  */
 
 // Copies the built plugin (main.js, manifest.json, styles.css) into a
-// vault's .obsidian/plugins/scribidian folder. The everyday Notes vault
-// gets releases from GitHub (BRAT), never a local build. Usage:
+// vault's .obsidian/plugins/scribidian folder. Usage:
 //   node scripts/install-vault.mjs dev     (the Dev vault, for testing)
+//   node scripts/install-vault.mjs notes   (the everyday Notes vault, once
+//                                           a batch is tested in Dev)
 //   node scripts/install-vault.mjs <vault folder>
 
 import { copyFile, stat } from "node:fs/promises";
@@ -30,6 +31,7 @@ import { fileURLToPath } from "node:url";
 const home = os.homedir();
 const VAULTS = {
   dev: path.join(home, "Code", "Obsidian Dev Vault", "Dev"),
+  notes: path.join(home, "Dropbox", "Notes"),
 };
 
 const target = process.argv[2] ?? "dev";

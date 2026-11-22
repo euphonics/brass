@@ -36,7 +36,6 @@ import { docLineKinds, docLines } from "./docLines";
 import { variableAtEnd, variableSuggestions } from "./variables";
 import { mentionAtEnd, mentionText } from "./characterMentions";
 import { getEnterInsidePlan, getTabInsidePlan } from "./tabInside";
-import { CHARACTER_EXTENSIONS } from "../screenplay/fountain";
 import {
   acceptCompletion,
   closeCompletion,
@@ -77,6 +76,7 @@ import {
   type SmartTabPlan,
 } from "./smartTab";
 import {
+  characterExtensionChoices,
   getScreenplayCompletionPlan,
   type CompletionCandidate,
 } from "./completionEngine";
@@ -406,19 +406,21 @@ export function createScreenplayCompletionExtension(
         from: extensionAt,
         to: extensionAt,
         filter: false,
-        options: CHARACTER_EXTENSIONS.map((extension) => {
-          const candidate = {
-            label: extension,
-            applyText: `${space}${extension}`,
-            detail: "Character extension",
-          };
-          return {
-            label: extension,
-            detail: candidate.detail,
-            apply: (view, completion, from, to) =>
-              applyCandidate(view, completion, from, to, candidate),
-          };
-        }),
+        options: characterExtensionChoices(context.state.doc.toString()).map(
+          (extension) => {
+            const candidate = {
+              label: extension,
+              applyText: `${space}${extension}`,
+              detail: "Character extension",
+            };
+            return {
+              label: extension,
+              detail: candidate.detail,
+              apply: (view, completion, from, to) =>
+                applyCandidate(view, completion, from, to, candidate),
+            };
+          },
+        ),
       };
     }
 

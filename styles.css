@@ -319,11 +319,24 @@ body {
 /* Line comments ("// note"), a Scribidian addition to Fountain: faded,
    and not part of the script. */
 .markdown-source-view.mod-cm6 .scribidian-line-comment {
-  opacity: 0.45;
+  color: var(--scribidian-line-comment-color, var(--text-muted));
 }
 
 .scribidian-preview-lyric {
   font-style: italic;
+}
+
+/* Emphasis in the page preview, as the PDF prints it. */
+.scribidian-preview-block .scribidian-preview-bold {
+  font-weight: 700;
+}
+
+.scribidian-preview-block .scribidian-preview-italic {
+  font-style: italic;
+}
+
+.scribidian-preview-block .scribidian-preview-underline {
+  text-decoration: underline;
 }
 
 .scribidian-preview-page-number {

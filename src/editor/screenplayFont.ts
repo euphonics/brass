@@ -163,3 +163,11 @@ export function applyScreenplayFont(css: string | null): void {
     body.removeClass(CUSTOM_FONT_CLASS);
   }
 }
+
+/** The "Line comment color" setting, as a CSS variable on the app window. */
+export function applyLineCommentColor(color: string): void {
+  const body = activeDocument.body;
+  if (/^#[0-9a-f]{3,8}$/iu.test(color))
+    body.style.setProperty("--scribidian-line-comment-color", color);
+  else body.style.removeProperty("--scribidian-line-comment-color");
+}

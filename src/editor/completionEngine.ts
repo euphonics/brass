@@ -152,6 +152,30 @@ function lineContext(
   };
 }
 
+/**
+ * Character extensions to suggest: the ones the script already uses, most
+ * used first (so "(UNINTELLIGIBLE)" comes back once it's been typed), then
+ * the common ones it hasn't used. Scribidian never suggests (CONT'D).
+ */
+export function characterExtensionChoices(source: string): string[] {
+  const counts = new Map<string, number>();
+  for (const element of parseFountain(source).elements) {
+    if (element.type !== "character" || !element.characterExtension) continue;
+    for (const match of element.characterExtension.matchAll(/\([^()]+\)/gu)) {
+      const extension = match[0].toLocaleUpperCase().replace(/\s+/gu, " ");
+      if (/^\(CONT['’]D\)$/u.test(extension)) continue;
+      counts.set(extension, (counts.get(extension) ?? 0) + 1);
+    }
+  }
+  const used = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([extension]) => extension);
+  return [
+    ...used,
+    ...CHARACTER_EXTENSIONS.filter((extension) => !counts.has(extension)),
+  ];
+}
+
 function extensionPlan(
   source: string,
   before: string,
@@ -179,13 +203,15 @@ function extensionPlan(
   const openParenthesis = before.lastIndexOf("(");
   // "JEN(" gets its space back: "JEN (V.O.)".
   const space = match[2] ? "" : " ";
-  const candidates = CHARACTER_EXTENSIONS.filter((extension) =>
-    extension.slice(1).toLocaleUpperCase().startsWith(query),
-  ).map((extension) => ({
-    label: extension,
-    applyText: `${space}${extension}`,
-    detail: "Character extension",
-  }));
+  const candidates = characterExtensionChoices(source)
+    .filter((extension) =>
+      extension.slice(1).toLocaleUpperCase().startsWith(query),
+    )
+    .map((extension) => ({
+      label: extension,
+      applyText: `${space}${extension}`,
+      detail: "Character extension",
+    }));
 
   return candidates.length === 0
     ? null

@@ -99,9 +99,9 @@ export class ScreenplayPreviewModal extends Modal {
           if (lineIndex > 0) element.appendText("\n");
           for (const run of runs) {
             const span = element.createSpan({ text: run.text });
-            if (run.bold) span.style.fontWeight = "700";
-            if (run.italic) span.style.fontStyle = "italic";
-            if (run.underline) span.style.textDecoration = "underline";
+            span.toggleClass("scribidian-preview-bold", run.bold);
+            span.toggleClass("scribidian-preview-italic", run.italic);
+            span.toggleClass("scribidian-preview-underline", run.underline);
           }
         }
         element.style.left = `${(block.left / layout.dimensions.width) * 100}%`;

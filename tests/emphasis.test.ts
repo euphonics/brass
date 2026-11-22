@@ -134,3 +134,18 @@ describe("action paragraphs", () => {
     expect(blocks?.[1]?.top).toBe((blocks?.[0]?.top ?? 0) + 3 * 12 + 12);
   });
 });
+
+describe("character extension suggestions", () => {
+  it("offers extensions the script already uses, most used first, never (CONT'D)", async () => {
+    const { characterExtensionChoices } =
+      await import("../src/editor/completionEngine");
+    const choices = characterExtensionChoices(
+      "INT. ROOM - DAY\n\nJEN (UNINTELLIGIBLE)\nMmph.\n\nBLAKE (CONT'D)\nWhat?\n\nJEN (unintelligible)\nMmph!\n\nBLAKE (V.O.)\nHey.\n",
+    );
+    expect(choices[0]).toBe("(UNINTELLIGIBLE)");
+    expect(choices).toContain("(V.O.)");
+    expect(choices).toContain("(O.S.)");
+    expect(choices.some((choice) => /CONT/u.test(choice))).toBe(false);
+    expect(new Set(choices).size).toBe(choices.length);
+  });
+});

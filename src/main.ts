@@ -27,6 +27,7 @@ import type { ScreenplayStatistics } from "./screenplay/model";
 import {
   applyScreenplayFont,
   screenplayFontCss,
+  applyLineCommentColor,
 } from "./editor/screenplayFont";
 import { createBottomMarginExtension } from "./editor/bottomMargin";
 import { createScreenplayLayoutExtension } from "./editor/screenplayLayout";
@@ -667,6 +668,7 @@ export default class ScribidianPlugin extends Plugin {
     const holder = window as unknown as Record<symbol, unknown>;
     if (holder[LIVE_INSTANCE] === this) delete holder[LIVE_INSTANCE];
     applyScreenplayFont(null);
+    applyLineCommentColor("");
     if (this.refreshTimer !== null) window.clearTimeout(this.refreshTimer);
     this.clearProjectViewClasses();
   }
@@ -705,6 +707,7 @@ export default class ScribidianPlugin extends Plugin {
         this.settings.screenplayFontCustom,
       ),
     );
+    applyLineCommentColor(this.settings.lineCommentColor);
   }
 
   async saveSettings(): Promise<void> {

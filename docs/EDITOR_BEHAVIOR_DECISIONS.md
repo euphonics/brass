@@ -113,7 +113,9 @@ flowchart TD
 ## Line comments (Scribidian addition)
 
 - `// note` at the start of a line or after a space, to the end of the
-  line, is a comment. It shows faded and is never part of the script.
+  line, is a comment. It shows in a muted color (setting **Line comment
+  color**; the theme's muted text by default, changed 2026-11-22) and is
+  never part of the script.
 - It doesn't change what a line is: `JEN // late` is still a character. A
   line that is only a comment is a note and doesn't end a speech.
 - `https://` isn't a comment (no space before the `//`), and neither is `//`
@@ -200,9 +202,11 @@ Test cases:
 - Typing `)` right before the `)` closing a wryly or extension steps over
   it, as in Fade In.
 - A line set to dialogue (Shift+Enter) that starts with `(` is a wryly.
-- Typing `JOHN (` or `JOHN(` opens the extension list ((V.O.), (O.S.),
-  (CONT'D)), even for a name not yet in the script, if the line starts a
-  block.
+- Typing `JOHN (` or `JOHN(` opens the extension list: the extensions the
+  script already uses, most used first (`(UNINTELLIGIBLE)` once it's been
+  typed), then (V.O.), (O.S.), (ON RADIO), (ON PHONE). It opens even for a
+  name not yet in the script, if the line starts a block (changed
+  2026-11-22).
 - **A cue whose text is deleted stays a cue line** (list open, capitals),
   and a name pasted there is put in capitals.
 - **An empty line after a speech is the next cue's line only when nothing

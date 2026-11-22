@@ -99,9 +99,10 @@ Expected result:
 
 The maintainer's setup: `npm run install-vault` builds and copies the plugin
 into the dedicated Dev vault (`~/Code/Obsidian Dev Vault/Dev`), used for all
-live testing. The everyday Notes vault gets releases from GitHub through
-BRAT, never a local build. The script refuses a vault without a
-`.obsidian/plugins/scribidian` folder.
+live testing. Once a batch is tested there, `npm run install-notes` copies
+the same build into the everyday Notes vault. GitHub releases (through BRAT)
+are for other testers, once per tested batch. Both scripts refuse a vault
+without a `.obsidian/plugins/scribidian` folder.
 
 To use another dedicated test vault:
 

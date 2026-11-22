@@ -16,6 +16,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "install-vault": "npm run build && node scripts/install-vault.mjs dev",
+    "install-notes": "npm run build && node scripts/install-vault.mjs notes",
     "test-vault": "npm run build && node scripts/install-test-vault.mjs"
   },
   "keywords": [
