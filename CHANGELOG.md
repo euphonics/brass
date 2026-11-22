@@ -7,6 +7,15 @@ project follows
 
 ## [Unreleased]
 
+### Changed (performance, 2026-11-22)
+
+- Typing in long scripts is much faster. In a 500-page script, a keystroke
+  in script mode went from about 112 ms to 48 ms (19 ms with no other
+  plugins): the layout reclassifies only the paragraphs around an edit, the
+  frontmatter check no longer copies the whole note, dual dialogue no longer
+  rescans the script, and the status bar counts only when the editor is
+  idle. See docs/PERFORMANCE.md.
+
 ### Added (PDF, 2026-11-22)
 
 - Setting **Add (CONT'D) to continued dialogue** (on by default): the PDF

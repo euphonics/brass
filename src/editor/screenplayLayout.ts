@@ -22,14 +22,19 @@ import {
   setLineKind,
 } from "./lineKindOverride";
 import { tabCueLine } from "./tabCueLine";
-import { characterCue } from "../screenplay/lines";
+import { characterCue, classifyLines } from "../screenplay/lines";
 import {
   closeCompletion,
   completionStatus,
   currentCompletions,
 } from "@codemirror/autocomplete";
 import type { EditorState } from "@codemirror/state";
-import { Prec, RangeSetBuilder, type Extension } from "@codemirror/state";
+import {
+  Prec,
+  RangeSetBuilder,
+  StateEffect,
+  type Extension,
+} from "@codemirror/state";
 import {
   Decoration,
   EditorView,
@@ -74,6 +79,18 @@ const LINE_DECORATIONS = new Map<LayoutLineKind, Decoration>(
 );
 
 const HIDDEN = Decoration.replace({});
+
+/** Asks the layout to classify the whole note again (after typing pauses). */
+const fullLayout = StateEffect.define<null>();
+/** Text that opens or closes something spanning lines: always a full pass. */
+const MULTI_LINE = /\/\*|\*\/|%%|\[\[|\]\]|```|~~~/u;
+const FENCE = /^\s*(?:`{3,}|~{3,})/u;
+/** How far from an edit to look for the blank lines around it. */
+const WINDOW_LIMIT = 400;
+/** Edits this close to the top may touch the frontmatter: full pass. */
+const FRONTMATTER_GUARD = 60;
+/** Pause in typing before the full pass, in milliseconds. */
+const FULL_PASS_DELAY = 800;
 
 /**
  * Element of the open suggestion list on an empty cursor line, or null. A
@@ -120,6 +137,9 @@ export function createScreenplayLayoutExtension(
       private cueFrom: number | null = null;
       /** Starts of the lines laid out as cues last time (mapped on edits). */
       private cueStarts: number[] = [];
+      /** The note has code fences: always classify it in full. */
+      private hasFence = false;
+      private fullTimer: number | null = null;
 
       constructor(view: EditorView) {
         this.active = this.isActive(view);
@@ -138,8 +158,7 @@ export function createScreenplayLayoutExtension(
             update.changes.mapPos(from, -1),
           );
         }
-        const reclassify =
-          update.docChanged ||
+        const otherReasons =
           (cursorMoved && this.cueFrom !== null) ||
           (cursorMoved &&
             (cursorAffectsLayout(update.state.doc, this.cursorLine) ||
@@ -148,7 +167,18 @@ export function createScreenplayLayoutExtension(
           update.startState.field(lineKindField, false) !==
             update.state.field(lineKindField, false) ||
           update.startState.field(editorInfoField, false)?.file !==
-            update.state.field(editorInfoField, false)?.file;
+            update.state.field(editorInfoField, false)?.file ||
+          update.transactions.some((tr) =>
+            tr.effects.some((effect) => effect.is(fullLayout)),
+          );
+        // Typing in a long script: reclassify only the paragraphs around the
+        // edit (a full pass runs once typing pauses).
+        const incremental =
+          update.docChanged &&
+          !otherReasons &&
+          this.active &&
+          this.reclassifyAround(update);
+        const reclassify = (update.docChanged && !incremental) || otherReasons;
         const wasActive = this.active;
         // Checking the file is not free, so only when something could change it.
         if (
@@ -170,6 +200,116 @@ export function createScreenplayLayoutExtension(
         }
       }
 
+      destroy(): void {
+        if (this.fullTimer !== null) window.clearTimeout(this.fullTimer);
+      }
+
+      /**
+       * Reclassify only the lines between the blank line before an edit and
+       * the blank line after it. The classifier's state (dialogue, notes,
+       * boneyards) resets at a blank line outside notes, so the result
+       * matches a full pass, unless the edit adds or removes a multi-line
+       * construct or the note has code fences: then (or when no such
+       * window is found) it returns false and the caller does a full pass.
+       * True when the kinds were updated.
+       */
+      private reclassifyAround(update: ViewUpdate): boolean {
+        const { state, startState } = update;
+        const ranges: [number, number, number, number][] = [];
+        update.changes.iterChangedRanges((fromA, toA, fromB, toB) => {
+          ranges.push([fromA, toA, fromB, toB]);
+        });
+        const range = ranges.length === 1 ? ranges[0] : undefined;
+        if (range === undefined || this.hasFence) return false;
+        const [fromA, toA, fromB, toB] = range;
+        const before = startState.doc;
+        const doc = state.doc;
+        if (this.kinds.length !== before.lines) return false;
+        if (state.field(lineKindField, false) != null) return false;
+        if (this.menuKind !== null || openMenuKind(state) !== null)
+          return false;
+        const changedBefore = before.sliceString(
+          before.lineAt(fromA).from,
+          before.lineAt(toA).to,
+        );
+        const changedAfter = doc.sliceString(
+          doc.lineAt(fromB).from,
+          doc.lineAt(toB).to,
+        );
+        if (MULTI_LINE.test(changedBefore) || MULTI_LINE.test(changedAfter))
+          return false;
+        const firstLine = doc.lineAt(fromB).number - 1;
+        const lastLine = doc.lineAt(toB).number - 1;
+        const delta =
+          lastLine -
+          firstLine -
+          (before.lineAt(toA).number - before.lineAt(fromA).number);
+        const blank = (line: number, oldIndex: number): boolean =>
+          doc.line(line + 1).text === "" && this.kinds[oldIndex] === null;
+        let start = firstLine - 1;
+        while (start > FRONTMATTER_GUARD && !blank(start, start)) {
+          if (firstLine - start > WINDOW_LIMIT) return false;
+          start -= 1;
+        }
+        if (start <= FRONTMATTER_GUARD) return false;
+        let end = lastLine + 1;
+        while (end < doc.lines && !blank(end, end - delta)) {
+          if (end - lastLine > WINDOW_LIMIT) return false;
+          end += 1;
+        }
+        if (end >= doc.lines) return false;
+        const cursorLine = doc.lineAt(state.selection.main.head).number - 1;
+        if (cursorLine < start || cursorLine > end) return false;
+        if (this.cursorLine < start || this.cursorLine > end - delta)
+          return false;
+        const lines: string[] = [];
+        for (let line = start; line <= end; line += 1)
+          lines.push(doc.line(line + 1).text);
+        const windowKinds = classifyLines(lines, {
+          cursorLine: cursorLine - start,
+          frontmatter: false,
+        });
+        if (windowKinds[0] !== null || windowKinds[lines.length - 1] !== null)
+          return false;
+        const kinds = [
+          ...this.kinds.slice(0, start),
+          ...windowKinds,
+          ...this.kinds.slice(end - delta + 1),
+        ];
+        if (kinds.length !== doc.lines) return false;
+        // A cue whose dialogue was just deleted keeps its column: leave
+        // that case to the full pass.
+        const cursorFrom = doc.line(cursorLine + 1).from;
+        const remembered =
+          this.cueFrom === cursorFrom || this.cueStarts.includes(cursorFrom);
+        if (
+          remembered &&
+          kinds[cursorLine] === "action" &&
+          characterCue(doc.line(cursorLine + 1).text) !== null
+        )
+          return false;
+        this.kinds = kinds;
+        this.cueFrom = kinds[cursorLine] === "character" ? cursorFrom : null;
+        const windowFrom = doc.line(start + 1).from;
+        const windowTo = doc.line(end + 1).to;
+        this.cueStarts = this.cueStarts.filter(
+          (from) => from < windowFrom || from > windowTo,
+        );
+        windowKinds.forEach((kind, index) => {
+          if (kind === "character")
+            this.cueStarts.push(doc.line(start + index + 1).from);
+        });
+        // A full pass once typing pauses, in case anything further away
+        // depended on this edit.
+        if (this.fullTimer !== null) window.clearTimeout(this.fullTimer);
+        const view = update.view;
+        this.fullTimer = window.setTimeout(() => {
+          this.fullTimer = null;
+          view.dispatch({ effects: fullLayout.of(null) });
+        }, FULL_PASS_DELAY);
+        return true;
+      }
+
       private isActive(view: EditorView): boolean {
         if (!plugin.isScriptMode()) return false;
         const file = view.state.field(editorInfoField, false)?.file ?? null;
@@ -186,6 +326,7 @@ export function createScreenplayLayoutExtension(
         this.cursorLine = doc.lineAt(view.state.selection.main.head).number - 1;
         if (reclassify || this.kinds.length !== doc.lines) {
           const lines = docLines(doc);
+          this.hasFence = lines.some((line) => FENCE.test(line));
           const forced = view.state.field(lineKindField, false) ?? null;
           // An open suggestion list on an empty line puts the cursor in its
           // element's column (the character list centers it).

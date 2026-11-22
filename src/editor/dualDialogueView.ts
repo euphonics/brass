@@ -20,6 +20,7 @@ import {
   StateField,
   type EditorState,
   type Extension,
+  type Transaction,
 } from "@codemirror/state";
 import {
   Decoration,
@@ -86,6 +87,55 @@ interface DualState {
   decorations: DecorationSet;
 }
 
+const CARET = /\^\s*$/u;
+
+/**
+ * Whether an edit could change the dual dialogue: it touches a line ending
+ * in "^" (before or after), or lands on or next to a pair. Most keystrokes
+ * don't, and then the pairs only move, without rescanning the script.
+ */
+function editAffectsPairs(tr: Transaction, pairs: DualDialogue[]): boolean {
+  let affects = false;
+  tr.changes.iterChangedRanges((fromA, toA, fromB, toB) => {
+    if (affects) return;
+    const before = tr.startState.doc;
+    const after = tr.state.doc;
+    for (
+      let line = before.lineAt(fromA).number;
+      line <= before.lineAt(toA).number;
+      line += 1
+    )
+      if (CARET.test(before.line(line).text)) affects = true;
+    for (
+      let line = after.lineAt(fromB).number;
+      line <= after.lineAt(toB).number;
+      line += 1
+    )
+      if (CARET.test(after.line(line).text)) affects = true;
+    const firstLine = before.lineAt(fromA).number - 1;
+    const lastLine = before.lineAt(toA).number - 1;
+    for (const pair of pairs)
+      if (firstLine <= pair.endLine + 1 && lastLine >= pair.startLine - 1)
+        affects = true;
+  });
+  return affects;
+}
+
+/** The pairs moved to their lines after an edit that didn't touch them. */
+function mapPairs(tr: Transaction, pairs: DualDialogue[]): DualDialogue[] {
+  return pairs.map((pair) => {
+    const from = tr.changes.mapPos(
+      tr.startState.doc.line(pair.startLine + 1).from,
+    );
+    const to = tr.changes.mapPos(tr.startState.doc.line(pair.endLine + 1).to);
+    return {
+      ...pair,
+      startLine: tr.state.doc.lineAt(from).number - 1,
+      endLine: tr.state.doc.lineAt(to).number - 1,
+    };
+  });
+}
+
 /**
  * Dual dialogue side by side in the screenplay layout. The pair shows as
  * written (with "^") while the cursor is inside it. Display only.
@@ -139,12 +189,25 @@ export function createDualDialogueExtension(
     create: build,
     update(value, tr) {
       if (
-        tr.docChanged ||
         tr.reconfigured ||
         tr.startState.field(editorInfoField, false)?.file !==
           tr.state.field(editorInfoField, false)?.file
       ) {
         return build(tr.state);
+      }
+      if (tr.docChanged) {
+        // An edit near the top may change the frontmatter (and whether the
+        // note is a screenplay): check everything again.
+        let nearTop = false;
+        tr.changes.iterChangedRanges((_fromA, _toA, fromB) => {
+          if (tr.state.doc.lineAt(fromB).number <= 60) nearTop = true;
+        });
+        if (nearTop) return build(tr.state);
+        if (!value.active) return value;
+        if (editAffectsPairs(tr, value.pairs)) return build(tr.state);
+        if (value.pairs.length === 0) return value;
+        const pairs = mapPairs(tr, value.pairs);
+        return { ...value, pairs, decorations: decorate(tr.state, pairs) };
       }
       if (tr.selection && value.pairs.length > 0) {
         return { ...value, decorations: decorate(tr.state, value.pairs) };

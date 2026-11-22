@@ -866,7 +866,9 @@ export default class ScribidianPlugin extends Plugin {
     if (file === null) return { state: "loading" };
     const cache = this.app.metadataCache.getFileCache(file);
     const view = this.activeMarkdownView();
-    const editorSource = view?.file === file ? view.editor.getValue() : null;
+    // Only the frontmatter matters here; copying the whole note on every
+    // keystroke was a large part of typing lag in long scripts.
+    const editorSource = view?.file === file ? frontmatterSource(view) : null;
     // Reading views can have an empty editor; do not mistake that for removed properties.
     const source =
       editorSource === "" && (view?.getMode() !== "source" || cache == null)
@@ -939,15 +941,43 @@ export default class ScribidianPlugin extends Plugin {
 
   private scheduleRefresh(): void {
     if (this.refreshTimer !== null) window.clearTimeout(this.refreshTimer);
-    this.refreshTimer = window.setTimeout(
-      () => this.refreshStatus(),
-      this.settings.updateDelayMs,
-    );
+    // Counting a long script takes a while: wait until typing pauses, then
+    // until the browser is idle, so it never delays the next keystroke.
+    this.refreshTimer = window.setTimeout(() => {
+      this.refreshTimer = null;
+      if (typeof window.requestIdleCallback === "function")
+        window.requestIdleCallback(() => this.refreshStatus(), {
+          timeout: 1000,
+        });
+      else this.refreshStatus();
+    }, this.settings.updateDelayMs);
   }
 
   private async statisticsFor(view: MarkdownView) {
     const file = view.file;
     if (file === null) return null;
+    // A single screenplay note whose text hasn't changed (a cursor move):
+    // reuse the last count without reading or parsing the note again.
+    const doc = editorDoc(view);
+    const settingsKey = JSON.stringify([
+      this.settings.pageSize,
+      this.settings.minutesPerPage,
+      this.settings.cleanExport,
+      this.settings.markCapitalsAsAction,
+    ]);
+    const single =
+      doc !== null &&
+      this.isScreenplayFile(file) &&
+      projectForFile(this.app, file) === null;
+    const cached = this.statisticsCache;
+    if (
+      single &&
+      cached !== null &&
+      cached.doc === doc &&
+      cached.settingsKey === settingsKey
+    ) {
+      return cached.statistics;
+    }
     const context = await loadScreenplayContext(
       this.app,
       file,
@@ -977,13 +1007,21 @@ export default class ScribidianPlugin extends Plugin {
       pageSize: this.settings.pageSize,
       minutesPerPage: this.settings.minutesPerPage,
     });
-    this.statisticsCache = { key, statistics };
+    this.statisticsCache = {
+      key,
+      statistics,
+      doc: single ? doc : null,
+      settingsKey,
+    };
     return statistics;
   }
 
   private statisticsCache: {
     key: string;
     statistics: ScreenplayStatistics;
+    /** The editor's text this count is for (single notes only). */
+    doc: unknown;
+    settingsKey: string;
   } | null = null;
 
   private async showStatistics(view: MarkdownView): Promise<void> {
@@ -1237,4 +1275,32 @@ export default class ScribidianPlugin extends Plugin {
       }
     }
   }
+}
+
+/** The editor's CodeMirror document, whose identity changes with every edit. */
+function editorDoc(view: MarkdownView): unknown {
+  return (
+    (view.editor as unknown as { cm?: { state?: { doc?: unknown } } }).cm?.state
+      ?.doc ?? null
+  );
+}
+
+/**
+ * The start of the note up to the end of its frontmatter (the whole note
+ * when it has none and is short), read line by line: enough to read the
+ * properties without copying a long script.
+ */
+function frontmatterSource(view: MarkdownView): string {
+  const editor = view.editor;
+  const count = editor.lineCount();
+  const first = editor.getLine(0) ?? "";
+  if (count === 0 || (count === 1 && first === "")) return "";
+  if (!/^\uFEFF?---\s*$/u.test(first)) return first;
+  const lines = [first];
+  for (let index = 1; index < Math.min(count, 2000); index += 1) {
+    const line = editor.getLine(index);
+    lines.push(line);
+    if (/^(?:---|\.\.\.)\s*$/u.test(line)) break;
+  }
+  return `${lines.join("\n")}\n`;
 }
