@@ -97,6 +97,12 @@ Expected result:
 - open the cheat sheet from both its command and the sidebar, select one of its
   Fountain examples, and copy it with the normal system shortcut.
 
+The maintainer's setup: `npm run install-vault` builds and copies the plugin
+into the dedicated Dev vault (`~/Code/Obsidian Dev Vault/Dev`), used for all
+live testing. The everyday Notes vault gets releases from GitHub through
+BRAT, never a local build. The script refuses a vault without a
+`.obsidian/plugins/scribidian` folder.
+
 To use another dedicated test vault:
 
 ```bash

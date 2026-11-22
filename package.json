@@ -15,6 +15,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "install-vault": "npm run build && node scripts/install-vault.mjs dev",
     "test-vault": "npm run build && node scripts/install-test-vault.mjs"
   },
   "keywords": [
