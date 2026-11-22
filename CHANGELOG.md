@@ -203,6 +203,10 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Two reloads of Scribidian at once (Hot Reload plus a manual reload) no
+  longer leave a hidden second copy loaded, which made every later reload
+  stop partway with missing commands and panels until Obsidian restarted.
+
 - Enter right before the `)` of a wryly (`(beat|)`) no longer splits it
   onto two lines; it goes on as from the end of the wryly.
 

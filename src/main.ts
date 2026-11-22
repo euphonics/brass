@@ -129,6 +129,8 @@ export function paletteOrdered(name: string, rank: number): string {
  * reloaded plugin is new code, so only a global symbol is shared).
  */
 const EXTENSIONS_TAG = Symbol.for("scribidian.editorExtensions");
+/** The loaded instance, on window, so a reloaded copy can find it (#220). */
+const LIVE_INSTANCE = Symbol.for("scribidian.liveInstance");
 
 export default class ScribidianPlugin extends Plugin {
   settings: ScribidianSettings = { ...DEFAULT_SETTINGS };
@@ -144,12 +146,19 @@ export default class ScribidianPlugin extends Plugin {
   threads!: ThreadNavigator;
   private refreshTimer: number | null = null;
   private readonly noteContext = new NoteContext<TFile, MarkdownView>();
+  /** Set up and not unloaded yet (see claimLiveInstance). */
+  private live = false;
 
   async onload(): Promise<void> {
     await this.loadSettings();
+    if (!this.claimLiveInstance()) return;
     this.applyScreenplayFont();
     this.registerFountainExtension();
     this.threads = new ThreadNavigator(this);
+    // Status items left by an earlier copy that was never unloaded (#220).
+    activeDocument
+      .querySelectorAll(".status-bar-item.scribidian-status")
+      .forEach((item) => item.remove());
     this.statusBarItem = this.addStatusBarItem();
     this.statusBarItem.addClass("scribidian-status");
     this.statusBarItem.hide();
@@ -178,8 +187,14 @@ export default class ScribidianPlugin extends Plugin {
     this.registerEditorSuggest(new ThreadSuggest(this.threads));
     this.app.workspace.onLayoutReady(() => this.followLinkOnThreads());
     registerFountainCodeBlockProcessor(this);
-    this.registerView(SCENES_VIEW_TYPE, (leaf) => new ScenesView(leaf, this));
-    this.registerView(THREADS_VIEW_TYPE, (leaf) => new ThreadsView(leaf, this));
+    this.registerOwnView(
+      SCENES_VIEW_TYPE,
+      (leaf) => new ScenesView(leaf, this),
+    );
+    this.registerOwnView(
+      THREADS_VIEW_TYPE,
+      (leaf) => new ThreadsView(leaf, this),
+    );
     this.addRibbonIcon("clapperboard", "Open scenes", () => {
       void this.openScenes();
     });
@@ -603,7 +618,36 @@ export default class ScribidianPlugin extends Plugin {
     this.app.workspace.onLayoutReady(() => this.scheduleRefresh());
   }
 
+  /**
+   * Two overlapping reloads (Hot Reload plus a manual one) can make
+   * Obsidian build two instances of the plugin: it checks for a loaded one,
+   * waits for the script, then keeps whichever it made last. The other
+   * stayed loaded but untracked, so its views were never unregistered and
+   * the next load stopped at "Attempting to register an existing view
+   * type" (#220). Only the instance Obsidian keeps registers anything, and
+   * it first unloads any earlier instance still loaded.
+   */
+  private claimLiveInstance(): boolean {
+    const plugins = (
+      this.app as unknown as { plugins?: { plugins?: Record<string, unknown> } }
+    ).plugins?.plugins;
+    if (plugins !== undefined && plugins[this.manifest.id] !== this) {
+      return false;
+    }
+    const holder = window as unknown as Record<symbol, unknown>;
+    const previous = holder[LIVE_INSTANCE];
+    if (previous instanceof Plugin && previous !== this) previous.unload();
+    holder[LIVE_INSTANCE] = this;
+    this.live = true;
+    return true;
+  }
+
   onunload(): void {
+    // An instance that never claimed (see claimLiveInstance) set nothing up.
+    if (!this.live) return;
+    this.live = false;
+    const holder = window as unknown as Record<symbol, unknown>;
+    if (holder[LIVE_INSTANCE] === this) delete holder[LIVE_INSTANCE];
     applyScreenplayFont(null);
     if (this.refreshTimer !== null) window.clearTimeout(this.refreshTimer);
     this.clearProjectViewClasses();
@@ -685,7 +729,41 @@ export default class ScribidianPlugin extends Plugin {
     this.registerEditorExtension(extensions);
   }
 
+  /**
+   * registerView, first clearing a registration of the same type left by an
+   * earlier copy of Scribidian that was never unloaded (#220). Otherwise
+   * registerView throws and the rest of onload never runs.
+   */
+  private registerOwnView(
+    type: string,
+    creator: Parameters<Plugin["registerView"]>[1],
+  ): void {
+    const registry = this.viewRegistry();
+    if (registry?.viewByType?.[type] !== undefined) {
+      registry.unregisterView?.(type);
+    }
+    this.registerView(type, creator);
+  }
+
+  private viewRegistry():
+    | {
+        viewByType?: Record<string, unknown>;
+        typeByExtension?: Record<string, string>;
+        unregisterView?: (type: string) => void;
+        unregisterExtensions?: (extensions: string[]) => void;
+      }
+    | undefined {
+    return (this.app as unknown as { viewRegistry?: never }).viewRegistry;
+  }
+
   private registerFountainExtension(): void {
+    // Already opened as notes: most likely left by an earlier copy of
+    // Scribidian that was never unloaded (#220). Take it over, so ours is
+    // the registration that goes when Scribidian unloads.
+    const registry = this.viewRegistry();
+    if (registry?.typeByExtension?.fountain === "markdown") {
+      registry.unregisterExtensions?.(["fountain"]);
+    }
     try {
       this.registerExtensions(["fountain"], "markdown");
     } catch {
