@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { Prec, RangeSetBuilder, type Extension } from "@codemirror/state";
+import {
+  Prec,
+  RangeSetBuilder,
+  type Extension,
+  type Range,
+} from "@codemirror/state";
 import {
   Decoration,
   ViewPlugin,
@@ -58,6 +63,38 @@ class MarkerWidget extends WidgetType {
 }
 
 const BONEYARD = /\/\*[\s\S]*?(?:\*\/|$)/gu;
+/** Text that starts or ends a boneyard. */
+const BONEYARD_MARK = /\/\*|\*\//u;
+/** Boneyard or code-fence markers: these change lines beyond the edit. */
+const COMPLEX_MARK = /\/\*|\*\/|```|~~~/u;
+
+/** Whether the text of the edited lines (before or after) matches `mark`. */
+function changeTouches(update: ViewUpdate, mark: RegExp): boolean {
+  let touches = false;
+  update.changes.iterChangedRanges((fromA, toA, fromB, toB) => {
+    const before = update.startState.doc;
+    const after = update.state.doc;
+    if (
+      mark.test(
+        before.sliceString(before.lineAt(fromA).from, before.lineAt(toA).to),
+      ) ||
+      mark.test(
+        after.sliceString(after.lineAt(fromB).from, after.lineAt(toB).to),
+      )
+    )
+      touches = true;
+  });
+  return touches;
+}
+
+/** An edit near the top may change the frontmatter (screenplay or not). */
+function changeNearTop(update: ViewUpdate): boolean {
+  let near = false;
+  update.changes.iterChangedRanges((_fromA, _toA, fromB) => {
+    if (update.state.doc.lineAt(fromB).number <= 60) near = true;
+  });
+  return near;
+}
 
 /**
  * Offsets of every "*" in a boneyard ("/* ... *\/", or to the end of the
@@ -102,9 +139,22 @@ export function createBoneyardMarkerExtension(
         constructor(view: EditorView) {
           this.decorations = build(view);
         }
+        /** The note has a boneyard ("/*"): stars must be found again. */
+        private hasBoneyard = true;
         update(update: ViewUpdate): void {
+          // Most notes have no boneyard and most edits don't start one:
+          // then there are no stars, and nothing to scan.
+          if (
+            update.docChanged &&
+            !this.hasBoneyard &&
+            !changeTouches(update, BONEYARD_MARK) &&
+            !changeNearTop(update)
+          ) {
+            return;
+          }
           if (update.docChanged || update.viewportChanged) {
             this.decorations = build(update.view);
+            this.hasBoneyard = update.state.doc.sliceString(0).includes("/*");
           }
         }
       },
@@ -164,8 +214,45 @@ export function createLineCommentExtension(
       constructor(view: EditorView) {
         this.decorations = build(view);
       }
+      /** The note has a boneyard or a code fence: always rescan in full. */
+      private complex = true;
       update(update: ViewUpdate): void {
-        if (update.docChanged) this.decorations = build(update.view);
+        if (!update.docChanged) return;
+        if (
+          this.complex ||
+          changeTouches(update, COMPLEX_MARK) ||
+          changeNearTop(update)
+        ) {
+          this.decorations = build(update.view);
+          this.complex = COMPLEX_MARK.test(update.state.doc.sliceString(0));
+          return;
+        }
+        // Rescan only the edited lines; the rest keep their decorations.
+        let decorations = this.decorations.map(update.changes);
+        const doc = update.state.doc;
+        update.changes.iterChangedRanges((_fromA, _toA, fromB, toB) => {
+          const from = doc.lineAt(fromB).from;
+          const to = doc.lineAt(toB).to;
+          const added: Range<Decoration>[] = [];
+          for (
+            let number = doc.lineAt(from).number;
+            number <= doc.lineAt(to).number;
+            number += 1
+          ) {
+            const line = doc.line(number);
+            const at = findLineComment(line.text, false).at;
+            if (at !== null && line.to > line.from + at)
+              added.push(faded.range(line.from + at, line.to));
+          }
+          decorations = decorations.update({
+            filterFrom: from,
+            filterTo: to,
+            filter: (rangeFrom, rangeTo) => rangeTo < from || rangeFrom > to,
+            add: added,
+            sort: true,
+          });
+        });
+        this.decorations = decorations;
       }
     },
     { decorations: (value) => value.decorations },

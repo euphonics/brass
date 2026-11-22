@@ -1061,27 +1061,53 @@ export default class ScribidianPlugin extends Plugin {
     if (this.cursorTimer !== null) window.clearTimeout(this.cursorTimer);
     this.cursorTimer = window.setTimeout(() => {
       this.cursorTimer = null;
-      const view = this.activeMarkdownView();
-      if (view !== null && view.file === this.lastStatus?.file) {
-        this.renderStatus(view);
-      }
+      const render = (): void => {
+        const view = this.activeMarkdownView();
+        if (view !== null && view.file === this.lastStatus?.file) {
+          this.renderStatus(view);
+        }
+      };
+      // Finding the page reads the script up to the cursor: do it when the
+      // browser is idle, so it doesn't delay a keystroke.
+      if (typeof window.requestIdleCallback === "function")
+        window.requestIdleCallback(render, { timeout: 1000 });
+      else render();
     }, 150);
   }
 
   /** The page the cursor is on, counted as in a clean Fountain export. */
   private currentPage(view: MarkdownView): number {
-    const source = view.editor.getValue();
-    const cursor = view.editor.posToOffset(view.editor.getCursor());
-    const lineEnd = source.indexOf("\n", cursor);
+    // Same text, same line: the same page (the status refreshing after a
+    // count, or the cursor moving within a line).
+    const doc = editorDoc(view);
+    const line = view.editor.getCursor().line;
+    const cached = this.currentPageCache;
+    if (cached !== null && cached.doc === doc && cached.line === line)
+      return cached.page;
+    // Only the text up to the end of the cursor's line is needed.
+    const upToLine = view.editor.getRange(
+      { line: 0, ch: 0 },
+      { line, ch: view.editor.getLine(line).length },
+    );
     const before = exportedFountainSource(
       this,
-      stripObsidianFrontmatter(
-        source.slice(0, lineEnd === -1 ? source.length : lineEnd),
-      ),
+      stripObsidianFrontmatter(upToLine),
       true,
     );
-    return estimateCurrentPage(before, before.length, this.settings.pageSize);
+    const page = estimateCurrentPage(
+      before,
+      before.length,
+      this.settings.pageSize,
+    );
+    this.currentPageCache = { doc, line, page };
+    return page;
   }
+
+  private currentPageCache: {
+    doc: unknown;
+    line: number;
+    page: number;
+  } | null = null;
 
   private renderStatus(view: MarkdownView): void {
     const last = this.lastStatus;
