@@ -48,7 +48,7 @@ const context = await esbuild.context({
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Includes unmodified Courier Prime regular and bold fonts:
+ * Includes unmodified Courier Prime regular, bold, italic and bold italic fonts:
 ${fontLicense
   .split("\n")
   .map((line) => ` * ${line}`)

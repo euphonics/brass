@@ -19,12 +19,16 @@ import fontkit from "@pdf-lib/fontkit";
 import type { PDFDocument } from "pdf-lib";
 import regularData from "../../assets/fonts/courier-prime/CourierPrime-Regular.ttf?bytes";
 import boldData from "../../assets/fonts/courier-prime/CourierPrime-Bold.ttf?bytes";
+import italicData from "../../assets/fonts/courier-prime/CourierPrime-Italic.ttf?bytes";
+import boldItalicData from "../../assets/fonts/courier-prime/CourierPrime-BoldItalic.ttf?bytes";
 
 export async function embedScreenplayFonts(pdf: PDFDocument) {
   pdf.registerFontkit(fontkit);
-  const [regular, bold] = await Promise.all([
+  const [regular, bold, italic, boldItalic] = await Promise.all([
     pdf.embedFont(regularData, { subset: true }),
     pdf.embedFont(boldData, { subset: true }),
+    pdf.embedFont(italicData, { subset: true }),
+    pdf.embedFont(boldItalicData, { subset: true }),
   ]);
-  return { regular, bold };
+  return { regular, bold, italic, boldItalic };
 }

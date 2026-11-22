@@ -21,6 +21,7 @@ import type {
   ScreenplayElementType,
 } from "../screenplay/model";
 import { wrapMeasuredText } from "./measuredWrapping";
+import { markEmphasis, visibleText } from "./emphasis";
 
 export interface ScreenplayPageDimensions {
   width: number;
@@ -146,7 +147,7 @@ export function wrapScreenplayText(
   const lines: string[] = [];
   let current = "";
   for (const word of words) {
-    if (word.length > maximumCharacters) {
+    if (visibleText(word).length > maximumCharacters) {
       if (current) {
         lines.push(current);
         current = "";
@@ -160,7 +161,7 @@ export function wrapScreenplayText(
     }
 
     const candidate = current ? `${current} ${word}` : word;
-    if (candidate.length <= maximumCharacters) current = candidate;
+    if (visibleText(candidate).length <= maximumCharacters) current = candidate;
     else {
       lines.push(current);
       current = word;
@@ -224,7 +225,7 @@ export function layoutScreenplay(
       return wrapMeasuredText(
         text,
         dimensions.width - style.left - style.right,
-        (line) => measure(line, type),
+        (line) => measure(visibleText(line), type),
       );
     const lines = wrapScreenplayText(text, style.maximumCharacters);
     // A wryly's wrapped lines start one space in, under the text after
@@ -259,12 +260,12 @@ export function layoutScreenplay(
     const metadata = document.titlePage;
     page.titlePage = true;
     const titleLines = (value: string, type: ScreenplayElementType): string[] =>
-      value
+      markEmphasis(value)
         .split("\n")
         .flatMap((line) =>
           measure
             ? wrapMeasuredText(line, TEXT_RIGHT - TEXT_LEFT, (text) =>
-                measure(text, type),
+                measure(visibleText(text), type),
               )
             : wrapScreenplayText(
                 line,
@@ -346,7 +347,7 @@ export function layoutScreenplay(
         end++;
       const speech = document.elements.slice(index + 1, end);
       if (speech.some((part) => part.type === "dialogue")) {
-        const cue = screenplayElementText(element);
+        const cue = markEmphasis(screenplayElementText(element));
         const firstCue = wrap(cue, "character");
         // A speech split across pages repeats its cue as written: Scribidian
         // never adds a continuation marker to it.
@@ -355,7 +356,10 @@ export function layoutScreenplay(
         const units: { type: ScreenplayElementType; lines: string[] }[][] = [];
         let pending: { type: ScreenplayElementType; lines: string[] }[] = [];
         for (const part of speech) {
-          const lines = wrap(screenplayElementText(part), part.type);
+          const lines = wrap(
+            markEmphasis(screenplayElementText(part)),
+            part.type,
+          );
           if (part.type === "parenthetical")
             pending.push({ type: part.type, lines });
           else
@@ -431,7 +435,7 @@ export function layoutScreenplay(
       }
     }
     const style = styleFor(element.type, dimensions.width);
-    const text = screenplayElementText(element);
+    const text = markEmphasis(screenplayElementText(element));
     // Action keeps the spaces it starts with ("    Scott --"), on every
     // wrapped line, as Fountain says. Tabs aren't indentation here.
     const indent =
@@ -444,7 +448,7 @@ export function layoutScreenplay(
         ? wrapMeasuredText(
             text.trimStart(),
             dimensions.width - style.left - style.right - pad.length * 7.2,
-            (line) => measure(line, element.type),
+            (line) => measure(visibleText(line), element.type),
           )
         : wrapScreenplayText(text, style.maximumCharacters - pad.length)
     ).map((line) => pad + line);

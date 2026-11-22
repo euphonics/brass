@@ -15,6 +15,10 @@ project follows
   title page placed like Fade In's. PDF metadata takes the title and author
   from the title page.
 
+- PDF and preview print emphasis: `*italic*`, `**bold**`, `***bold
+italic***` and `_underline_`, without the marks. Courier Prime italic and
+  bold italic are now built in (main.js about 2.2 MB).
+
 ### Fixed
 
 - A scene heading could be left alone at the bottom of a PDF page.

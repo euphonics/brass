@@ -27,6 +27,7 @@ import {
   scriptPageNumber,
 } from "../export/screenplayLayout";
 import { boldPartOf, normalizePdfBold } from "../export/pdfStyle";
+import { emphasisRuns } from "../export/emphasis";
 import type { PdfBoldOptions } from "../export/pdfStyle";
 
 export class ScreenplayPreviewModal extends Modal {
@@ -92,8 +93,17 @@ export class ScreenplayPreviewModal extends Modal {
       for (const block of layoutPage.blocks) {
         const element = page.createDiv({
           cls: `scribidian-preview-block scribidian-preview-${block.type}`,
-          text: block.lines.join("\n"),
         });
+        // Emphasis (*italic*, **bold**, _underline_) as the PDF prints it.
+        for (const [lineIndex, runs] of emphasisRuns(block.lines).entries()) {
+          if (lineIndex > 0) element.appendText("\n");
+          for (const run of runs) {
+            const span = element.createSpan({ text: run.text });
+            if (run.bold) span.style.fontWeight = "700";
+            if (run.italic) span.style.fontStyle = "italic";
+            if (run.underline) span.style.textDecoration = "underline";
+          }
+        }
         element.style.left = `${(block.left / layout.dimensions.width) * 100}%`;
         element.style.top = `${(block.top / layout.dimensions.height) * 100}%`;
         element.style.width = `${(block.width / layout.dimensions.width) * 100}%`;

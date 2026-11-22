@@ -16,8 +16,11 @@
  */
 
 import { PDFDocument, rgb } from "pdf-lib";
+import type { PDFFont } from "pdf-lib";
+import { emphasisRuns } from "./emphasis";
 import type { PageSize, ScreenplayDocument } from "../screenplay/model";
 import { layoutScreenplay, scriptPageNumber } from "./screenplayLayout";
+import type { ScreenplayLayoutBlock } from "./screenplayLayout";
 import { embedScreenplayFonts } from "./pdfFonts";
 import { boldPartOf, normalizePdfBold } from "./pdfStyle";
 import type { PdfBoldOptions } from "./pdfStyle";
@@ -69,26 +72,47 @@ export async function serializePdf(
   if (author) pdf.setAuthor(author);
   pdf.setCreator("Scribidian");
   pdf.setProducer("Scribidian");
-  const { regular, bold } = await embedScreenplayFonts(pdf);
-  const regularCharacters = new Set(regular.getCharacterSet());
-  const boldCharacters = new Set(bold.getCharacterSet());
+  const fonts = await embedScreenplayFonts(pdf);
+  const { regular, bold } = fonts;
+  const characterSets = new Map(
+    Object.values(fonts).map((font) => [font, new Set(font.getCharacterSet())]),
+  );
+  const fontFor = (style: { bold: boolean; italic: boolean }): PDFFont =>
+    style.bold
+      ? style.italic
+        ? fonts.boldItalic
+        : bold
+      : style.italic
+        ? fonts.italic
+        : regular;
   const layout = layoutScreenplay(document, options.pageSize);
   const boldParts = normalizePdfBold(options.bold);
+  // Each block's lines as styled runs: emphasis marks, and the bold
+  // setting for the block's part.
+  const styledLines = (block: ScreenplayLayoutBlock) => {
+    const blockBold = boldParts[boldPartOf(block)];
+    return emphasisRuns(block.lines).map((runs) =>
+      runs.map((run) => {
+        const style = { ...run, bold: run.bold || blockBold };
+        return { ...style, font: fontFor(style) };
+      }),
+    );
+  };
 
   // Validate precisely the text and fonts used below, before drawing or saving.
   const unsupported = new Set<string>();
   let truncated = false;
   for (const layoutPage of layout.pages) {
     for (const block of layoutPage.blocks) {
-      const characters = boldParts[boldPartOf(block)]
-        ? boldCharacters
-        : regularCharacters;
-      for (const line of block.lines) {
-        for (const character of line) {
-          if (!characters.has(character.codePointAt(0) ?? -1)) {
-            if (unsupported.has(character)) continue;
-            if (unsupported.size < 8) unsupported.add(character);
-            else truncated = true;
+      for (const runs of styledLines(block)) {
+        for (const run of runs) {
+          const characters = characterSets.get(run.font);
+          for (const character of run.text) {
+            if (!characters?.has(character.codePointAt(0) ?? -1)) {
+              if (unsupported.has(character)) continue;
+              if (unsupported.size < 8) unsupported.add(character);
+              else truncated = true;
+            }
           }
         }
       }
@@ -104,11 +128,12 @@ export async function serializePdf(
       layout.dimensions.height,
     ]);
     for (const block of layoutPage.blocks) {
-      const font = boldParts[boldPartOf(block)] ? bold : regular;
-      for (const [lineIndex, rawLine] of block.lines.entries()) {
-        const text = rawLine;
-        const textWidth = font.widthOfTextAtSize(text, layout.fontSize);
-        const x =
+      for (const [lineIndex, runs] of styledLines(block).entries()) {
+        const widths = runs.map((run) =>
+          run.font.widthOfTextAtSize(run.text, layout.fontSize),
+        );
+        const textWidth = widths.reduce((sum, width) => sum + width, 0);
+        let x =
           block.align === "center"
             ? block.left + Math.max(0, (block.width - textWidth) / 2)
             : block.align === "right"
@@ -119,13 +144,25 @@ export async function serializePdf(
           block.top -
           layout.fontSize -
           lineIndex * layout.lineHeight;
-        page.drawText(text, {
-          x,
-          y,
-          size: layout.fontSize,
-          font,
-          color: rgb(0, 0, 0),
-        });
+        for (const [runIndex, run] of runs.entries()) {
+          const width = widths[runIndex] ?? 0;
+          page.drawText(run.text, {
+            x,
+            y,
+            size: layout.fontSize,
+            font: run.font,
+            color: rgb(0, 0, 0),
+          });
+          if (run.underline) {
+            page.drawLine({
+              start: { x, y: y - 1.5 },
+              end: { x: x + width, y: y - 1.5 },
+              thickness: 0.6,
+              color: rgb(0, 0, 0),
+            });
+          }
+          x += width;
+        }
       }
     }
 

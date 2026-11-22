@@ -25,6 +25,9 @@ left out; links keep their words. Changing those settings changes the PDF too.
   wrylies, transitions, centered text, lyrics, the title, the title page
   details and page numbers). Only sluglines are bold by default. The preview
   follows the same settings.
+- Emphasis as Fountain writes it: `*italic*`, `**bold**`, `***bold
+italic***` and `_underline_`, without the marks. A mark with no partner
+  (`5 * 3`), or one escaped with a backslash (`\*`), prints as written.
 - A title page when the screenplay (or project) has title properties; see
   [Title pages](../README.md#title-pages).
 - A project's parts in the order of the project note's `parts` list.
@@ -41,8 +44,6 @@ The PDF is for reading and review. It isn't locked production pagination and
 may not match Final Draft page for page. These aren't handled yet:
 
 - Dual dialogue side by side (each speech prints in turn).
-- Bold, italic and underline: `*walks*`, `**fast**` and `_under_` print with
-  their marks.
 - Scene numbers, revision colors and locked pages.
 
 For a production PDF, export Fountain or Final Draft and make the PDF in
@@ -51,7 +52,7 @@ Final Draft, Fade In or another screenplay app.
 ## The font
 
 PDFs use Courier Prime, the typeface made for screenplays, built into the
-plugin (regular and bold). PDFs embed only the letters they use. Courier
+plugin (regular, bold, italic and bold italic). PDFs embed only the letters they use. Courier
 Prime covers languages written in the Latin alphabet, accents included. It
 has no Greek, Cyrillic, Chinese, Japanese, Korean or emoji.
 

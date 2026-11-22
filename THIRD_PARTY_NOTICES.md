@@ -2,7 +2,7 @@
 
 ## Courier Prime
 
-Scribidian bundles the unmodified regular and bold fonts of Courier Prime,
+Scribidian bundles the unmodified regular, bold, italic and bold italic fonts of Courier Prime,
 Copyright (c) 2013, Quote-Unquote Apps (http://quoteunquoteapps.com), with
 Reserved Font Name Courier Prime. PDF exports use them. The fonts are under
 the SIL Open Font License 1.1, not Apache-2.0. The full license is in
