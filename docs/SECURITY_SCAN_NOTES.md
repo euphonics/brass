@@ -2,9 +2,11 @@
 
 ## Runtime base64
 
-Scribidian has no PDF export, so it bundles no fonts or PDF libraries. It
-never calls browser `atob()` or `btoa()`. The production build rejects these
-calls and release assets at or above 5,000,000 bytes.
+PDF export bundles the Courier Prime font. The build stores its bytes as
+base64 text, decoded by a few lines of plain JavaScript on first use
+(`scripts/font-bytes.mjs`): no data URL, and no browser `atob()` or `btoa()`.
+The production build rejects those calls and release assets at or above
+5,000,000 bytes.
 
 ## Unavailable malware or obfuscation scans
 

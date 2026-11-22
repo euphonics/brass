@@ -55,7 +55,7 @@ recover from Obsidian's file history.
   already exists, adds the properties Scribidian needs (`scribidian`,
   `character`, `aliases`, `screenplays`, `related`). The page's text is not
   changed.
-- **Exports** (Fountain, Final Draft) always create a new file. Your
+- **Exports** (Fountain, Final Draft, PDF) always create a new file. Your
   screenplay is never changed.
 
 ### The scene recovery file
@@ -76,8 +76,9 @@ Installing it means trusting the code in this repository and the GitHub account
 that publishes it. The source is open; review it, or build it yourself with
 `npm ci && npm run build`, if you want to check what you install.
 
-The installed plugin includes one library, `linebreak`, which wraps lines in
-the page preview. Its version is pinned. Build
+The installed plugin includes `linebreak`, which wraps lines in the page
+preview, and `pdf-lib` with `@pdf-lib/fontkit` (and their small helpers) for
+PDF export, plus the Courier Prime font. Their versions are pinned. Build
 and test tools run only on the developer's computer and are not part of the
 installed plugin.
 

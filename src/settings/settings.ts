@@ -1223,7 +1223,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Page size",
-        desc: "US Letter or A4. Used for page counts and the preview.",
+        desc: "US Letter or A4. Used for page counts, the preview and PDFs.",
         control: {
           type: "dropdown",
           key: "pageSize",
@@ -1259,7 +1259,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Screenplay font",
-        desc: "The font for scripts in the editor. The page preview always uses Courier, like a printed script.",
+        desc: "The font for scripts in the editor. PDFs always use Courier Prime, like a printed script; the page preview uses it too when it is installed on this device, otherwise Courier.",
         control: {
           type: "dropdown",
           key: "screenplayFont",

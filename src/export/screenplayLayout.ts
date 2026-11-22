@@ -341,10 +341,9 @@ export function layoutScreenplay(
       if (speech.some((part) => part.type === "dialogue")) {
         const cue = screenplayElementText(element);
         const firstCue = wrap(cue, "character");
-        const continued = wrap(
-          /\(CONT['’]D\)/iu.test(cue) ? cue : `${cue} (CONT'D)`,
-          "character",
-        );
+        // A speech split across pages repeats its cue as written: Scribidian
+        // never adds a continuation marker to it.
+        const continued = firstCue;
         // Each parenthetical is atomic and tied to the first following dialogue line.
         const units: { type: ScreenplayElementType; lines: string[] }[][] = [];
         let pending: { type: ScreenplayElementType; lines: string[] }[] = [];

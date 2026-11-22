@@ -1,11 +1,33 @@
 # Third-party notices
 
+## Courier Prime
+
+Scribidian bundles the unmodified regular and bold fonts of Courier Prime,
+Copyright (c) 2013, Quote-Unquote Apps (http://quoteunquoteapps.com), with
+Reserved Font Name Courier Prime. PDF exports use them. The fonts are under
+the SIL Open Font License 1.1, not Apache-2.0. The full license is in
+`assets/fonts/courier-prime/LICENSE` and reproduced in the distributed
+`main.js` banner; checksums are in that folder's README.
+
+## PDF export
+
+Scribidian includes [pdf-lib](https://github.com/Hopding/pdf-lib), Copyright
+(c) 2019 Andrew Dillon; `@pdf-lib/standard-fonts`, Copyright (c) 2018 Andrew
+Dillon; [@pdf-lib/fontkit](https://github.com/Hopding/fontkit), Copyright (c)
+2014 Devon Govett; `@pdf-lib/upng`, Copyright (c) 2017 Photopea; and `pako`,
+Copyright (C) 2014-2017 by Vitaly Puzrin and Andrei Tuputcyn. All are under the
+MIT License, whose terms are reproduced below. `pako` also includes zlib code
+under the zlib License, Copyright (C) 1995-2013 Jean-loup Gailly and Mark
+Adler. It also includes `tslib`, Copyright (c) Microsoft Corporation, under the
+0BSD License (permission to use, copy, modify and distribute for any purpose,
+with or without fee, provided as is).
+
 ## Unicode line breaking
 
 Scribidian includes `linebreak`, Copyright (c) 2014-present Devon Govett;
 `unicode-trie`, Copyright 2018; `tiny-inflate`, Copyright (c) 2015-present Devon
 Govett; and `base64-js`, Copyright (c) 2014. They are used for line wrapping in
-the screenplay preview. All are under the MIT License:
+the screenplay preview and PDF export. All are under the MIT License:
 
 > Permission is hereby granted, free of charge, to any person obtaining a copy
 > of this software and associated documentation files (the "Software"), to deal

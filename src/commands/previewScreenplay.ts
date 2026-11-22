@@ -18,9 +18,9 @@
 import type { MarkdownView } from "obsidian";
 import type ScribidianPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
-import { withoutActionIndent } from "../screenplay/parser";
 import { ScreenplayPreviewModal } from "../ui/screenplayPreviewModal";
-import { exportFountain } from "./exportFountain";
+import { printedScreenplay } from "./exportFountain";
+import { exportPdf } from "./exportPdf";
 
 export async function previewScreenplay(
   plugin: ScribidianPlugin,
@@ -37,11 +37,9 @@ export async function previewScreenplay(
   const title = context.project?.project.title ?? context.owner.basename;
   new ScreenplayPreviewModal(
     plugin.app,
-    plugin.settings.indentActionWithSpaces
-      ? context.document
-      : withoutActionIndent(context.document),
+    printedScreenplay(plugin, context.source, context.document.titlePage),
     plugin.settings.pageSize,
     title,
-    () => exportFountain(plugin, view),
+    () => exportPdf(plugin, view),
   ).open();
 }

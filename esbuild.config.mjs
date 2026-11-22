@@ -18,6 +18,12 @@ import esbuild from "esbuild";
 import process from "node:process";
 import { builtinModules } from "node:module";
 import { readFileSync } from "node:fs";
+import { fontBytesEsbuildPlugin } from "./scripts/font-bytes.mjs";
+
+const fontLicense = readFileSync(
+  new URL("./assets/fonts/courier-prime/LICENSE", import.meta.url),
+  "utf8",
+);
 
 const thirdPartyNotices = readFileSync(
   new URL("./THIRD_PARTY_NOTICES.md", import.meta.url),
@@ -42,6 +48,11 @@ const context = await esbuild.context({
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ * Includes unmodified Courier Prime regular and bold fonts:
+${fontLicense
+  .split("\n")
+  .map((line) => ` * ${line}`)
+  .join("\n")}
 ${thirdPartyNotices
   .split("\n")
   .map((line) => ` * ${line}`)
@@ -50,6 +61,7 @@ ${thirdPartyNotices
   },
   entryPoints: ["src/main.ts"],
   bundle: true,
+  plugins: [fontBytesEsbuildPlugin()],
   external: [
     "obsidian",
     "electron",

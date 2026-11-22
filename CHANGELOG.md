@@ -11,6 +11,13 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- PDF export is back: **Screenplay: Export PDF**, or **Export PDF** in the
+  preview. It uses Courier Prime, built into the plugin, and prints what
+  clean Fountain export holds, so notes, tasks, callouts and other Obsidian
+  markup stay out (the preview now shows the same). Latin-alphabet languages
+  only. A speech split across pages repeats its cue as written. The plugin
+  grows to about 1.9 MB.
+
 - Settings **Variable character** and **Character name character** change
   the `$` and `+` that start variables and character names in action.
 - A `characters` property in a screenplay note's frontmatter adds

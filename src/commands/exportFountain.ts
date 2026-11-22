@@ -26,6 +26,8 @@ import {
   normalizeCleanExportOptions,
 } from "../export/fountain";
 import { loadScreenplayContext } from "../projects/vault";
+import { parseFountain, withoutActionIndent } from "../screenplay/parser";
+import type { ScreenplayDocument } from "../screenplay/model";
 
 /**
  * The Fountain text an export writes for `source`: cleaned of the
@@ -51,6 +53,25 @@ export function exportedFountainSource(
   return plugin.settings.markCapitalsAsAction
     ? markCapitalsAsAction(withoutThreads)
     : withoutThreads;
+}
+
+/**
+ * The screenplay as printed: the clean Fountain export parsed, with the
+ * title page kept. The preview and PDF export both use it, so neither
+ * shows notes, tasks, callouts or other Obsidian-only markup.
+ */
+export function printedScreenplay(
+  plugin: ScribidianPlugin,
+  source: string,
+  titlePage: ScreenplayDocument["titlePage"],
+): ScreenplayDocument {
+  const document = {
+    ...parseFountain(exportedFountainSource(plugin, source, true)),
+    titlePage,
+  };
+  return plugin.settings.indentActionWithSpaces
+    ? document
+    : withoutActionIndent(document);
 }
 
 export async function exportFountain(

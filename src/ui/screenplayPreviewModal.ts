@@ -32,7 +32,7 @@ export class ScreenplayPreviewModal extends Modal {
     private readonly screenplay: ScreenplayDocument,
     private readonly pageSize: PageSize,
     private readonly screenplayTitle: string,
-    private readonly exportFountain: () => Promise<void>,
+    private readonly exportPdf: () => Promise<void>,
   ) {
     super(app);
   }
@@ -55,10 +55,8 @@ export class ScreenplayPreviewModal extends Modal {
         ? "Read-only preview. CJK line breaks and page count are approximate."
         : "Read-only preview. Your Fountain source remains unchanged.",
     });
-    const exportButton = toolbar.createEl("button", {
-      text: "Export Fountain",
-    });
-    exportButton.addEventListener("click", () => void this.exportFountain());
+    const exportButton = toolbar.createEl("button", { text: "Export PDF" });
+    exportButton.addEventListener("click", () => void this.exportPdf());
 
     let layout;
     try {
