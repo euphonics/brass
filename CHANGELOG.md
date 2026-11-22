@@ -11,6 +11,9 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Typing `+` in an action line lists the characters; the pick is written
+  as a name in action (`Jen`, `McAllister`), in capitals only if you typed
+  capitals.
 - Typing `$` lists the note's other `$` variables, most used first.
 - `$` variables keep apostrophes inside the name (`$jen's_car`), so the
   color no longer stops at the `'`.

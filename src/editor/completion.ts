@@ -34,6 +34,7 @@ import { forceElementPlan, type ForcedElement } from "./forceElement";
 import { menuLineKind } from "./layoutClassifier";
 import { docLineKinds, docLines } from "./docLines";
 import { variableAtEnd, variableSuggestions } from "./variables";
+import { mentionAtEnd, mentionText } from "./characterMentions";
 import { getEnterInsidePlan, getTabInsidePlan } from "./tabInside";
 import { CHARACTER_EXTENSIONS } from "../screenplay/fountain";
 import {
@@ -63,7 +64,7 @@ import { EditorView, keymap, tooltips } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
 import type ScribidianPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
-import { buildScreenplayIndex } from "../screenplay/indexer";
+import { buildScreenplayIndex, rankUsages } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
 import { ScreenplayIndexCache, textOutsideLine } from "./indexCache";
 import {
@@ -443,6 +444,43 @@ export function createScreenplayCompletionExtension(
       context.state.doc.lineAt(lineKind.from).from === line.from;
     if (onSetLine && lineKind.kind === "centered") return null;
     const actionLine = onSetLine && lineKind.kind === "action";
+    // "+" in an action line: the characters, written as names in action.
+    const mention = mentionAtEnd(line.text.slice(0, context.pos - line.from));
+    if (
+      mention !== null &&
+      (actionLine ||
+        docLineKinds(context.state.doc, line.number - 1)[line.number - 1] ===
+          "action")
+    ) {
+      const from = context.pos - mention.typed.length - 1;
+      const names = rankUsages(
+        index.characters,
+        mention.typed,
+        plugin.settings.recentItemsWeighting,
+        plugin.settings.maximumSuggestions,
+      );
+      if (names.length === 0) return null;
+      return {
+        from,
+        to: context.pos,
+        filter: false,
+        options: names.map((usage) => {
+          const text = mentionText(usage.value, mention.typed, editorSource);
+          return {
+            label: text,
+            detail: "Character",
+            apply: (view, completion, applyFrom, applyTo) => {
+              view.dispatch({
+                changes: { from: applyFrom, to: applyTo, insert: text },
+                selection: { anchor: applyFrom + text.length },
+                annotations: pickedCompletion.of(completion),
+                userEvent: "input",
+              });
+            },
+          };
+        }),
+      };
+    }
     const forced =
       context.state.field(forcedListField, false) ??
       (onSetLine && lineKind.kind === "scene-heading"

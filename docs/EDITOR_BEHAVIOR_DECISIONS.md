@@ -83,6 +83,17 @@ flowchart TD
 - Two `$` on one line can look like Obsidian inline math (`$a and '$b`):
   Obsidian then renders the text between them as math.
 
+## + character names in action (Scribidian addition)
+
+- Typing `+` in an action line lists the characters, narrowed as you type
+  (`+je`, `+mary a`). Picking one replaces the `+` and the typed letters
+  with the name. Not after a letter, digit or `+` (`C++`, `1+1`), and not
+  in dialogue, cues or other marked lines. Escape keeps what you typed.
+- The name is written in mixed case: as the note already spells it in
+  action (`McAllister`), or else each word capitalized (`Mary Ann`).
+  Typed capitals (`+JE`) give capitals (`JEN`).
+- Needs Suggestions on.
+
 ## Line comments (Scribidian addition)
 
 - `// note` at the start of a line or after a space, to the end of the
