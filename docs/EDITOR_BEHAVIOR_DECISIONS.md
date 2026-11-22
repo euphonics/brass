@@ -80,6 +80,8 @@ flowchart TD
   you type (Suggestions on). Not after a letter or digit (`US$`), and not
   for dollar amounts.
 - On or off per mode: **Highlight $ variables** in Typing in each mode.
+- The `$` can be changed: **Variable character** in Suggestions (one
+  symbol Fountain and Markdown don't already use, such as `%` or `&`).
 - Two `$` on one line can look like Obsidian inline math (`$a and '$b`):
   Obsidian then renders the text between them as math.
 
@@ -93,6 +95,8 @@ flowchart TD
   action (`McAllister`), or else each word capitalized (`Mary Ann`).
   Typed capitals (`+JE`) give capitals (`JEN`).
 - Needs Suggestions on.
+- The `+` can be changed: **Character name character** in Suggestions
+  (one symbol, different from the variable character).
 
 ## Characters listed in frontmatter (Scribidian addition)
 

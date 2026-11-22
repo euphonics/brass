@@ -346,14 +346,16 @@ export function createScreenplayCompletionExtension(
   ): CompletionResult | null => {
     const { state, pos } = context;
     const line = state.doc.lineAt(pos);
-    const typing = variableAtEnd(line.text.slice(0, pos - line.from));
+    const prefix = plugin.settings.variablePrefix;
+    const typing = variableAtEnd(line.text.slice(0, pos - line.from), prefix);
     if (typing === null) return null;
-    const from = pos - typing.typed.length - 1;
+    const from = pos - typing.typed.length - prefix.length;
     const names = variableSuggestions(
       state.doc.toString(),
       typing.typed,
       from,
       plugin.settings.maximumSuggestions,
+      prefix,
     );
     if (names.length === 0) return null;
     return {
@@ -449,14 +451,18 @@ export function createScreenplayCompletionExtension(
     if (onSetLine && lineKind.kind === "centered") return null;
     const actionLine = onSetLine && lineKind.kind === "action";
     // "+" in an action line: the characters, written as names in action.
-    const mention = mentionAtEnd(line.text.slice(0, context.pos - line.from));
+    const mentionPrefix = plugin.settings.characterMentionPrefix;
+    const mention = mentionAtEnd(
+      line.text.slice(0, context.pos - line.from),
+      mentionPrefix,
+    );
     if (
       mention !== null &&
       (actionLine ||
         docLineKinds(context.state.doc, line.number - 1)[line.number - 1] ===
           "action")
     ) {
-      const from = context.pos - mention.typed.length - 1;
+      const from = context.pos - mention.typed.length - mentionPrefix.length;
       const names = rankUsages(
         index.characters,
         mention.typed,

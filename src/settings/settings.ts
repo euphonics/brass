@@ -21,7 +21,8 @@ import {
   installedFonts,
   screenplayFontOptions,
 } from "../editor/screenplayFont";
-import { PluginSettingTab } from "obsidian";
+import { Notice, PluginSettingTab } from "obsidian";
+import { triggerProblem } from "../editor/triggers";
 import type {
   App,
   Setting,
@@ -122,6 +123,10 @@ export interface ScribidianSettings {
   sceneTypeMatchCase: boolean;
   characterMatchCase: boolean;
   namesInAction: boolean;
+  /** Typed before a variable's name: "$" by default. */
+  variablePrefix: string;
+  /** Typed in action to list the characters: "+" by default. */
+  characterMentionPrefix: string;
   recentItemsWeighting: number;
   maximumSuggestions: number;
   preferredSceneTypes: string[];
@@ -273,6 +278,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   sceneTypeMatchCase: false,
   characterMatchCase: true,
   namesInAction: false,
+  variablePrefix: "$",
+  characterMentionPrefix: "+",
   recentItemsWeighting: 0.65,
   maximumSuggestions: 8,
   preferredSceneTypes: DEFAULT_SCENE_TYPES,
@@ -371,6 +378,23 @@ export function migrateSettings(
     typeof rest.capitalizeLineStartsScript !== "boolean"
   ) {
     settings.capitalizeLineStartsScript = capitalizeLineStarts;
+  }
+  // Trigger characters: back to the defaults if unusable or the same.
+  if (
+    typeof settings.variablePrefix !== "string" ||
+    triggerProblem(settings.variablePrefix, "") !== null
+  ) {
+    settings.variablePrefix = DEFAULT_SETTINGS.variablePrefix;
+  }
+  if (
+    typeof settings.characterMentionPrefix !== "string" ||
+    triggerProblem(settings.characterMentionPrefix, settings.variablePrefix) !==
+      null
+  ) {
+    settings.characterMentionPrefix =
+      settings.variablePrefix === DEFAULT_SETTINGS.characterMentionPrefix
+        ? DEFAULT_SETTINGS.variablePrefix
+        : DEFAULT_SETTINGS.characterMentionPrefix;
   }
   return settings;
 }
@@ -515,6 +539,8 @@ const SETTING_GROUPS: {
       "sceneTypeMatchCase",
       "characterMatchCase",
       "namesInAction",
+      "variablePrefix",
+      "characterMentionPrefix",
     ],
   },
   {
@@ -1239,6 +1265,26 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Variable character",
+        desc: "Typed before a variable's name ($ in $killer_name): the name is colored, and typing the character lists the note's other variables. One symbol, not one Fountain or Markdown already uses (such as @ ! # . > ~ = * _). Variables written with the old character stop being colored.",
+        control: {
+          type: "text",
+          key: "variablePrefix",
+          placeholder: "$",
+          defaultValue: DEFAULT_SETTINGS.variablePrefix,
+        },
+      },
+      {
+        name: "Character name character",
+        desc: 'Typed in an action line to list the characters (+ in "She sees +je"); the pick is written as a name in action, such as Jen. One symbol, different from the variable character.',
+        control: {
+          type: "text",
+          key: "characterMentionPrefix",
+          placeholder: "+",
+          defaultValue: DEFAULT_SETTINGS.characterMentionPrefix,
+        },
+      },
+      {
         name: "Maximum suggestions",
         desc: "The most suggestions shown at once.",
         control: {
@@ -1492,6 +1538,20 @@ export class ScribidianSettingTab extends PluginSettingTab {
       if (typeof value !== "string") return;
       this.plugin.settings[key] = value.trim();
       this.plugin.applyScreenplayFont();
+    } else if (key === "variablePrefix" || key === "characterMentionPrefix") {
+      if (typeof value !== "string") return;
+      const trimmed = value.trim();
+      const other =
+        key === "variablePrefix"
+          ? this.plugin.settings.characterMentionPrefix
+          : this.plugin.settings.variablePrefix;
+      const problem = triggerProblem(trimmed, other);
+      if (problem !== null) {
+        // Not while the box is being cleared to type a new one.
+        if (trimmed !== "") new Notice(`Scribidian: ${problem}`);
+        return;
+      }
+      this.plugin.settings[key] = trimmed;
     } else if (key === "characterTemplate") {
       if (typeof value !== "string") return;
       this.plugin.settings.characterTemplate = value.trim();
@@ -1517,7 +1577,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
       key === "editorLayout" ||
       key === "bottomTypingMargin" ||
       key === "highlightVariablesScript" ||
-      key === "highlightVariablesPlain"
+      key === "highlightVariablesPlain" ||
+      key === "variablePrefix"
     ) {
       this.app.workspace.updateOptions();
     }

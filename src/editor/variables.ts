@@ -25,6 +25,7 @@ import {
 } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
 import type ScribidianPlugin from "../main";
+import { escapeForRegExp } from "./triggers";
 
 /*
  * "$" variables ("$my_variable", "$ABC123"), a Scribidian addition: shown
@@ -32,38 +33,57 @@ import type ScribidianPlugin from "../main";
  * ("$123", "$123.12", "$1,123.12") aren't variables and stay as they are.
  */
 
-const VARIABLE = /\$[\p{L}\p{N}_.,'’-]+/gu;
+/** The characters a name can hold (a trailing ".", ",", "-" or quote aside). */
+const NAME_CHARACTERS = "[\\p{L}\\p{N}_.,'’-]";
 /** Punctuation that ends a name rather than being part of it. */
 const TRAILING = /[.,'’-]+$/u;
 
+const variablePatterns = new Map<string, RegExp>();
+function variablePattern(prefix: string): RegExp {
+  let pattern = variablePatterns.get(prefix);
+  if (pattern === undefined) {
+    pattern = new RegExp(`${escapeForRegExp(prefix)}${NAME_CHARACTERS}+`, "gu");
+    variablePatterns.set(prefix, pattern);
+  }
+  return pattern;
+}
+
 /**
- * Ranges of "$" variables in `text`, starting at `offset`: "$" and the
- * letters, digits, underscores, hyphens and apostrophes after it
- * ("$dead-teacher-name", "$jen's_car"). A trailing ".", ",", "-" or quote
- * is punctuation, not part of the name; a name of only digits, ".", ","
- * and "-" is a dollar amount and is skipped.
+ * Ranges of variables in `text`, starting at `offset`: `prefix` ("$" by
+ * default, a setting) and the letters, digits, underscores, hyphens and
+ * apostrophes after it ("$dead-teacher-name", "$jen's_car"). A trailing
+ * ".", ",", "-" or quote is punctuation, not part of the name; a name of
+ * only digits, ".", "," and "-" is a dollar amount and is skipped.
  */
 export function variableRanges(
   text: string,
   offset = 0,
+  prefix = "$",
 ): { from: number; to: number }[] {
   const ranges: { from: number; to: number }[] = [];
-  for (const match of text.matchAll(VARIABLE)) {
-    const name = match[0].slice(1).replace(TRAILING, "");
+  for (const match of text.matchAll(variablePattern(prefix))) {
+    const name = match[0].slice(prefix.length).replace(TRAILING, "");
     if (name === "" || /^[\d.,-]+$/u.test(name)) continue;
     const from = offset + (match.index ?? 0);
-    ranges.push({ from, to: from + 1 + name.length });
+    ranges.push({ from, to: from + prefix.length + name.length });
   }
   return ranges;
 }
 
 /**
- * The "$" variable being typed right before the cursor ("$je" in "Hi
- * $je"), or null: the name typed so far, maybe empty (right after "$").
- * Not right after a letter or digit ("US$5").
+ * The variable being typed right before the cursor ("$je" in "Hi $je"),
+ * or null: the name typed so far, maybe empty (right after the prefix).
+ * Not right after a letter, digit or another prefix ("US$5").
  */
-export function variableAtEnd(before: string): { typed: string } | null {
-  const match = /(?:^|[^\p{L}\p{N}_$])\$([\p{L}\p{N}_.,'’-]*)$/u.exec(before);
+export function variableAtEnd(
+  before: string,
+  prefix = "$",
+): { typed: string } | null {
+  const escaped = escapeForRegExp(prefix);
+  const match = new RegExp(
+    `(?:^|[^\\p{L}\\p{N}_${escaped}])${escaped}(${NAME_CHARACTERS}*)$`,
+    "u",
+  ).exec(before);
   return match ? { typed: match[1] ?? "" } : null;
 }
 
@@ -77,18 +97,20 @@ export function variableSuggestions(
   typed: string,
   skipFrom: number,
   maximum: number,
+  prefix = "$",
 ): string[] {
   const counts = new Map<string, number>();
-  for (const { from, to } of variableRanges(text)) {
+  for (const { from, to } of variableRanges(text, 0, prefix)) {
     if (from === skipFrom) continue;
     const name = text.slice(from, to);
     counts.set(name, (counts.get(name) ?? 0) + 1);
   }
-  const prefix = `$${typed}`.toLocaleLowerCase();
+  const start = `${prefix}${typed}`.toLocaleLowerCase();
   return [...counts.entries()]
     .filter(
       ([name]) =>
-        name.toLocaleLowerCase().startsWith(prefix) && name !== `$${typed}`,
+        name.toLocaleLowerCase().startsWith(start) &&
+        name !== `${prefix}${typed}`,
     )
     .sort((a, b) => b[1] - a[1])
     .slice(0, maximum)
@@ -109,7 +131,11 @@ export function createVariableHighlightExtension(
     const builder = new RangeSetBuilder<Decoration>();
     for (const { from, to } of view.visibleRanges) {
       const text = view.state.doc.sliceString(from, to);
-      for (const range of variableRanges(text, from)) {
+      for (const range of variableRanges(
+        text,
+        from,
+        plugin.settings.variablePrefix,
+      )) {
         builder.add(range.from, range.to, mark);
       }
     }

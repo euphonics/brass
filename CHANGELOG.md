@@ -11,6 +11,8 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Settings **Variable character** and **Character name character** change
+  the `$` and `+` that start variables and character names in action.
 - A `characters` property in a screenplay note's frontmatter adds
   characters to the suggestion lists before they have any dialogue.
 - Typing `+` in an action line lists the characters; the pick is written

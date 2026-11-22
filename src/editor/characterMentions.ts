@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
+import { escapeForRegExp } from "./triggers";
+
 /*
- * "+" character mentions, a Scribidian addition: typing "+" in an action
+ * "+" character mentions ("+" by default, a setting), a Scribidian addition: typing "+" in an action
  * line lists the characters, and picking one writes the name in place of
  * "+" and what was typed. A faster way to type names in action.
  */
@@ -26,10 +28,15 @@
  * +je"), or null: the name typed so far, maybe empty (right after "+").
  * Not right after a letter, digit or "+" ("C++", "1+1").
  */
-export function mentionAtEnd(before: string): { typed: string } | null {
-  const match = /(?:^|[^\p{L}\p{N}_+])\+([\p{L}\p{N}'’. -]{0,40})$/u.exec(
-    before,
-  );
+export function mentionAtEnd(
+  before: string,
+  prefix = "+",
+): { typed: string } | null {
+  const escaped = escapeForRegExp(prefix);
+  const match = new RegExp(
+    `(?:^|[^\\p{L}\\p{N}_${escaped}])${escaped}([\\p{L}\\p{N}'’. -]{0,40})$`,
+    "u",
+  ).exec(before);
   return match ? { typed: match[1] ?? "" } : null;
 }
 
