@@ -297,7 +297,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   sceneTypeMinimumLetters: 2,
   sceneTypeMatchCase: false,
   characterMatchCase: true,
-  namesInAction: false,
+  namesInAction: true,
   variablePrefix: "$",
   characterMentionPrefix: "+",
   recentItemsWeighting: 0.65,
@@ -1358,7 +1358,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Suggest character names in action",
-        desc: "Typing a name in capitals inside an action line (JE in \"She sees JE\") lists the script's characters that start with it, like Final Draft's SmartType for a character's first appearance. Enter picks the name, which stays in the action line. Off by default, so action typing stays quiet; when on, Enter after capitals that start a name (THE for THEO) picks the name, so press Escape first.",
+        desc: "Typing a name in capitals inside an action line (JE in \"She sees JE\") lists the script's characters that start with it, like Final Draft's SmartType for a character's first appearance. Enter picks the name, which stays in the action line. On by default. Enter after capitals that start a name (THE for THEO) picks the name, so press Escape first, or turn this off to keep action typing quiet.",
         control: {
           type: "toggle",
           key: "namesInAction",

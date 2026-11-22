@@ -101,7 +101,7 @@ export const DEFAULT_CLEAN_EXPORT_OPTIONS: CleanExportOptions = {
   removeFootnotes: true,
   removeBlockIds: true,
   removeHighlights: true,
-  removeTags: false,
+  removeTags: true,
 };
 
 const TASK_LINE = /^\s*[-*+]\s+\[[^\]]?\](?:\s.*)?$/u;
