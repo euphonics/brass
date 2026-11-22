@@ -6,6 +6,11 @@ in `manifest.json`.
 
 ## Before tagging
 
+A release happens only with the writer's explicit approval, after they have
+checked the build in their Notes vault (`npm run install-notes`). It is one
+release per checked batch, not one per push: BRAT testers get updates only
+from releases.
+
 1. Update the version in `manifest.json`, `package.json`, and `package-lock.json`.
 2. Add the version and minimum Obsidian version to `versions.json`.
 3. Add user-facing notes at `docs/releases/<version>.md` and update
