@@ -368,6 +368,9 @@ Special cases, all decided during testing:
   it starts a new dialogue line.
 - **Typing a wryly with its list open** (`(bea|)`): one Tab or Enter picks
   it and goes on to the dialogue, as in Fade In.
+- **Tab in an empty `()` under a character** (`JEN` / `(|)`) with nothing
+  below: the `()` goes and the line becomes the dialogue line, as in Fade
+  In. With the wryly list open too. A bare `(` counts (added 2026-11-22).
 - **Enter in an empty `()` with the wryly list open** (script mode) picks
   the highlighted wryly and goes on to the dialogue, like a typed one
   (changed 2026-11-21: the list shows a highlighted item, so Enter picks

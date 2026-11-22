@@ -856,6 +856,37 @@ export function createScreenplayCompletionExtension(
     return true;
   };
 
+  // Tab in an empty "()" in a speech with nothing typed below it (cue
+  // above, end of the speech): the "()" goes and the line becomes the
+  // dialogue line, as in Fade In. With dialogue below, tabToDialogueBelow
+  // drops the "()" and moves there instead.
+  const tabInEmptyWryly = (view: EditorView): boolean => {
+    if (!plugin.settings.smartTabEnabled) return false;
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const { selection, doc } = view.state;
+    if (selection.ranges.length > 1 || !selection.main.empty) return false;
+    const line = doc.lineAt(selection.main.head);
+    // A bare "(" too, when brackets don't close by themselves.
+    if (!/^\s*\(\s*\)?\s*$/u.test(line.text) || line.number === 1) return false;
+    if (line.number < doc.lines && doc.line(line.number + 1).text.trim()) {
+      return false;
+    }
+    if (
+      classifySmartTabLine(docLines(doc), line.number - 1) !== "parenthetical"
+    ) {
+      return false;
+    }
+    closeCompletion(view);
+    view.dispatch({
+      changes: { from: line.from, to: line.to },
+      selection: { anchor: line.from },
+      scrollIntoView: true,
+      userEvent: "delete",
+    });
+    return true;
+  };
+
   const tab = (view: EditorView): boolean => {
     // "Tab with a list open: moves to the next element" (script mode):
     // close the list and carry on as if it weren't open.
@@ -886,6 +917,7 @@ export function createScreenplayCompletionExtension(
       }
     }
     if (tabInLoneWryly(view)) return true;
+    if (tabInEmptyWryly(view)) return true;
     if (completionStatus(view.state) === "active") {
       // A typed wryly: one Tab picks it and goes on to the dialogue, as in
       // Fade In.
