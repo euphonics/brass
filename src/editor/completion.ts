@@ -33,6 +33,7 @@ import {
 import { forceElementPlan, type ForcedElement } from "./forceElement";
 import { menuLineKind } from "./layoutClassifier";
 import { docLineKinds, docLines } from "./docLines";
+import { variableAtEnd, variableSuggestions } from "./variables";
 import { getEnterInsidePlan, getTabInsidePlan } from "./tabInside";
 import { CHARACTER_EXTENSIONS } from "../screenplay/fountain";
 import {
@@ -335,6 +336,43 @@ export function createScreenplayCompletionExtension(
     plugin.app.vault.on("delete", () => indexCache.invalidate()),
   );
 
+  // Typing a "$" variable: the note's variables that start with what's
+  // typed, most used first. Null when the cursor isn't on one (or the note
+  // has no other variables that fit).
+  const variableOptions = (
+    context: CompletionContext,
+  ): CompletionResult | null => {
+    const { state, pos } = context;
+    const line = state.doc.lineAt(pos);
+    const typing = variableAtEnd(line.text.slice(0, pos - line.from));
+    if (typing === null) return null;
+    const from = pos - typing.typed.length - 1;
+    const names = variableSuggestions(
+      state.doc.toString(),
+      typing.typed,
+      from,
+      plugin.settings.maximumSuggestions,
+    );
+    if (names.length === 0) return null;
+    return {
+      from,
+      to: pos,
+      filter: false,
+      options: names.map((name) => ({
+        label: name,
+        detail: "Variable",
+        apply: (view, completion, applyFrom, applyTo) => {
+          view.dispatch({
+            changes: { from: applyFrom, to: applyTo, insert: name },
+            selection: { anchor: applyFrom + name.length },
+            annotations: pickedCompletion.of(completion),
+            userEvent: "input",
+          });
+        },
+      })),
+    };
+  };
+
   const source = async (
     context: CompletionContext,
   ): Promise<CompletionResult | null> => {
@@ -378,6 +416,10 @@ export function createScreenplayCompletionExtension(
         }),
       };
     }
+
+    // "$": the note's other variables, wherever the cursor is.
+    const variables = variableOptions(context);
+    if (variables !== null) return variables;
 
     const editorSource = context.state.doc.toString();
     const line = context.state.doc.lineAt(context.pos);

@@ -19,7 +19,8 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("obsidian", () => ({ editorInfoField: {} }));
 
-const { variableRanges } = await import("../src/editor/variables");
+const { variableAtEnd, variableRanges, variableSuggestions } =
+  await import("../src/editor/variables");
 
 const names = (text: string) =>
   variableRanges(text).map(({ from, to }) => text.slice(from, to));
@@ -46,5 +47,38 @@ describe("$ variables", () => {
       "$dead-teacher-name",
       "$x",
     ]);
+  });
+
+  it("keeps apostrophes inside a name, not quotes around it", () => {
+    expect(names("Take $jen's_car and $jen’s-bag. Say '$name'.")).toEqual([
+      "$jen's_car",
+      "$jen’s-bag",
+      "$name",
+    ]);
+    expect(names("That's $killer's.")).toEqual(["$killer's"]);
+  });
+});
+
+describe("$ variable list", () => {
+  it("finds the variable being typed", () => {
+    expect(variableAtEnd("Hi $")).toEqual({ typed: "" });
+    expect(variableAtEnd("Hi $je")).toEqual({ typed: "je" });
+    expect(variableAtEnd("$jen's")).toEqual({ typed: "jen's" });
+    expect(variableAtEnd("US$5")).toBeNull();
+    expect(variableAtEnd("Hi $je now")).toBeNull();
+  });
+
+  it("lists the note's other variables, most used first", () => {
+    const text = "$car and $cat. $car again. $dog. Now $c";
+    const at = text.length - 2;
+    expect(variableSuggestions(text, "c", at, 8)).toEqual(["$car", "$cat"]);
+    expect(variableSuggestions(text, "", at, 8)).toEqual([
+      "$car",
+      "$cat",
+      "$dog",
+    ]);
+    expect(variableSuggestions(text, "C", at, 8)).toEqual(["$car", "$cat"]);
+    expect(variableSuggestions(text, "car", at, 8)).toEqual([]);
+    expect(variableSuggestions("Costs $12. $", "", 11, 8)).toEqual([]);
   });
 });

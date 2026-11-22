@@ -32,13 +32,16 @@ import type ScribidianPlugin from "../main";
  * ("$123", "$123.12", "$1,123.12") aren't variables and stay as they are.
  */
 
-const VARIABLE = /\$[\p{L}\p{N}_.,-]+/gu;
+const VARIABLE = /\$[\p{L}\p{N}_.,'’-]+/gu;
+/** Punctuation that ends a name rather than being part of it. */
+const TRAILING = /[.,'’-]+$/u;
 
 /**
  * Ranges of "$" variables in `text`, starting at `offset`: "$" and the
- * letters, digits, underscores and hyphens after it ("$dead-teacher-name").
- * A trailing ".", "," or "-" is punctuation, not part of the name; a name
- * of only digits, ".", "," and "-" is a dollar amount and is skipped.
+ * letters, digits, underscores, hyphens and apostrophes after it
+ * ("$dead-teacher-name", "$jen's_car"). A trailing ".", ",", "-" or quote
+ * is punctuation, not part of the name; a name of only digits, ".", ","
+ * and "-" is a dollar amount and is skipped.
  */
 export function variableRanges(
   text: string,
@@ -46,12 +49,50 @@ export function variableRanges(
 ): { from: number; to: number }[] {
   const ranges: { from: number; to: number }[] = [];
   for (const match of text.matchAll(VARIABLE)) {
-    const name = match[0].slice(1).replace(/[.,-]+$/u, "");
+    const name = match[0].slice(1).replace(TRAILING, "");
     if (name === "" || /^[\d.,-]+$/u.test(name)) continue;
     const from = offset + (match.index ?? 0);
     ranges.push({ from, to: from + 1 + name.length });
   }
   return ranges;
+}
+
+/**
+ * The "$" variable being typed right before the cursor ("$je" in "Hi
+ * $je"), or null: the name typed so far, maybe empty (right after "$").
+ * Not right after a letter or digit ("US$5").
+ */
+export function variableAtEnd(before: string): { typed: string } | null {
+  const match = /(?:^|[^\p{L}\p{N}_$])\$([\p{L}\p{N}_.,'’-]*)$/u.exec(before);
+  return match ? { typed: match[1] ?? "" } : null;
+}
+
+/**
+ * The note's variables for the "$" list, most used first, then in order of
+ * appearance: those starting with `typed` (any case), not counting the one
+ * starting at `skipFrom` (the one being typed) or one exactly `typed`.
+ */
+export function variableSuggestions(
+  text: string,
+  typed: string,
+  skipFrom: number,
+  maximum: number,
+): string[] {
+  const counts = new Map<string, number>();
+  for (const { from, to } of variableRanges(text)) {
+    if (from === skipFrom) continue;
+    const name = text.slice(from, to);
+    counts.set(name, (counts.get(name) ?? 0) + 1);
+  }
+  const prefix = `$${typed}`.toLocaleLowerCase();
+  return [...counts.entries()]
+    .filter(
+      ([name]) =>
+        name.toLocaleLowerCase().startsWith(prefix) && name !== `$${typed}`,
+    )
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, maximum)
+    .map(([name]) => name);
 }
 
 /** Color "$" variables in screenplay notes, per the mode's setting. */

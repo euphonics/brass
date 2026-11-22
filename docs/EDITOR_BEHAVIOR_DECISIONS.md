@@ -74,7 +74,14 @@ flowchart TD
   color, as a placeholder to fill in later.
 - Dollar amounts (`$123`, `$123.12`, `$1,123.12`) aren't variables and stay plain.
   A trailing period or comma isn't part of the name.
+- Apostrophes and hyphens inside a name are part of it (`$jen's_car`,
+  `$dead-teacher-name`); quotes around it aren't (`'$name'`).
+- Typing `$` lists the note's other variables, most used first, narrowed as
+  you type (Suggestions on). Not after a letter or digit (`US$`), and not
+  for dollar amounts.
 - On or off per mode: **Highlight $ variables** in Typing in each mode.
+- Two `$` on one line can look like Obsidian inline math (`$a and '$b`):
+  Obsidian then renders the text between them as math.
 
 ## Line comments (Scribidian addition)
 

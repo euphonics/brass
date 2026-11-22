@@ -11,6 +11,9 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- Typing `$` lists the note's other `$` variables, most used first.
+- `$` variables keep apostrophes inside the name (`$jen's_car`), so the
+  color no longer stops at the `'`.
 - Setting **Suggest character names in action** (off by default): a name
   typed in capitals inside an action line (`She sees JE`) lists the
   characters, like Final Draft's SmartType.
