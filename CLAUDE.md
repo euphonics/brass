@@ -98,25 +98,42 @@ than screenshots when testing other apps.
   them in the roadmap. Fix only when asked.
 - **Every typing change:** update EDITOR_BEHAVIOR_DECISIONS.md (rule and
   test cases), CHANGELOG.md (Unreleased), and the roadmap item's status.
-- **Push only when asked.** Never push to the upstream First Draft
+- **Pipeline: Dev, then Notes and GitHub, then a release.** Test every
+  change in the Dev vault first (`npm run install-vault`). Once it passes
+  there, do these together without asking: `npm run install-notes`, so the
+  writer can check it in their Notes vault, then commit and push. Publish a
+  GitHub release only on the writer's explicit approval, once per checked
+  batch (see docs/RELEASING.md). Never push to the upstream First Draft
   repository (grobmeier/firstdraft).
 - **Keep Apache 2.0 credit.** Changed or new code files carry the license
   header with the "Modifications copyright 2026 arvn" line
   (`npm run license:headers:check`).
-- **No `(CONT'D)`, ever.** Scribidian doesn't handle CONT'D, in the editor
-  or exports (roadmap #125). Don't propose it or raise it again.
+- **`(CONT'D)` on the printed page only.** The PDF and the page preview add
+  it (setting "Add (CONT'D) to continued dialogue", on by default; #265).
+  Never add it to the Fountain text, the editor or text exports (Fountain,
+  FDX), and never offer it as a suggestion (#125).
+- **PDF appearance changes:** after any change to how the exported PDF
+  looks, export a fresh PDF of the Dev vault's EXFILTRATION note
+  (`2026.10.26 EXFILTRATION by Arun Croll SCRIBIDIAN.fountain`, at the
+  vault root), so a new PDF is waiting there for the writer to review. Its
+  Fade In export (`2026.10.26 EXFILTRATION by Arun Croll.pdf`) is the
+  reference.
 - **Fade In differences:** a behavior where Scribidian differs from Fade
   In gets a setting with ours as the default; its description says Off is
   Fade In's behavior, and it goes in `FADE_IN_DEFAULTS` (for the preset,
   #202).
 - **Write UI text in sentence case** (the Obsidian lint rule checks it) and
   in plain, short words.
-- **Live tests in the writer's vault happen only in the `Scribidian Example`
-  folder** (scratch note: `Scribidian Example/Test Bench.md`). Never open or
-  write the writer's real scripts (TIGHTER above all). A test script uses
-  the leaf it opened, never `activeLeaf`, and checks the editor's file path
-  before every change; it stops if the path is outside that folder. (A test
-  once overwrote TIGHTER this way; it was recovered with undo.)
+- **Live tests run only in the Dev vault** (`C:\Users\arunc\Code\Obsidian
+  Dev Vault\Dev`, `obsidian vault=Dev ...`), in its `Scribidian Example`
+  folder (scratch note: `Scribidian Example/Test Bench.md`). Never test in
+  the Notes vault, and never open or write the writer's real scripts
+  (TIGHTER above all). Bring the Dev window to the front first (editor
+  commands need focus; Notes is usually open too). A test script checks
+  `app.vault.getName() === "Dev"`, uses the leaf it opened, never
+  `activeLeaf`, and checks the editor's file path before every change; it
+  stops if the path is outside that folder. (A test once overwrote TIGHTER
+  this way; it was recovered with undo.)
 
 ## Checks before committing
 
@@ -130,7 +147,8 @@ npm run license:headers:check
 ```
 
 `npm run build` also checks the bundle size. For typing behavior, also test
-in Obsidian: build, copy `main.js`, `styles.css` and `manifest.json` into a
-vault's `.obsidian/plugins/scribidian/`, reload the plugin, and run the
-keystrokes in a note with `screenplay: true` in its frontmatter, in script
-mode with strict cursor placement on.
+in Obsidian: `npm run install-vault` (builds and installs into the Dev
+vault), reload the plugin, and run the keystrokes in a note with
+`screenplay: true` in its frontmatter, in script mode with strict cursor
+placement on. Once it passes, `npm run install-notes` puts the same build in
+the writer's Notes vault (see the pipeline rule above).
