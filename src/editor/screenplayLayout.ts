@@ -294,6 +294,35 @@ export function createScreenplayLayoutExtension(
     const selection = state.selection.main;
     if (!selection.empty) return false;
     const line = state.doc.lineAt(selection.head);
+    // An empty "()" (or bare "(") in a speech: as Tab does, it goes and
+    // the line becomes the dialogue line (Fade In). With dialogue right
+    // below, the line goes and the cursor moves to that dialogue.
+    if (
+      /^\s*\(\s*\)?\s*$/u.test(line.text) &&
+      layout.kinds[line.number - 1] === "parenthetical"
+    ) {
+      closeCompletion(view);
+      const next =
+        line.number < state.doc.lines ? state.doc.line(line.number + 1) : null;
+      if (next !== null && next.text.trim() !== "") {
+        if (layout.kinds[line.number] !== "dialogue") return true;
+        const indent = next.text.length - next.text.trimStart().length;
+        view.dispatch({
+          changes: { from: line.from, to: next.from },
+          selection: { anchor: line.from + indent },
+          scrollIntoView: true,
+          userEvent: "delete",
+        });
+        return true;
+      }
+      view.dispatch({
+        changes: { from: line.from, to: line.to },
+        selection: { anchor: line.from },
+        scrollIntoView: true,
+        userEvent: "delete",
+      });
+      return true;
+    }
     if (line.text.trim() !== "") return false;
     if (layout.kinds[line.number - 1] !== "character") return false;
     closeCompletion(view);
