@@ -20,6 +20,9 @@ import { EditorView } from "@codemirror/view";
 import type { Extension } from "@codemirror/state";
 import { pressTab } from "./editor/pressTab";
 import { estimateCurrentPage } from "./screenplay/currentPage";
+import { exportedFountainSource } from "./commands/exportFountain";
+import { parseFountain } from "./screenplay/parser";
+import { stripObsidianFrontmatter } from "./export/fountain";
 import type { ScreenplayStatistics } from "./screenplay/model";
 import {
   applyScreenplayFont,
@@ -795,6 +798,7 @@ export default class ScribidianPlugin extends Plugin {
   typingChangeEnabled(
     change:
       | "capitalizeLineStarts"
+      | "capitalizeSentences"
       | "uppercaseSluglines"
       | "uppercaseTransitions"
       | "uppercaseCharacters"
@@ -939,11 +943,19 @@ export default class ScribidianPlugin extends Plugin {
       context.document.titlePage ?? null,
       this.settings.pageSize,
       this.settings.minutesPerPage,
+      this.settings.cleanExport,
+      this.settings.markCapitalsAsAction,
     ]);
     if (this.statisticsCache?.key === key) {
       return this.statisticsCache.statistics;
     }
-    const statistics = calculateStatistics(context.document, {
+    // Count what a clean Fountain export would hold: tasks, comments,
+    // callouts and the other elements it strips don't add pages.
+    const document = {
+      ...parseFountain(exportedFountainSource(this, context.source, true)),
+      titlePage: context.document.titlePage,
+    };
+    const statistics = calculateStatistics(document, {
       pageSize: this.settings.pageSize,
       minutesPerPage: this.settings.minutesPerPage,
     });
@@ -1000,16 +1012,27 @@ export default class ScribidianPlugin extends Plugin {
     }, 150);
   }
 
+  /** The page the cursor is on, counted as in a clean Fountain export. */
+  private currentPage(view: MarkdownView): number {
+    const source = view.editor.getValue();
+    const cursor = view.editor.posToOffset(view.editor.getCursor());
+    const lineEnd = source.indexOf("\n", cursor);
+    const before = exportedFountainSource(
+      this,
+      stripObsidianFrontmatter(
+        source.slice(0, lineEnd === -1 ? source.length : lineEnd),
+      ),
+      true,
+    );
+    return estimateCurrentPage(before, before.length, this.settings.pageSize);
+  }
+
   private renderStatus(view: MarkdownView): void {
     const last = this.lastStatus;
     if (last === null || view.file !== last.file) return;
     const currentPage =
       this.settings.showCurrentPage && this.isScreenplayFile(last.file)
-        ? estimateCurrentPage(
-            view.editor.getValue(),
-            view.editor.posToOffset(view.editor.getCursor()),
-            this.settings.pageSize,
-          )
+        ? this.currentPage(view)
         : null;
     const counts = formatScreenplayStatus(last.statistics, {
       estimatedPages: this.settings.showEstimatedPages,

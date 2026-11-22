@@ -79,6 +79,8 @@ export interface ScribidianSettings {
   /** Typing settings, set separately for script and plain mode. */
   capitalizeLineStartsScript: boolean;
   capitalizeLineStartsPlain: boolean;
+  capitalizeSentencesScript: boolean;
+  capitalizeSentencesPlain: boolean;
   uppercaseTransitionsScript: boolean;
   uppercaseTransitionsPlain: boolean;
   uppercaseCharactersScript: boolean;
@@ -253,6 +255,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   indentActionWithSpaces: true,
   capitalizeLineStartsScript: true,
   capitalizeLineStartsPlain: false,
+  capitalizeSentencesScript: true,
+  capitalizeSentencesPlain: false,
   uppercaseTransitionsScript: true,
   uppercaseTransitionsPlain: false,
   uppercaseCharactersScript: true,
@@ -406,6 +410,8 @@ function isSettingKey(key: string): key is keyof ScribidianSettings {
 type TypingChangeKey =
   | "capitalizeLineStartsScript"
   | "capitalizeLineStartsPlain"
+  | "capitalizeSentencesScript"
+  | "capitalizeSentencesPlain"
   | "uppercaseSluglinesScript"
   | "uppercaseSluglinesPlain"
   | "uppercaseTransitionsScript"
@@ -429,6 +435,12 @@ export const TYPING_CHANGE_ROWS: {
     desc: '"she runs" becomes "She runs". Lines that start with a symbol, like a wryly\'s "(", and lines in code blocks are left alone.',
     plain: "capitalizeLineStartsPlain",
     script: "capitalizeLineStartsScript",
+  },
+  {
+    name: "Capitalize the first letter of each sentence",
+    desc: '"She runs. he follows." becomes "She runs. He follows." as you type. Not after an ellipsis ("Wait... what"), an abbreviation like "Mr." or "INT.", or an initial.',
+    plain: "capitalizeSentencesPlain",
+    script: "capitalizeSentencesScript",
   },
   {
     name: "Uppercase sluglines as you type",
@@ -1613,6 +1625,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "indentActionWithSpaces":
       case "capitalizeLineStartsScript":
       case "capitalizeLineStartsPlain":
+      case "capitalizeSentencesScript":
+      case "capitalizeSentencesPlain":
       case "uppercaseTransitionsScript":
       case "uppercaseTransitionsPlain":
       case "uppercaseCharactersScript":

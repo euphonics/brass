@@ -91,6 +91,75 @@ export function capitalizeLineStart(
   return upper !== typed && upper.length === typed.length ? upper : null;
 }
 
+/** Words whose period doesn't end a sentence ("Mr. Smith", "INT. HALL"). */
+const ABBREVIATIONS = new Set([
+  "mr",
+  "mrs",
+  "ms",
+  "mx",
+  "dr",
+  "st",
+  "jr",
+  "sr",
+  "mt",
+  "ft",
+  "no",
+  "vs",
+  "etc",
+  "prof",
+  "rev",
+  "capt",
+  "sgt",
+  "lt",
+  "col",
+  "gen",
+  "gov",
+  "sen",
+  "rep",
+  "ave",
+  "blvd",
+  "rd",
+  "dept",
+  "approx",
+  "int",
+  "ext",
+  "est",
+  "e.g",
+  "i.e",
+  "a.m",
+  "p.m",
+  "u.s",
+  "u.k",
+  "o.s",
+  "v.o",
+  "cont",
+]);
+
+/**
+ * The capital to use when `typed` is the first letter of a sentence inside
+ * a line (`before` is the line up to it: text ending in ".", "!" or "?",
+ * maybe a closing quote or bracket, then a space), or null to leave it as
+ * typed. Not after an ellipsis ("Wait... what"), an abbreviation ("Mr.
+ * smith" stays as typed) or a single initial ("J. r").
+ */
+export function capitalizeSentenceStart(
+  before: string,
+  typed: string,
+): string | null {
+  if ([...typed].length !== 1) return null;
+  const upper = typed.toLocaleUpperCase();
+  if (upper === typed || upper.length !== typed.length) return null;
+  const match = /(\S*?)([.!?])["'”’)\]]*[ \t]+$/u.exec(before);
+  if (match === null) return null;
+  const [, word = "", mark] = match;
+  if (mark === ".") {
+    if (word.endsWith(".") || word.endsWith("…")) return null;
+    const bare = word.replace(/^["'“‘([]+/u, "").toLocaleLowerCase();
+    if (/^\p{L}$/u.test(bare) || ABBREVIATIONS.has(bare)) return null;
+  }
+  return upper;
+}
+
 /** Known times, or a function that computes them only when needed. */
 export type KnownTimes = readonly string[] | (() => readonly string[]);
 

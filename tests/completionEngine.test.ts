@@ -81,6 +81,38 @@ describe("screenplay completion engine", () => {
     );
   });
 
+  it("puts the time a location had last time first", () => {
+    const source = [
+      "INT. KITCHEN - DAY",
+      "",
+      "Toast.",
+      "",
+      "INT. HALL - DAY",
+      "",
+      "Steps.",
+      "",
+      "INT. KITCHEN - DUSK",
+      "",
+      "Dark.",
+      "",
+      "INT. HALL - DAY",
+      "",
+      "Steps.",
+      "",
+      "INT. KITCHEN - ",
+    ].join("\n");
+    const labels = (text: string) =>
+      getScreenplayCompletionPlan(
+        text,
+        text.length,
+        DEFAULT_COMPLETION_PREFERENCES,
+      )?.candidates.map((candidate) => candidate.label);
+    expect(labels(source)?.[0]).toBe("DUSK");
+    expect(labels(`${source}D`)?.[0]).toBe("DUSK");
+    expect(labels(`${source}N`)?.[0]).toBe("NIGHT");
+    expect(labels(source.replace(/KITCHEN - $/u, "HALL - "))?.[0]).toBe("DAY");
+  });
+
   it("opens the character list for lowercase typing with match capitals off", () => {
     const source = `${screenplay}\n\nJa`;
     const plan = (characterMatchCase: boolean) =>

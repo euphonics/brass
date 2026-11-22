@@ -253,6 +253,10 @@ Test cases:
   a wryly (`(quietly)|` or `(quietly|)`) the cursor moves to the start of
   the dialogue below, as in Final Draft and Fade In; after a cue or
   dialogue it stays.
+- **Enter at the start of an action paragraph** (strict on, with a blank
+  line above): the paragraph moves down with the cursor, leaving an empty
+  action above it, as in Fade In (changed 2026-11-21; it used to do
+  nothing).
 - **Enter at the start of a dialogue or wryly line inside a speech**: with
   strict on, adds an empty dialogue line above, as in Fade In. In the file
   that line holds two spaces (Fountain's blank line inside dialogue), so the
@@ -516,6 +520,17 @@ Test cases:
   would continue it as a quote).
 - The first letter of each line is capitalized, except lines starting with
   a symbol like `(`.
+- The first letter of each sentence inside a line is capitalized too
+  (`She runs. he follows.` → `He`), but not after an ellipsis, an
+  abbreviation (`Mr.`, `INT.`, `p.m.`) or an initial (`J.`), and not in
+  pasted text (added 2026-11-21).
+- **Times of day after a location**: the time that location had last
+  comes first (`INT. KITCHEN - ` after `INT. KITCHEN - NIGHT` puts NIGHT at
+  the top), when it matches what is typed (added 2026-11-21).
+- **Status bar pages, runtime, words and scenes** count what a clean
+  Fountain export would hold: tasks, comments, callouts and the other
+  elements the Clean export settings strip don't add pages (changed
+  2026-11-21).
 - Text typed in the character column is uppercased, and so is text typed
   on a cue already in the script (`HELIOS|` + `test` → `HELIOSTEST`), so
   it stays a cue. Not inside the extension's brackets.

@@ -27,6 +27,32 @@ import {
 } from "../export/fountain";
 import { loadScreenplayContext } from "../projects/vault";
 
+/**
+ * The Fountain text an export writes for `source`: cleaned of the
+ * Obsidian-only elements chosen in settings (when `clean`), without
+ * threads, and with capitals marked as action (setting). The status bar
+ * counts pages from the clean version, so they match the export.
+ */
+export function exportedFountainSource(
+  plugin: ScribidianPlugin,
+  source: string,
+  clean: boolean,
+): string {
+  const exported = clean
+    ? cleanFountainSource(
+        source,
+        normalizeCleanExportOptions(
+          plugin.settings.cleanExport as unknown as Record<string, unknown>,
+        ),
+      )
+    : source;
+  // Threads ("[&name]") are Scribidian's own: no export keeps them.
+  const withoutThreads = stripThreadsFromSource(exported);
+  return plugin.settings.markCapitalsAsAction
+    ? markCapitalsAsAction(withoutThreads)
+    : withoutThreads;
+}
+
 export async function exportFountain(
   plugin: ScribidianPlugin,
   view: MarkdownView,
@@ -46,19 +72,7 @@ export async function exportFountain(
     plugin.isScreenplayFile(file) ? view.editor.getValue() : undefined,
   );
   const path = fountainExportPath(context.owner.path, existingPaths);
-  const exported = clean
-    ? cleanFountainSource(
-        context.source,
-        normalizeCleanExportOptions(
-          plugin.settings.cleanExport as unknown as Record<string, unknown>,
-        ),
-      )
-    : context.source;
-  // Threads ("[&name]") are Scribidian's own: no export keeps them.
-  const withoutThreads = stripThreadsFromSource(exported);
-  const content = plugin.settings.markCapitalsAsAction
-    ? markCapitalsAsAction(withoutThreads)
-    : withoutThreads;
+  const content = exportedFountainSource(plugin, context.source, clean);
 
   try {
     const file = await plugin.app.vault.create(path, content);

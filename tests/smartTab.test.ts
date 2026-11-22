@@ -18,6 +18,7 @@
 import { describe, expect, it } from "vitest";
 import {
   capitalizeLineStart,
+  capitalizeSentenceStart,
   getSmartEnterPlan,
   getSmartTabPlan,
 } from "../src/editor/smartTab";
@@ -473,6 +474,30 @@ describe("capitalize line starts", () => {
     expect(capitalizeLineStart("", "(")).toBeNull();
     expect(capitalizeLineStart("(", "b")).toBeNull();
     expect(capitalizeLineStart("", "ab")).toBeNull();
+  });
+});
+
+describe("capitalize sentence starts", () => {
+  it("capitalizes the first letter after a sentence end", () => {
+    expect(capitalizeSentenceStart("She runs. ", "h")).toBe("H");
+    expect(capitalizeSentenceStart("Stop! ", "n")).toBe("N");
+    expect(capitalizeSentenceStart("Why? ", "b")).toBe("B");
+    expect(capitalizeSentenceStart('"Go." ', "s")).toBe("S");
+    expect(capitalizeSentenceStart("(He left.) ", "t")).toBe("T");
+    expect(capitalizeSentenceStart("Not really.  ", "s")).toBe("S");
+  });
+  it("leaves other letters alone", () => {
+    expect(capitalizeSentenceStart("She runs ", "h")).toBeNull();
+    expect(capitalizeSentenceStart("She runs.", "h")).toBeNull();
+    expect(capitalizeSentenceStart("She runs. ", "H")).toBeNull();
+    expect(capitalizeSentenceStart("She runs. ", "(")).toBeNull();
+    expect(capitalizeSentenceStart("Wait... ", "w")).toBeNull();
+    expect(capitalizeSentenceStart("Wait… ", "w")).toBeNull();
+    expect(capitalizeSentenceStart("Ask Mr. ", "s")).toBeNull();
+    expect(capitalizeSentenceStart("It's 5 p.m. ", "t")).toBeNull();
+    expect(capitalizeSentenceStart("See e.g. ", "t")).toBeNull();
+    expect(capitalizeSentenceStart("J. ", "r")).toBeNull();
+    expect(capitalizeSentenceStart("", "s")).toBeNull();
   });
 });
 

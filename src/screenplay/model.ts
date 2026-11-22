@@ -87,6 +87,8 @@ export interface ScreenplayIndex {
   slugModifiers: Usage[];
   parentheticals: Usage[];
   transitions: Usage[];
+  /** The time of day last used with each location, keyed in capitals. */
+  lastTimeByLocation?: Record<string, string>;
 }
 
 export interface ScreenplayStatistics {

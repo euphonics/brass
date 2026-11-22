@@ -73,6 +73,7 @@ import {
   getSmartEnterPlan,
   getSmartTabPlan,
   capitalizeLineStart,
+  capitalizeSentenceStart,
   type SmartTabPlan,
 } from "./smartTab";
 import {
@@ -1274,6 +1275,19 @@ export function createScreenplayCompletionExtension(
     }
     if (doc.line(line.number - 1).text.trim() !== "") return false;
     if (inCodeBlock(doc, line.number)) return false;
+    // At the start of an action paragraph: the paragraph moves down with
+    // the cursor, leaving an empty action above it (as in Fade In).
+    if (
+      line.text.trim() !== "" &&
+      docLineKinds(doc, line.number - 1)[line.number - 1] === "action"
+    ) {
+      view.dispatch({
+        changes: { from: line.from, insert: "\n\n" },
+        selection: { anchor: selection.main.head + 2 },
+        scrollIntoView: true,
+        userEvent: "input",
+      });
+    }
     return true;
   };
 
@@ -1704,6 +1718,21 @@ export function createScreenplayCompletionExtension(
       // the frontmatter.
       if (plugin.typingChangeEnabled("capitalizeLineStarts")) {
         const capital = capitalizeLineStart(
+          tr.newDoc.sliceString(line.from, fromB),
+          text,
+        );
+        if (
+          capital !== null &&
+          !inFrontmatter(tr.newDoc, line.number) &&
+          !inCodeBlock(tr.newDoc, line.number)
+        ) {
+          fixes.push({ from: fromB, to: toB, insert: capital });
+          return;
+        }
+      }
+      // Capitalize the first letter of a sentence inside a line (setting).
+      if (!pasted && plugin.typingChangeEnabled("capitalizeSentences")) {
+        const capital = capitalizeSentenceStart(
           tr.newDoc.sliceString(line.from, fromB),
           text,
         );

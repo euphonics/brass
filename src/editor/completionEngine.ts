@@ -401,12 +401,31 @@ function scenePlan(
 
   const delimiter = value.lastIndexOf(" - ");
   const query = value.slice(delimiter + 3);
-  const candidates = rankUsages(
+  const ranked = rankUsages(
     preferredAndRecentTimes(index, preferences.preferredTimesOfDay),
     query,
     preferences.recentItemsWeighting,
     preferences.maximumSuggestions,
-  ).map((usage) => ({
+  );
+  // The time this location had last time comes first ("KITCHEN" was last
+  // at NIGHT: NIGHT tops the list), if it matches what is typed.
+  const location = value.slice(0, delimiter).trim().toLocaleUpperCase();
+  const last = index.lastTimeByLocation?.[location];
+  if (
+    last !== undefined &&
+    last.toLocaleUpperCase().startsWith(query.trim().toLocaleUpperCase())
+  ) {
+    const at = ranked.findIndex(
+      (usage) => usage.value.toLocaleUpperCase() === last.toLocaleUpperCase(),
+    );
+    const [usage] =
+      at === -1
+        ? [{ value: last, count: 1, lastUsedPosition: 0 }]
+        : ranked.splice(at, 1);
+    if (usage) ranked.unshift(usage);
+    ranked.length = Math.min(ranked.length, preferences.maximumSuggestions);
+  }
+  const candidates = ranked.map((usage) => ({
     label: usage.value,
     applyText: usage.value,
     detail: "Time",
