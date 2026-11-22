@@ -1310,7 +1310,8 @@ export function createScreenplayCompletionExtension(
   // Strict cursor placement: Enter at the end of a cue, wryly or dialogue
   // line with more of the speech right below adds no line. A new block
   // there would cut the speech in two (the rest would become action).
-  // After a cue or a wryly the cursor moves to the line below; after
+  // After a cue, a new empty dialogue line goes right under it (as in Fade
+  // In); after a wryly the cursor moves to the dialogue below; after
   // dialogue it stays.
   const enterInsideSpeech = (view: EditorView): boolean => {
     if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
@@ -1336,12 +1337,21 @@ export function createScreenplayCompletionExtension(
     ) {
       return false;
     }
-    // At the end of a cue or a wryly, the cursor goes on to the start of
-    // the line below, as in Final Draft and Fade In.
-    if (
-      kind === "character" ||
-      (kind === "parenthetical" && below === "dialogue")
-    ) {
+    // At the end of a cue: a new empty dialogue line under it, holding two
+    // spaces so Fountain keeps the speech whole (a truly empty line would
+    // end it). One edit, so one Ctrl+Z undoes it.
+    if (kind === "character") {
+      view.dispatch({
+        changes: { from: end, to: line.to, insert: "\n  " },
+        selection: { anchor: end + 3 },
+        scrollIntoView: true,
+        userEvent: "input",
+      });
+      return true;
+    }
+    // At the end of a wryly, the cursor goes on to the start of its
+    // dialogue, as in Final Draft and Fade In.
+    if (kind === "parenthetical" && below === "dialogue") {
       const next = doc.line(line.number + 1);
       view.dispatch({
         selection: {
