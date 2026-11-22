@@ -11,6 +11,8 @@ Scribidian changes since 0.1.0.
 
 ### Added
 
+- A `characters` property in a screenplay note's frontmatter adds
+  characters to the suggestion lists before they have any dialogue.
 - Typing `+` in an action line lists the characters; the pick is written
   as a name in action (`Jen`, `McAllister`), in capitals only if you typed
   capitals.

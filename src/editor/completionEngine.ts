@@ -711,7 +711,11 @@ export function getScreenplayCompletionPlan(
           label: usage.value,
           // A name with lower case ("McCLANE") is only a cue with its "@".
           applyText: `${LOWERCASE.test(usage.value) ? "@" : ""}${usage.value}\n`,
-          detail: `${usage.count} dialogue ${usage.count === 1 ? "block" : "blocks"}`,
+          // Ends in "dialogue block(s)" either way: see menuLineKind.
+          detail:
+            usage.count === 0
+              ? "No dialogue blocks"
+              : `${usage.count} dialogue ${usage.count === 1 ? "block" : "blocks"}`,
         }));
 
   // Transitions typed without ">" ("CUT T", "SMASH"): in capitals at the

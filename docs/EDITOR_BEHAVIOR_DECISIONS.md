@@ -94,6 +94,18 @@ flowchart TD
   Typed capitals (`+JE`) give capitals (`JEN`).
 - Needs Suggestions on.
 
+## Characters listed in frontmatter (Scribidian addition)
+
+- A `characters` property in a screenplay note's frontmatter adds those
+  names to the character lists (cues, `+` in action, capitals in action,
+  the Insert character picker), even before they have dialogue:
+  `characters: [Silent Man, "[[Old Woman]]"]` or `characters: Jen, Bob`.
+  Links use their shown text.
+- In a project, the project note's and every part's `characters` count.
+- In the cue list they show "No dialogue blocks" and rank after the
+  characters who speak. Statistics and character checks still count only
+  real cues.
+
 ## Line comments (Scribidian addition)
 
 - `// note` at the start of a line or after a space, to the end of the

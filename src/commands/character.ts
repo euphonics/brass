@@ -20,6 +20,7 @@ import type ScribidianPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
 import { buildScreenplayIndex, rankUsages } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
+import { withListedCharacters } from "../screenplay/listedCharacters";
 import { PickerModal, TextInputModal } from "../ui/pickers";
 import { insertBlock } from "./editorText";
 
@@ -40,17 +41,18 @@ async function openCharacterPickerForContext(
   editor: Editor,
 ): Promise<void> {
   const file = plugin.activeMarkdownView()?.file ?? null;
-  const document = file
-    ? (
-        await loadScreenplayContext(
-          plugin.app,
-          file,
-          plugin.settings.characterFolder,
-          editor.getValue(),
-        )
-      ).document
-    : parseFountain(editor.getValue());
-  const index = buildScreenplayIndex(document);
+  const context = file
+    ? await loadScreenplayContext(
+        plugin.app,
+        file,
+        plugin.settings.characterFolder,
+        editor.getValue(),
+      )
+    : null;
+  const index = withListedCharacters(
+    buildScreenplayIndex(context?.document ?? parseFountain(editor.getValue())),
+    context?.listedCharacters ?? [],
+  );
   const characters: CharacterChoice[] = rankUsages(
     index.characters,
     "",

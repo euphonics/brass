@@ -20,6 +20,7 @@ import { stripObsidianFrontmatter } from "../export/fountain";
 import { parseFountain } from "../screenplay/parser";
 import type { ScreenplayDocument } from "../screenplay/model";
 import { titlePageFromFrontmatter } from "../screenplay/titlePage";
+import { listedCharacters } from "../screenplay/listedCharacters";
 
 function documentWithProperties(source: string): ScreenplayDocument {
   const document = parseFountain(source);
@@ -36,6 +37,34 @@ function documentWithProperties(source: string): ScreenplayDocument {
     properties as Record<string, unknown>,
   );
   return titlePage ? { ...document, titlePage } : document;
+}
+
+/** The `characters` frontmatter property of each source, merged. */
+function charactersListedIn(sources: readonly string[]): string[] {
+  const names: string[] = [];
+  for (const source of sources) {
+    const info = getFrontMatterInfo(source);
+    if (!info.exists) continue;
+    let properties: unknown;
+    try {
+      properties = parseYaml(info.frontmatter);
+    } catch {
+      continue;
+    }
+    if (
+      typeof properties !== "object" ||
+      properties === null ||
+      Array.isArray(properties)
+    ) {
+      continue;
+    }
+    for (const name of listedCharacters(
+      properties as Record<string, unknown>,
+    )) {
+      if (!names.includes(name)) names.push(name);
+    }
+  }
+  return names;
 }
 import {
   combineScreenplayDocuments,
@@ -65,6 +94,8 @@ export interface ScreenplayContext {
   source: string;
   characterFolder: string;
   scopeFiles: TFile[];
+  /** Names in the `characters` property of the note or project files. */
+  listedCharacters: string[];
 }
 
 function resolveScreenplayProject(
@@ -168,6 +199,7 @@ export async function loadScreenplayContext(
         defaultCharacterFolder,
       ),
       scopeFiles: [file],
+      listedCharacters: charactersListedIn([source]),
     };
   }
 
@@ -196,6 +228,7 @@ export async function loadScreenplayContext(
       project.project.characterFolder ?? defaultCharacterFolder,
     ),
     scopeFiles: [project.file, ...parts],
+    listedCharacters: charactersListedIn([ownerSource, ...sources]),
   };
 }
 

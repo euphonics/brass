@@ -65,6 +65,7 @@ import { editorInfoField } from "obsidian";
 import type ScribidianPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
 import { buildScreenplayIndex, rankUsages } from "../screenplay/indexer";
+import { withListedCharacters } from "../screenplay/listedCharacters";
 import { parseFountain } from "../screenplay/parser";
 import { ScreenplayIndexCache, textOutsideLine } from "./indexCache";
 import {
@@ -432,7 +433,10 @@ export function createScreenplayCompletionExtension(
         plugin.settings.characterFolder,
         outside,
       );
-      return buildScreenplayIndex(screenplay.document);
+      return withListedCharacters(
+        buildScreenplayIndex(screenplay.document),
+        screenplay.listedCharacters,
+      );
     });
     // A line set to an element (Set line, Shift+Tab) only gets that
     // element's list: none for centered text, only scene parts for action
