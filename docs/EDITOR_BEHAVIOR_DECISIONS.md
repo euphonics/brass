@@ -202,11 +202,12 @@ Test cases:
 - Typing `)` right before the `)` closing a wryly or extension steps over
   it, as in Fade In.
 - A line set to dialogue (Shift+Enter) that starts with `(` is a wryly.
-- Typing `JOHN (` or `JOHN(` opens the extension list: the extensions the
-  script already uses, most used first (`(UNINTELLIGIBLE)` once it's been
-  typed), then (V.O.), (O.S.), (ON RADIO), (ON PHONE). It opens even for a
-  name not yet in the script, if the line starts a block (changed
-  2026-11-22).
+- Typing `JOHN (` or `JOHN(` opens the extension list: (O.S.), (V.O.),
+  (ON RADIO), (ON PHONE), then the other extensions the script already uses,
+  most used first (`(UNINTELLIGIBLE)` once it's been typed). Setting **Your
+  extensions first** (off by default) puts the script's own before the
+  standard ones. It opens even for a name not yet in the script, if the line
+  starts a block (changed 2026-11-22).
 - **A cue whose text is deleted stays a cue line** (list open, capitals),
   and a name pasted there is put in capitals.
 - **An empty line after a speech is the next cue's line only when nothing

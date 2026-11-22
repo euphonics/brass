@@ -24,7 +24,8 @@ project follows
 ### Added (wish list, 2026-11-22)
 
 - Character extension suggestions include the extensions the script already
-  uses, most used first.
+  uses, after the standard ones. Setting **Your extensions first** (off by
+  default) puts them first.
 - Setting **Line comment color** (color picker). Line comments are now the
   theme's muted text color instead of 45% opacity, so they're easier to read.
 - `npm run install-notes` installs a tested build into the Notes vault.

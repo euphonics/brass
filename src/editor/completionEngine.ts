@@ -89,6 +89,8 @@ export interface CompletionPreferences {
    * the characters, like Final Draft's SmartType. Default off.
    */
   namesInAction?: boolean;
+  /** Character extensions the script uses come before the standard ones. */
+  customExtensionsFirst?: boolean;
   /** Slug modifiers offered after the time of day. */
   preferredSlugModifiers?: readonly string[];
   /**
@@ -153,11 +155,15 @@ function lineContext(
 }
 
 /**
- * Character extensions to suggest: the ones the script already uses, most
- * used first (so "(UNINTELLIGIBLE)" comes back once it's been typed), then
- * the common ones it hasn't used. Scribidian never suggests (CONT'D).
+ * Character extensions to suggest: the standard ones, then the others the
+ * script already uses, most used first (so "(UNINTELLIGIBLE)" comes back
+ * once it's been typed). With `customFirst`, the script's own extensions
+ * come first instead. (CONT'D) is never suggested.
  */
-export function characterExtensionChoices(source: string): string[] {
+export function characterExtensionChoices(
+  source: string,
+  customFirst = false,
+): string[] {
   const counts = new Map<string, number>();
   for (const element of parseFountain(source).elements) {
     if (element.type !== "character" || !element.characterExtension) continue;
@@ -167,13 +173,13 @@ export function characterExtensionChoices(source: string): string[] {
       counts.set(extension, (counts.get(extension) ?? 0) + 1);
     }
   }
-  const used = [...counts.entries()]
+  const custom = [...counts.entries()]
+    .filter(([extension]) => !CHARACTER_EXTENSIONS.includes(extension))
     .sort((a, b) => b[1] - a[1])
     .map(([extension]) => extension);
-  return [
-    ...used,
-    ...CHARACTER_EXTENSIONS.filter((extension) => !counts.has(extension)),
-  ];
+  return customFirst
+    ? [...custom, ...CHARACTER_EXTENSIONS]
+    : [...CHARACTER_EXTENSIONS, ...custom];
 }
 
 function extensionPlan(
@@ -183,6 +189,7 @@ function extensionPlan(
   cursorOffset: number,
   characters: readonly string[],
   startsBlock: boolean,
+  customFirst = false,
 ): ScreenplayCompletionPlan | null {
   // "JEN (" or "JEN(" both open the list.
   const match = /^(.+?)(\s*)\(([^)]*)$/u.exec(before);
@@ -203,7 +210,7 @@ function extensionPlan(
   const openParenthesis = before.lastIndexOf("(");
   // "JEN(" gets its space back: "JEN (V.O.)".
   const space = match[2] ? "" : " ";
-  const candidates = characterExtensionChoices(source)
+  const candidates = characterExtensionChoices(source, customFirst)
     .filter((extension) =>
       extension.slice(1).toLocaleUpperCase().startsWith(query),
     )
@@ -711,6 +718,7 @@ export function getScreenplayCompletionPlan(
     cursorOffset,
     characterNames,
     from === 0 || previousLine.trim() === "",
+    preferences.customExtensionsFirst === true,
   );
   if (extensions) return extensions;
 

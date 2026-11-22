@@ -406,21 +406,22 @@ export function createScreenplayCompletionExtension(
         from: extensionAt,
         to: extensionAt,
         filter: false,
-        options: characterExtensionChoices(context.state.doc.toString()).map(
-          (extension) => {
-            const candidate = {
-              label: extension,
-              applyText: `${space}${extension}`,
-              detail: "Character extension",
-            };
-            return {
-              label: extension,
-              detail: candidate.detail,
-              apply: (view, completion, from, to) =>
-                applyCandidate(view, completion, from, to, candidate),
-            };
-          },
-        ),
+        options: characterExtensionChoices(
+          context.state.doc.toString(),
+          plugin.settings.customExtensionsFirst,
+        ).map((extension) => {
+          const candidate = {
+            label: extension,
+            applyText: `${space}${extension}`,
+            detail: "Character extension",
+          };
+          return {
+            label: extension,
+            detail: candidate.detail,
+            apply: (view, completion, from, to) =>
+              applyCandidate(view, completion, from, to, candidate),
+          };
+        }),
       };
     }
 

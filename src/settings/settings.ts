@@ -142,6 +142,8 @@ export interface ScribidianSettings {
   sceneTypeMatchCase: boolean;
   characterMatchCase: boolean;
   namesInAction: boolean;
+  /** Extensions the script uses come before (V.O.), (O.S.) and the rest. */
+  customExtensionsFirst: boolean;
   /** Typed before a variable's name: "$" by default. */
   variablePrefix: string;
   /** Typed in action to list the characters: "+" by default. */
@@ -311,6 +313,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   sceneTypeMatchCase: false,
   characterMatchCase: true,
   namesInAction: true,
+  customExtensionsFirst: false,
   variablePrefix: "$",
   characterMentionPrefix: "+",
   recentItemsWeighting: 0.65,
@@ -599,6 +602,7 @@ const SETTING_GROUPS: {
       "sceneTypeMatchCase",
       "characterMatchCase",
       "namesInAction",
+      "customExtensionsFirst",
       "variablePrefix",
       "characterMentionPrefix",
     ],
@@ -1393,6 +1397,15 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Your extensions first",
+        desc: "Character extensions you've used in the script, like (UNINTELLIGIBLE), are always suggested. On: they come before (V.O.), (O.S.), (ON RADIO) and (ON PHONE). Off: after them.",
+        control: {
+          type: "toggle",
+          key: "customExtensionsFirst",
+          defaultValue: DEFAULT_SETTINGS.customExtensionsFirst,
+        },
+      },
+      {
         name: "Variable character",
         desc: "Typed before a variable's name ($ in $killer_name): the name is colored, and typing the character lists the note's other variables. One symbol, not one Fountain or Markdown already uses (such as @ ! # . > ~ = * _). Variables written with the old character stop being colored.",
         control: {
@@ -1834,6 +1847,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "backspaceEmptyCueToAction":
       case "enterAfterCueMovesDown":
       case "pdfContinued":
+      case "customExtensionsFirst":
       case "tabAtDialogueStartAddsWryly":
         this.plugin.settings[key] = value;
     }
