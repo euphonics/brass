@@ -42,5 +42,6 @@ export async function previewScreenplay(
     title,
     () => exportPdf(plugin, view),
     plugin.settings.pdfBold,
+    plugin.settings.pdfContinued,
   ).open();
 }

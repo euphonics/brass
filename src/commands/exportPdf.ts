@@ -72,6 +72,7 @@ export async function exportPdf(
       pageSize: plugin.settings.pageSize,
       title,
       bold: plugin.settings.pdfBold,
+      continued: plugin.settings.pdfContinued,
     });
     const buffer = content.buffer.slice(
       content.byteOffset,

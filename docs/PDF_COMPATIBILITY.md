@@ -43,7 +43,8 @@ never changed.
 The PDF is for reading and review. It isn't locked production pagination and
 may not match Final Draft page for page. These aren't handled yet:
 
-- Scene numbers, revision colors and locked pages.
+- Adding scene numbers (ones you write print), revision colors and locked
+  pages.
 
 For a production PDF, export Fountain or Final Draft and make the PDF in
 Final Draft, Fade In or another screenplay app.
@@ -66,9 +67,24 @@ A character's cue, wrylies and dialogue are kept together as one speech. A
 speech that doesn't fit at the bottom of a page is split at the end of a
 sentence when at least two lines of dialogue fit on each page, as Fade In
 does: the page ends with `(MORE)` under the speech, and the next page repeats
-the cue as written. Otherwise the speech moves to the next page whole. A
-wryly always stays with the dialogue after it, and a scene heading stays with
-what follows it. The preview uses the same rules.
+the cue. Otherwise the speech moves to the next page whole. A wryly always
+stays with the dialogue after it.
+
+**(CONT'D)** (setting **Add (CONT'D) to continued dialogue**, on by
+default): the cue on the next page of a split speech, and the cue of a
+character who speaks again after action in the same scene (the same cue,
+extension included), get `(CONT'D)`, as Final Draft and Fade In print it.
+Only the PDF and the preview show it; your Fountain text never changes.
+
+## Page breaks and other rules
+
+- A scene heading stays with what follows it, a page never starts with a
+  transition, and an action paragraph split across pages leaves at least two
+  lines on each page.
+- `===` on its own line starts a new page.
+- Scene numbers (`INT. HOUSE - DAY #1A#`) print in both margins beside the
+  heading, not in it.
+- Lyrics (`~`) print in italics.
 
 ## Paragraphs and dual dialogue
 

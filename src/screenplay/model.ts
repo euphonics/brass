@@ -33,6 +33,8 @@ export interface ScreenplayElement {
   characterExtension?: string;
   /** A cue ending in "^": this speech sits beside the one before it. */
   dual?: boolean;
+  /** A "===" line came before it: it starts a new page. */
+  pageBreakBefore?: boolean;
 }
 
 export interface ScreenplayDocument {

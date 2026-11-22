@@ -173,6 +173,8 @@ export interface ScribidianSettings {
   markCapitalsAsAction: boolean;
   /** PDF export (and the page preview): which parts print in bold. */
   pdfBold: PdfBoldOptions;
+  /** PDF export and preview: (CONT'D) for a speaker who continues. */
+  pdfContinued: boolean;
   /** Color of line comments ("// note") in the editor; "" for the theme's. */
   lineCommentColor: string;
 }
@@ -332,6 +334,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   characterTemplate: "",
   cleanExport: { ...DEFAULT_CLEAN_EXPORT_OPTIONS },
   pdfBold: { ...DEFAULT_PDF_BOLD },
+  pdfContinued: true,
   lineCommentColor: "",
   markCapitalsAsAction: true,
 };
@@ -1555,15 +1558,26 @@ export class ScribidianSettingTab extends PluginSettingTab {
       {
         type: "group",
         heading: "PDF export",
-        items: PDF_BOLD_SETTINGS.map(({ part, name, desc }) => ({
-          name,
-          desc,
-          control: {
-            type: "toggle" as const,
-            key: `${PDF_BOLD_PREFIX}${part}`,
-            defaultValue: DEFAULT_PDF_BOLD[part],
+        items: [
+          {
+            name: "Add (CONT'D) to continued dialogue",
+            desc: "In the PDF and the page preview only: when a character speaks again after action in the same scene, or a speech goes on to the next page, the cue gets (CONT'D), as Final Draft and Fade In print it. Your Fountain text is never changed.",
+            control: {
+              type: "toggle" as const,
+              key: "pdfContinued",
+              defaultValue: DEFAULT_SETTINGS.pdfContinued,
+            },
           },
-        })),
+          ...PDF_BOLD_SETTINGS.map(({ part, name, desc }) => ({
+            name,
+            desc,
+            control: {
+              type: "toggle" as const,
+              key: `${PDF_BOLD_PREFIX}${part}`,
+              defaultValue: DEFAULT_PDF_BOLD[part],
+            },
+          })),
+        ],
       },
       {
         type: "group",
@@ -1819,6 +1833,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "showCurrentElement":
       case "backspaceEmptyCueToAction":
       case "enterAfterCueMovesDown":
+      case "pdfContinued":
       case "tabAtDialogueStartAddsWryly":
         this.plugin.settings[key] = value;
     }

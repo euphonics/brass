@@ -30,6 +30,8 @@ export interface PdfExportOptions {
   title: string;
   /** Which parts print in bold; missing parts use the defaults. */
   bold?: Partial<PdfBoldOptions>;
+  /** Print (CONT'D) for a speaker who continues (the page only). */
+  continued?: boolean;
 }
 
 export class UnsupportedPdfTextError extends Error {
@@ -85,7 +87,13 @@ export async function serializePdf(
       : style.italic
         ? fonts.italic
         : regular;
-  const layout = layoutScreenplay(document, options.pageSize);
+  const layout = layoutScreenplay(
+    document,
+    options.pageSize,
+    undefined,
+    undefined,
+    { continued: options.continued === true },
+  );
   const boldParts = normalizePdfBold(options.bold);
   // Each block's lines as styled runs: emphasis marks, and the bold
   // setting for the block's part.
@@ -93,7 +101,12 @@ export async function serializePdf(
     const blockBold = boldParts[boldPartOf(block)];
     return emphasisRuns(block.lines).map((runs) =>
       runs.map((run) => {
-        const style = { ...run, bold: run.bold || blockBold };
+        const style = {
+          ...run,
+          bold: run.bold || blockBold,
+          // Lyrics print in italics, as Fountain apps show them.
+          italic: run.italic || block.type === "lyric",
+        };
         return { ...style, font: fontFor(style) };
       }),
     );

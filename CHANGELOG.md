@@ -7,6 +7,20 @@ project follows
 
 ## [Unreleased]
 
+### Added (PDF, 2026-11-22)
+
+- Setting **Add (CONT'D) to continued dialogue** (on by default): the PDF
+  and preview print `(CONT'D)` for a character who speaks again after action
+  in the same scene, and on the next page of a split speech. Your Fountain
+  text never changes.
+- Scene numbers (`#1A#`) print in both margins; `===` starts a new page;
+  lyrics print in italics; Source is centered on the title page.
+
+### Fixed (PDF, 2026-11-22)
+
+- A page could start with a transition, or keep a single line of a split
+  action paragraph.
+
 ### Added (wish list, 2026-11-22)
 
 - Character extension suggestions include the extensions the script already

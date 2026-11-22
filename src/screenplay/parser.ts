@@ -45,6 +45,8 @@ export function parseFountain(source: string): ScreenplayDocument {
   const kinds = classifyLines(lines, { frontmatter: false });
   const elements: ScreenplayElement[] = [];
   let blankLines = 0;
+  // A "===" line: the next printed element starts a new page.
+  let pageBreak = false;
 
   for (let index = 0; index < lines.length; index += 1) {
     // Line comments ("// note") aren't part of the script.
@@ -60,7 +62,12 @@ export function parseFountain(source: string): ScreenplayDocument {
     }
     // Notes, comments, synopses and page breaks aren't printed or counted. A
     // line of spaces inside a speech only keeps the speech going.
-    if (kind === "note" || kind === "page-break" || text === "") continue;
+    if (kind === "page-break") {
+      pageBreak = true;
+      continue;
+    }
+    if (kind === "note" || text === "") continue;
+    const before = elements.length;
 
     switch (kind) {
       case "character": {
@@ -85,6 +92,11 @@ export function parseFountain(source: string): ScreenplayDocument {
         break;
       default:
         elements.push({ type: kind, text, line });
+    }
+    if (pageBreak && elements.length > before) {
+      const added = elements[elements.length - 1];
+      if (added) added.pageBreakBefore = true;
+      pageBreak = false;
     }
   }
 

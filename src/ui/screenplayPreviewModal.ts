@@ -38,6 +38,7 @@ export class ScreenplayPreviewModal extends Modal {
     private readonly screenplayTitle: string,
     private readonly exportPdf: () => Promise<void>,
     private readonly bold: PdfBoldOptions,
+    private readonly continued: boolean,
   ) {
     super(app);
   }
@@ -77,6 +78,7 @@ export class ScreenplayPreviewModal extends Modal {
               )
           : undefined,
         cjk ? CJK_LINE_HEIGHT : undefined,
+        { continued: this.continued },
       );
     } catch (error) {
       if (!(error instanceof ScreenplayLayoutError)) throw error;

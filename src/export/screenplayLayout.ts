@@ -76,6 +76,8 @@ export function hasCjkText(text: string): boolean {
 }
 const TOP_MARGIN = 72;
 const BOTTOM_MARGIN = 72;
+/** A scene number at the end of a heading: "INT. HOUSE - DAY #1A#". */
+const SCENE_NUMBER = /\s*#([\p{L}\p{N}.-]+)#\s*$/u;
 
 /** Width of one Courier character at 12 points. */
 const CHARACTER_WIDTH = 7.2;
@@ -199,16 +201,37 @@ function minimumFollowingHeight(
   ) {
     return lineHeight;
   }
+  // A page never starts with a transition: keep room for it here.
+  if (next.type === "transition" && current.type !== "transition") {
+    return styleFor("transition", pageWidth).gapBefore + lineHeight;
+  }
   return 0;
 }
+
+export interface LayoutOptions {
+  /**
+   * Print (CONT'D) after a cue when the same character speaks again after
+   * action in the scene, or when a speech goes on to the next page. Only
+   * the printed page gets it: the Fountain text never changes.
+   */
+  continued?: boolean;
+}
+
+/** A cue that already says (CONT'D). */
+const CONTINUED = /\(CONT['’]D\)/iu;
 
 export function layoutScreenplay(
   document: ScreenplayDocument,
   pageSize: PageSize,
   measure?: (text: string, type: ScreenplayElementType) => number,
   lineHeight = LINE_HEIGHT,
+  options: LayoutOptions = {},
 ): ScreenplayLayout {
   const dimensions = PAGE_DIMENSIONS[pageSize];
+  // The speaker of the last speech in this scene, for (CONT'D).
+  let lastSpeaker: string | null = null;
+  const withContinued = (cue: string): string =>
+    CONTINUED.test(cue) ? cue : `${cue} (CONT'D)`;
   const pages: ScreenplayLayoutPage[] = [{ blocks: [] }];
   let page = pages[0];
   let cursor = TOP_MARGIN;
@@ -435,6 +458,7 @@ export function layoutScreenplay(
       { value: metadata.title, role: "title" as const, after: 24 },
       { value: metadata.credit, role: "title-details" as const, after: 12 },
       { value: metadata.author, role: "title-details" as const, after: 24 },
+      { value: metadata.source, role: "title-details" as const, after: 24 },
     ].filter((item): item is typeof item & { value: string } =>
       Boolean(item.value),
     );
@@ -453,11 +477,9 @@ export function layoutScreenplay(
       });
       cursor += lines.length * lineHeight + after;
     }
-    const lower = [
-      metadata.source,
-      metadata.draftDate,
-      metadata.contact,
-    ].filter((value): value is string => Boolean(value));
+    const lower = [metadata.draftDate, metadata.contact].filter(
+      (value): value is string => Boolean(value),
+    );
     const lowerLines = lower.map((value) => titleLines(value, "action"));
     const lowerHeight = lowerLines.reduce(
       (sum, lines) => sum + lines.length * lineHeight + 12,
@@ -487,6 +509,10 @@ export function layoutScreenplay(
   for (let index = 0; index < document.elements.length; index += 1) {
     const element = document.elements[index];
     if (!element) continue;
+    if (element.type === "scene-heading") lastSpeaker = null;
+    // "===" in Fountain: start a new page.
+    if (element.pageBreakBefore && page.blocks.length > 0 && !page.titlePage)
+      addPage();
     if (
       element.type === "character" &&
       document.elements[index + 1]?.type &&
@@ -523,15 +549,28 @@ export function layoutScreenplay(
           [element, ...speech],
           document.elements.slice(end, partnerEnd),
         );
+        lastSpeaker = null;
         index = partnerEnd - 1;
         continue;
       }
       if (speech.some((part) => part.type === "dialogue")) {
-        const cue = markEmphasis(screenplayElementText(element));
+        // The same cue, extension included, as Fade In compares it: "NURSE
+        // (O.C.)" then "NURSE" is not a continuation.
+        const speaker = screenplayElementText(element)
+          .toLocaleUpperCase()
+          .replace(/\s+/gu, " ");
+        const written = markEmphasis(screenplayElementText(element));
+        const cue =
+          options.continued && lastSpeaker === speaker
+            ? withContinued(written)
+            : written;
+        lastSpeaker = speaker;
         const firstCue = wrap(cue, "character");
-        // A speech split across pages repeats its cue as written: Scribidian
-        // never adds a continuation marker to it.
-        const continued = firstCue;
+        // A speech split across pages repeats its cue on the next page, with
+        // (CONT'D) when that setting is on.
+        const continued = options.continued
+          ? wrap(withContinued(written), "character")
+          : firstCue;
         // Each parenthetical is atomic and tied to the first following dialogue line.
         const units: { type: ScreenplayElementType; lines: string[] }[][] = [];
         let pending: { type: ScreenplayElementType; lines: string[] }[] = [];
@@ -561,7 +600,12 @@ export function layoutScreenplay(
         let gap = page.blocks.length ? 12 : 0;
         if (
           total <= capacity &&
-          cursor + gap + total * lineHeight > dimensions.height - BOTTOM_MARGIN
+          cursor +
+            gap +
+            // A transition right after keeps its blank line and line here.
+            (total + (document.elements[end]?.type === "transition" ? 2 : 0)) *
+              lineHeight >
+            dimensions.height - BOTTOM_MARGIN
         ) {
           // As in Fade In: split the speech at the end of a sentence, with
           // (MORE) below and the cue again on the next page, when at least
@@ -647,9 +691,18 @@ export function layoutScreenplay(
         group.push(next);
       index += group.length - 1;
     }
-    const segments = markEmphasis(
-      group.map((part) => screenplayElementText(part)).join("\n"),
-    ).split("\n");
+    // A scene number ("INT. HOUSE - DAY #1A#") prints in both margins, not
+    // in the heading.
+    let sceneNumber: string | null = null;
+    const texts = group.map((part) => {
+      const text = screenplayElementText(part);
+      if (part.type !== "scene-heading") return text;
+      const match = SCENE_NUMBER.exec(text);
+      if (!match) return text;
+      sceneNumber = match[1] ?? null;
+      return text.slice(0, match.index);
+    });
+    const segments = markEmphasis(texts.join("\n")).split("\n");
     let lines = segments.flatMap((text) => {
       // Action keeps the spaces it starts with ("    Scott --"), on every
       // wrapped line, as Fountain says. Tabs aren't indentation here.
@@ -691,10 +744,24 @@ export function layoutScreenplay(
 
     while (lines.length > 0) {
       const top = cursor + gap;
-      const availableLines = Math.max(
+      let availableLines = Math.max(
         1,
         Math.floor((dimensions.height - BOTTOM_MARGIN - top) / lineHeight),
       );
+      // An action paragraph split across pages keeps at least two lines on
+      // each page (widow and orphan control), or moves to the next page.
+      if (
+        element.type === "action" &&
+        lines.length > availableLines &&
+        page.blocks.length > 0
+      ) {
+        availableLines = Math.min(availableLines, lines.length - 2);
+        if (availableLines < 2) {
+          addPage();
+          gap = 0;
+          continue;
+        }
+      }
       const pageLines = lines.slice(0, availableLines);
       page.blocks.push({
         type: element.type,
@@ -704,6 +771,23 @@ export function layoutScreenplay(
         width: dimensions.width - style.left - style.right,
         align: style.align,
       });
+      if (sceneNumber !== null) {
+        const number: string = sceneNumber;
+        const width = number.length * CHARACTER_WIDTH;
+        for (const left of [
+          TEXT_LEFT - 2 * CHARACTER_WIDTH - width,
+          TEXT_RIGHT + 2 * CHARACTER_WIDTH,
+        ])
+          page.blocks.push({
+            type: "scene-heading",
+            lines: [number],
+            left,
+            top,
+            width,
+            align: "left",
+          });
+        sceneNumber = null;
+      }
       cursor = top + pageLines.length * lineHeight;
       lines = lines.slice(availableLines);
       gap = 0;
