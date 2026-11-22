@@ -29,6 +29,8 @@ export interface ScreenplayPageDimensions {
 
 export interface ScreenplayLayoutBlock {
   type: ScreenplayElementType;
+  /** Title page text: the title, or the details (credit, author, ...). */
+  role?: "title" | "title-details";
   lines: string[];
   left: number;
   top: number;
@@ -282,6 +284,7 @@ export function layoutScreenplay(
       const lines = titleLines(value, type);
       page.blocks.push({
         type,
+        role: index === 0 ? "title" : "title-details",
         lines,
         left: 72,
         top: cursor,
@@ -309,6 +312,7 @@ export function layoutScreenplay(
     for (const lines of lowerLines) {
       page.blocks.push({
         type: "action",
+        role: "title-details",
         lines,
         left: 72,
         top: cursor,

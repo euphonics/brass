@@ -41,5 +41,6 @@ export async function previewScreenplay(
     plugin.settings.pageSize,
     title,
     () => exportPdf(plugin, view),
+    plugin.settings.pdfBold,
   ).open();
 }

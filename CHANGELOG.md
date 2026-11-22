@@ -7,6 +7,14 @@ project follows
 
 ## [Unreleased]
 
+### Added
+
+- **Settings → PDF export**: a bold toggle for each part of the printed
+  page (sluglines, action, character names, dialogue, wrylies, transitions,
+  centered text, lyrics, title, title page details, page numbers). Only
+  sluglines are bold by default; character names and the title page title,
+  bold before, now aren't. The preview follows the same settings.
+
 ## [0.1.1] - 2026-11-22
 
 Scribidian changes since 0.1.0.

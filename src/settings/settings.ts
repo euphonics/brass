@@ -65,6 +65,12 @@ import {
 import { coreTemplatesFolder, isTemplateCandidate } from "../characters/vault";
 import type { PageSize } from "../screenplay/model";
 import {
+  DEFAULT_PDF_BOLD,
+  normalizePdfBold,
+  PDF_BOLD_SETTINGS,
+} from "../export/pdfStyle";
+import type { PdfBoldOptions, PdfBoldPart } from "../export/pdfStyle";
+import {
   DEFAULT_SLUG_MODIFIERS,
   DEFAULT_SCENE_TYPES,
   DEFAULT_TIMES_OF_DAY,
@@ -165,6 +171,8 @@ export interface ScribidianSettings {
   cleanExport: CleanExportOptions;
   /** Fountain export: "!" in front of capitals Scribidian reads as action. */
   markCapitalsAsAction: boolean;
+  /** PDF export (and the page preview): which parts print in bold. */
+  pdfBold: PdfBoldOptions;
 }
 
 /** Clean Fountain export toggles, in the order shown in settings. */
@@ -256,6 +264,7 @@ const CLEAN_EXPORT_SETTINGS: {
 ];
 
 const CLEAN_EXPORT_PREFIX = "cleanExport.";
+const PDF_BOLD_PREFIX = "pdfBold.";
 
 export const DEFAULT_SETTINGS: ScribidianSettings = {
   activateFountainFiles: true,
@@ -320,6 +329,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   characterFolder: "Characters",
   characterTemplate: "",
   cleanExport: { ...DEFAULT_CLEAN_EXPORT_OPTIONS },
+  pdfBold: { ...DEFAULT_PDF_BOLD },
   markCapitalsAsAction: true,
 };
 
@@ -365,6 +375,7 @@ export function migrateSettings(
     ...(rest as Partial<ScribidianSettings>),
   };
   settings.enterTargets = normalizeEnterTargets(rest.enterTargets);
+  settings.pdfBold = normalizePdfBold(rest.pdfBold);
   settings.tabTargets = normalizeEnterTargets(
     rest.tabTargets,
     DEFAULT_TAB_TARGETS,
@@ -1530,6 +1541,19 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         type: "group",
+        heading: "PDF export",
+        items: PDF_BOLD_SETTINGS.map(({ part, name, desc }) => ({
+          name,
+          desc,
+          control: {
+            type: "toggle" as const,
+            key: `${PDF_BOLD_PREFIX}${part}`,
+            defaultValue: DEFAULT_PDF_BOLD[part],
+          },
+        })),
+      },
+      {
+        type: "group",
         heading: "Fountain export",
         items: [
           {
@@ -1610,6 +1634,11 @@ export class ScribidianSettingTab extends PluginSettingTab {
   }
 
   getControlValue(key: string): unknown {
+    if (key.startsWith(PDF_BOLD_PREFIX)) {
+      const part = key.slice(PDF_BOLD_PREFIX.length);
+      const options = normalizePdfBold(this.plugin.settings.pdfBold);
+      return part in options ? options[part as PdfBoldPart] : undefined;
+    }
     if (key.startsWith(CLEAN_EXPORT_PREFIX)) {
       const option = key.slice(CLEAN_EXPORT_PREFIX.length);
       const options = normalizeCleanExportOptions(
@@ -1625,6 +1654,16 @@ export class ScribidianSettingTab extends PluginSettingTab {
   }
 
   async setControlValue(key: string, value: unknown): Promise<void> {
+    if (key.startsWith(PDF_BOLD_PREFIX)) {
+      const part = key.slice(PDF_BOLD_PREFIX.length);
+      if (!(part in DEFAULT_PDF_BOLD) || typeof value !== "boolean") return;
+      this.plugin.settings.pdfBold = {
+        ...normalizePdfBold(this.plugin.settings.pdfBold),
+        [part]: value,
+      };
+      await this.plugin.saveSettings();
+      return;
+    }
     if (key.startsWith(CLEAN_EXPORT_PREFIX)) {
       const option = key.slice(CLEAN_EXPORT_PREFIX.length);
       if (!(option in DEFAULT_CLEAN_EXPORT_OPTIONS)) return;

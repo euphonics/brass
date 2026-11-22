@@ -71,6 +71,7 @@ export async function exportPdf(
     const content = await pdf.serializePdf(document, {
       pageSize: plugin.settings.pageSize,
       title,
+      bold: plugin.settings.pdfBold,
     });
     const buffer = content.buffer.slice(
       content.byteOffset,

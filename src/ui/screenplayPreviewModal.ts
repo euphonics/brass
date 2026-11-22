@@ -25,6 +25,8 @@ import {
   screenplayElementText,
   ScreenplayLayoutError,
 } from "../export/screenplayLayout";
+import { boldPartOf, normalizePdfBold } from "../export/pdfStyle";
+import type { PdfBoldOptions } from "../export/pdfStyle";
 
 export class ScreenplayPreviewModal extends Modal {
   constructor(
@@ -33,6 +35,7 @@ export class ScreenplayPreviewModal extends Modal {
     private readonly pageSize: PageSize,
     private readonly screenplayTitle: string,
     private readonly exportPdf: () => Promise<void>,
+    private readonly bold: PdfBoldOptions,
   ) {
     super(app);
   }
@@ -78,6 +81,7 @@ export class ScreenplayPreviewModal extends Modal {
       this.contentEl.createEl("p", { text: error.message });
       return;
     }
+    const boldParts = normalizePdfBold(this.bold);
     const pages = this.contentEl.createDiv({
       cls: "scribidian-preview-pages",
     });
@@ -93,13 +97,17 @@ export class ScreenplayPreviewModal extends Modal {
         element.style.top = `${(block.top / layout.dimensions.height) * 100}%`;
         element.style.width = `${(block.width / layout.dimensions.width) * 100}%`;
         element.style.textAlign = block.align;
+        // Bold follows the PDF export settings, so the preview matches.
+        element.style.fontWeight = boldParts[boldPartOf(block)] ? "700" : "400";
         element.style.lineHeight = String(layout.lineHeight / layout.fontSize);
       }
-      if (!layoutPage.titlePage)
-        page.createDiv({
+      if (!layoutPage.titlePage) {
+        const number = page.createDiv({
           cls: "scribidian-preview-page-number",
           text: String(pageIndex + 1 - (this.screenplay.titlePage ? 1 : 0)),
         });
+        number.style.fontWeight = boldParts["page-number"] ? "700" : "400";
+      }
     }
   }
 

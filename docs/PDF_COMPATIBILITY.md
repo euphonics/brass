@@ -16,6 +16,11 @@ left out; links keep their words. Changing those settings changes the PDF too.
 - US Letter or A4, from **Settings → Scribidian → Page size**.
 - 12-point Courier Prime, standard screenplay margins, line wrapping, page
   breaks and page numbers.
+- Bold where you want it: **Settings → Scribidian → PDF export** has a
+  toggle for each part (sluglines, action, character names, dialogue,
+  wrylies, transitions, centered text, lyrics, the title, the title page
+  details and page numbers). Only sluglines are bold by default. The preview
+  follows the same settings.
 - A title page when the screenplay (or project) has title properties; see
   [Title pages](../README.md#title-pages).
 - A project's parts in the order of the project note's `parts` list.

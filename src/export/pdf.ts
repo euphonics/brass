@@ -19,10 +19,14 @@ import { PDFDocument, rgb } from "pdf-lib";
 import type { PageSize, ScreenplayDocument } from "../screenplay/model";
 import { layoutScreenplay } from "./screenplayLayout";
 import { embedScreenplayFonts } from "./pdfFonts";
+import { boldPartOf, normalizePdfBold } from "./pdfStyle";
+import type { PdfBoldOptions } from "./pdfStyle";
 
 export interface PdfExportOptions {
   pageSize: PageSize;
   title: string;
+  /** Which parts print in bold; missing parts use the defaults. */
+  bold?: Partial<PdfBoldOptions>;
 }
 
 export class UnsupportedPdfTextError extends Error {
@@ -59,16 +63,16 @@ export async function serializePdf(
   const regularCharacters = new Set(regular.getCharacterSet());
   const boldCharacters = new Set(bold.getCharacterSet());
   const layout = layoutScreenplay(document, options.pageSize);
+  const boldParts = normalizePdfBold(options.bold);
 
   // Validate precisely the text and fonts used below, before drawing or saving.
   const unsupported = new Set<string>();
   let truncated = false;
   for (const layoutPage of layout.pages) {
     for (const block of layoutPage.blocks) {
-      const characters =
-        block.type === "scene-heading" || block.type === "character"
-          ? boldCharacters
-          : regularCharacters;
+      const characters = boldParts[boldPartOf(block)]
+        ? boldCharacters
+        : regularCharacters;
       for (const line of block.lines) {
         for (const character of line) {
           if (!characters.has(character.codePointAt(0) ?? -1)) {
@@ -90,10 +94,7 @@ export async function serializePdf(
       layout.dimensions.height,
     ]);
     for (const block of layoutPage.blocks) {
-      const font =
-        block.type === "scene-heading" || block.type === "character"
-          ? bold
-          : regular;
+      const font = boldParts[boldPartOf(block)] ? bold : regular;
       for (const [lineIndex, rawLine] of block.lines.entries()) {
         const text = rawLine;
         const textWidth = font.widthOfTextAtSize(text, layout.fontSize);
@@ -120,12 +121,13 @@ export async function serializePdf(
 
     if (layoutPage.titlePage) continue;
     const pageNumber = String(pageIndex + 1 - (document.titlePage ? 1 : 0));
-    const numberWidth = regular.widthOfTextAtSize(pageNumber, 10);
+    const numberFont = boldParts["page-number"] ? bold : regular;
+    const numberWidth = numberFont.widthOfTextAtSize(pageNumber, 10);
     page.drawText(pageNumber, {
       x: layout.dimensions.width - 72 - numberWidth,
       y: 30,
       size: 10,
-      font: regular,
+      font: numberFont,
       color: rgb(0.25, 0.25, 0.25),
     });
   }
