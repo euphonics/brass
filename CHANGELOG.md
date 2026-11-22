@@ -7,10 +7,27 @@ project follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-22
+
 Scribidian changes since 0.1.0.
 
 ### Added
 
+- Setting **Capitalize the first letter of each sentence** (on in script
+  mode, off in plain): the first letter after `.`, `!` or `?` and a space
+  goes into capitals as you type. Not after an ellipsis, an abbreviation
+  (`Mr.`, `Dr.`) or a single initial.
+- Slugline suggestions remember each location's last time of day: the
+  location list shows `KITCHEN - NIGHT`, and the times list puts NIGHT
+  first.
+- Suggestions settings **Offer full slugs** (off by default) and **Order of
+  slug suggestions** (drag to reorder): with full slugs on, each location
+  also offers its last whole slug (`KITCHEN - NIGHT (FLASHBACK)`), filled
+  in at once.
+- Setting **Enter at the end of a character moves to the dialogue** (on by
+  default): strict, with the speech already below, Enter moves the cursor
+  down. Off: Enter adds an empty dialogue line under the character, as in
+  Fade In.
 - PDF export is back: **Screenplay: Export PDF**, or **Export PDF** in the
   preview. It uses Courier Prime, built into the plugin, and prints what
   clean Fountain export holds, so notes, tasks, callouts and other Obsidian
@@ -28,7 +45,7 @@ Scribidian changes since 0.1.0.
 - Typing `$` lists the note's other `$` variables, most used first.
 - `$` variables keep apostrophes inside the name (`$jen's_car`), so the
   color no longer stops at the `'`.
-- Setting **Suggest character names in action** (off by default): a name
+- Setting **Suggest character names in action** (on by default): a name
   typed in capitals inside an action line (`She sees JE`) lists the
   characters, like Final Draft's SmartType.
 - Strict: Enter at the end of a wryly with dialogue below moves the cursor
@@ -148,18 +165,13 @@ Scribidian changes since 0.1.0.
 - README tips on themes, other plugins and Fountain rules; a rewritten mobile
   testing guide; a roadmap with possible issues and a human test checklist.
 
-### Removed
-
-- PDF export, the "Install offline CJK PDF fonts" command and the PDF
-  language setting. Export Fountain (or FDX), import it into Final Draft, Fade
-  In or another screenplay app for last looks, and make the PDF there. The
-  plugin drops from 3.6 MB to about 0.17 MB and starts faster, mostly on
-  phones. The preview's button now exports Fountain. A CJK font pack
-  installed earlier can be deleted: the `fonts` folder inside
-  `.obsidian/plugins/scribidian/`.
-
 ### Changed
 
+- Clean Fountain export removes tags by default, so it takes out all
+  Obsidian markup unless you turn a part of it off.
+- The status bar's page count, runtime, words and scenes count only what
+  clean export keeps: notes, tasks, callouts and embeds add no pages.
+- The README opening is rewritten for screenwriters.
 - Script mode: Enter in an empty `()` with the wryly list open picks the
   highlighted wryly and goes on to the dialogue, instead of removing the
   `()`. With the list closed, Enter still removes it.
@@ -220,6 +232,12 @@ Scribidian changes since 0.1.0.
 
 ### Fixed
 
+- Enter with the cursor before the `)` of a character extension
+  (`BOB (V.O.|)`) did nothing; it now goes on to the dialogue line.
+- Strict: Enter at the start of an action paragraph with a blank line
+  above did nothing; the paragraph now moves down, as in Fade In.
+- Tab or Shift+Tab in an empty `()` under a character turns it into the
+  dialogue line, as in Fade In.
 - Two reloads of Scribidian at once (Hot Reload plus a manual reload) no
   longer leave a hidden second copy loaded, which made every later reload
   stop partway with missing commands and panels until Obsidian restarted.
