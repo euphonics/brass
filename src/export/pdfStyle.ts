@@ -91,7 +91,7 @@ export const PDF_BOLD_SETTINGS: {
   {
     part: "page-number",
     name: "Bold page numbers",
-    desc: "The number at the bottom right of each page.",
+    desc: "The number at the top right of each page.",
   },
 ];
 

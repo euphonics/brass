@@ -7,6 +7,18 @@ project follows
 
 ## [Unreleased]
 
+### Changed
+
+- PDF and preview layout now match Fade In: Final Draft margins (action at
+  1.5", dialogue 2.5", wrylies 2.9", character names 3.5", 1" bottom),
+  page numbers `2.` at the top right from the second script page, and a
+  title page placed like Fade In's. PDF metadata takes the title and author
+  from the title page.
+
+### Fixed
+
+- A scene heading could be left alone at the bottom of a PDF page.
+
 ### Added
 
 - **Settings → PDF export**: a bold toggle for each part of the printed

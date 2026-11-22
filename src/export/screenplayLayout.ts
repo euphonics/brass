@@ -74,77 +74,49 @@ export function hasCjkText(text: string): boolean {
   );
 }
 const TOP_MARGIN = 72;
-const BOTTOM_MARGIN = 60;
+const BOTTOM_MARGIN = 72;
+
+/** Width of one Courier character at 12 points. */
+const CHARACTER_WIDTH = 7.2;
+/** Left edge of action and sluglines: 1.5 inches, as in Final Draft and Fade In. */
+const TEXT_LEFT = 108;
+/** Right edge of action, sluglines and transitions: 60 characters on. */
+const TEXT_RIGHT = TEXT_LEFT + 60 * CHARACTER_WIDTH;
 
 function styleFor(
   type: ScreenplayElementType,
   pageWidth: number,
 ): ElementStyle {
+  // Column positions match Final Draft and Fade In: dialogue at 2.5",
+  // wrylies at 2.9", character names at 3.5", from the page's left edge.
+  const column = (
+    left: number,
+    maximumCharacters: number,
+    gapBefore: number,
+    align: ElementStyle["align"] = "left",
+  ): ElementStyle => ({
+    left,
+    right: pageWidth - left - maximumCharacters * CHARACTER_WIDTH,
+    maximumCharacters,
+    gapBefore,
+    align,
+  });
   switch (type) {
     case "scene-heading":
-      return {
-        left: 90,
-        right: 72,
-        maximumCharacters: 60,
-        gapBefore: 24,
-        align: "left",
-      };
+      return column(TEXT_LEFT, 60, 24);
     case "character":
-      return {
-        left: pageWidth * 0.38,
-        right: pageWidth * 0.18,
-        maximumCharacters: 32,
-        gapBefore: 12,
-        align: "left",
-      };
+      return column(252, 32, 12);
     case "parenthetical":
-      return {
-        left: pageWidth * 0.31,
-        right: pageWidth * 0.27,
-        maximumCharacters: 25,
-        gapBefore: 0,
-        align: "left",
-      };
+      return column(208.8, 25, 0);
     case "dialogue":
-      return {
-        left: pageWidth * 0.24,
-        right: pageWidth * 0.24,
-        maximumCharacters: 35,
-        gapBefore: 0,
-        align: "left",
-      };
+      return column(180, 35, 0);
     case "transition":
-      return {
-        left: pageWidth * 0.48,
-        right: 72,
-        maximumCharacters: 32,
-        gapBefore: 12,
-        align: "right",
-      };
+      return column(TEXT_RIGHT - 32 * CHARACTER_WIDTH, 32, 12, "right");
     case "action":
-      return {
-        left: 90,
-        right: 72,
-        maximumCharacters: 60,
-        gapBefore: 12,
-        align: "left",
-      };
     case "lyric":
-      return {
-        left: 90,
-        right: 72,
-        maximumCharacters: 60,
-        gapBefore: 12,
-        align: "left",
-      };
+      return column(TEXT_LEFT, 60, 12);
     case "centered":
-      return {
-        left: 90,
-        right: 72,
-        maximumCharacters: 60,
-        gapBefore: 12,
-        align: "center",
-      };
+      return column(TEXT_LEFT, 60, 12, "center");
   }
 }
 
@@ -198,19 +170,33 @@ export function wrapScreenplayText(
   return lines;
 }
 
-function minimumFollowingLines(
+/**
+ * Height that must fit below an element on the same page: a scene heading
+ * keeps its blank line and the first line after it (a cue and one line of
+ * dialogue, for a speech), so it's never left alone at the bottom.
+ */
+function minimumFollowingHeight(
   elements: readonly ScreenplayElement[],
   index: number,
+  lineHeight: number,
+  pageWidth: number,
 ): number {
   const current = elements[index];
   const next = elements[index + 1];
   if (!current || !next) return 0;
-  if (current.type === "scene-heading") return 1;
+  if (current.type === "scene-heading") {
+    const lines =
+      next.type === "character" &&
+      ["dialogue", "parenthetical"].includes(elements[index + 2]?.type ?? "")
+        ? 2
+        : 1;
+    return styleFor(next.type, pageWidth).gapBefore + lines * lineHeight;
+  }
   if (
     current.type === "character" &&
     (next.type === "parenthetical" || next.type === "dialogue")
   ) {
-    return 1;
+    return lineHeight;
   }
   return 0;
 }
@@ -234,13 +220,23 @@ export function layoutScreenplay(
 
   const wrap = (text: string, type: ScreenplayElementType): string[] => {
     const style = styleFor(type, dimensions.width);
-    return measure
-      ? wrapMeasuredText(
-          text,
-          dimensions.width - style.left - style.right,
-          (line) => measure(line, type),
-        )
-      : wrapScreenplayText(text, style.maximumCharacters);
+    if (measure)
+      return wrapMeasuredText(
+        text,
+        dimensions.width - style.left - style.right,
+        (line) => measure(line, type),
+      );
+    const lines = wrapScreenplayText(text, style.maximumCharacters);
+    // A wryly's wrapped lines start one space in, under the text after
+    // its "(", as in Final Draft and Fade In.
+    if (type !== "parenthetical" || lines.length < 2) return lines;
+    const [first = "", ...rest] = lines;
+    return [
+      first,
+      ...wrapScreenplayText(rest.join(" "), style.maximumCharacters - 1).map(
+        (line) => ` ${line}`,
+      ),
+    ];
   };
   const append = (
     type: ScreenplayElementType,
@@ -267,31 +263,38 @@ export function layoutScreenplay(
         .split("\n")
         .flatMap((line) =>
           measure
-            ? wrapMeasuredText(line, dimensions.width - 144, (text) =>
+            ? wrapMeasuredText(line, TEXT_RIGHT - TEXT_LEFT, (text) =>
                 measure(text, type),
               )
             : wrapScreenplayText(
                 line,
-                Math.floor((dimensions.width - 144) / 7.2),
+                Math.floor((TEXT_RIGHT - TEXT_LEFT) / CHARACTER_WIDTH),
               ),
         );
-    const central = [metadata.title, metadata.credit, metadata.author].filter(
-      (value): value is string => Boolean(value),
+    // Placement follows Fade In: the title about 3.1" down, two blank
+    // lines after it, one between the credit and the author, all centered
+    // on the text column.
+    const central = [
+      { value: metadata.title, role: "title" as const, after: 24 },
+      { value: metadata.credit, role: "title-details" as const, after: 12 },
+      { value: metadata.author, role: "title-details" as const, after: 24 },
+    ].filter((item): item is typeof item & { value: string } =>
+      Boolean(item.value),
     );
-    cursor = dimensions.height * 0.32;
-    for (const [index, value] of central.entries()) {
-      const type = index === 0 ? "scene-heading" : "action";
+    cursor = dimensions.height * 0.2845;
+    for (const { value, role, after } of central) {
+      const type = role === "title" ? "scene-heading" : "action";
       const lines = titleLines(value, type);
       page.blocks.push({
         type,
-        role: index === 0 ? "title" : "title-details",
+        role,
         lines,
-        left: 72,
+        left: TEXT_LEFT,
         top: cursor,
-        width: dimensions.width - 144,
+        width: TEXT_RIGHT - TEXT_LEFT,
         align: "center",
       });
-      cursor += lines.length * lineHeight + 24;
+      cursor += lines.length * lineHeight + after;
     }
     const lower = [
       metadata.source,
@@ -303,7 +306,7 @@ export function layoutScreenplay(
       (sum, lines) => sum + lines.length * lineHeight + 12,
       0,
     );
-    const lowerTop = dimensions.height - 72 - lowerHeight;
+    const lowerTop = dimensions.height - 108 - lowerHeight;
     if (cursor > lowerTop - 24)
       throw new ScreenplayLayoutError(
         "Title-page metadata is too long for one page. Shorten the title, credits or contact details.",
@@ -314,9 +317,9 @@ export function layoutScreenplay(
         type: "action",
         role: "title-details",
         lines,
-        left: 72,
+        left: TEXT_LEFT,
         top: cursor,
-        width: dimensions.width - 144,
+        width: TEXT_RIGHT - TEXT_LEFT,
         align: "left",
       });
       cursor += lines.length * lineHeight + 12;
@@ -447,8 +450,13 @@ export function layoutScreenplay(
     ).map((line) => pad + line);
     let gap = page.blocks.length === 0 ? 0 : style.gapBefore;
     const minimumHeight =
-      (lines.length + minimumFollowingLines(document.elements, index)) *
-      lineHeight;
+      lines.length * lineHeight +
+      minimumFollowingHeight(
+        document.elements,
+        index,
+        lineHeight,
+        dimensions.width,
+      );
 
     if (
       page.blocks.length > 0 &&
@@ -486,6 +494,20 @@ export function layoutScreenplay(
     lineHeight,
     pages,
   };
+}
+
+/**
+ * The number printed on a laid-out page: none on the title page or the
+ * first page of the script, then 2, 3 and so on.
+ */
+export function scriptPageNumber(
+  layoutPage: { titlePage?: boolean },
+  pageIndex: number,
+  document: Pick<ScreenplayDocument, "titlePage">,
+): number | null {
+  if (layoutPage.titlePage) return null;
+  const number = pageIndex + 1 - (document.titlePage ? 1 : 0);
+  return number > 1 ? number : null;
 }
 
 export class ScreenplayLayoutError extends Error {

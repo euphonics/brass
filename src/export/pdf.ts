@@ -17,7 +17,7 @@
 
 import { PDFDocument, rgb } from "pdf-lib";
 import type { PageSize, ScreenplayDocument } from "../screenplay/model";
-import { layoutScreenplay } from "./screenplayLayout";
+import { layoutScreenplay, scriptPageNumber } from "./screenplayLayout";
 import { embedScreenplayFonts } from "./pdfFonts";
 import { boldPartOf, normalizePdfBold } from "./pdfStyle";
 import type { PdfBoldOptions } from "./pdfStyle";
@@ -51,12 +51,22 @@ export class UnsupportedPdfTextError extends Error {
   }
 }
 
+/** Plain text for PDF metadata: the first line, without emphasis marks. */
+function metadataText(value: string | undefined): string | undefined {
+  const line = value?.split("\n")[0]?.replace(/[*_]/gu, "").trim();
+  return line ? line : undefined;
+}
+
 export async function serializePdf(
   document: ScreenplayDocument,
   options: PdfExportOptions,
 ): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
-  pdf.setTitle(options.title);
+  // The title page's title and author, as Fade In stores them; the note's
+  // name when there's no title page.
+  pdf.setTitle(metadataText(document.titlePage?.title) ?? options.title);
+  const author = metadataText(document.titlePage?.author);
+  if (author) pdf.setAuthor(author);
   pdf.setCreator("Scribidian");
   pdf.setProducer("Scribidian");
   const { regular, bold } = await embedScreenplayFonts(pdf);
@@ -119,16 +129,19 @@ export async function serializePdf(
       }
     }
 
-    if (layoutPage.titlePage) continue;
-    const pageNumber = String(pageIndex + 1 - (document.titlePage ? 1 : 0));
+    // Page numbers as in Final Draft and Fade In: "2." at the top right,
+    // and none on the first page of the script.
+    const pageNumber = scriptPageNumber(layoutPage, pageIndex, document);
+    if (pageNumber === null) continue;
+    const label = `${pageNumber}.`;
     const numberFont = boldParts["page-number"] ? bold : regular;
-    const numberWidth = numberFont.widthOfTextAtSize(pageNumber, 10);
-    page.drawText(pageNumber, {
+    const numberWidth = numberFont.widthOfTextAtSize(label, layout.fontSize);
+    page.drawText(label, {
       x: layout.dimensions.width - 72 - numberWidth,
-      y: 30,
-      size: 10,
+      y: layout.dimensions.height - 37.2,
+      size: layout.fontSize,
       font: numberFont,
-      color: rgb(0.25, 0.25, 0.25),
+      color: rgb(0, 0, 0),
     });
   }
 

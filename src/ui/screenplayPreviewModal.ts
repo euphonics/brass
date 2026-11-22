@@ -24,6 +24,7 @@ import {
   layoutScreenplay,
   screenplayElementText,
   ScreenplayLayoutError,
+  scriptPageNumber,
 } from "../export/screenplayLayout";
 import { boldPartOf, normalizePdfBold } from "../export/pdfStyle";
 import type { PdfBoldOptions } from "../export/pdfStyle";
@@ -101,10 +102,15 @@ export class ScreenplayPreviewModal extends Modal {
         element.style.fontWeight = boldParts[boldPartOf(block)] ? "700" : "400";
         element.style.lineHeight = String(layout.lineHeight / layout.fontSize);
       }
-      if (!layoutPage.titlePage) {
+      const pageNumber = scriptPageNumber(
+        layoutPage,
+        pageIndex,
+        this.screenplay,
+      );
+      if (pageNumber !== null) {
         const number = page.createDiv({
           cls: "scribidian-preview-page-number",
-          text: String(pageIndex + 1 - (this.screenplay.titlePage ? 1 : 0)),
+          text: `${pageNumber}.`,
         });
         number.style.fontWeight = boldParts["page-number"] ? "700" : "400";
       }

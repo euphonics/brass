@@ -329,10 +329,10 @@ body {
 .scribidian-preview-page-number {
   position: absolute;
   right: 11.75%;
-  bottom: 3.4%;
-  color: #555;
+  top: 3.5%;
+  color: #000;
   font-family: "Courier Prime", "Courier New", Courier, monospace;
-  font-size: 1.64cqw;
+  font-size: 1.96cqw;
 }
 
 @media (max-width: 600px) {

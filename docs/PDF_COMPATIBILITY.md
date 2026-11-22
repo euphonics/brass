@@ -14,8 +14,12 @@ left out; links keep their words. Changing those settings changes the PDF too.
 - Sluglines, action, character cues and extensions, wrylies, dialogue,
   transitions, centered text and lyrics.
 - US Letter or A4, from **Settings → Scribidian → Page size**.
-- 12-point Courier Prime, standard screenplay margins, line wrapping, page
-  breaks and page numbers.
+- 12-point Courier Prime with the margins Final Draft and Fade In use:
+  action at 1.5", dialogue at 2.5", wrylies at 2.9", character names at
+  3.5", and a 1" margin at the top, right and bottom. A scene heading is
+  never left alone at the bottom of a page.
+- Page numbers at the top right (`2.`), starting on the second page of the
+  script.
 - Bold where you want it: **Settings → Scribidian → PDF export** has a
   toggle for each part (sluglines, action, character names, dialogue,
   wrylies, transitions, centered text, lyrics, the title, the title page
