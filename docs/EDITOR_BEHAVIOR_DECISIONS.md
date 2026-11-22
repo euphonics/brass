@@ -324,9 +324,11 @@ line):
   dialogue as usual.
 - "BOB (V.O.|)" counts as the end of the cue in the same way: Enter goes
   on to the dialogue line (added 2026-11-22).
-- Strict: Enter at the end of a cue with the speech already below adds a
-  new empty dialogue line right under the cue, with the cursor on it (as in
-  Fade In). The line holds two spaces, so the speech stays whole
+- Strict: Enter at the end of a cue with the speech already below moves
+  the cursor to the start of the line below (dialogue or wryly). Setting
+  **Enter at the end of a character moves to the dialogue** (on by
+  default); off, Enter adds an empty dialogue line under the cue instead,
+  as in Fade In. That line holds two spaces, so the speech stays whole
   (added 2026-11-22).
 
 ## Tab

@@ -119,6 +119,12 @@ export interface ScribidianSettings {
    * first makes it action (on), or deletes it at once as Fade In does (off).
    */
   backspaceEmptyCueToAction: boolean;
+  /**
+   * Strict, script mode: Enter at the end of a cue with its speech below
+   * moves the cursor to the line below (on), or adds an empty dialogue line
+   * under the cue as Fade In does (off).
+   */
+  enterAfterCueMovesDown: boolean;
   /** Tab at the start of dialogue with text adds "()" above (off: Fade In). */
   tabAtDialogueStartAddsWryly: boolean;
   editorLayout: EditorLayout;
@@ -260,6 +266,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   showAllCommands: false,
   tabWithListScript: "pick",
   backspaceEmptyCueToAction: true,
+  enterAfterCueMovesDown: true,
   tabAtDialogueStartAddsWryly: true,
   indentActionWithSpaces: true,
   capitalizeLineStartsScript: true,
@@ -323,6 +330,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
  */
 export const FADE_IN_DEFAULTS: Partial<ScribidianSettings> = {
   backspaceEmptyCueToAction: false,
+  enterAfterCueMovesDown: false,
   tabAtDialogueStartAddsWryly: false,
 };
 
@@ -554,6 +562,7 @@ const SETTING_GROUPS: {
       ENTER_TARGETS_KEY,
       "tabAtDialogueStartAddsWryly",
       "backspaceEmptyCueToAction",
+      "enterAfterCueMovesDown",
     ],
   },
   {
@@ -1466,6 +1475,15 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Enter at the end of a character moves to the dialogue",
+        desc: "Strict cursor placement on, with the speech already below the character. On: Enter moves the cursor to the start of the line below. Off: Enter adds an empty dialogue line under the character, as in Fade In.",
+        control: {
+          type: "toggle",
+          key: "enterAfterCueMovesDown",
+          defaultValue: DEFAULT_SETTINGS.enterAfterCueMovesDown,
+        },
+      },
+      {
         name: "Indent action with spaces",
         desc: "Spaces at the start of an action line indent it, in the preview and in exports too, as Fountain allows (for a note, a sign, a letter). Tabs don't indent action: Tab moves between elements. Turn off to ignore those spaces in the preview and exports.",
         control: {
@@ -1744,6 +1762,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "showSceneCount":
       case "showCurrentElement":
       case "backspaceEmptyCueToAction":
+      case "enterAfterCueMovesDown":
       case "tabAtDialogueStartAddsWryly":
         this.plugin.settings[key] = value;
     }
