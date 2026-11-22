@@ -125,7 +125,7 @@ than screenshots when testing other apps.
 - **Write UI text in sentence case** (the Obsidian lint rule checks it) and
   in plain, short words.
 - **Live tests run only in the Dev vault** (`C:\Users\arunc\Code\Obsidian
-  Dev Vault\Dev`, `obsidian vault=Dev ...`), in its `Scribidian Example`
+Dev Vault\Dev`, `obsidian vault=Dev ...`), in its `Scribidian Example`
   folder (scratch note: `Scribidian Example/Test Bench.md`). Never test in
   the Notes vault, and never open or write the writer's real scripts
   (TIGHTER above all). Bring the Dev window to the front first (editor
