@@ -1,15 +1,48 @@
 # Scribidian
 
-Scribidian turns Obsidian into a screenplay editor. You write in plain text,
-and Scribidian lays it out like a printed script, suggests character names and
-scene details as you type, counts your pages, and exports Fountain or Final Draft files for finishing in
-a dedicated screenplay app.
+Write your screenplay in Obsidian, right beside your outlines, research and
+character notes. Scribidian lays the page out like a real script as you
+type, finishes character names and places for you, keeps a running page
+count, and gives you a clean script to take into Final Draft, Fade In or any
+other screenplay app.
 
-Your scripts stay ordinary text files in
-[Fountain](https://fountain.io/), a simple screenplay format: a line like
-`INT. KITCHEN - NIGHT` is a slugline, a name in capitals is a character, and
-the lines below it are dialogue. They open in any text editor and in other
-screenplay apps, with or without Scribidian.
+Your script is an ordinary text file that you own, written in
+[Fountain](https://fountain.io/), the plain-text screenplay format that most
+screenplay apps can open.
+
+## Why writers use it
+
+**Character names finish themselves, even in action.** Type the first few
+letters of a character in capitals and Scribidian offers the full name. That
+works on the character line above dialogue and in the middle of an action
+line, where a character first walks on:
+
+```
+The door bangs open. MARG
+                     MARGARET
+                     MARGOT
+```
+
+Pick one and keep writing. Want the name in regular case later in the
+scene? Type `+` and the first letters instead (`+marg`) to get `Margaret`.
+Every name is spelled the same on page 90 as on page 1.
+
+**Keep your notes in the script. They stay out of the finished page.** Put a
+link to your research, a photo of the location, a to-do, a comment or a
+highlighted line right under the scene it's about. When you export,
+Scribidian takes all of it out, so the script you send is clean.
+
+**Write now, name it later.** Don't know the villain's name yet? Type
+`$villain` and keep going. It stays highlighted until you decide, and
+Scribidian suggests it each time you start typing it, so it's spelled the
+same everywhere and easy to find when you finally choose.
+
+**It works the way you work.** Choose what Tab and Enter do after each part
+of the script, which suggestions appear and in what order, and how much
+typing help you want. Coming from Fade In? Several settings can match it.
+
+**Follow your setups to their payoffs.** Give a setup and its payoff the
+same tag, like `[&the-gun]`, and jump between them anywhere in the script.
 
 ![Writing in Scribidian, then previewing it as pages](docs/images/firstdraft-demo.gif)
 
@@ -56,8 +89,8 @@ See [Moving from First Draft](docs/releases/0.1.0.md#moving-from-first-draft).
    slugline, a character after action. Enter starts the next element, for
    example a new speaker after a line of dialogue.
 5. **See it as pages.** Run **Screenplay: Preview** to see the script as
-   printed pages, then **Export Fountain** to take it into Final Draft, Fade In
-   or another screenplay app.
+   printed pages, then **Export PDF** to share it, or **Export Fountain** to
+   take it into Final Draft, Fade In or another screenplay app.
 
 Open **Scribidian: Open screenplay cheat sheet** any time for screenplay terms
 and examples of the Fountain format.
@@ -95,9 +128,11 @@ and examples of the Fountain format.
 
 **Sharing your script**
 
-- Clean **Fountain** and **Final Draft** (`.fdx`) files. Scribidian has no PDF
-  export: import the Fountain file into Final Draft, Fade In, Highland or
-  another screenplay app for last looks, and make the PDF there.
+- **PDF** in Courier Prime, US Letter or A4, with a title page. Your notes,
+  tasks and other Obsidian markup stay out of it.
+- Clean **Fountain** and **Final Draft** (`.fdx`) files, for finishing in
+  Final Draft, Fade In, Highland or another screenplay app (for production
+  needs the PDF doesn't cover yet, like scene numbers).
 - Exports always create a new file. Your script is never changed.
 
 See the [feature tour](docs/FEATURE_TOUR.md) for pictures of each part.
@@ -110,7 +145,8 @@ See the [feature tour](docs/FEATURE_TOUR.md) for pictures of each part.
   putting Smart Tab on the toolbar.
 - [Scenes panel](docs/SCENE_WORKSPACE.md) and
   [continuity inspector](docs/CONTINUITY_INSPECTOR.md).
-- [Final Draft export](docs/FDX_COMPATIBILITY.md): what it can and can't do.
+- [PDF export](docs/PDF_COMPATIBILITY.md) and
+  [Final Draft export](docs/FDX_COMPATIBILITY.md): what each can and can't do.
 
 ## Tips and known limits
 
