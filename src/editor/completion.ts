@@ -1178,8 +1178,9 @@ export function createScreenplayCompletionExtension(
     return plan !== null && applySmartPlan(view, plan);
   };
 
-  // The cursor right before the ")" that closes a wryly ("(beat|)"): move
-  // it past the ")". True when it moved.
+  // The cursor right before the ")" that closes a wryly ("(beat|)") or a
+  // cue's extension ("BOB (V.O.|)"): move it past the ")". True when it
+  // moved.
   const stepPastWrylyClose = (view: EditorView): boolean => {
     const file = view.state.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return false;
@@ -1190,11 +1191,8 @@ export function createScreenplayCompletionExtension(
     if (!text.endsWith(")") || text.trim() === "()") return false;
     const end = line.from + text.length;
     if (selection.main.head !== end - 1) return false;
-    if (
-      classifySmartTabLine(docLines(doc), line.number - 1) !== "parenthetical"
-    ) {
-      return false;
-    }
+    const kind = classifySmartTabLine(docLines(doc), line.number - 1);
+    if (kind !== "parenthetical" && kind !== "character") return false;
     view.dispatch({ selection: { anchor: end }, userEvent: "select" });
     return true;
   };
@@ -1312,8 +1310,8 @@ export function createScreenplayCompletionExtension(
   // Strict cursor placement: Enter at the end of a cue, wryly or dialogue
   // line with more of the speech right below adds no line. A new block
   // there would cut the speech in two (the rest would become action).
-  // After a wryly the cursor moves to the dialogue below; otherwise it
-  // stays.
+  // After a cue or a wryly the cursor moves to the line below; after
+  // dialogue it stays.
   const enterInsideSpeech = (view: EditorView): boolean => {
     if (!plugin.typingChangeEnabled("lockBlankLines")) return false;
     const file = view.state.field(editorInfoField, false)?.file ?? null;
@@ -1338,9 +1336,12 @@ export function createScreenplayCompletionExtension(
     ) {
       return false;
     }
-    // At the end of a wryly, the cursor goes on to the start of its
-    // dialogue, as in Final Draft and Fade In.
-    if (kind === "parenthetical" && below === "dialogue") {
+    // At the end of a cue or a wryly, the cursor goes on to the start of
+    // the line below, as in Final Draft and Fade In.
+    if (
+      kind === "character" ||
+      (kind === "parenthetical" && below === "dialogue")
+    ) {
       const next = doc.line(line.number + 1);
       view.dispatch({
         selection: {
