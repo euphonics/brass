@@ -256,6 +256,162 @@ export function layoutScreenplay(
     cursor += gap + lines.length * lineHeight;
   };
 
+  const partLines = (part: ScreenplayElement): string[] =>
+    wrap(markEmphasis(screenplayElementText(part)), part.type);
+  const appendParts = (parts: readonly ScreenplayElement[]): void => {
+    for (const part of parts) append(part.type, partLines(part));
+  };
+  /**
+   * Where to split a speech that doesn't fit: the latest sentence end
+   * (inside a line of dialogue, or between parts) that leaves at most
+   * `maximumLines` before it, at least two lines of dialogue on each side,
+   * and no wryly cut off from the dialogue after it. Null when none does.
+   */
+  const sentenceSplit = (
+    speech: readonly ScreenplayElement[],
+    maximumLines: number,
+  ): {
+    before: ScreenplayElement[];
+    after: ScreenplayElement[];
+  } | null => {
+    const dialogueLines = (parts: readonly ScreenplayElement[]): number =>
+      parts
+        .filter((part) => part.type === "dialogue")
+        .reduce((sum, part) => sum + partLines(part).length, 0);
+    const allLines = (parts: readonly ScreenplayElement[]): number =>
+      parts.reduce((sum, part) => sum + partLines(part).length, 0);
+    const candidates: {
+      before: ScreenplayElement[];
+      after: ScreenplayElement[];
+    }[] = [];
+    for (const [k, part] of speech.entries()) {
+      if (part.type !== "dialogue") continue;
+      const ends = [...part.text.matchAll(/[.!?…—]["')\]]*\s+(?=\S)/gu)];
+      for (const match of ends) {
+        const cut = (match.index ?? 0) + match[0].length;
+        candidates.push({
+          before: [
+            ...speech.slice(0, k),
+            { ...part, text: part.text.slice(0, cut).trimEnd() },
+          ],
+          after: [
+            { ...part, text: part.text.slice(cut) },
+            ...speech.slice(k + 1),
+          ],
+        });
+      }
+      if (k < speech.length - 1)
+        candidates.push({
+          before: speech.slice(0, k + 1),
+          after: speech.slice(k + 1),
+        });
+    }
+    for (const candidate of candidates.reverse()) {
+      if (candidate.before[candidate.before.length - 1]?.type !== "dialogue")
+        continue;
+      if (allLines(candidate.before) > maximumLines) continue;
+      if (dialogueLines(candidate.before) < 2) continue;
+      if (dialogueLines(candidate.after) < 2) continue;
+      return candidate;
+    }
+    return null;
+  };
+
+  // A speech that fits on a page moves to the next page whole rather than
+  // splitting, so a scene heading right before one keeps room for all of
+  // it (and its blank line). Zero when no such speech follows.
+  const speechAfter = (index: number): number => {
+    const cue = document.elements[index + 1];
+    if (cue?.type !== "character") return 0;
+    let total = wrap(
+      markEmphasis(screenplayElementText(cue)),
+      "character",
+    ).length;
+    let end = index + 2;
+    while (
+      ["dialogue", "parenthetical"].includes(document.elements[end]?.type ?? "")
+    ) {
+      const part = document.elements[end];
+      if (part)
+        total += wrap(
+          markEmphasis(screenplayElementText(part)),
+          part.type,
+        ).length;
+      end++;
+    }
+    if (end === index + 2) return 0;
+    const capacity = Math.floor(
+      (dimensions.height - BOTTOM_MARGIN - TOP_MARGIN) / lineHeight,
+    );
+    return total <= capacity
+      ? styleFor("character", dimensions.width).gapBefore + total * lineHeight
+      : 0;
+  };
+
+  // Two speeches side by side, in Fade In's columns: each half of the text
+  // column holds its dialogue, with the cue 58 points in and wrylies 29.
+  // The pair stays together on one page.
+  const layoutDual = (
+    left: readonly ScreenplayElement[],
+    right: readonly ScreenplayElement[],
+  ): void => {
+    const columnWidth = (TEXT_RIGHT - TEXT_LEFT) / 2;
+    const maximumCharacters = 28;
+    const wrapColumn = (text: string, characters: number): string[] =>
+      measure
+        ? wrapMeasuredText(text, characters * CHARACTER_WIDTH, (line) =>
+            measure(visibleText(line), "dialogue"),
+          )
+        : wrapScreenplayText(text, characters);
+    const column = (elements: readonly ScreenplayElement[], x: number) => {
+      const blocks: Omit<ScreenplayLayoutBlock, "top">[] = [];
+      let height = 0;
+      for (const part of elements) {
+        const text = markEmphasis(screenplayElementText(part));
+        const offset =
+          part.type === "character"
+            ? 58
+            : part.type === "parenthetical"
+              ? 29
+              : 0;
+        const characters =
+          maximumCharacters - Math.round(offset / CHARACTER_WIDTH);
+        const lines = wrapColumn(text, characters);
+        blocks.push({
+          type: part.type,
+          lines,
+          left: x + offset,
+          width: characters * CHARACTER_WIDTH,
+          align: "left",
+        });
+        height += lines.length * lineHeight;
+      }
+      return { blocks, height };
+    };
+    const sides = [
+      column(left, TEXT_LEFT),
+      column(right, TEXT_LEFT + columnWidth + 10.6),
+    ];
+    const height = Math.max(...sides.map((side) => side.height));
+    let gap = page.blocks.length ? 12 : 0;
+    if (
+      page.blocks.length > 0 &&
+      cursor + gap + height > dimensions.height - BOTTOM_MARGIN
+    ) {
+      addPage();
+      gap = 0;
+    }
+    const top = cursor + gap;
+    for (const side of sides) {
+      let y = top;
+      for (const block of side.blocks) {
+        page.blocks.push({ ...block, top: y });
+        y += block.lines.length * lineHeight;
+      }
+    }
+    cursor = top + height;
+  };
+
   if (document.titlePage) {
     const metadata = document.titlePage;
     page.titlePage = true;
@@ -346,6 +502,30 @@ export function layoutScreenplay(
       )
         end++;
       const speech = document.elements.slice(index + 1, end);
+      // Dual dialogue: the next speech's cue ends in "^", so the two print
+      // side by side, as in Fade In.
+      const partner = document.elements[end];
+      if (
+        partner?.type === "character" &&
+        partner.dual === true &&
+        ["dialogue", "parenthetical"].includes(
+          document.elements[end + 1]?.type ?? "",
+        )
+      ) {
+        let partnerEnd = end + 1;
+        while (
+          ["dialogue", "parenthetical"].includes(
+            document.elements[partnerEnd]?.type ?? "",
+          )
+        )
+          partnerEnd++;
+        layoutDual(
+          [element, ...speech],
+          document.elements.slice(end, partnerEnd),
+        );
+        index = partnerEnd - 1;
+        continue;
+      }
       if (speech.some((part) => part.type === "dialogue")) {
         const cue = markEmphasis(screenplayElementText(element));
         const firstCue = wrap(cue, "character");
@@ -383,6 +563,25 @@ export function layoutScreenplay(
           total <= capacity &&
           cursor + gap + total * lineHeight > dimensions.height - BOTTOM_MARGIN
         ) {
+          // As in Fade In: split the speech at the end of a sentence, with
+          // (MORE) below and the cue again on the next page, when at least
+          // two lines of dialogue go on each page. Otherwise it moves whole.
+          const available = Math.floor(
+            (dimensions.height - BOTTOM_MARGIN - cursor - gap) / lineHeight,
+          );
+          const split = page.blocks.length
+            ? sentenceSplit(speech, available - firstCue.length - 1)
+            : null;
+          if (split) {
+            append("character", firstCue, gap);
+            appendParts(split.before);
+            append("character", ["(MORE)"]);
+            addPage();
+            append("character", continued);
+            appendParts(split.after);
+            index = end - 1;
+            continue;
+          }
           addPage();
           gap = 0;
         }
@@ -424,7 +623,7 @@ export function layoutScreenplay(
             }
           offset = stop;
           if (offset < units.length) {
-            append("parenthetical", ["(MORE)"]);
+            append("character", ["(MORE)"]);
             addPage();
             gap = 0;
             cueLines = continued;
@@ -435,31 +634,51 @@ export function layoutScreenplay(
       }
     }
     const style = styleFor(element.type, dimensions.width);
-    const text = markEmphasis(screenplayElementText(element));
-    // Action keeps the spaces it starts with ("    Scott --"), on every
-    // wrapped line, as Fountain says. Tabs aren't indentation here.
-    const indent =
-      element.type === "action"
-        ? (/^[ \t]*/u.exec(text)?.[0] ?? "").replace(/\t/gu, "").length
-        : 0;
-    const pad = " ".repeat(Math.min(indent, style.maximumCharacters - 10));
-    let lines = (
-      measure
-        ? wrapMeasuredText(
-            text.trimStart(),
-            dimensions.width - style.left - style.right - pad.length * 7.2,
-            (line) => measure(visibleText(line), element.type),
-          )
-        : wrapScreenplayText(text, style.maximumCharacters - pad.length)
-    ).map((line) => pad + line);
+    // Action lines with no blank line between them are one paragraph with
+    // line breaks, as in Fountain and Fade In; emphasis can span them.
+    const group = [element];
+    if (element.type === "action") {
+      for (
+        let next = document.elements[index + group.length];
+        next?.type === "action" &&
+        next.line === (group[group.length - 1]?.line ?? 0) + 1;
+        next = document.elements[index + group.length]
+      )
+        group.push(next);
+      index += group.length - 1;
+    }
+    const segments = markEmphasis(
+      group.map((part) => screenplayElementText(part)).join("\n"),
+    ).split("\n");
+    let lines = segments.flatMap((text) => {
+      // Action keeps the spaces it starts with ("    Scott --"), on every
+      // wrapped line, as Fountain says. Tabs aren't indentation here.
+      const indent =
+        element.type === "action"
+          ? (/^[ \t]*/u.exec(text)?.[0] ?? "").replace(/\t/gu, "").length
+          : 0;
+      const pad = " ".repeat(Math.min(indent, style.maximumCharacters - 10));
+      return (
+        measure
+          ? wrapMeasuredText(
+              text.trimStart(),
+              dimensions.width - style.left - style.right - pad.length * 7.2,
+              (line) => measure(visibleText(line), element.type),
+            )
+          : wrapScreenplayText(text, style.maximumCharacters - pad.length)
+      ).map((line) => pad + line);
+    });
     let gap = page.blocks.length === 0 ? 0 : style.gapBefore;
     const minimumHeight =
       lines.length * lineHeight +
-      minimumFollowingHeight(
-        document.elements,
-        index,
-        lineHeight,
-        dimensions.width,
+      Math.max(
+        minimumFollowingHeight(
+          document.elements,
+          index,
+          lineHeight,
+          dimensions.width,
+        ),
+        element.type === "scene-heading" ? speechAfter(index) : 0,
       );
 
     if (

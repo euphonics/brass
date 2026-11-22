@@ -70,6 +70,7 @@ export function parseFountain(source: string): ScreenplayDocument {
           text: cue?.name ?? text,
           line,
           ...(cue?.extension ? { characterExtension: cue.extension } : {}),
+          ...(/\^\s*$/u.test(text) ? { dual: true } : {}),
         });
         break;
       }

@@ -92,3 +92,45 @@ describe("emphasis", () => {
     expect((await PDFDocument.load(bytes)).getPageCount()).toBe(1);
   });
 });
+
+describe("dual dialogue", () => {
+  it("prints two speeches side by side in Fade In's columns", () => {
+    const document = parseFountain(
+      "INT. ROOM - NIGHT\n\nALLEGRA (SILENT)\nBathroom?\n\nMAN'S VOICE (V.O.) ^\nThat's all it takes.\n\nThe Man points.",
+    );
+    expect(document.elements.find((e) => e.dual)?.text).toBe("MAN'S VOICE");
+    const blocks = layoutScreenplay(document, "us-letter").pages[0]?.blocks;
+    const at = (text: string) =>
+      blocks?.find((block) => block.lines.map(visibleText).join(" ") === text);
+    expect(at("ALLEGRA (SILENT)")).toMatchObject({ left: 166 });
+    expect(at("Bathroom?")).toMatchObject({ left: 108 });
+    expect(at("MAN'S VOICE (V.O.)")).toMatchObject({ left: 392.6 });
+    expect(at("That's all it takes.")).toMatchObject({ left: 334.6 });
+    expect(at("ALLEGRA (SILENT)")?.top).toBe(at("MAN'S VOICE (V.O.)")?.top);
+    expect(at("The Man points.")?.top).toBe(
+      (at("Bathroom?")?.top ?? 0) + 12 + 12,
+    );
+  });
+});
+
+describe("action paragraphs", () => {
+  it("keeps action lines with no blank line between them together, with emphasis across them", () => {
+    const blocks = layoutScreenplay(
+      parseFountain(
+        "INT. ROOM - DAY\n\n**redrekt: who?  \narw3n: a bad guy  \nredrekt: this**\n\nOlivia opens it.",
+      ),
+      "us-letter",
+    ).pages[0]?.blocks.filter((block) => block.type === "action");
+    expect(blocks?.[0]?.lines.map(visibleText)).toEqual([
+      "redrekt: who?",
+      "arw3n: a bad guy",
+      "redrekt: this",
+    ]);
+    expect(
+      emphasisRuns(blocks?.[0]?.lines ?? [])
+        .flat()
+        .every((r) => r.bold),
+    ).toBe(true);
+    expect(blocks?.[1]?.top).toBe((blocks?.[0]?.top ?? 0) + 3 * 12 + 12);
+  });
+});

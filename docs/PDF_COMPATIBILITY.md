@@ -43,7 +43,6 @@ never changed.
 The PDF is for reading and review. It isn't locked production pagination and
 may not match Final Draft page for page. These aren't handled yet:
 
-- Dual dialogue side by side (each speech prints in turn).
 - Scene numbers, revision colors and locked pages.
 
 For a production PDF, export Fountain or Final Draft and make the PDF in
@@ -64,10 +63,19 @@ setting and doesn't change the PDF.
 ## Speeches across pages
 
 A character's cue, wrylies and dialogue are kept together as one speech. A
-short speech that doesn't fit at the bottom of a page moves to the next page
-whole. A long one is split: the page ends with `(MORE)` and the next page
-repeats the cue as written. A wryly always stays with the dialogue after it.
-The preview uses the same rules.
+speech that doesn't fit at the bottom of a page is split at the end of a
+sentence when at least two lines of dialogue fit on each page, as Fade In
+does: the page ends with `(MORE)` under the speech, and the next page repeats
+the cue as written. Otherwise the speech moves to the next page whole. A
+wryly always stays with the dialogue after it, and a scene heading stays with
+what follows it. The preview uses the same rules.
+
+## Paragraphs and dual dialogue
+
+- Action lines with no blank line between them print as one paragraph with
+  line breaks, as Fountain says.
+- Dual dialogue (a cue ending in `^`) prints side by side with the speech
+  before it, in Fade In's columns.
 
 For moving a script into Final Draft, see
 [FDX compatibility](FDX_COMPATIBILITY.md).

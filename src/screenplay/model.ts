@@ -31,6 +31,8 @@ export interface ScreenplayElement {
   text: string;
   line: number;
   characterExtension?: string;
+  /** A cue ending in "^": this speech sits beside the one before it. */
+  dual?: boolean;
 }
 
 export interface ScreenplayDocument {

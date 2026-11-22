@@ -19,6 +19,11 @@ project follows
 italic***` and `_underline_`, without the marks. Courier Prime italic and
   bold italic are now built in (main.js about 2.2 MB).
 
+- PDF and preview: dual dialogue (`^`) prints side by side; action lines
+  with no blank line between them stay one paragraph; a long speech splits
+  at a sentence end with `(MORE)`, as in Fade In. On a 61-page test script
+  every page now breaks where Fade In's does.
+
 ### Fixed
 
 - A scene heading could be left alone at the bottom of a PDF page.

@@ -63,13 +63,13 @@ export const PDF_BOLD_SETTINGS: {
   {
     part: "character",
     name: "Bold character names",
-    desc: "The name above each speech, with its extension (V.O.).",
+    desc: "The name above each speech, with its extension (V.O.), and (MORE) when a speech goes on to the next page.",
   },
   { part: "dialogue", name: "Bold dialogue", desc: "What characters say." },
   {
     part: "parenthetical",
     name: "Bold wrylies",
-    desc: "(quietly) and other directions inside a speech, and (MORE).",
+    desc: "(quietly) and other directions inside a speech.",
   },
   { part: "transition", name: "Bold transitions", desc: "CUT TO: and others." },
   {

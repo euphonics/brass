@@ -206,7 +206,8 @@ describe("dialogue page continuation", () => {
     );
     for (const page of layout.pages)
       for (const cue of page.blocks.filter(
-        (block) => block.type === "character",
+        (block) =>
+          block.type === "character" && block.lines.join(" ") !== "(MORE)",
       ))
         expect(cue.lines.join(" ")).toBe("ALEX (V.O.) (CONT'D)");
   });
