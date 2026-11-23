@@ -142,17 +142,16 @@ worker and redraw only the threads that changed (#285).
 release build, then the 0.1.2 candidate. Scribidian's cost is script or
 plain mode minus Scribidian off, in the same run.
 
-| Check | 0.1.1 | 0.1.2 |
-| --- | --- | --- |
-| 120 pages, script mode cost | 12.5 ms | 1.7 ms |
-| 500 pages, script mode cost | 43.1 ms | 1.0 ms |
-| 500 pages, plain mode cost | 11.6 ms | 0.2 ms |
-| 500 pages, script 95th percentile | 80.6 ms | 15.4 ms |
-| 500 pages, long tasks over 50 ms (60 keys) | 25 | 0 |
-| 500 pages, Enter | 100.7 ms | 37.4 ms |
-| 500 pages, Tab | 82 ms | 28.7 ms |
+| Check                                      | 0.1.1    | 0.1.2   |
+| ------------------------------------------ | -------- | ------- |
+| 120 pages, script mode cost                | 12.5 ms  | 1.7 ms  |
+| 500 pages, script mode cost                | 43.1 ms  | 1.0 ms  |
+| 500 pages, plain mode cost                 | 11.6 ms  | 0.2 ms  |
+| 500 pages, script 95th percentile          | 80.6 ms  | 15.4 ms |
+| 500 pages, long tasks over 50 ms (60 keys) | 25       | 0       |
+| 500 pages, Enter                           | 100.7 ms | 37.4 ms |
+| 500 pages, Tab                             | 82 ms    | 28.7 ms |
 
 The behavior replay (`regress.ps1`, 214 cases) differed from 0.1.1 in 10
 cases, all intended (#252/#266, #255/#282, #256, #284). `baseline.json` is
 now the 0.1.2 candidate.
-

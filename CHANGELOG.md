@@ -7,6 +7,8 @@ project follows
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-23
+
 ### Added (writer wish list, 2026-11-22)
 
 - Mini sluglines: after `.HA`, the location list also offers a bare `HALL`
