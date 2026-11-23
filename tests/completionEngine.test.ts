@@ -63,9 +63,11 @@ describe("screenplay completion engine", () => {
 
     expect(plan?.kind).toBe("scene-location");
     expect(plan?.candidates[0]?.label).not.toBe("MIL");
-    expect(plan?.candidates.map((candidate) => candidate.applyText)).toContain(
-      "MILITARY BASE - THERAPY ROOM - ",
-    );
+    expect(
+      plan?.candidates.some((candidate) =>
+        candidate.applyText.startsWith("MILITARY BASE - THERAPY ROOM"),
+      ),
+    ).toBe(true);
   });
 
   it("offers time values after a completed location", () => {
@@ -136,11 +138,30 @@ describe("screenplay completion engine", () => {
       DEFAULT_COMPLETION_PREFERENCES,
     );
     expect(plan?.kind).toBe("scene-location");
+    // Picking a location fills in its last time and modifier (#284), and
+    // the list shows what will be filled in.
     const kitchen = plan?.candidates.find((c) => c.label === "KITCHEN");
-    expect(kitchen?.displayLabel).toBe("KITCHEN - NIGHT");
-    expect(kitchen?.applyText).toBe("KITCHEN - ");
+    expect(kitchen?.displayLabel).toBe("KITCHEN - NIGHT (FLASHBACK)");
+    expect(kitchen?.applyText).toBe("KITCHEN - NIGHT (FLASHBACK)");
     const hall = plan?.candidates.find((c) => c.label === "KITCHEN HALLWAY");
     expect(hall?.displayLabel).toBeUndefined();
+    expect(hall?.applyText).toBe("KITCHEN HALLWAY");
+
+    const fill = (slugFillTime: boolean, slugFillModifier: boolean) => {
+      const item = getScreenplayCompletionPlan(source, source.length, {
+        ...DEFAULT_COMPLETION_PREFERENCES,
+        slugFillTime,
+        slugFillModifier,
+      })?.candidates.find((c) => c.label === "KITCHEN");
+      return [item?.displayLabel, item?.applyText];
+    };
+    expect(fill(true, false)).toEqual(["KITCHEN - NIGHT", "KITCHEN - NIGHT"]);
+    expect(fill(false, true)).toEqual([
+      "KITCHEN (FLASHBACK)",
+      "KITCHEN (FLASHBACK)",
+    ]);
+    // Neither: the location, then the times list (its last time first).
+    expect(fill(false, false)).toEqual(["KITCHEN - NIGHT", "KITCHEN - "]);
   });
 
   it("offers each location's last whole slug in the order set", () => {
@@ -179,7 +200,7 @@ describe("screenplay completion engine", () => {
     // A location never used with a time or modifier has one item.
     expect(
       shortestFirst?.filter(([label]) => label.startsWith("KITCHEN HALLWAY")),
-    ).toEqual([["KITCHEN HALLWAY", "KITCHEN HALLWAY - "]]);
+    ).toEqual([["KITCHEN HALLWAY", "KITCHEN HALLWAY"]]);
     expect(slugOrder(["shortest", "bogus", "shortest"])).toEqual([
       "shortest",
       "recent",
@@ -306,8 +327,8 @@ Up here.
       filtered.length,
       DEFAULT_COMPLETION_PREFERENCES,
     );
-    expect(locationPlan?.candidates[0]?.applyText).toBe(
-      "MILITARY BASE - WARD - ",
+    expect(locationPlan?.candidates[0]?.applyText).toMatch(
+      /^MILITARY BASE - WARD - \S/u,
     );
 
     const timed = `${screenplay}
@@ -333,7 +354,7 @@ Up here.
     expect(
       timedPlan?.candidates.slice(0, 2).map((c) => [c.applyText, c.detail]),
     ).toEqual([
-      ["HALL - ", "Location"],
+      ["HALL - NIGHT", "Location"],
       ["HALL", "No time"],
     ]);
 
@@ -348,10 +369,12 @@ Up here.
       bare.length,
       DEFAULT_COMPLETION_PREFERENCES,
     );
-    expect(barePlan?.candidates[0]).toMatchObject({
-      applyText: "HALL",
-      detail: "No time",
-    });
+    // Last used bare: the location item already fills in just "HALL", so
+    // there's no second "No time" copy (#284).
+    expect(barePlan?.candidates[0]).toMatchObject({ applyText: "HALL" });
+    expect(
+      barePlan?.candidates.filter((c) => c.applyText === "HALL"),
+    ).toHaveLength(1);
 
     const typed = `${screenplay}
 .HALL

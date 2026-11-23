@@ -100,6 +100,36 @@ export interface CompletionPreferences {
   offerFullSlugs?: boolean;
   /** With full slugs on: which of a location's two items comes first. */
   slugSuggestionOrder?: readonly SlugSuggestionKind[];
+  /**
+   * Picking a location also fills in the time it had last
+   * ("STUDIO, BARN - NIGHT"). Default on (#284).
+   */
+  slugFillTime?: boolean;
+  /**
+   * Picking a location also fills in the modifier its last slug had
+   * ("(FLASHBACK)"). Default on (#284).
+   */
+  slugFillModifier?: boolean;
+}
+
+/**
+ * The time and modifier of a location's last slug:
+ * "STUDIO - NIGHT (FLASHBACK)" -> NIGHT, FLASHBACK.
+ */
+function lastSlugParts(
+  slug: string | undefined,
+  location: string,
+): { time: string | null; modifier: string | null } {
+  if (slug === undefined) return { time: null, modifier: null };
+  let rest = slug.slice(location.length);
+  let modifier: string | null = null;
+  const bracket = /\s\(([^()]*)\)\s*$/u.exec(rest);
+  if (bracket) {
+    modifier = bracket[1]?.trim() || null;
+    rest = rest.slice(0, bracket.index);
+  }
+  const time = rest.startsWith(" - ") ? rest.slice(3).trim() || null : null;
+  return { time, modifier };
 }
 
 /** The two items a location can have in the slugline list. */
@@ -452,13 +482,34 @@ function scenePlan(
           (kind) => items[kind],
         );
       }
-      // Shown with the time it had last ("KITCHEN - NIGHT"); picking it
-      // still fills in "KITCHEN - " and opens the times, that time first.
+      // Picking a location fills in what it shows: its last time and
+      // modifier, as set in settings (#284): "STUDIO, BARN - NIGHT
+      // (FLASHBACK)". With the time off, a location that had one fills in
+      // "KITCHEN - " and opens the times, its last time first.
+      const parts = lastSlugParts(slug, usage.value);
+      const fillTime = preferences.slugFillTime !== false;
+      const fillModifier = preferences.slugFillModifier !== false;
+      const time = parts.time ?? last ?? null;
+      if (!fillTime && time !== null && !(fillModifier && parts.modifier)) {
+        return [
+          {
+            label: usage.value,
+            displayLabel: `${usage.value} - ${time}`,
+            applyText: `${usage.value} - `,
+            detail: "Location",
+          },
+        ];
+      }
+      const fill = [
+        usage.value,
+        fillTime && parts.time ? ` - ${parts.time}` : "",
+        fillModifier && parts.modifier ? ` (${parts.modifier})` : "",
+      ].join("");
       return [
         {
           label: usage.value,
-          ...(last ? { displayLabel: `${usage.value} - ${last}` } : {}),
-          applyText: `${usage.value} - `,
+          ...(fill !== usage.value ? { displayLabel: fill } : {}),
+          applyText: fill,
           detail: "Location",
         },
       ];
@@ -480,6 +531,10 @@ function scenePlan(
         applyText: usage.value,
         detail: "No time",
       };
+      // Already what the location item fills in: no second copy.
+      if (items.some((item) => item.applyText === bare.applyText)) {
+        return items;
+      }
       const lastSlug = index.lastSlugByLocation?.[key];
       const bareLast =
         lastSlug !== undefined && lastSlug.toLocaleUpperCase() === key;

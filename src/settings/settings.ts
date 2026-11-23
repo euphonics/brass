@@ -159,6 +159,10 @@ export interface ScribidianSettings {
   offerFullSlugs: boolean;
   /** With full slugs on: which of a location's two items comes first. */
   slugSuggestionOrder: SlugSuggestionKind[];
+  /** Picking a location fills in its last time (#284). */
+  slugFillTime: boolean;
+  /** Picking a location fills in its last modifier (#284). */
+  slugFillModifier: boolean;
   statusBarEnabled: boolean;
   showEstimatedPages: boolean;
   showCurrentPage: boolean;
@@ -413,6 +417,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   preferredSlugModifiers: DEFAULT_SLUG_MODIFIERS,
   offerFullSlugs: false,
   slugSuggestionOrder: [...DEFAULT_SLUG_SUGGESTION_ORDER],
+  slugFillTime: true,
+  slugFillModifier: true,
   statusBarEnabled: true,
   showEstimatedPages: true,
   showCurrentPage: true,
@@ -638,6 +644,8 @@ const MORE_SUGGESTIONS_NAME = "More suggestion settings";
 const MORE_SUGGESTIONS_KEY = "moreSuggestionsToggle";
 const SLUG_ORDER_NAME = "Order of slug suggestions";
 const SLUG_ORDER_KEY = "slugOrderList";
+const SLUG_FILL_NAME = "Picking a location fills in";
+const SLUG_FILL_KEY = "slugFillChecks";
 /** Items without a control, placed in their section by name. */
 const NAMED_ITEM_KEYS: Record<string, string> = {
   [TYPING_CHANGES_NAME]: TYPING_CHANGES_KEY,
@@ -646,6 +654,7 @@ const NAMED_ITEM_KEYS: Record<string, string> = {
   [ADVANCED_NAME]: ADVANCED_KEY,
   [MORE_SUGGESTIONS_NAME]: MORE_SUGGESTIONS_KEY,
   [SLUG_ORDER_NAME]: SLUG_ORDER_KEY,
+  [SLUG_FILL_NAME]: SLUG_FILL_KEY,
   [CLEAN_EXPORT_NAME]: CLEAN_EXPORT_KEY,
 };
 
@@ -702,6 +711,7 @@ const SETTING_GROUPS: {
       "preferredSceneTypes",
       "preferredTimesOfDay",
       "preferredSlugModifiers",
+      SLUG_FILL_KEY,
       "offerFullSlugs",
       SLUG_ORDER_KEY,
       MORE_SUGGESTIONS_KEY,
@@ -1049,6 +1059,33 @@ export class ScribidianSettingTab extends PluginSettingTab {
       });
     };
     draw();
+  }
+
+  /**
+   * Two checkboxes: what picking a location in the slugline list fills in
+   * after it, from the location's last slug (#284).
+   */
+  private renderSlugFill(setting: Setting): void {
+    setting.setName(SLUG_FILL_NAME);
+    setting.setDesc(
+      "What picking a location in the slugline list adds after it, from the last slug that used it: STUDIO, BARN - NIGHT (FLASHBACK). The list shows what will be filled in. With Time off, a location that had a time fills in STUDIO, BARN - and opens the times list.",
+    );
+    const options = [
+      { key: "slugFillTime", label: "Time" },
+      { key: "slugFillModifier", label: "Modifier" },
+    ] as const;
+    for (const { key, label } of options) {
+      const wrap = setting.controlEl.createEl("label", {
+        cls: "scribidian-slug-fill-option",
+      });
+      const box = wrap.createEl("input", { type: "checkbox" });
+      box.checked = this.plugin.settings[key];
+      wrap.createSpan({ text: label });
+      box.addEventListener("change", () => {
+        this.plugin.settings[key] = box.checked;
+        void this.plugin.saveSettings();
+      });
+    }
   }
 
   private async saveSlugOrder(order: SlugSuggestionKind[]): Promise<void> {
@@ -1654,6 +1691,10 @@ export class ScribidianSettingTab extends PluginSettingTab {
       {
         name: SLUG_ORDER_NAME,
         render: (setting) => this.renderSlugOrder(setting),
+      },
+      {
+        name: SLUG_FILL_NAME,
+        render: (setting) => this.renderSlugFill(setting),
       },
       {
         name: MORE_SUGGESTIONS_NAME,

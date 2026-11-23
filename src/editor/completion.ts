@@ -291,6 +291,8 @@ function startCompletionEffects(
 
 /** Picks made over a selected part: they don't open the next list. */
 const partCompletions = new WeakSet<Completion>();
+/** Location picks filled in whole: no times list after them (#284). */
+const finishedCompletions = new WeakSet<Completion>();
 
 function applyCandidate(
   view: EditorView,
@@ -611,17 +613,35 @@ export function createScreenplayCompletionExtension(
       from: plan.from,
       to: overSelection ? selected.to : plan.to,
       filter: false,
-      options: candidates.map((candidate) => ({
-        label: candidate.label,
-        ...(candidate.displayLabel
-          ? { displayLabel: candidate.displayLabel }
-          : {}),
-        detail: candidate.detail,
-        apply: (view, completion, from, to) => {
-          if (overSelection) partCompletions.add(completion);
-          applyCandidate(view, completion, from, to, candidate, overSelection);
-        },
-      })),
+      options: candidates.map((candidate) => {
+        const option: Completion = {
+          label: candidate.label,
+          ...(candidate.displayLabel
+            ? { displayLabel: candidate.displayLabel }
+            : {}),
+          detail: candidate.detail,
+          apply: (view, completion, from, to) => {
+            if (overSelection) partCompletions.add(completion);
+            applyCandidate(
+              view,
+              completion,
+              from,
+              to,
+              candidate,
+              overSelection,
+            );
+          },
+        };
+        // A location filled in whole ("STUDIO - NIGHT", #284) is done:
+        // only "STUDIO - " goes on to the times list.
+        if (
+          candidate.detail === "Location" &&
+          !candidate.applyText.endsWith(" - ")
+        ) {
+          finishedCompletions.add(option);
+        }
+        return option;
+      }),
     };
   };
 
@@ -2006,6 +2026,7 @@ export function createScreenplayCompletionExtension(
       // there, and Tab goes on to it.
       activateOnCompletion: (completion) =>
         !partCompletions.has(completion) &&
+        !finishedCompletions.has(completion) &&
         (completion.detail === "Location" ||
           completion.detail === "Scene type"),
       maxRenderedOptions: 20,

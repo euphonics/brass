@@ -106,7 +106,7 @@ puts the normal build back.
 ## Behavior regression check
 
 `regress.ps1` replays the recorded behavior cases (`cases/cases1.js` to
-`cases24.js`, 210 cases) through `survey.js` with a given build, so two
+`cases25.js`, 214 cases) through `survey.js` with a given build, so two
 builds can be compared case by case, including each line's layout kind.
 Copy the two builds to `%TEMP%/scribidian-perf/main-old.js` and
 `main-new.js`, then:

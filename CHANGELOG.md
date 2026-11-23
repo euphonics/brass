@@ -27,6 +27,10 @@ project follows
   Final Draft files leave them out. New **Remove synopses** and **Remove
   boneyard** rows; **Line comments** can become a Fountain note or
   boneyard. "Links to other notes" is now **Wikilinks**.
+- Picking a location in the slugline list fills in the whole slug it
+  shows, time and modifier included (`STUDIO, BARN - NIGHT (FLASHBACK)`).
+  **Picking a location fills in** (Suggestions) has Time and Modifier
+  checkboxes; turn both off for the old location-then-times behavior.
 - Fixed: the `[&` thread list closed as soon as you typed a letter when a
   word-completion plugin (Completr) was on; it now filters as you type. It
   also no longer lists the thread you're typing.

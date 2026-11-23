@@ -569,10 +569,19 @@ Test cases:
   (`She runs. he follows.` → `He`), but not after an ellipsis, an
   abbreviation (`Mr.`, `INT.`, `p.m.`) or an initial (`J.`), and not in
   pasted text (added 2026-11-21).
-- **The location list** shows each location with the time it had last
-  (`KITCHEN - NIGHT`). Picking it fills in `KITCHEN - ` and opens the
-  times with that time first, so Enter takes it and the arrows pick
-  another (added 2026-11-21).
+- **The location list** shows each location with what picking it fills
+  in: the location plus the time and modifier of the last slug that used
+  it (`STUDIO, BARN - NIGHT (FLASHBACK)`; #284, changed 2026-11-23).
+  Setting **Picking a location fills in**: Time and Modifier checkboxes,
+  both on. With both off, picking fills in `KITCHEN - ` and opens the
+  times with the last one first (the 2026-11-21 behavior). A whole-slug
+  pick closes the list; the next Enter goes on to action.
+  - [ ] `INT. STUDIO|`, Enter on `STUDIO, BARN - NIGHT (FLASHBACK)`:
+        `INT. STUDIO, BARN - NIGHT (FLASHBACK)|`, no list.
+  - [ ] `INT. STUDIO|`, Down, Enter, Enter: `INT. STUDIO - NIGHT`, then a
+        new action line.
+  - [ ] Time and Modifier off: Enter on `KITCHEN - NIGHT` gives
+        `KITCHEN - |` with the times open.
 - **Offer full slugs** (setting, off by default): the location list also
   offers each location's last whole slug (`KITCHEN - NIGHT (FLASHBACK)`),
   which fills in the whole line at once. **Order of slug suggestions**
