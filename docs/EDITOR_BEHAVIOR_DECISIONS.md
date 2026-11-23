@@ -130,8 +130,11 @@ flowchart TD
   line that is only a comment is a note and doesn't end a speech.
 - `https://` isn't a comment (no space before the `//`), and neither is `//`
   inside a boneyard (`/* ... */`).
-- Clean exports remove comments ("Remove line comments" in the Clean
-  export table, on by default for every format). Preview, PDF and FDX leave them out.
+- Clean exports handle them per format (**Line comments** in the Clean
+  export table, #279): the clean Fountain export turns them into Fountain
+  notes (`Dialogue. // late` → `Dialogue. [[late]]`), which Fountain apps
+  show as notes and never print; Boneyard (`/* late */`), Keep and Remove
+  are the other choices. Clean PDF and Final Draft remove them. Preview, PDF and FDX leave them out.
 
 ## Threads (Scribidian addition)
 

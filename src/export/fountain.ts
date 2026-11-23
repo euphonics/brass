@@ -72,10 +72,18 @@ export interface CleanExportOptions {
   codeBlocks: CodeBlockHandling;
   /** `# Heading` lines (also Fountain sections). */
   removeHeadings: boolean;
+  /** Fountain synopses: `= text` lines. */
+  removeSynopses: boolean;
+  /** Fountain boneyard: `/* ... *\/`, inline or across lines. */
+  removeBoneyard: boolean;
   /** `%% comment %%`, inline or across lines. */
   removeComments: boolean;
-  /** Line comments: `// note` to the end of the line (Scribidian). */
-  removeLineComments: boolean;
+  /**
+   * Line comments, `// note` to the end of the line (Scribidian): keep,
+   * turn into a Fountain note (`[[note]]`) or boneyard (`/* note *\/`),
+   * or remove.
+   */
+  lineComments: LineCommentHandling;
   /** `> [!note]` callout blocks. */
   removeCallouts: boolean;
   /** `[^1]` references and `[^1]: ...` definitions. */
@@ -88,6 +96,21 @@ export interface CleanExportOptions {
   removeTags: boolean;
 }
 
+/** What a clean export does with a `// line comment`. */
+export type LineCommentHandling = "keep" | "note" | "boneyard" | "remove";
+
+const LINE_COMMENT_HANDLING: readonly LineCommentHandling[] = [
+  "keep",
+  "note",
+  "boneyard",
+  "remove",
+];
+
+/**
+ * Clean Fountain defaults: Obsidian-only markup goes; Fountain's own
+ * hidden elements (sections, synopses, boneyard) stay, and line comments
+ * become Fountain notes, so other Fountain apps keep them out of print.
+ */
 export const DEFAULT_CLEAN_EXPORT_OPTIONS: CleanExportOptions = {
   removeTasks: true,
   wikilinks: "unwrap",
@@ -95,8 +118,10 @@ export const DEFAULT_CLEAN_EXPORT_OPTIONS: CleanExportOptions = {
   markdownLinks: "unwrap",
   codeBlocks: "remove",
   removeHeadings: false,
+  removeSynopses: false,
+  removeBoneyard: false,
   removeComments: true,
-  removeLineComments: true,
+  lineComments: "note",
   removeCallouts: true,
   removeFootnotes: true,
   removeBlockIds: true,
@@ -111,6 +136,8 @@ const WIKILINK = /(!?)\[\[([^[\]\n]+?)\]\]/gu;
 const EMBED = /!\[\[[^[\]\n]*\]\]|!\[[^\]\n]*\]\([^)\n]*\)/gu;
 const MARKDOWN_LINK = /(!?)\[([^[\]\n]+)\]\([^)\n]+\)/gu;
 const HEADING_LINE = /^\s*#{1,6}\s/u;
+// "= text" (a synopsis); not "===" (a page break) or "==highlight==".
+const SYNOPSIS_LINE = /^\s*=(?!=)/u;
 const CALLOUT_START = /^\s*>\s*\[!/u;
 const FOOTNOTE_DEFINITION = /^\s*\[\^[^\]\n]+\]:/u;
 const FOOTNOTE_REFERENCE = /\[\^[^\]\n]+\]/gu;
@@ -120,6 +147,25 @@ const HIGHLIGHT = /==([^=\n]+)==/gu;
 // "#tag" or "#nested/tag" with at least one letter; not "#12#" scene numbers.
 const TAG = /(^|\s)#(?=[\p{L}\p{N}_/-]*\p{L})[\p{L}\p{N}_/-]+(?!#)/gu;
 
+/** Clean PDF defaults: only what prints (#277). */
+export const DEFAULT_CLEAN_EXPORT_OPTIONS_PDF: CleanExportOptions = {
+  ...DEFAULT_CLEAN_EXPORT_OPTIONS,
+  removeHeadings: true,
+  removeSynopses: true,
+  removeBoneyard: true,
+  lineComments: "remove",
+};
+
+/**
+ * Clean Final Draft defaults: like Fountain, but boneyard and line
+ * comments have no Final Draft equivalent yet (#278).
+ */
+export const DEFAULT_CLEAN_EXPORT_OPTIONS_FDX: CleanExportOptions = {
+  ...DEFAULT_CLEAN_EXPORT_OPTIONS,
+  removeBoneyard: true,
+  lineComments: "remove",
+};
+
 const LINK_HANDLING: readonly LinkHandling[] = ["keep", "unwrap", "remove"];
 
 /**
@@ -128,8 +174,9 @@ const LINK_HANDLING: readonly LinkHandling[] = ["keep", "unwrap", "remove"];
  */
 export function normalizeCleanExportOptions(
   stored: Record<string, unknown> | undefined,
+  defaults: CleanExportOptions = DEFAULT_CLEAN_EXPORT_OPTIONS,
 ): CleanExportOptions {
-  const options: CleanExportOptions = { ...DEFAULT_CLEAN_EXPORT_OPTIONS };
+  const options: CleanExportOptions = { ...defaults };
   if (!stored) return options;
   for (const key of Object.keys(options) as (keyof CleanExportOptions)[]) {
     const value = stored[key];
@@ -151,8 +198,15 @@ export function normalizeCleanExportOptions(
     linkValue(stored.markdownLinks, stored.unwrapMarkdownLinks) ??
     options.markdownLinks;
   if (!LINK_HANDLING.includes(options.codeBlocks)) {
-    options.codeBlocks = DEFAULT_CLEAN_EXPORT_OPTIONS.codeBlocks;
+    options.codeBlocks = defaults.codeBlocks;
   }
+  // "Remove line comments" was a toggle: off keeps them; on takes the
+  // format's default (#277).
+  if (!LINE_COMMENT_HANDLING.includes(options.lineComments)) {
+    options.lineComments = defaults.lineComments;
+  }
+  if (stored.lineComments === undefined && stored.removeLineComments === false)
+    options.lineComments = "keep";
   return options;
 }
 
@@ -228,6 +282,7 @@ export function cleanFountainSource(
   let inComment = false;
   let inCallout = false;
   let inBoneyard = false;
+  let inRemovedBoneyard = false;
   let fence: string | null = null;
 
   for (const rawLine of source.replaceAll("\r\n", "\n").split("\n")) {
@@ -269,6 +324,7 @@ export function cleanFountainSource(
         if (inComment) {
           if (marker === -1) break;
           rest = rest.slice(marker + 2);
+          kept += GAP;
           inComment = false;
         } else {
           if (marker === -1) {
@@ -284,11 +340,48 @@ export function cleanFountainSource(
       line = kept;
     }
 
+    if (options.removeBoneyard) {
+      let kept = "";
+      let rest = line;
+      for (;;) {
+        if (inRemovedBoneyard) {
+          const close = rest.indexOf("*/");
+          if (close === -1) break;
+          rest = rest.slice(close + 2);
+          kept += GAP;
+          inRemovedBoneyard = false;
+        } else {
+          const open = rest.indexOf("/*");
+          if (open === -1) {
+            kept += rest;
+            break;
+          }
+          kept += rest.slice(0, open) + GAP;
+          rest = rest.slice(open + 2);
+          inRemovedBoneyard = true;
+        }
+      }
+      if (kept !== line) removed = true;
+      line = kept;
+    }
+
     // Line comments: "// note" to the end of the line, outside boneyards.
+    // Kept aside and added back after the inline cleanup, so a comment
+    // turned into a Fountain note isn't unwrapped as a wikilink.
+    let convertedComment: string | null = null;
     {
       const comment = findLineComment(line, inBoneyard);
       inBoneyard = comment.inBoneyard;
-      if (options.removeLineComments && comment.at !== null) {
+      if (options.lineComments !== "keep" && comment.at !== null) {
+        const body = line
+          .slice(comment.at)
+          .replace(/^\/\/\s*/u, "")
+          .trim();
+        if (body !== "" && options.lineComments === "note") {
+          convertedComment = `[[${body.replaceAll("]]", "] ]")}]]`;
+        } else if (body !== "" && options.lineComments === "boneyard") {
+          convertedComment = `/* ${body.replaceAll("*/", "* /")} */`;
+        }
         line = line.slice(0, comment.at).trimEnd();
         removed = true;
       }
@@ -306,6 +399,7 @@ export function cleanFountainSource(
     if (
       (options.removeTasks && TASK_LINE.test(line)) ||
       (options.removeHeadings && HEADING_LINE.test(line)) ||
+      (options.removeSynopses && SYNOPSIS_LINE.test(line)) ||
       (options.removeFootnotes && FOOTNOTE_DEFINITION.test(line))
     ) {
       line = "";
@@ -320,6 +414,12 @@ export function cleanFountainSource(
       cleaned = cleaned.trimEnd();
     }
     line = cleaned.trim() === "" && rawLine.trim() !== "" ? "" : cleaned;
+    if (convertedComment !== null) {
+      line =
+        line.trim() === ""
+          ? `${/^\s*/u.exec(rawLine)?.[0] ?? ""}${convertedComment}`
+          : `${line.trimEnd()} ${convertedComment}`;
+    }
 
     // A line emptied by the cleanup is dropped entirely.
     if (removed && line.trim() === "") {

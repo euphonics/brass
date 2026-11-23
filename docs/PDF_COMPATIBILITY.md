@@ -13,7 +13,8 @@ Scribidian → Clean export** (tasks, callouts, comments, embeds and so on)
 is left out, and links keep their words by default. Each format (Fountain,
 PDF, Final Draft) has its own column, so the PDF can keep something the
 Fountain export removes. **Export PDF** keeps that markup as text. Threads
-and Fountain notes (`[[...]]`) are left out of both.
+and Fountain notes (`[[...]]`), sections (`#`) and synopses (`=`) are
+left out of both; boneyard (`/* ... */`) is left out of the clean PDF.
 
 - Sluglines, action, character cues and extensions, wrylies, dialogue,
   transitions, centered text and lyrics.

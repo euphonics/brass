@@ -21,6 +21,13 @@ project follows
   markup (tasks, callouts, tags…) as text, like **Export Fountain**; use
   the clean versions to leave it out. The preview and the status bar's
   page count follow the PDF column.
+- Clean export defaults suit each format: the clean Fountain file keeps
+  Fountain's own hidden elements (sections, synopses, boneyard) and turns
+  `// line comments` into Fountain notes (`[[note]]`); the clean PDF and
+  Final Draft files leave them out. New **Remove synopses** and **Remove
+  boneyard** rows; **Line comments** can become a Fountain note or
+  boneyard. "Links to other notes" is now **Wikilinks**.
+- Fixed: the PDF printed inline boneyard text (`/* ... */`) as script.
 - The Threads panel is now a tree like Obsidian's search results: click a
   thread to open or close its notes and lines, close a note's group, or use
   Expand all and Collapse all.

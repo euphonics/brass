@@ -82,6 +82,35 @@ describe("clean exports, per format (#277)", () => {
     expect(printed(fountain, true, "pdf")).not.toContain("Fix this scene");
   });
 
+  it("never prints sections or synopses (fixed cells)", () => {
+    const plugin = pluginWith({});
+    const text = printedScreenplay(
+      plugin,
+      `# Act One
+
+= Mara gets the key.
+
+INT. HALL - NIGHT
+
+She waits. /* cut */
+`,
+      undefined,
+      false,
+      "pdf",
+    )
+      .elements.map((element) => element.text)
+      .join(" ");
+    expect(text).not.toContain("Act One");
+    expect(text).not.toContain("Mara gets");
+    // Boneyard is a real option: kept, it would print.
+    expect(text).toContain("cut");
+    expect(
+      printedScreenplay(plugin, "She waits. /* cut */", undefined, true, "pdf")
+        .elements.map((element) => element.text)
+        .join(" "),
+    ).toBe("She waits.");
+  });
+
   it("starts every format from the old single set of options", () => {
     const settings = migrateSettings({ cleanExport: keepTasks });
     expect(settings.cleanExport.removeTasks).toBe(false);

@@ -130,8 +130,10 @@ Hello.
       markdownLinks: "keep",
       codeBlocks: "keep",
       removeHeadings: false,
+      removeSynopses: false,
+      removeBoneyard: false,
       removeComments: false,
-      removeLineComments: false,
+      lineComments: "keep",
       removeCallouts: false,
       removeFootnotes: false,
       removeBlockIds: false,
@@ -291,7 +293,12 @@ describe("line comments", () => {
       "",
       "She runs.",
     ].join("\n");
-    expect(cleanFountainSource(source)).toBe(
+    expect(
+      cleanFountainSource(source, {
+        ...DEFAULT_CLEAN_EXPORT_OPTIONS,
+        lineComments: "remove",
+      }),
+    ).toBe(
       [
         "MARA",
         "Dialogue.",
@@ -302,5 +309,89 @@ describe("line comments", () => {
         "She runs.",
       ].join("\n"),
     );
+  });
+
+  it("turns // comments into Fountain notes by default (#277)", () => {
+    const source = [
+      "MARA",
+      "Dialogue. // see [[Ideas]] later",
+      "",
+      "  // a note on its own line",
+      "",
+      "She runs. //",
+    ].join("\n");
+    expect(cleanFountainSource(source)).toBe(
+      [
+        "MARA",
+        "Dialogue. [[see [[Ideas] ] later]]",
+        "",
+        "  [[a note on its own line]]",
+        "",
+        "She runs.",
+      ].join("\n"),
+    );
+  });
+
+  it("turns // comments into boneyard when chosen", () => {
+    expect(
+      cleanFountainSource("Dialogue. // cut */ this", {
+        ...DEFAULT_CLEAN_EXPORT_OPTIONS,
+        lineComments: "boneyard",
+      }),
+    ).toBe("Dialogue. /* cut * / this */");
+  });
+});
+
+describe("Fountain's hidden elements (#277)", () => {
+  const source = [
+    "# Act One",
+    "",
+    "= Mara gets the key.",
+    "",
+    "INT. HALL - NIGHT",
+    "",
+    "She waits. /* cut",
+    "this */ Then runs.",
+    "",
+    "===",
+    "",
+    "==Bright== light.",
+  ].join("\n");
+
+  it("keeps sections, synopses and boneyard by default", () => {
+    expect(cleanFountainSource(source)).toBe(
+      source.replace("==Bright==", "Bright"),
+    );
+  });
+
+  it("removes them when asked, keeping page breaks", () => {
+    expect(
+      cleanFountainSource(source, {
+        ...DEFAULT_CLEAN_EXPORT_OPTIONS,
+        removeHeadings: true,
+        removeSynopses: true,
+        removeBoneyard: true,
+      }),
+    ).toBe(
+      [
+        "INT. HALL - NIGHT",
+        "",
+        "She waits.",
+        "Then runs.",
+        "",
+        "===",
+        "",
+        "Bright light.",
+      ].join("\n"),
+    );
+  });
+
+  it("reads the old line comment toggle", () => {
+    expect(
+      normalizeCleanExportOptions({ removeLineComments: false }).lineComments,
+    ).toBe("keep");
+    expect(
+      normalizeCleanExportOptions({ removeLineComments: true }).lineComments,
+    ).toBe("note");
   });
 });

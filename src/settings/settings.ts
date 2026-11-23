@@ -59,6 +59,8 @@ import {
 } from "../editor/enterTargets";
 import {
   DEFAULT_CLEAN_EXPORT_OPTIONS,
+  DEFAULT_CLEAN_EXPORT_OPTIONS_FDX,
+  DEFAULT_CLEAN_EXPORT_OPTIONS_PDF,
   normalizeCleanExportOptions,
   type CleanExportOptions,
 } from "../export/fountain";
@@ -201,8 +203,15 @@ export function cleanExportFor(
 ): CleanExportOptions {
   return normalizeCleanExportOptions(
     settings[CLEAN_EXPORT_KEYS[format]] as unknown as Record<string, unknown>,
+    CLEAN_EXPORT_DEFAULTS[format],
   );
 }
+
+const CLEAN_EXPORT_DEFAULTS: Record<CleanExportFormat, CleanExportOptions> = {
+  fountain: DEFAULT_CLEAN_EXPORT_OPTIONS,
+  pdf: DEFAULT_CLEAN_EXPORT_OPTIONS_PDF,
+  fdx: DEFAULT_CLEAN_EXPORT_OPTIONS_FDX,
+};
 
 const CLEAN_EXPORT_COLUMNS: { format: CleanExportFormat; title: string }[] = [
   { format: "fountain", title: "Fountain" },
@@ -226,6 +235,13 @@ const CLEAN_EXPORT_SETTINGS: {
   desc: string;
   /** Dropdown choices; options without them are toggles. */
   choices?: Record<string, string>;
+  /** Fewer choices for some formats. */
+  choicesFor?: Partial<Record<CleanExportFormat, Record<string, string>>>;
+  /**
+   * Formats where the export does this anyway, so the cell is fixed (with
+   * the reason as its tooltip).
+   */
+  fixed?: Partial<Record<CleanExportFormat, string>>;
 }[] = [
   {
     option: "removeTasks",
@@ -234,7 +250,7 @@ const CLEAN_EXPORT_SETTINGS: {
   },
   {
     option: "wikilinks",
-    name: "Links to other notes",
+    name: "Wikilinks",
     desc: "Links like [[Note|alias]]: keep them, keep just the text, or remove them.",
     choices: LINK_CHOICES,
   },
@@ -262,7 +278,25 @@ const CLEAN_EXPORT_SETTINGS: {
   {
     option: "removeHeadings",
     name: "Remove headings",
-    desc: "Heading lines (# Heading). In Fountain these are sections, such as acts.",
+    desc: "Heading lines (# Heading). In Fountain these are sections, such as acts: an outline that never prints.",
+    fixed: {
+      pdf: "Sections never print, so the PDF always leaves them out.",
+      fdx: "The Final Draft export can't include sections yet (roadmap #278).",
+    },
+  },
+  {
+    option: "removeSynopses",
+    name: "Remove synopses",
+    desc: "Fountain synopses: lines starting with = (= She finds the key). They never print.",
+    fixed: {
+      pdf: "Synopses never print, so the PDF always leaves them out.",
+      fdx: "The Final Draft export can't include synopses yet (roadmap #278).",
+    },
+  },
+  {
+    option: "removeBoneyard",
+    name: "Remove boneyard",
+    desc: "Fountain's hidden text: /* ... */. Fountain apps ignore it; Final Draft has no boneyard, so keeping it there (or in the PDF) prints it as script.",
   },
   {
     option: "removeComments",
@@ -270,9 +304,19 @@ const CLEAN_EXPORT_SETTINGS: {
     desc: "Obsidian comments: %% comment %%.",
   },
   {
-    option: "removeLineComments",
-    name: "Remove line comments",
-    desc: "Text after // at the end of a line, shown faded in the editor.",
+    option: "lineComments",
+    name: "Line comments",
+    desc: "Text after // at the end of a line, shown faded in the editor; other apps would show it as script. Note: a Fountain note, [[like this]], which Fountain apps show as a note and never print. Boneyard: /* like this */, which they ignore.",
+    choices: {
+      keep: "Keep",
+      note: "Note [[ ]]",
+      boneyard: "Boneyard /* */",
+      remove: "Remove",
+    },
+    choicesFor: {
+      pdf: { keep: "Keep", remove: "Remove" },
+      fdx: { keep: "Keep", remove: "Remove" },
+    },
   },
   {
     option: "removeCallouts",
@@ -367,8 +411,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   characterFolder: "Characters",
   characterTemplate: "",
   cleanExport: { ...DEFAULT_CLEAN_EXPORT_OPTIONS },
-  cleanExportPdf: { ...DEFAULT_CLEAN_EXPORT_OPTIONS },
-  cleanExportFdx: { ...DEFAULT_CLEAN_EXPORT_OPTIONS },
+  cleanExportPdf: { ...DEFAULT_CLEAN_EXPORT_OPTIONS_PDF },
+  cleanExportFdx: { ...DEFAULT_CLEAN_EXPORT_OPTIONS_FDX },
   pdfBold: { ...DEFAULT_PDF_BOLD },
   pdfContinued: true,
   lineCommentColor: "",
@@ -423,11 +467,16 @@ export function migrateSettings(
   settings.cleanExport = normalizeCleanExportOptions(
     rest.cleanExport as Record<string, unknown> | undefined,
   );
-  for (const key of ["cleanExportPdf", "cleanExportFdx"] as const) {
-    settings[key] = normalizeCleanExportOptions(
-      (rest[key] ?? rest.cleanExport) as Record<string, unknown> | undefined,
-    );
-  }
+  settings.cleanExportPdf = normalizeCleanExportOptions(
+    (rest.cleanExportPdf ?? rest.cleanExport) as
+      Record<string, unknown> | undefined,
+    DEFAULT_CLEAN_EXPORT_OPTIONS_PDF,
+  );
+  settings.cleanExportFdx = normalizeCleanExportOptions(
+    (rest.cleanExportFdx ?? rest.cleanExport) as
+      Record<string, unknown> | undefined,
+    DEFAULT_CLEAN_EXPORT_OPTIONS_FDX,
+  );
   settings.tabTargets = normalizeEnterTargets(
     rest.tabTargets,
     DEFAULT_TAB_TARGETS,
@@ -872,20 +921,40 @@ export class ScribidianSettingTab extends PluginSettingTab {
       head.createEl("th", { cls: "scribidian-clean-format", text: title });
     }
     const body = table.createEl("tbody");
-    for (const { option, name, desc, choices } of CLEAN_EXPORT_SETTINGS) {
+    for (const {
+      option,
+      name,
+      desc,
+      choices: allChoices,
+      choicesFor,
+      fixed,
+    } of CLEAN_EXPORT_SETTINGS) {
       const tr = body.createEl("tr");
       const info = tr.createEl("td", { cls: "scribidian-clean-info" });
       info.createDiv({ cls: "setting-item-name", text: name });
       info.createDiv({ cls: "setting-item-description", text: desc });
       for (const { format, title } of CLEAN_EXPORT_COLUMNS) {
         const cell = tr.createEl("td", { cls: "scribidian-clean-format" });
+        const choices = choicesFor?.[format] ?? allChoices;
+        const reason = fixed?.[format];
+        if (reason !== undefined) {
+          const box = cell.createEl("input", { type: "checkbox" });
+          box.checked = true;
+          box.disabled = true;
+          box.setAttr("aria-label", `${title}: ${name} (always)`);
+          cell.setAttr("title", reason);
+          continue;
+        }
         const current = cleanExportFor(this.plugin.settings, format)[option];
         const save = (value: unknown): void => {
           const key = CLEAN_EXPORT_KEYS[format];
-          this.plugin.settings[key] = normalizeCleanExportOptions({
-            ...cleanExportFor(this.plugin.settings, format),
-            [option]: value,
-          });
+          this.plugin.settings[key] = normalizeCleanExportOptions(
+            {
+              ...cleanExportFor(this.plugin.settings, format),
+              [option]: value,
+            },
+            CLEAN_EXPORT_DEFAULTS[format],
+          );
           void this.plugin.saveSettings();
         };
         if (choices) {
