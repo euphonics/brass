@@ -212,7 +212,9 @@ toolbar above the keyboard.
 - A line with just two spaces keeps a speech going across a gap.
 - `%% comments %%`, `[[notes]]`, `/* boneyard */` and `// line comments` are
   left out of the preview. Line comments are a Scribidian addition; other
-  apps show them as text, so use **Export to clean Fountain** to remove them.
+  apps show them as text, so use a clean export (**Export to clean
+  Fountain**, **Export clean PDF**, **Export to clean Final Draft FDX**) to
+  remove them.
 - Lines starting with `~` are lyrics.
 - `[&name]` is a **thread**, a Scribidian addition: lines with the same
   name are tied together (a setup and its payoff, a red herring). It shows

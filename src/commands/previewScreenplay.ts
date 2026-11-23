@@ -40,7 +40,7 @@ export async function previewScreenplay(
     printedScreenplay(plugin, context.source, context.document.titlePage),
     plugin.settings.pageSize,
     title,
-    () => exportPdf(plugin, view),
+    () => exportPdf(plugin, view, true),
     plugin.settings.pdfBold,
     plugin.settings.pdfContinued,
   ).open();

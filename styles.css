@@ -777,6 +777,20 @@ body {
   width: 100%;
 }
 
+.scribidian-clean-table .scribidian-clean-format {
+  width: 7.5em;
+  text-align: center;
+}
+
+.scribidian-clean-table select {
+  max-width: 7.5em;
+}
+
+.scribidian-clean-table input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
 .scribidian-typing-table .scribidian-typing-mode {
   width: 5.5em;
   text-align: center;

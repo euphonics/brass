@@ -1,15 +1,19 @@
 # PDF preview and export
 
 Scribidian shows a read-only page preview (**Screenplay: Preview**) and
-exports a PDF (**Screenplay: Export PDF**, or the preview's **Export PDF**
-button) for a screenplay or a whole screenplay project.
+exports a PDF for a screenplay or a whole screenplay project:
+**Screenplay: Export clean PDF** (or the preview's **Export clean PDF**
+button) or **Screenplay: Export PDF**.
 
 ## What the PDF holds
 
-The preview and the PDF show the script as it would print: the same text as
-**Export to clean Fountain**. Notes, tasks, callouts, comments, embeds,
-threads and the other Obsidian-only markup chosen under **Clean export** are
-left out; links keep their words. Changing those settings changes the PDF too.
+**Export clean PDF** and the preview show the script as it would print:
+the Obsidian-only markup ticked in the PDF column of **Settings →
+Scribidian → Clean export** (tasks, callouts, comments, embeds and so on)
+is left out, and links keep their words by default. Each format (Fountain,
+PDF, Final Draft) has its own column, so the PDF can keep something the
+Fountain export removes. **Export PDF** keeps that markup as text. Threads
+and Fountain notes (`[[...]]`) are left out of both.
 
 - Sluglines, action, character cues and extensions, wrylies, dialogue,
   transitions, centered text and lyrics.

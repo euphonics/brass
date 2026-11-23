@@ -130,8 +130,8 @@ flowchart TD
   line that is only a comment is a note and doesn't end a speech.
 - `https://` isn't a comment (no space before the `//`), and neither is `//`
   inside a boneyard (`/* ... */`).
-- Clean Fountain export removes comments ("Remove line comments", on by
-  default). Preview, PDF and FDX leave them out.
+- Clean exports remove comments ("Remove line comments" in the Clean
+  export table, on by default for every format). Preview, PDF and FDX leave them out.
 
 ## Threads (Scribidian addition)
 
@@ -581,10 +581,10 @@ Test cases:
 - **Times of day after a location**: the time that location had last
   comes first (`INT. KITCHEN - ` after `INT. KITCHEN - NIGHT` puts NIGHT at
   the top), when it matches what is typed (added 2026-11-21).
-- **Status bar pages, runtime, words and scenes** count what a clean
-  Fountain export would hold: tasks, comments, callouts and the other
-  elements the Clean export settings strip don't add pages (changed
-  2026-11-21).
+- **Status bar pages, runtime, words and scenes** count what the clean
+  PDF would hold: tasks, comments, callouts and the other elements the
+  Clean export table's PDF column strips don't add pages (changed
+  2026-11-21; PDF column since #277).
 - Text typed in the character column is uppercased, and so is text typed
   on a cue already in the script (`HELIOS|` + `test` → `HELIOSTEST`), so
   it stays a cue. Not inside the extension's brackets.

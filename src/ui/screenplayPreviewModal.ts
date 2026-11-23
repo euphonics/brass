@@ -61,7 +61,9 @@ export class ScreenplayPreviewModal extends Modal {
         ? "Read-only preview. CJK line breaks and page count are approximate."
         : "Read-only preview. Your Fountain source remains unchanged.",
     });
-    const exportButton = toolbar.createEl("button", { text: "Export PDF" });
+    const exportButton = toolbar.createEl("button", {
+      text: "Export clean PDF",
+    });
     exportButton.addEventListener("click", () => void this.exportPdf());
 
     let layout;

@@ -31,6 +31,7 @@ const activeExports = new WeakSet<ScribidianPlugin>();
 export async function exportPdf(
   plugin: ScribidianPlugin,
   view: MarkdownView,
+  clean = false,
 ): Promise<void> {
   const file = view.file;
   if (file === null) return;
@@ -67,6 +68,7 @@ export async function exportPdf(
       plugin,
       context.source,
       context.document.titlePage,
+      clean,
     );
     const content = await pdf.serializePdf(document, {
       pageSize: plugin.settings.pageSize,

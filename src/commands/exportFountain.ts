@@ -23,6 +23,7 @@ import { exportedFountainText } from "../export/exportedText";
 import { loadScreenplayContext } from "../projects/vault";
 import { parseFountain, withoutActionIndent } from "../screenplay/parser";
 import type { ScreenplayDocument } from "../screenplay/model";
+import { cleanExportFor, type CleanExportFormat } from "../settings/settings";
 
 /**
  * The Fountain text an export writes for `source`: cleaned of the
@@ -34,26 +35,30 @@ export function exportedFountainSource(
   plugin: ScribidianPlugin,
   source: string,
   clean: boolean,
+  format: CleanExportFormat = "fountain",
 ): string {
   return exportedFountainText(source, {
     clean,
-    cleanExport: plugin.settings.cleanExport,
+    cleanExport: cleanExportFor(plugin.settings, format),
     markCapitalsAsAction: plugin.settings.markCapitalsAsAction,
   });
 }
 
 /**
- * The screenplay as printed: the clean Fountain export parsed, with the
- * title page kept. The preview and PDF export both use it, so neither
- * shows notes, tasks, callouts or other Obsidian-only markup.
+ * The screenplay as an export holds it: the Fountain export parsed, with
+ * the title page kept. With `clean` (the preview, and the clean PDF and
+ * Final Draft exports), the Obsidian-only elements chosen in that
+ * format's Clean export column are left out.
  */
 export function printedScreenplay(
   plugin: ScribidianPlugin,
   source: string,
   titlePage: ScreenplayDocument["titlePage"],
+  clean = true,
+  format: CleanExportFormat = "pdf",
 ): ScreenplayDocument {
   const document = {
-    ...parseFountain(exportedFountainSource(plugin, source, true)),
+    ...parseFountain(exportedFountainSource(plugin, source, clean, format)),
     titlePage,
   };
   return plugin.settings.indentActionWithSpaces

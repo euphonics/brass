@@ -12,6 +12,15 @@ project follows
 - Mini sluglines: after `.HA`, the location list also offers a bare `HALL`
   that fills in just the location, with no time. It comes first when the
   location was last used without a time.
+- Clean export works for every format: **Export clean PDF** and **Export
+  to clean Final Draft FDX** join **Export to clean Fountain**, and the
+  Clean export settings are a table with a column per format (Fountain,
+  PDF, Final Draft), so each can keep or remove different markup. Your
+  earlier choices carry over to all three.
+- **Export PDF** and **Export to Final Draft FDX** now keep Obsidian
+  markup (tasks, callouts, tags…) as text, like **Export Fountain**; use
+  the clean versions to leave it out. The preview and the status bar's
+  page count follow the PDF column.
 - The Threads panel is now a tree like Obsidian's search results: click a
   thread to open or close its notes and lines, close a note's group, or use
   Expand all and Collapse all.

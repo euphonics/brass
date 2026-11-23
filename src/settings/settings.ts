@@ -170,7 +170,12 @@ export interface ScribidianSettings {
   updateDelayMs: number;
   characterFolder: string;
   characterTemplate: string;
+  /** What "Export to clean Fountain" removes. */
   cleanExport: CleanExportOptions;
+  /** What "Export clean PDF" (and the page preview) removes. */
+  cleanExportPdf: CleanExportOptions;
+  /** What "Export to clean Final Draft FDX" removes. */
+  cleanExportFdx: CleanExportOptions;
   /** Fountain export: "!" in front of capitals Scribidian reads as action. */
   markCapitalsAsAction: boolean;
   /** PDF export (and the page preview): which parts print in bold. */
@@ -181,11 +186,38 @@ export interface ScribidianSettings {
   lineCommentColor: string;
 }
 
-/** Clean Fountain export toggles, in the order shown in settings. */
+/** The formats with a clean export, each with its own Clean export column. */
+export type CleanExportFormat = "fountain" | "pdf" | "fdx";
+
+const CLEAN_EXPORT_KEYS: Record<
+  CleanExportFormat,
+  "cleanExport" | "cleanExportPdf" | "cleanExportFdx"
+> = { fountain: "cleanExport", pdf: "cleanExportPdf", fdx: "cleanExportFdx" };
+
+/** What a clean export to `format` removes. */
+export function cleanExportFor(
+  settings: ScribidianSettings,
+  format: CleanExportFormat,
+): CleanExportOptions {
+  return normalizeCleanExportOptions(
+    settings[CLEAN_EXPORT_KEYS[format]] as unknown as Record<string, unknown>,
+  );
+}
+
+const CLEAN_EXPORT_COLUMNS: { format: CleanExportFormat; title: string }[] = [
+  { format: "fountain", title: "Fountain" },
+  { format: "pdf", title: "PDF" },
+  { format: "fdx", title: "Final Draft" },
+];
+
+const CLEAN_EXPORT_NAME = "What each clean export removes";
+const CLEAN_EXPORT_KEY = "cleanExportTable";
+
+/** Clean export rows, in the order shown in settings. */
 const LINK_CHOICES = {
-  keep: "Keep as written",
-  unwrap: "Keep the text only",
-  remove: "Remove entirely",
+  keep: "Keep",
+  unwrap: "Text only",
+  remove: "Remove",
 };
 
 const CLEAN_EXPORT_SETTINGS: {
@@ -222,9 +254,9 @@ const CLEAN_EXPORT_SETTINGS: {
     name: "Code blocks",
     desc: "Blocks fenced with ``` or ~~~: keep them, keep just what's inside, or remove them.",
     choices: {
-      keep: "Keep as written",
-      unwrap: "Keep the content only",
-      remove: "Remove entirely",
+      keep: "Keep",
+      unwrap: "Content only",
+      remove: "Remove",
     },
   },
   {
@@ -269,7 +301,6 @@ const CLEAN_EXPORT_SETTINGS: {
   },
 ];
 
-const CLEAN_EXPORT_PREFIX = "cleanExport.";
 const PDF_BOLD_PREFIX = "pdfBold.";
 
 export const DEFAULT_SETTINGS: ScribidianSettings = {
@@ -336,6 +367,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   characterFolder: "Characters",
   characterTemplate: "",
   cleanExport: { ...DEFAULT_CLEAN_EXPORT_OPTIONS },
+  cleanExportPdf: { ...DEFAULT_CLEAN_EXPORT_OPTIONS },
+  cleanExportFdx: { ...DEFAULT_CLEAN_EXPORT_OPTIONS },
   pdfBold: { ...DEFAULT_PDF_BOLD },
   pdfContinued: true,
   lineCommentColor: "",
@@ -385,6 +418,16 @@ export function migrateSettings(
   };
   settings.enterTargets = normalizeEnterTargets(rest.enterTargets);
   settings.pdfBold = normalizePdfBold(rest.pdfBold);
+  // Clean export had one set of options for every format; each format
+  // starts from it (#277).
+  settings.cleanExport = normalizeCleanExportOptions(
+    rest.cleanExport as Record<string, unknown> | undefined,
+  );
+  for (const key of ["cleanExportPdf", "cleanExportFdx"] as const) {
+    settings[key] = normalizeCleanExportOptions(
+      (rest[key] ?? rest.cleanExport) as Record<string, unknown> | undefined,
+    );
+  }
   settings.tabTargets = normalizeEnterTargets(
     rest.tabTargets,
     DEFAULT_TAB_TARGETS,
@@ -539,11 +582,12 @@ const NAMED_ITEM_KEYS: Record<string, string> = {
   [ADVANCED_NAME]: ADVANCED_KEY,
   [MORE_SUGGESTIONS_NAME]: MORE_SUGGESTIONS_KEY,
   [SLUG_ORDER_NAME]: SLUG_ORDER_KEY,
+  [CLEAN_EXPORT_NAME]: CLEAN_EXPORT_KEY,
 };
 
 /**
  * Settings sections, in order, by control key. Sections marked `last` go
- * after built-in groups such as Clean Fountain export.
+ * after built-in groups such as Clean export.
  */
 const SETTING_GROUPS: {
   heading: string;
@@ -641,7 +685,7 @@ function definitionKey(item: SettingDefinitionItem): string | undefined {
 
 /**
  * Sort flat setting definitions into headed groups. Existing groups (such
- * as Clean Fountain export) are kept as they are, and anything not listed in
+ * as Clean export) are kept as they are, and anything not listed in
  * SETTING_GROUPS lands in an "Other" group so no setting is lost.
  */
 export function groupSettings(
@@ -804,6 +848,62 @@ export class ScribidianSettingTab extends PluginSettingTab {
     }
     syncMaster("plain");
     syncMaster("script");
+  }
+
+  /**
+   * Draw Clean export as a table: one row per kind of Obsidian markup, one
+   * column per format with a clean export (Fountain, PDF, Final Draft),
+   * each with its own checkbox or dropdown. Plain exports keep everything.
+   */
+  private renderCleanExport(setting: Setting): void {
+    setting.settingEl.addClass("scribidian-settings-table-row");
+    setting.infoEl.remove();
+    setting.controlEl.remove();
+    setting.settingEl.createDiv({
+      cls: "setting-item-description scribidian-settings-table-note",
+      text: "What the clean exports leave out: Export to clean Fountain, Export clean PDF (and the page preview), and Export to clean Final Draft FDX. The other exports keep everything. Your script is never changed.",
+    });
+    const table = setting.settingEl.createEl("table", {
+      cls: "scribidian-settings-table scribidian-clean-table",
+    });
+    const head = table.createEl("thead").createEl("tr");
+    head.createEl("th", { text: "Markup" });
+    for (const { title } of CLEAN_EXPORT_COLUMNS) {
+      head.createEl("th", { cls: "scribidian-clean-format", text: title });
+    }
+    const body = table.createEl("tbody");
+    for (const { option, name, desc, choices } of CLEAN_EXPORT_SETTINGS) {
+      const tr = body.createEl("tr");
+      const info = tr.createEl("td", { cls: "scribidian-clean-info" });
+      info.createDiv({ cls: "setting-item-name", text: name });
+      info.createDiv({ cls: "setting-item-description", text: desc });
+      for (const { format, title } of CLEAN_EXPORT_COLUMNS) {
+        const cell = tr.createEl("td", { cls: "scribidian-clean-format" });
+        const current = cleanExportFor(this.plugin.settings, format)[option];
+        const save = (value: unknown): void => {
+          const key = CLEAN_EXPORT_KEYS[format];
+          this.plugin.settings[key] = normalizeCleanExportOptions({
+            ...cleanExportFor(this.plugin.settings, format),
+            [option]: value,
+          });
+          void this.plugin.saveSettings();
+        };
+        if (choices) {
+          const select = cell.createEl("select", { cls: "dropdown" });
+          for (const [value, label] of Object.entries(choices)) {
+            select.createEl("option", { value, text: label });
+          }
+          select.value = String(current);
+          select.setAttr("aria-label", `${title}: ${name}`);
+          select.addEventListener("change", () => save(select.value));
+        } else {
+          const box = cell.createEl("input", { type: "checkbox" });
+          box.checked = current === true;
+          box.setAttr("aria-label", `${title}: ${name}`);
+          box.addEventListener("change", () => save(box.checked));
+        }
+      }
+    }
   }
 
   /** Keys of the "show more" rows that are currently open. */
@@ -1609,27 +1709,14 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         type: "group",
-        heading: "Clean Fountain export: what to strip out",
-        items: CLEAN_EXPORT_SETTINGS.map(({ option, name, desc, choices }) => {
-          const key = `${CLEAN_EXPORT_PREFIX}${option}`;
-          const defaultValue = DEFAULT_CLEAN_EXPORT_OPTIONS[option];
-          return {
-            name,
-            desc,
-            control: choices
-              ? {
-                  type: "dropdown" as const,
-                  key,
-                  options: choices,
-                  defaultValue: String(defaultValue),
-                }
-              : {
-                  type: "toggle" as const,
-                  key,
-                  defaultValue: defaultValue === true,
-                },
-          };
-        }),
+        heading: "Clean export",
+        items: [
+          {
+            name: CLEAN_EXPORT_NAME,
+            searchable: false,
+            render: (setting) => this.renderCleanExport(setting),
+          },
+        ],
       },
       {
         name: "Scene types",
@@ -1679,15 +1766,6 @@ export class ScribidianSettingTab extends PluginSettingTab {
       const options = normalizePdfBold(this.plugin.settings.pdfBold);
       return part in options ? options[part as PdfBoldPart] : undefined;
     }
-    if (key.startsWith(CLEAN_EXPORT_PREFIX)) {
-      const option = key.slice(CLEAN_EXPORT_PREFIX.length);
-      const options = normalizeCleanExportOptions(
-        this.plugin.settings.cleanExport as unknown as Record<string, unknown>,
-      );
-      return option in options
-        ? options[option as keyof CleanExportOptions]
-        : undefined;
-    }
     if (!isSettingKey(key)) return undefined;
     const value = this.plugin.settings[key];
     return Array.isArray(value) ? value.join(", ") : value;
@@ -1701,22 +1779,6 @@ export class ScribidianSettingTab extends PluginSettingTab {
         ...normalizePdfBold(this.plugin.settings.pdfBold),
         [part]: value,
       };
-      await this.plugin.saveSettings();
-      return;
-    }
-    if (key.startsWith(CLEAN_EXPORT_PREFIX)) {
-      const option = key.slice(CLEAN_EXPORT_PREFIX.length);
-      if (!(option in DEFAULT_CLEAN_EXPORT_OPTIONS)) return;
-      const updated = normalizeCleanExportOptions({
-        ...normalizeCleanExportOptions(
-          this.plugin.settings.cleanExport as unknown as Record<
-            string,
-            unknown
-          >,
-        ),
-        [option]: value,
-      });
-      this.plugin.settings.cleanExport = updated;
       await this.plugin.saveSettings();
       return;
     }

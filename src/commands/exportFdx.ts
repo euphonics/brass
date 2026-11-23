@@ -20,11 +20,12 @@ import type { MarkdownView } from "obsidian";
 import type ScribidianPlugin from "../main";
 import { fdxExportPath, serializeFdx } from "../export/fdx";
 import { loadScreenplayContext } from "../projects/vault";
-import { withoutActionIndent } from "../screenplay/parser";
+import { printedScreenplay } from "./exportFountain";
 
 export async function exportFdx(
   plugin: ScribidianPlugin,
   view: MarkdownView,
+  clean = false,
 ): Promise<void> {
   const file = view.file;
   if (file === null) return;
@@ -41,9 +42,13 @@ export async function exportFdx(
   );
   const path = fdxExportPath(context.owner.path, existingPaths);
   const content = serializeFdx(
-    plugin.settings.indentActionWithSpaces
-      ? context.document
-      : withoutActionIndent(context.document),
+    printedScreenplay(
+      plugin,
+      context.source,
+      context.document.titlePage,
+      clean,
+      "fdx",
+    ),
   );
 
   try {

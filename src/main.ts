@@ -513,6 +513,20 @@ export default class ScribidianPlugin extends Plugin {
       },
     });
     this.addCommand({
+      id: "screenplay-export-clean-pdf",
+      name: "Screenplay: Export clean PDF",
+      checkCallback: (checking) => {
+        const view = this.activeMarkdownView();
+        if (
+          view === null ||
+          (!this.isScreenplayFile(view.file) && !this.isProjectFile(view.file))
+        )
+          return false;
+        if (!checking) void exportPdf(this, view, true);
+        return true;
+      },
+    });
+    this.addCommand({
       id: "screenplay-export-fountain",
       name: "Screenplay: Export to Fountain",
       checkCallback: (checking) => {
@@ -551,6 +565,20 @@ export default class ScribidianPlugin extends Plugin {
         )
           return false;
         if (!checking) void exportFdx(this, view);
+        return true;
+      },
+    });
+    this.addCommand({
+      id: "screenplay-export-clean-final-draft-fdx",
+      name: "Screenplay: Export to clean Final Draft FDX",
+      checkCallback: (checking) => {
+        const view = this.activeMarkdownView();
+        if (
+          view === null ||
+          (!this.isScreenplayFile(view.file) && !this.isProjectFile(view.file))
+        )
+          return false;
+        if (!checking) void exportFdx(this, view, true);
         return true;
       },
     });
@@ -961,7 +989,7 @@ export default class ScribidianPlugin extends Plugin {
     const settingsKey = JSON.stringify([
       this.settings.pageSize,
       this.settings.minutesPerPage,
-      this.settings.cleanExport,
+      this.settings.cleanExportPdf,
       this.settings.markCapitalsAsAction,
     ]);
     const single =
@@ -978,7 +1006,7 @@ export default class ScribidianPlugin extends Plugin {
       return cached.statistics;
     }
     const counts = {
-      cleanExport: this.settings.cleanExport,
+      cleanExport: this.settings.cleanExportPdf,
       markCapitalsAsAction: this.settings.markCapitalsAsAction,
       pageSize: this.settings.pageSize,
       minutesPerPage: this.settings.minutesPerPage,
@@ -1112,7 +1140,7 @@ export default class ScribidianPlugin extends Plugin {
       this.statisticsWorker
         .currentPage({
           upToLine,
-          cleanExport: this.settings.cleanExport,
+          cleanExport: this.settings.cleanExportPdf,
           markCapitalsAsAction: this.settings.markCapitalsAsAction,
           pageSize: this.settings.pageSize,
         })
