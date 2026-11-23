@@ -1068,7 +1068,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
   private renderSlugFill(setting: Setting): void {
     setting.setName(SLUG_FILL_NAME);
     setting.setDesc(
-      "What picking a location in the slugline list adds after it, from the last slug that used it: STUDIO, BARN - NIGHT (FLASHBACK). The list shows what will be filled in. With Time off, a location that had a time fills in STUDIO, BARN - and opens the times list.",
+      "What picking a location in the slugline list adds after it, from the last slug that used it: STUDIO, BARN - NIGHT (FLASHBACK). The list shows what will be filled in. With both off, picking fills in the location and opens the times list, as Final Draft does.",
     );
     const options = [
       { key: "slugFillTime", label: "Time" },

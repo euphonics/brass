@@ -118,3 +118,20 @@ edit and could be made incremental.
   text outside the cursor's line changes; worth profiling in a large
   project.
 - Phones and slower computers: these numbers are from a desktop.
+
+## Threads panel (2026-11-23)
+
+Measured in the Dev vault on a 500-page script (`Scribidian Example/Threads
+Perf.md`, thread marks added to action lines), with the panel open. The
+panel works only after typing pauses, never per keystroke.
+
+| Thread places | Names | Redraw (median) | Redraw (max)                             | Refresh with nothing changed |
+| ------------- | ----- | --------------- | ---------------------------------------- | ---------------------------- |
+| 200           | 20    | 5.2 ms          | (first open: 753 ms, reading the script) | 1.6 ms                       |
+| 1,000         | 50    | 8.8 ms          | 21 ms                                    | 3.3 ms                       |
+| 2,904         | 100   | 17.4 ms         | 30 ms                                    | 6.2 ms                       |
+| 2,904         | 200   | 20.9 ms         | 48 ms                                    | 9.1 ms                       |
+
+Verdict: no change needed. Even about 3,000 places redraw in about one
+frame, after a pause. If it ever matters: move the place collection to the
+worker and redraw only the threads that changed (#285).
