@@ -223,11 +223,6 @@ const CLEAN_EXPORT_NAME = "What each clean export removes";
 const CLEAN_EXPORT_KEY = "cleanExportTable";
 
 /** Clean export rows, in the order shown in settings. */
-const LINK_CHOICES = {
-  keep: "Keep",
-  unwrap: "Text only",
-  remove: "Remove",
-};
 
 const CLEAN_EXPORT_SETTINGS: {
   option: keyof CleanExportOptions;
@@ -251,8 +246,13 @@ const CLEAN_EXPORT_SETTINGS: {
   {
     option: "wikilinks",
     name: "Wikilinks",
-    desc: "Links like [[Note|alias]]: keep them, keep just the text, or remove them.",
-    choices: LINK_CHOICES,
+    desc: "Links like [[File name|alias]]. Alias: the alias, or the file name when there is none ([[File name]] becomes File name). File name: always the file name. Keep: as written.",
+    choices: {
+      alias: "Alias",
+      file: "File name",
+      keep: "Keep",
+      remove: "Remove",
+    },
   },
   {
     option: "removeEmbeds",
@@ -262,8 +262,13 @@ const CLEAN_EXPORT_SETTINGS: {
   {
     option: "markdownLinks",
     name: "Web links",
-    desc: "Links like [text](https://...): keep them, keep just the text, or remove them.",
-    choices: LINK_CHOICES,
+    desc: "Links like [name](https://...). Name: just the name. Link: just the address. Keep: as written.",
+    choices: {
+      name: "Name",
+      link: "Link",
+      keep: "Keep",
+      remove: "Remove",
+    },
   },
   {
     option: "codeBlocks",
@@ -299,9 +304,19 @@ const CLEAN_EXPORT_SETTINGS: {
     desc: "Fountain's hidden text: /* ... */. Fountain apps ignore it; Final Draft has no boneyard, so keeping it there (or in the PDF) prints it as script.",
   },
   {
-    option: "removeComments",
-    name: "Remove comments",
-    desc: "Obsidian comments: %% comment %%.",
+    option: "comments",
+    name: "Comments",
+    desc: "Obsidian comments: %% comment %%, on one line or across several. Other apps would show them as script. Note: a Fountain note, [[like this]], which Fountain apps show as a note and never print. Boneyard: /* like this */, which they ignore.",
+    choices: {
+      keep: "Keep",
+      note: "Note [[ ]]",
+      boneyard: "Boneyard /* */",
+      remove: "Remove",
+    },
+    choicesFor: {
+      pdf: { keep: "Keep", remove: "Remove" },
+      fdx: { keep: "Keep", remove: "Remove" },
+    },
   },
   {
     option: "lineComments",

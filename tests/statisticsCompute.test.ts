@@ -17,11 +17,11 @@
 
 import { describe, expect, it } from "vitest";
 import { computeStatistics } from "../src/workers/statisticsCompute";
-import { DEFAULT_CLEAN_EXPORT_OPTIONS } from "../src/export/fountain";
+import { DEFAULT_CLEAN_EXPORT_OPTIONS_PDF } from "../src/export/fountain";
 
 const base = {
   titlePage: undefined,
-  cleanExport: DEFAULT_CLEAN_EXPORT_OPTIONS,
+  cleanExport: DEFAULT_CLEAN_EXPORT_OPTIONS_PDF,
   markCapitalsAsAction: true,
   pageSize: "us-letter" as const,
   minutesPerPage: 1,

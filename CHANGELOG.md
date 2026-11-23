@@ -27,6 +27,11 @@ project follows
   Final Draft files leave them out. New **Remove synopses** and **Remove
   boneyard** rows; **Line comments** can become a Fountain note or
   boneyard. "Links to other notes" is now **Wikilinks**.
+- `%% comments %%` can also become Fountain notes or boneyard in the
+  clean Fountain file (Note is the default there).
+- Wikilinks: keep the alias (falling back to the file name), the file
+  name, the whole link, or nothing. Web links: keep the name, the address,
+  the whole link, or nothing.
 - Fixed: the PDF printed inline boneyard text (`/* ... */`) as script.
 - The Threads panel is now a tree like Obsidian's search results: click a
   thread to open or close its notes and lines, close a note's group, or use

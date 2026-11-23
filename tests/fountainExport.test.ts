@@ -22,7 +22,8 @@ import {
   normalizeCleanExportOptions,
   type CleanExportOptions,
   type CodeBlockHandling,
-  type LinkHandling,
+  type MarkdownLinkHandling,
+  type WikilinkHandling,
   fountainExportPath,
   markCapitalsAsAction,
   stripObsidianFrontmatter,
@@ -132,7 +133,7 @@ Hello.
       removeHeadings: false,
       removeSynopses: false,
       removeBoneyard: false,
-      removeComments: false,
+      comments: "keep",
       lineComments: "keep",
       removeCallouts: false,
       removeFootnotes: false,
@@ -154,13 +155,13 @@ Hello.
     expect(
       cleanFountainSource(
         "She runs. %%cut?%% Fast.",
-        on({ removeComments: true }),
+        on({ comments: "remove" }),
       ),
     ).toBe("She runs. Fast.");
     expect(
       cleanFountainSource(
         "A\n%%\nhidden\nnotes\n%%\nB",
-        on({ removeComments: true }),
+        on({ comments: "remove" }),
       ),
     ).toBe("A\nB");
     expect(
@@ -204,7 +205,10 @@ Hello.
   });
 
   it("keeps, unwraps or removes links", () => {
-    const options = (wikilinks: LinkHandling, markdownLinks: LinkHandling) => ({
+    const options = (
+      wikilinks: WikilinkHandling,
+      markdownLinks: MarkdownLinkHandling,
+    ) => ({
       ...DEFAULT_CLEAN_EXPORT_OPTIONS,
       wikilinks,
       markdownLinks,
@@ -212,12 +216,33 @@ Hello.
     const text =
       "Meet [[Jen (Character in TIGHTER)|Jen]] at [the barn](https://x.y).";
     expect(cleanFountainSource(text, options("keep", "keep"))).toBe(text);
-    expect(cleanFountainSource(text, options("unwrap", "unwrap"))).toBe(
+    expect(cleanFountainSource(text, options("alias", "name"))).toBe(
       "Meet Jen at the barn.",
+    );
+    expect(cleanFountainSource(text, options("file", "link"))).toBe(
+      "Meet Jen (Character in TIGHTER) at https://x.y.",
     );
     expect(cleanFountainSource(text, options("remove", "remove"))).toBe(
       "Meet at.",
     );
+  });
+
+  it("falls back to the file name when a wikilink has no alias (#281)", () => {
+    const wiki = (text: string, keep: "alias" | "file") =>
+      cleanFountainSource(text, {
+        ...DEFAULT_CLEAN_EXPORT_OPTIONS,
+        wikilinks: keep,
+      });
+    expect(wiki("See [[File name|alias]].", "alias")).toBe("See alias.");
+    expect(wiki("See [[File name]].", "alias")).toBe("See File name.");
+    expect(wiki("See [[Notes/Jen.md#Scene 3|her]].", "file")).toBe("See Jen.");
+    expect(wiki("See [[Notes/Jen#^abc]].", "alias")).toBe("See Jen.");
+    expect(
+      cleanFountainSource('Go [home](<https://a.b/c d> "Home").', {
+        ...DEFAULT_CLEAN_EXPORT_OPTIONS,
+        markdownLinks: "link",
+      }),
+    ).toBe("Go https://a.b/c d.");
   });
 
   it("keeps, unwraps or removes fenced code blocks", () => {
@@ -239,7 +264,13 @@ Hello.
         unwrapWikilinks: false,
         unwrapMarkdownLinks: true,
       }),
-    ).toMatchObject({ wikilinks: "keep", markdownLinks: "unwrap" });
+    ).toMatchObject({ wikilinks: "keep", markdownLinks: "name" });
+    expect(
+      normalizeCleanExportOptions({
+        wikilinks: "unwrap",
+        markdownLinks: "unwrap",
+      }),
+    ).toMatchObject({ wikilinks: "alias", markdownLinks: "name" });
     expect(normalizeCleanExportOptions(undefined)).toEqual(
       DEFAULT_CLEAN_EXPORT_OPTIONS,
     );
@@ -258,7 +289,7 @@ Hello.
       });
     expect(clean("Look ![[photo.png]] here.")).toBe("Look here.");
     expect(clean("She runs [^1].")).toBe("She runs.");
-    expect(clean("She runs %%cut%% fast")).toBe("She runs fast");
+    expect(clean("She runs %%cut%% fast")).toBe("She runs [[cut]] fast");
     expect(clean("#idea She runs")).toBe("She runs");
     expect(clean("(see [[Note]]) ok")).toBe("(see) ok");
     expect(clean("[[Note]] opens the door")).toBe("opens the door");
@@ -273,8 +304,8 @@ Hello.
       cleanFountainSource(text, {
         ...DEFAULT_CLEAN_EXPORT_OPTIONS,
         removeEmbeds: false,
-        wikilinks: "unwrap",
-        markdownLinks: "unwrap",
+        wikilinks: "alias",
+        markdownLinks: "name",
       });
     expect(unwrap("[[A]][[B|bee]] ![[pic.png]]")).toBe("Abee ![[pic.png]]");
     expect(unwrap("[go](x.md) ![alt](p.png)")).toBe("go ![alt](p.png)");
@@ -339,6 +370,47 @@ describe("line comments", () => {
         lineComments: "boneyard",
       }),
     ).toBe("Dialogue. /* cut * / this */");
+  });
+});
+
+describe("%% comments to Fountain notes or boneyard (#280)", () => {
+  const as = (comments: "note" | "boneyard" | "keep") => ({
+    ...DEFAULT_CLEAN_EXPORT_OPTIONS,
+    comments,
+  });
+
+  it("turns an inline comment into a note, cleaning the text inside", () => {
+    expect(
+      cleanFountainSource("She runs. %% see [[Ideas]] %% Fast.", as("note")),
+    ).toBe("She runs. [[see Ideas]] Fast.");
+  });
+
+  it("keeps a comment across lines as one note, blank lines included", () => {
+    expect(
+      cleanFountainSource("A\n%%\nhidden\n\nnotes\n%%\nB", as("note")),
+    ).toBe("A\n[[\nhidden\n  \nnotes\n]]\nB");
+  });
+
+  it("turns comments into boneyard", () => {
+    expect(
+      cleanFountainSource("She runs. %%cut */ this%% Fast.", as("boneyard")),
+    ).toBe("She runs. /* cut * / this */ Fast.");
+    expect(cleanFountainSource("A\n%%\nhidden\n%%\nB", as("boneyard"))).toBe(
+      "A\n/*\nhidden\n*/\nB",
+    );
+  });
+
+  it("leaves comments alone with Keep", () => {
+    expect(cleanFountainSource("A %%x%% B", as("keep"))).toBe("A %%x%% B");
+  });
+
+  it("reads the old comments toggle", () => {
+    expect(
+      normalizeCleanExportOptions({ removeComments: false }).comments,
+    ).toBe("keep");
+    expect(normalizeCleanExportOptions({ removeComments: true }).comments).toBe(
+      "note",
+    );
   });
 });
 

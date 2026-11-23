@@ -54,20 +54,25 @@ export function fountainExportPath(
   return candidate;
 }
 
-/** Keep links as written, keep only their text, or remove them. */
-export type LinkHandling = "keep" | "unwrap" | "remove";
+/**
+ * `[[file name|alias]]`: keep as written, keep the alias (the file name
+ * when there is none), keep the file name, or remove.
+ */
+export type WikilinkHandling = "keep" | "alias" | "file" | "remove";
+/** `[name](link)`: keep as written, keep the name, keep the link, or remove. */
+export type MarkdownLinkHandling = "keep" | "name" | "link" | "remove";
 /** Keep code blocks, keep only their content (no fences), or remove them. */
 export type CodeBlockHandling = "keep" | "unwrap" | "remove";
 
 export interface CleanExportOptions {
   /** `- [ ] task` / `- [x] done` lines. */
   removeTasks: boolean;
-  /** `[[target|alias]]`: keep, unwrap to `alias` / `target`, or remove. */
-  wikilinks: LinkHandling;
+  /** `[[file name|alias]]`: see WikilinkHandling. */
+  wikilinks: WikilinkHandling;
   /** `![[image.png]]` and `![alt](image.png)`. */
   removeEmbeds: boolean;
-  /** `[text](https://...)`: keep, unwrap to `text`, or remove. */
-  markdownLinks: LinkHandling;
+  /** `[name](link)`: see MarkdownLinkHandling. */
+  markdownLinks: MarkdownLinkHandling;
   /** ```` ``` ```` / `~~~` fenced code blocks. */
   codeBlocks: CodeBlockHandling;
   /** `# Heading` lines (also Fountain sections). */
@@ -76,14 +81,18 @@ export interface CleanExportOptions {
   removeSynopses: boolean;
   /** Fountain boneyard: `/* ... *\/`, inline or across lines. */
   removeBoneyard: boolean;
-  /** `%% comment %%`, inline or across lines. */
-  removeComments: boolean;
+  /**
+   * Obsidian comments, `%% comment %%` (inline or across lines): keep,
+   * turn into a Fountain note (`[[comment]]`) or boneyard
+   * (`/* comment *\/`), or remove.
+   */
+  comments: CommentHandling;
   /**
    * Line comments, `// note` to the end of the line (Scribidian): keep,
    * turn into a Fountain note (`[[note]]`) or boneyard (`/* note *\/`),
    * or remove.
    */
-  lineComments: LineCommentHandling;
+  lineComments: CommentHandling;
   /** `> [!note]` callout blocks. */
   removeCallouts: boolean;
   /** `[^1]` references and `[^1]: ...` definitions. */
@@ -96,10 +105,10 @@ export interface CleanExportOptions {
   removeTags: boolean;
 }
 
-/** What a clean export does with a `// line comment`. */
-export type LineCommentHandling = "keep" | "note" | "boneyard" | "remove";
+/** What a clean export does with a `%% comment %%` or `// line comment`. */
+export type CommentHandling = "keep" | "note" | "boneyard" | "remove";
 
-const LINE_COMMENT_HANDLING: readonly LineCommentHandling[] = [
+const COMMENT_HANDLING: readonly CommentHandling[] = [
   "keep",
   "note",
   "boneyard",
@@ -113,14 +122,14 @@ const LINE_COMMENT_HANDLING: readonly LineCommentHandling[] = [
  */
 export const DEFAULT_CLEAN_EXPORT_OPTIONS: CleanExportOptions = {
   removeTasks: true,
-  wikilinks: "unwrap",
+  wikilinks: "alias",
   removeEmbeds: true,
-  markdownLinks: "unwrap",
+  markdownLinks: "name",
   codeBlocks: "remove",
   removeHeadings: false,
   removeSynopses: false,
   removeBoneyard: false,
-  removeComments: true,
+  comments: "note",
   lineComments: "note",
   removeCallouts: true,
   removeFootnotes: true,
@@ -135,6 +144,13 @@ const TASK_LINE = /^\s*[-*+]\s+\[[^\]]?\](?:\s.*)?$/u;
 const WIKILINK = /(!?)\[\[([^[\]\n]+?)\]\]/gu;
 const EMBED = /!\[\[[^[\]\n]*\]\]|!\[[^\]\n]*\]\([^)\n]*\)/gu;
 const MARKDOWN_LINK = /(!?)\[([^[\]\n]+)\]\([^)\n]+\)/gu;
+
+/** The link of `[name](link "title")`: `link`. */
+function markdownLinkTarget(link: string): string {
+  const inside = link.slice(link.lastIndexOf("](") + 2, -1).trim();
+  const target = inside.split(/\s+"/u)[0] ?? inside;
+  return target.replace(/^<|>$/gu, "");
+}
 const HEADING_LINE = /^\s*#{1,6}\s/u;
 // "= text" (a synopsis); not "===" (a page break) or "==highlight==".
 const SYNOPSIS_LINE = /^\s*=(?!=)/u;
@@ -153,6 +169,7 @@ export const DEFAULT_CLEAN_EXPORT_OPTIONS_PDF: CleanExportOptions = {
   removeHeadings: true,
   removeSynopses: true,
   removeBoneyard: true,
+  comments: "remove",
   lineComments: "remove",
 };
 
@@ -163,10 +180,27 @@ export const DEFAULT_CLEAN_EXPORT_OPTIONS_PDF: CleanExportOptions = {
 export const DEFAULT_CLEAN_EXPORT_OPTIONS_FDX: CleanExportOptions = {
   ...DEFAULT_CLEAN_EXPORT_OPTIONS,
   removeBoneyard: true,
+  comments: "remove",
   lineComments: "remove",
 };
 
-const LINK_HANDLING: readonly LinkHandling[] = ["keep", "unwrap", "remove"];
+const WIKILINK_HANDLING: readonly WikilinkHandling[] = [
+  "keep",
+  "alias",
+  "file",
+  "remove",
+];
+const MARKDOWN_LINK_HANDLING: readonly MarkdownLinkHandling[] = [
+  "keep",
+  "name",
+  "link",
+  "remove",
+];
+const CODE_BLOCK_HANDLING: readonly CodeBlockHandling[] = [
+  "keep",
+  "unwrap",
+  "remove",
+];
 
 /**
  * Clean export options from stored settings, filling gaps with defaults and
@@ -184,43 +218,93 @@ export function normalizeCleanExportOptions(
       (options as unknown as Record<string, unknown>)[key] = value;
     }
   }
-  const linkValue = (value: unknown, legacy: unknown): LinkHandling | null =>
-    LINK_HANDLING.includes(value as LinkHandling)
-      ? (value as LinkHandling)
-      : typeof legacy === "boolean"
-        ? legacy
-          ? "unwrap"
-          : "keep"
-        : null;
+  // Links were keep / unwrap / remove (and before that, toggles): unwrap
+  // is now "alias" for wikilinks and "name" for web links (#281).
+  const linkValue = <T extends string>(
+    value: unknown,
+    legacy: unknown,
+    allowed: readonly T[],
+    unwrapped: T,
+  ): T | null =>
+    allowed.includes(value as T)
+      ? (value as T)
+      : value === "unwrap"
+        ? unwrapped
+        : typeof legacy === "boolean"
+          ? legacy
+            ? unwrapped
+            : ("keep" as T)
+          : null;
   options.wikilinks =
-    linkValue(stored.wikilinks, stored.unwrapWikilinks) ?? options.wikilinks;
+    linkValue(
+      stored.wikilinks,
+      stored.unwrapWikilinks,
+      WIKILINK_HANDLING,
+      "alias",
+    ) ?? defaults.wikilinks;
   options.markdownLinks =
-    linkValue(stored.markdownLinks, stored.unwrapMarkdownLinks) ??
-    options.markdownLinks;
-  if (!LINK_HANDLING.includes(options.codeBlocks)) {
+    linkValue(
+      stored.markdownLinks,
+      stored.unwrapMarkdownLinks,
+      MARKDOWN_LINK_HANDLING,
+      "name",
+    ) ?? defaults.markdownLinks;
+  if (!CODE_BLOCK_HANDLING.includes(options.codeBlocks)) {
     options.codeBlocks = defaults.codeBlocks;
   }
   // "Remove line comments" was a toggle: off keeps them; on takes the
   // format's default (#277).
-  if (!LINE_COMMENT_HANDLING.includes(options.lineComments)) {
+  // "Remove comments" and "Remove line comments" were toggles: off keeps
+  // them; on takes the format's default (#277, #280).
+  if (!COMMENT_HANDLING.includes(options.lineComments)) {
     options.lineComments = defaults.lineComments;
   }
   if (stored.lineComments === undefined && stored.removeLineComments === false)
     options.lineComments = "keep";
+  if (!COMMENT_HANDLING.includes(options.comments)) {
+    options.comments = defaults.comments;
+  }
+  if (stored.comments === undefined && stored.removeComments === false)
+    options.comments = "keep";
   return options;
 }
 
-/** `[[target|alias]]` -> `alias`, `[[target]]` -> `target`. Embeds stay. */
-export function unwrapWikilinks(text: string): string {
+/**
+ * The file name a wikilink points to: `Folder/Jen.md#Scene|x` -> `Jen`
+ * (no folder, extension, heading or block).
+ */
+function wikilinkFileName(target: string): string {
+  const file = target.split(/[#^]/u)[0] ?? target;
+  const name = file.slice(file.lastIndexOf("/") + 1).replace(/\.md$/iu, "");
+  return (name || target).trim();
+}
+
+/**
+ * Wikilinks as words. "alias": `[[file name|alias]]` -> `alias`,
+ * `[[file name]]` -> `file name`. "file": the file name in both. Embeds
+ * stay.
+ */
+export function unwrapWikilinks(
+  text: string,
+  keep: "alias" | "file" = "alias",
+): string {
   return text.replace(WIKILINK, (match, bang: string, inner: string) => {
     if (bang) return match;
     const pipe = inner.indexOf("|");
-    return (pipe === -1 ? inner : inner.slice(pipe + 1)).trim();
+    const target = pipe === -1 ? inner : inner.slice(0, pipe);
+    const alias = pipe === -1 ? "" : inner.slice(pipe + 1).trim();
+    if (keep === "alias" && alias !== "") return alias;
+    return wikilinkFileName(target);
   });
 }
 
 /** Marks where something was removed, so the spacing can be fixed after. */
 const GAP = "\uE000";
+/** Stand-ins for the brackets of a converted `%% comment %%`. */
+const NOTE_OPEN = "\uE001";
+const NOTE_CLOSE = "\uE002";
+const BONEYARD_OPEN = "\uE003";
+const BONEYARD_CLOSE = "\uE004";
 
 /**
  * Close the gaps left by removed elements: one space between words, none
@@ -245,15 +329,17 @@ export function closeGaps(text: string): string {
 function cleanInline(line: string, options: CleanExportOptions): string {
   let text = line;
   if (options.removeEmbeds) text = text.replace(EMBED, GAP);
-  if (options.wikilinks === "unwrap") text = unwrapWikilinks(text);
+  if (options.wikilinks === "alias" || options.wikilinks === "file")
+    text = unwrapWikilinks(text, options.wikilinks);
   if (options.wikilinks === "remove") {
     text = text.replace(WIKILINK, (match, bang: string) =>
       bang ? match : GAP,
     );
   }
-  if (options.markdownLinks === "unwrap") {
+  if (options.markdownLinks === "name" || options.markdownLinks === "link") {
+    const keepLink = options.markdownLinks === "link";
     text = text.replace(MARKDOWN_LINK, (match, bang: string, label: string) =>
-      bang ? match : label,
+      bang ? match : keepLink ? markdownLinkTarget(match) : label,
     );
   }
   if (options.markdownLinks === "remove") {
@@ -316,7 +402,7 @@ export function cleanFountainSource(
       continue;
     }
 
-    if (options.removeComments) {
+    if (options.comments === "remove") {
       let kept = "";
       let rest = line;
       for (;;) {
@@ -337,6 +423,39 @@ export function cleanFountainSource(
         }
       }
       if (kept !== line) removed = true;
+      line = kept;
+    } else if (
+      options.comments !== "keep" &&
+      (inComment || line.includes("%%"))
+    ) {
+      // Turn "%%" into a Fountain note or boneyard. Placeholders stand in
+      // for the brackets until the inline cleanup is done, so the note
+      // isn't unwrapped as a wikilink; the text inside is cleaned too.
+      const note = options.comments === "note";
+      const startedInside = inComment;
+      let kept = "";
+      let rest = line;
+      for (;;) {
+        const marker = rest.indexOf("%%");
+        if (marker === -1) {
+          kept += rest;
+          break;
+        }
+        kept += rest.slice(0, marker);
+        kept += inComment
+          ? note
+            ? NOTE_CLOSE
+            : BONEYARD_CLOSE
+          : note
+            ? NOTE_OPEN
+            : BONEYARD_OPEN;
+        inComment = !inComment;
+        rest = rest.slice(marker + 2);
+      }
+      // A blank line would end a Fountain note: two spaces keep it going.
+      if (note && startedInside && inComment && kept.trim() === "") {
+        kept = "  ";
+      }
       line = kept;
     }
 
@@ -414,6 +533,23 @@ export function cleanFountainSource(
       cleaned = cleaned.trimEnd();
     }
     line = cleaned.trim() === "" && rawLine.trim() !== "" ? "" : cleaned;
+    if (/[\uE001-\uE004]/u.test(line)) {
+      line = line
+        .replace(
+          /\uE001([^\uE002]*)/gu,
+          (_, inner: string) => `[[${inner.trim().replaceAll("]]", "] ]")}`,
+        )
+        .replace(/\uE003([^\uE004]*)/gu, (_, inner: string) =>
+          inner.trim() === ""
+            ? BONEYARD_OPEN
+            : `/* ${inner.trim().replaceAll("*/", "* /")}`,
+        )
+        .replace(/^(\s*)/u, "$1*/")
+        .replaceAll(NOTE_CLOSE, "]]")
+        .replaceAll(BONEYARD_CLOSE, " */")
+        .replaceAll(NOTE_OPEN, "[[")
+        .replaceAll(BONEYARD_OPEN, "/*");
+    }
     if (convertedComment !== null) {
       line =
         line.trim() === ""
