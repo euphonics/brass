@@ -260,39 +260,81 @@ body {
   opacity: 1;
   text-decoration: none;
 }
-/* Threads panel (sidebar). */
+/* Threads panel (sidebar): a tree like Obsidian's search results. */
 .scribidian-threads {
   padding: var(--size-4-2);
 }
-.scribidian-threads-title {
-  font-weight: var(--font-semibold);
+.scribidian-threads-header {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
   margin-block: var(--size-4-2);
 }
-.scribidian-threads-row,
-.scribidian-threads-place,
-.scribidian-threads-back {
+.scribidian-threads-title {
+  flex: 1;
+  font-weight: var(--font-semibold);
+}
+.scribidian-threads-buttons {
+  display: flex;
+  gap: var(--size-2-1);
+}
+.scribidian-threads-self,
+.scribidian-threads-place {
   cursor: pointer;
   border-radius: var(--radius-s);
   padding: var(--size-2-2) var(--size-4-2);
 }
-.scribidian-threads-row {
+.scribidian-threads-self {
   display: flex;
-  gap: var(--size-4-2);
-  align-items: baseline;
+  gap: var(--size-4-1);
+  align-items: center;
+  padding-inline-start: var(--size-2-1);
 }
-.scribidian-threads-row:hover,
-.scribidian-threads-place:hover,
-.scribidian-threads-back:hover {
+.scribidian-threads-self:hover,
+.scribidian-threads-place:hover {
   background: var(--background-modifier-hover);
 }
-.scribidian-threads-name {
-  flex: 1;
+.scribidian-threads-self.is-active {
+  background: var(--background-modifier-active-hover);
 }
-.scribidian-threads-count,
-.scribidian-threads-summary,
-.scribidian-threads-back {
+.scribidian-threads-chevron {
+  display: flex;
+  flex: 0 0 auto;
+  color: var(--icon-color);
+  width: var(--icon-s);
+  height: var(--icon-s);
+}
+.scribidian-threads-chevron svg {
+  width: var(--icon-s);
+  height: var(--icon-s);
+  transition: transform 100ms ease-in-out;
+}
+.scribidian-threads-item.is-collapsed
+  > .scribidian-threads-self
+  > .scribidian-threads-chevron
+  svg {
+  transform: rotate(-90deg);
+}
+.scribidian-threads-item.is-collapsed > .scribidian-threads-children {
+  display: none;
+}
+.scribidian-threads-children {
+  margin-inline-start: calc(var(--icon-s) / 2 + var(--size-2-1));
+  padding-inline-start: var(--size-4-1);
+  border-inline-start: var(--border-width) solid
+    var(--background-modifier-border);
+}
+.scribidian-threads-name,
+.scribidian-threads-note-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scribidian-threads-count {
   color: var(--text-muted);
-  font-size: var(--font-ui-small);
+  font-size: var(--font-ui-smaller);
 }
 .scribidian-threads-once {
   color: var(--text-warning);
@@ -300,10 +342,8 @@ body {
 }
 .scribidian-threads-note {
   color: var(--text-muted);
-  font-size: var(--font-ui-smaller);
+  font-size: var(--font-ui-small);
   font-weight: var(--font-semibold);
-  margin-top: var(--size-4-3);
-  text-transform: uppercase;
 }
 .scribidian-threads-place {
   font-size: var(--font-ui-small);

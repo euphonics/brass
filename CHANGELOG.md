@@ -12,6 +12,9 @@ project follows
 - Mini sluglines: after `.HA`, the location list also offers a bare `HALL`
   that fills in just the location, with no time. It comes first when the
   location was last used without a time.
+- The Threads panel is now a tree like Obsidian's search results: click a
+  thread to open or close its notes and lines, close a note's group, or use
+  Expand all and Collapse all.
 - `+` names in action also offer groups after the names: groups the script
   already writes (`Jen and Blake`), then pairs and the Oxford-comma list of
   the scene's speakers (`Jen, Blake, and George`). Typing a comma keeps

@@ -146,10 +146,16 @@ flowchart TD
 - Obsidian's **Follow link** hotkey (Alt+Enter by default) with the cursor
   on, in or right next to a thread (`|[&x]`, `[&x|]`, `[&x]|`) does what a
   click does. Elsewhere it follows links as usual.
-- Ctrl/Cmd+click, or **Show threads**, opens the **Threads panel**: every
-  thread the note can reach, with counts ("Used once" for a thread with
-  one place), and for one thread every place grouped by note in script
-  order, with its line. Click a place to go there (Ctrl/Cmd: new tab).
+- Ctrl/Cmd+click, or **Show threads**, opens the **Threads panel**, a tree
+  like Obsidian's search results (#276, 2026-11-22): every thread the note
+  can reach, most used first, with counts ("Used once" for a thread with
+  one place). Click a thread (or its arrow) to open or close it: under it,
+  each note that uses it, in script order, and under each note its lines.
+  Notes can be closed too. **Expand all** and **Collapse all** at the top.
+  Enter or Space toggles a row; Right opens, Left closes. Threads start
+  closed; the one you Ctrl/Cmd+clicked opens, is highlighted and scrolled
+  into view, and the others stay as you left them, also while you type.
+  Click a line to go there (Ctrl/Cmd: new tab).
 - Typing `[&` lists the thread names already used, most used first.
 - It isn't script: a cue with a thread (`ZORANA [&x]`) is still a cue, a
   line holding only a thread is a note, and the preview, counts and every

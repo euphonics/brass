@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ItemView, TFile } from "obsidian";
+import { ItemView, TFile, setIcon } from "obsidian";
 import type { IconName, WorkspaceLeaf } from "obsidian";
 import type ScribidianPlugin from "../main";
 import {
@@ -41,16 +41,40 @@ function lineAround(text: string, offset: number): string {
   return stripThreads(line).trim();
 }
 
+/** Places of one thread, grouped by note in script order. */
+function groupByNote(
+  places: readonly ThreadPlace[],
+): { path: string; places: ThreadPlace[] }[] {
+  const groups: { path: string; places: ThreadPlace[] }[] = [];
+  for (const place of places) {
+    const last = groups[groups.length - 1];
+    if (last !== undefined && last.path === place.path) {
+      last.places.push(place);
+    } else {
+      groups.push({ path: place.path, places: [place] });
+    }
+  }
+  return groups;
+}
+
 /**
  * The Threads sidebar: every thread the current note can reach (its
- * project's parts, character pages and linked notes), and for one thread
- * every place, grouped by note in script order, with the line's text.
- * Like Obsidian's tag search, for `[&name]`.
+ * project's parts, character pages and linked notes), as a tree like
+ * Obsidian's search results. Each thread is a heading that expands to its
+ * notes, and each note to its lines, in script order. Click a line to go
+ * there. Like Obsidian's tag search, for `[&name]`.
  */
 export class ThreadsView extends ItemView {
+  /** The thread last picked in the editor (highlighted, kept open). */
   private selected: string | null = null;
+  /** Thread keys shown open. */
+  private readonly expanded = new Set<string>();
+  /** Note groups shown closed, as "threadKey\npath". */
+  private readonly closedNotes = new Set<string>();
   private generation = 0;
   private shown = "";
+  /** Every thread key in the last drawing (for Expand all). */
+  private keys: string[] = [];
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -80,9 +104,13 @@ export class ThreadsView extends ItemView {
     this.contentEl.empty();
   }
 
-  /** Show one thread (by its key), or all threads with null. */
+  /**
+   * Open one thread (by its key) and scroll to it, or with null just
+   * clear the highlight. Other threads stay as they were.
+   */
   select(key: string | null): void {
     this.selected = key;
+    if (key !== null) this.expanded.add(key);
     this.shown = "";
     this.refresh();
   }
@@ -121,29 +149,28 @@ export class ThreadsView extends ItemView {
       (a, b) =>
         b.places.length - a.places.length || a.name.localeCompare(b.name),
     );
-    const thread =
-      this.selected === null
-        ? null
-        : (threads.find((found) => found.key === this.selected) ?? null);
+    const lines = threads.map((thread) =>
+      thread.places.map((place) =>
+        lineAround(texts.get(place.path) ?? "", place.from),
+      ),
+    );
     // Only redraw when something changed, so the list doesn't flicker
-    // while you type or move the cursor.
+    // while you type or move the cursor. Opening and closing don't redraw.
     const signature = JSON.stringify([
       file.path,
       this.selected,
-      thread
-        ? thread.places.map((place) => [
-            place.path,
-            place.from,
-            lineAround(texts.get(place.path) ?? "", place.from),
-          ])
-        : threads.map((found) => [found.key, found.places.length]),
+      threads.map((thread, at) => [
+        thread.key,
+        thread.places.map((place, line) => [
+          place.path,
+          place.from,
+          lines[at]?.[line],
+        ]),
+      ]),
     ]);
     if (signature === this.shown) return;
-    if (thread === null) {
-      this.show(signature, (el) => this.renderAll(el, threads, file));
-    } else {
-      this.show(signature, (el) => this.renderThread(el, thread, texts));
-    }
+    this.keys = threads.map((thread) => thread.key);
+    this.show(signature, (el) => this.renderTree(el, threads, lines, file));
   }
 
   private show(signature: string, draw: (el: HTMLElement) => void): void {
@@ -152,12 +179,48 @@ export class ThreadsView extends ItemView {
     draw(this.contentEl);
   }
 
-  private renderAll(
+  /** A row that opens and closes `item`, with a chevron, like search. */
+  private toggleRow(
+    item: HTMLElement,
+    row: HTMLElement,
+    isOpen: boolean,
+    onToggle: (open: boolean) => void,
+  ): void {
+    const chevron = row.createDiv({
+      cls: "scribidian-threads-chevron",
+    });
+    setIcon(chevron, "right-triangle");
+    row.prepend(chevron);
+    item.toggleClass("is-collapsed", !isOpen);
+    row.setAttribute("role", "button");
+    row.setAttribute("tabindex", "0");
+    row.setAttribute("aria-expanded", String(isOpen));
+    const set = (open: boolean): void => {
+      item.toggleClass("is-collapsed", !open);
+      row.setAttribute("aria-expanded", String(open));
+      onToggle(open);
+    };
+    row.addEventListener("click", () => set(item.hasClass("is-collapsed")));
+    row.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        set(item.hasClass("is-collapsed"));
+      } else if (event.key === "ArrowRight") {
+        set(true);
+      } else if (event.key === "ArrowLeft") {
+        set(false);
+      }
+    });
+  }
+
+  private renderTree(
     el: HTMLElement,
     threads: ThreadSummary[],
+    lines: string[][],
     file: TFile,
   ): void {
-    el.createDiv({ cls: "scribidian-threads-title", text: "Threads" });
+    const header = el.createDiv({ cls: "scribidian-threads-header" });
+    header.createDiv({ cls: "scribidian-threads-title", text: "Threads" });
     if (threads.length === 0) {
       el.createDiv({
         cls: "scribidian-threads-empty",
@@ -165,16 +228,50 @@ export class ThreadsView extends ItemView {
       });
       return;
     }
+    const buttons = header.createDiv({ cls: "scribidian-threads-buttons" });
+    const button = (icon: string, label: string, open: boolean): void => {
+      const control = buttons.createDiv({
+        cls: "clickable-icon scribidian-threads-button",
+        attr: { "aria-label": label, role: "button", tabindex: "0" },
+      });
+      setIcon(control, icon);
+      const run = (): void => {
+        if (open) for (const key of this.keys) this.expanded.add(key);
+        else this.expanded.clear();
+        this.closedNotes.clear();
+        for (const item of Array.from(
+          el.querySelectorAll<HTMLElement>(".scribidian-threads-item"),
+        )) {
+          item.toggleClass("is-collapsed", !open);
+          item
+            .querySelector(":scope > .scribidian-threads-self")
+            ?.setAttribute("aria-expanded", String(open));
+        }
+      };
+      control.addEventListener("click", run);
+      control.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") run();
+      });
+    };
+    button("chevrons-up-down", "Expand all", true);
+    button("chevrons-down-up", "Collapse all", false);
+
     const list = el.createDiv({ cls: "scribidian-threads-list" });
-    for (const thread of threads) {
-      const row = list.createDiv({ cls: "scribidian-threads-row" });
+    let selectedRow: HTMLElement | null = null;
+    threads.forEach((thread, at) => {
+      const item = list.createDiv({
+        cls: "scribidian-threads-item scribidian-threads-thread",
+      });
+      const row = item.createDiv({
+        cls: "scribidian-threads-self scribidian-threads-row",
+      });
+      if (thread.key === this.selected) {
+        row.addClass("is-active");
+        selectedRow = row;
+      }
       row.createSpan({
         cls: "scribidian-threads-name",
         text: `🧵 ${thread.name}`,
-      });
-      row.createSpan({
-        cls: "scribidian-threads-count",
-        text: String(thread.places.length),
       });
       if (thread.places.length === 1) {
         row.createSpan({
@@ -182,66 +279,68 @@ export class ThreadsView extends ItemView {
           text: "Used once",
         });
       }
-      row.setAttribute("role", "button");
-      row.setAttribute("tabindex", "0");
-      row.addEventListener("click", () => this.select(thread.key));
-      row.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") this.select(thread.key);
+      row.createSpan({
+        cls: "scribidian-threads-count",
+        text: String(thread.places.length),
       });
-    }
-  }
-
-  private renderThread(
-    el: HTMLElement,
-    thread: ThreadSummary,
-    texts: Map<string, string>,
-  ): void {
-    const back = el.createDiv({
-      cls: "scribidian-threads-back",
-      text: "← All threads",
-    });
-    back.setAttribute("role", "button");
-    back.setAttribute("tabindex", "0");
-    back.addEventListener("click", () => this.select(null));
-    el.createDiv({
-      cls: "scribidian-threads-title",
-      text: `🧵 ${thread.name}`,
-    });
-    el.createDiv({
-      cls: "scribidian-threads-summary",
-      text:
-        thread.places.length === 1
-          ? "Used once: nothing else in this thread yet."
-          : `${thread.places.length} places`,
-    });
-    let path = "";
-    let group: HTMLElement | null = null;
-    for (const place of thread.places) {
-      if (place.path !== path || group === null) {
-        path = place.path;
-        const note = this.app.vault.getAbstractFileByPath(path);
-        group = el.createDiv({ cls: "scribidian-threads-group" });
-        group.createDiv({
-          cls: "scribidian-threads-note",
-          text: note instanceof TFile ? note.basename : path,
+      this.toggleRow(item, row, this.expanded.has(thread.key), (open) => {
+        if (open) this.expanded.add(thread.key);
+        else this.expanded.delete(thread.key);
+      });
+      const children = item.createDiv({
+        cls: "scribidian-threads-children",
+      });
+      let index = 0;
+      for (const group of groupByNote(thread.places)) {
+        const noteKey = `${thread.key}\n${group.path}`;
+        const noteItem = children.createDiv({
+          cls: "scribidian-threads-item scribidian-threads-group",
         });
+        const noteRow = noteItem.createDiv({
+          cls: "scribidian-threads-self scribidian-threads-note",
+        });
+        const note = this.app.vault.getAbstractFileByPath(group.path);
+        noteRow.createSpan({
+          cls: "scribidian-threads-note-name",
+          text: note instanceof TFile ? note.basename : group.path,
+        });
+        noteRow.createSpan({
+          cls: "scribidian-threads-count",
+          text: String(group.places.length),
+        });
+        this.toggleRow(
+          noteItem,
+          noteRow,
+          !this.closedNotes.has(noteKey),
+          (open) => {
+            if (open) this.closedNotes.delete(noteKey);
+            else this.closedNotes.add(noteKey);
+          },
+        );
+        const placesEl = noteItem.createDiv({
+          cls: "scribidian-threads-children",
+        });
+        for (const place of group.places) {
+          const line = lines[at]?.[index] ?? "";
+          index += 1;
+          const placeEl = placesEl.createDiv({
+            cls: "scribidian-threads-place",
+            text: line === "" ? "(on its own line)" : line,
+          });
+          placeEl.setAttribute("role", "button");
+          placeEl.setAttribute("tabindex", "0");
+          const go = (newTab: boolean): void => {
+            void this.plugin.threads.goTo(place.path, place.to, newTab);
+          };
+          placeEl.addEventListener("click", (event) =>
+            go(event.ctrlKey || event.metaKey),
+          );
+          placeEl.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") go(false);
+          });
+        }
       }
-      const line = lineAround(texts.get(place.path) ?? "", place.from);
-      const item = group.createDiv({
-        cls: "scribidian-threads-place",
-        text: line === "" ? "(on its own line)" : line,
-      });
-      item.setAttribute("role", "button");
-      item.setAttribute("tabindex", "0");
-      const go = (newTab: boolean): void => {
-        void this.plugin.threads.goTo(place.path, place.to, newTab);
-      };
-      item.addEventListener("click", (event) =>
-        go(event.ctrlKey || event.metaKey),
-      );
-      item.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") go(false);
-      });
-    }
+    });
+    (selectedRow as HTMLElement | null)?.scrollIntoView({ block: "nearest" });
   }
 }
