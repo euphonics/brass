@@ -13,6 +13,9 @@ project follows
   opens its list (`INT. BARN - DAY|` → DAY, then BARN), the way Tab's Next
   part goes forward. A setting under Tab and Enter keys (on in script
   mode).
+- Threads can carry text, like a wikilink's alias: `[&gun|the pistol]`
+  shows 🧵 and `the pistol`, belongs to the same thread as `[&gun]`, and
+  exports keep `the pistol` in the sentence.
 - `+` groups match more loosely: `+Jenandb` finds `Jen and Blake`, and
   `+j,b` finds `Jen, Blake, and George`.
 

@@ -884,3 +884,19 @@ body {
   margin-inline-start: var(--size-4-3);
   cursor: pointer;
 }
+
+/* A thread with text, "[&gun|the pistol]": the spool, then its text at
+   the script's size. */
+.markdown-source-view.mod-cm6 .scribidian-thread.scribidian-thread-with-text {
+  font-size: inherit;
+  opacity: 1;
+}
+.scribidian-thread-spool {
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+.scribidian-thread-alias {
+  margin-inline-start: 0.15em;
+  text-decoration: underline dotted var(--text-faint);
+  text-underline-offset: 0.2em;
+}

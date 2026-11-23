@@ -56,12 +56,20 @@ class ThreadWidget extends WidgetType {
     return (
       other.mark.from === this.mark.from &&
       other.mark.to === this.mark.to &&
-      other.mark.name === this.mark.name
+      other.mark.name === this.mark.name &&
+      other.mark.alias === this.mark.alias
     );
   }
 
   toDOM(view: EditorView): HTMLElement {
     const el = createSpan({ cls: "scribidian-thread", text: "🧵" });
+    // "[&gun|the pistol]" shows its text after the spool (#289).
+    if (this.mark.alias !== undefined) {
+      el.empty();
+      el.addClass("scribidian-thread-with-text");
+      el.createSpan({ cls: "scribidian-thread-spool", text: "🧵" });
+      el.createSpan({ cls: "scribidian-thread-alias", text: this.mark.alias });
+    }
     el.setAttribute("aria-label", `Thread: ${this.mark.name}`);
     el.setAttribute(
       "title",

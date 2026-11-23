@@ -20,6 +20,8 @@
  * line as part of a named thread. Every `[&…]` with the same name, in any
  * note, belongs to the same thread; clicking one goes to the next. Threads
  * aren't script: the preview, page count and exports leave them out.
+ * `[&name|text]` (#289) is the same thread shown with its text, like a
+ * wikilink's alias: the text stays in the script and in exports.
  */
 
 /** One `[&name]` in a text: offsets of the whole token, and its name. */
@@ -28,6 +30,8 @@ export interface ThreadMark {
   to: number;
   name: string;
   key: string;
+  /** The text after "|" (`[&gun|the pistol]`), shown and exported. */
+  alias?: string;
 }
 
 const THREAD = /\[&([^\]\n]+)\]/gu;
@@ -42,14 +46,20 @@ export function findThreads(text: string): ThreadMark[] {
   const marks: ThreadMark[] = [];
   if (!text.includes("[&")) return marks;
   for (const match of text.matchAll(THREAD)) {
-    const name = (match[1] ?? "").trim().replace(/\s+/gu, " ");
+    const inner = match[1] ?? "";
+    const pipe = inner.indexOf("|");
+    const name = (pipe === -1 ? inner : inner.slice(0, pipe))
+      .trim()
+      .replace(/\s+/gu, " ");
     if (name === "") continue;
+    const alias = pipe === -1 ? "" : inner.slice(pipe + 1).trim();
     const from = match.index;
     marks.push({
       from,
       to: from + match[0].length,
       name,
       key: threadKey(name),
+      ...(alias !== "" ? { alias } : {}),
     });
   }
   return marks;
@@ -58,11 +68,15 @@ export function findThreads(text: string): ThreadMark[] {
 /**
  * `line` without its threads, and the spaces before each one, so
  * `Text.[&x]` and `Text. [&x]` both give `Text.`. A thread at the start of
- * the line takes the spaces after it instead.
+ * the line takes the spaces after it instead. A thread with text
+ * (`[&gun|the pistol]`) leaves its text in place.
  */
 export function stripThreads(line: string): string {
   if (!line.includes("[&")) return line;
   return line
+    .replace(/\[&[^\]\n|]*\|([^\]\n]*\S[^\]\n]*)\]/gu, (_, text: string) =>
+      text.trim(),
+    )
     .replace(/^[ \t]*\[&[^\]\n]*[^\]\n\s][^\]\n]*\][ \t]*/u, "")
     .replace(/[ \t]*\[&[^\]\n]*[^\]\n\s][^\]\n]*\]/gu, "");
 }

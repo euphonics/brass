@@ -171,6 +171,13 @@ flowchart TD
   into view, and the others stay as you left them, also while you type.
   Click a line to go there (Ctrl/Cmd: new tab).
 - Typing `[&` lists the thread names already used, most used first.
+- **With text** (#289): `[&gun|the pistol]` shows as 🧵 then `the pistol`,
+  at the script's size; with the cursor in it, the raw text shows. It is
+  the same thread as `[&gun]`. The text is part of the script: the
+  preview, counts and exports keep `the pistol` where the mark was.
+  - [ ] `He finds [&gun|the pistol] under the bed.`, cursor elsewhere:
+        `He finds 🧵the pistol under the bed.`; clean Fountain export: `He
+finds the pistol under the bed.`
 - It isn't script: a cue with a thread (`ZORANA [&x]`) is still a cue, a
   line holding only a thread is a note, and the preview, counts and every
   export leave threads out.

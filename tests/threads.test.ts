@@ -93,3 +93,27 @@ describe("threads", () => {
     expect(stepPlace(ordered.slice(0, 1), ordered[0], 1)).toBeNull();
   });
 });
+
+describe("threads with text (#289)", () => {
+  it("reads the text after | as the thread's alias, same thread", () => {
+    const [plain, aliased] = findThreads(
+      "She hides [&the gun]. He finds [&The Gun|the pistol].",
+    );
+    expect(aliased).toMatchObject({ name: "The Gun", alias: "the pistol" });
+    expect(aliased?.key).toBe(plain?.key);
+    expect(plain?.alias).toBeUndefined();
+  });
+
+  it("keeps the text in place when threads are stripped", () => {
+    expect(stripThreads("He finds [&gun|the pistol] under the bed.")).toBe(
+      "He finds the pistol under the bed.",
+    );
+    expect(stripThreads("He finds it. [&gun]")).toBe("He finds it.");
+    expect(stripThreads("He finds it. [&gun|]")).toBe("He finds it.");
+    expect(
+      parseFountain("INT. ROOM - DAY\n\nHe finds [&gun|the pistol].")
+        .elements.map((element) => element.text)
+        .join(" "),
+    ).toContain("He finds the pistol.");
+  });
+});
