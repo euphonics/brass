@@ -21,6 +21,7 @@ import {
   Notice,
   TFile,
   editorInfoField,
+  type App,
   type Editor,
   type EditorPosition,
   type EditorSuggestContext,
@@ -308,6 +309,28 @@ export class ThreadNavigator {
   }
 }
 
+/**
+ * Put `suggest` first in Obsidian's list of editor suggesters. Only one
+ * suggestion popup shows at a time, and the first suggester that claims a
+ * keystroke wins: a word-completion plugin (Completr) listed earlier took
+ * over as soon as a letter was typed after `[&`, closing the thread list
+ * (#283). The thread list only claims text right after `[&`, so other
+ * plugins keep every other keystroke. Uses Obsidian's internal
+ * `workspace.editorSuggest.suggests`; does nothing if that's missing.
+ */
+export function putSuggestFirst(app: App, suggest: unknown): void {
+  const manager = (
+    app.workspace as unknown as { editorSuggest?: { suggests?: unknown } }
+  ).editorSuggest;
+  const list = manager?.suggests;
+  if (!Array.isArray(list)) return;
+  const at = list.indexOf(suggest);
+  if (at > 0) {
+    list.splice(at, 1);
+    list.unshift(suggest);
+  }
+}
+
 /** Typing `[&` lists the thread names already used, most used first. */
 export class ThreadSuggest extends EditorSuggest<{
   name: string;
@@ -336,9 +359,15 @@ export class ThreadSuggest extends EditorSuggest<{
   ): Promise<{ name: string; count: number }[]> {
     if (!context.file) return [];
     const query = context.query.trim().toLocaleLowerCase();
+    // Leave out the thread being typed, so "[&f" doesn't list "f" itself.
+    const { editor, start, end } = context;
+    const text = editor.getValue();
+    const from = editor.posToOffset(start) - 2;
+    let to = editor.posToOffset(end);
+    if (text.charAt(to) === "]") to += 1;
     const names = await this.navigator.index.names(
       context.file,
-      context.editor.getValue(),
+      text.slice(0, Math.max(0, from)) + text.slice(to),
     );
     return names
       .filter((entry) => entry.name.toLocaleLowerCase().includes(query))

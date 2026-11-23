@@ -41,7 +41,11 @@ import { openCharacterPicker } from "./commands/character";
 import { copyConfiguration } from "./commands/copyConfiguration";
 import { elementLines } from "./commands/selectElement";
 import { createThreadExtension } from "./editor/threads";
-import { ThreadNavigator, ThreadSuggest } from "./threads/threadNavigator";
+import {
+  putSuggestFirst,
+  ThreadNavigator,
+  ThreadSuggest,
+} from "./threads/threadNavigator";
 import { exportFdx } from "./commands/exportFdx";
 import { exportFountain } from "./commands/exportFountain";
 import { exportPdf } from "./commands/exportPdf";
@@ -187,7 +191,19 @@ export default class ScribidianPlugin extends Plugin {
       }),
     ];
     this.registerOwnEditorExtensions(editorExtensions);
-    this.registerEditorSuggest(new ThreadSuggest(this.threads));
+    const threadSuggest = new ThreadSuggest(this.threads);
+    this.registerEditorSuggest(threadSuggest);
+    // First in line, so other plugins' popups don't close it (#283); again
+    // once every plugin has loaded, and whenever the editor changes.
+    putSuggestFirst(this.app, threadSuggest);
+    this.app.workspace.onLayoutReady(() =>
+      putSuggestFirst(this.app, threadSuggest),
+    );
+    this.registerEvent(
+      this.app.workspace.on("active-leaf-change", () =>
+        putSuggestFirst(this.app, threadSuggest),
+      ),
+    );
     this.app.workspace.onLayoutReady(() => this.followLinkOnThreads());
     registerFountainCodeBlockProcessor(this);
     this.registerOwnView(
