@@ -143,13 +143,18 @@ export function mentionGroups(
   const caps = typedInCapitals(typed);
   const groups: string[] = [];
   const seen = new Set(names.map((name) => name.toLocaleUpperCase()));
+  // Letters and digits only, so spaces and commas don't have to be typed:
+  // "+Jenandb" finds "Jen and Blake" (#286).
+  const compact = (text: string) =>
+    text.toLocaleUpperCase().replace(/[^\p{L}\p{N}]/gu, "");
+  const compactQuery = compact(query);
   // `matched`: the group was built from what was typed (a list), so it
   // needn't start with it ("Jen, Blake, H" -> "Jen, Blake, and Helios").
   const add = (group: string, matched = false) => {
     const text = caps ? group.toLocaleUpperCase() : group;
     const key = text.toLocaleUpperCase();
     if (seen.has(key) || key === query) return;
-    if (!matched && !key.startsWith(query)) return;
+    if (!matched && !compact(key).startsWith(compactQuery)) return;
     seen.add(key);
     groups.push(text);
   };
@@ -170,8 +175,14 @@ export function mentionGroups(
       .split(/\s*,\s*(?:and\s+)?|\s+and\s+/iu)
       .map((part) => part.trim())
       .filter((part) => part !== "");
-    const chosen = chosenText.map((part) =>
-      everyone.find((name) => same(name, part)),
+    // Each name typed so far: the name itself, or the first one in the
+    // scene (then the script) that starts with it ("+j,b": Jen, then B…).
+    const chosen = chosenText.map(
+      (part) =>
+        everyone.find((name) => same(name, part)) ??
+        everyone.find((name) =>
+          name.toLocaleUpperCase().startsWith(part.toLocaleUpperCase()),
+        ),
     );
     if (chosen.length > 0 && chosen.every((name) => name !== undefined)) {
       const picked = chosen;

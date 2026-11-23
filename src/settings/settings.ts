@@ -113,6 +113,9 @@ export interface ScribidianSettings {
   /** Tab inside a line, set separately for script and plain mode. */
   tabInsideScript: TabInsideActions;
   tabInsidePlain: TabInsideActions;
+  /** Shift+Tab inside a slugline or cue: select the part before (#287). */
+  shiftTabInsideScript: ShiftTabInside;
+  shiftTabInsidePlain: ShiftTabInside;
   /** Enter inside a line, set separately for script and plain mode. */
   enterInsideScript: EnterInsideActions;
   enterInsidePlain: EnterInsideActions;
@@ -396,6 +399,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   tabTargets: { ...DEFAULT_TAB_TARGETS },
   tabInsideScript: { ...DEFAULT_TAB_INSIDE },
   tabInsidePlain: { ...DEFAULT_TAB_INSIDE_PLAIN },
+  shiftTabInsideScript: "previous-part",
+  shiftTabInsidePlain: "nothing",
   enterInsideScript: { ...DEFAULT_ENTER_INSIDE },
   enterInsidePlain: { ...DEFAULT_ENTER_INSIDE_PLAIN },
   editorLayout: "screenplay",
@@ -464,6 +469,14 @@ function valuesFromText(value: string): string[] {
  */
 export type TabWithList = "pick" | "move";
 
+/** What Shift+Tab does inside a slugline or character cue (#287). */
+export type ShiftTabInside = "previous-part" | "nothing";
+
+const SHIFT_TAB_INSIDE_LABELS: Record<ShiftTabInside, string> = {
+  "previous-part": "Previous part",
+  nothing: "Nothing",
+};
+
 export const TAB_WITH_LIST_LABELS: Record<TabWithList, string> = {
   pick: "Picks the highlighted item",
   move: "Moves to the next element",
@@ -516,6 +529,11 @@ export function migrateSettings(
     rest.enterInsidePlain,
     DEFAULT_ENTER_INSIDE_PLAIN,
   );
+  for (const key of ["shiftTabInsideScript", "shiftTabInsidePlain"] as const) {
+    if (rest[key] !== "previous-part" && rest[key] !== "nothing") {
+      settings[key] = DEFAULT_SETTINGS[key];
+    }
+  }
   if (!isTabWithList(rest.tabWithListScript)) {
     settings.tabWithListScript = "pick";
   }
@@ -701,6 +719,8 @@ const SETTING_GROUPS: {
       "tabAtDialogueStartAddsWryly",
       "backspaceEmptyCueToAction",
       "enterAfterCueMovesDown",
+      "shiftTabInsideScript",
+      "shiftTabInsidePlain",
     ],
   },
   {
@@ -1465,6 +1485,26 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Shift+Tab inside a slugline or character (script mode)",
+        desc: "Previous part: selects the part before the cursor and opens its list, as Tab's Next part goes forward. INT. BARN - DAY| selects DAY, then BARN; in a character, the extension, then the name. Nothing: Obsidian's Shift+Tab.",
+        control: {
+          type: "dropdown",
+          key: "shiftTabInsideScript",
+          options: SHIFT_TAB_INSIDE_LABELS,
+          defaultValue: DEFAULT_SETTINGS.shiftTabInsideScript,
+        },
+      },
+      {
+        name: "Shift+Tab inside a slugline or character (Fountain mode)",
+        desc: "The same choice for plain (Fountain) mode.",
+        control: {
+          type: "dropdown",
+          key: "shiftTabInsidePlain",
+          options: SHIFT_TAB_INSIDE_LABELS,
+          defaultValue: DEFAULT_SETTINGS.shiftTabInsidePlain,
+        },
+      },
+      {
         name: "Page size",
         desc: "US Letter or A4. Used for page counts, the preview and PDFs.",
         control: {
@@ -1948,6 +1988,12 @@ export class ScribidianSettingTab extends PluginSettingTab {
     } else if (key === "characterTemplate") {
       if (typeof value !== "string") return;
       this.plugin.settings.characterTemplate = value.trim();
+    } else if (
+      key === "shiftTabInsideScript" ||
+      key === "shiftTabInsidePlain"
+    ) {
+      if (value !== "previous-part" && value !== "nothing") return;
+      this.plugin.settings[key] = value;
     } else if (key === "pageSize") {
       if (value !== "us-letter" && value !== "a4") return;
       this.plugin.settings.pageSize = value;

@@ -7,6 +7,15 @@ project follows
 
 ## [Unreleased]
 
+### Added (writer wish list, 2026-11-23)
+
+- Shift+Tab inside a slugline or character selects the part before and
+  opens its list (`INT. BARN - DAY|` → DAY, then BARN), the way Tab's Next
+  part goes forward. A setting under Tab and Enter keys (on in script
+  mode).
+- `+` groups match more loosely: `+Jenandb` finds `Jen and Blake`, and
+  `+j,b` finds `Jen, Blake, and George`.
+
 ## [0.1.2] - 2026-11-23
 
 ### Added (writer wish list, 2026-11-22)

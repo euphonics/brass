@@ -228,6 +228,64 @@ export function getTabInsidePlan(
   };
 }
 
+/**
+ * Shift+Tab inside a slugline or character cue (#287): select the part
+ * before, as Tab's "Next part" selects the part after. With nothing
+ * selected, the part the cursor is in or right after (`INT. BARN - DAY|`
+ * selects DAY); with a part selected, the one before it (DAY, then
+ * BARN). At the location (or a cue's name) it stays. Null for other lines, so
+ * Shift+Tab's other rules apply. `from` and `to` are the selection's
+ * offsets within the line.
+ */
+export function getShiftTabPartPlan(
+  lines: readonly string[],
+  index: number,
+  lineFrom: number,
+  from: number,
+  to: number,
+  isTime: (text: string) => boolean = () => true,
+): { type: "select"; anchor: number; head: number } | { type: "stay" } | null {
+  const line = lines[index] ?? "";
+  const source = sourceOf(classifySmartTabLine(lines, index));
+  if (source !== "sceneHeading" && source !== "character") return null;
+  if (line.trim() === "") return null;
+  let parts: Part[];
+  if (source === "character") {
+    const textStart = line.length - line.trimStart().length;
+    const { nameEnd, extensions } = cueParts(line);
+    const name = line.slice(textStart, nameEnd).startsWith("@")
+      ? { from: textStart + 1, to: nameEnd }
+      : { from: textStart, to: nameEnd };
+    parts = [name, ...extensions].filter((part) => part.to > part.from);
+  } else {
+    // From the location on: the scene type has no list over a selection
+    // (Tab's Next part doesn't select it either), so Shift+Tab stops at
+    // the location.
+    parts = slugParts(line, isTime)
+      .slice(1)
+      .filter((part): part is Part => part !== null && part.to > part.from);
+  }
+  if (parts.length === 0) return null;
+  const selected = parts.findIndex(
+    (part) => from !== to && part.from === from && part.to === to,
+  );
+  let target: Part | undefined;
+  if (selected !== -1) {
+    target = parts[selected - 1];
+    if (target === undefined) return { type: "stay" };
+  } else {
+    // The part holding the cursor, or the last one that starts before it.
+    target = [...parts].reverse().find((part) => part.from <= from);
+    target ??= parts[0];
+  }
+  if (target === undefined) return null;
+  return {
+    type: "select",
+    anchor: lineFrom + target.to,
+    head: lineFrom + target.from,
+  };
+}
+
 export type EnterInsidePlan =
   | { type: "nothing" }
   | { type: "line-break" }

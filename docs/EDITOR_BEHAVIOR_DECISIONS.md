@@ -101,6 +101,9 @@ flowchart TD
   Oxford-comma list (after the first two pairs). A group already offered
   as a name (a character listed in frontmatter) isn't repeated. A few
   groups stay in view even when many names match.
+- **Loose matching** (#286): spaces and commas needn't be typed
+  (`+Jenandb` → `Jen and Blake`), and a name in a list can be just its
+  start (`+j,b` → `Jen, Blake, and George`).
 - **Typing a list** completes it name by name: after "and",
   `+Jen, Blake, and H` offers `Jen, Blake, and Helios`; after a comma,
   `+Jen, B` offers `Jen, Blake, and …` with each other scene character,
@@ -476,6 +479,19 @@ Test cases:
       with parts missing.
 - [ ] Next part on a cue whose extension isn't a standard one
       (`JEN (FILTERED)`): Enter keeps it.
+
+### Shift+Tab inside a line
+
+- **Shift+Tab inside a slugline or character** (#287; setting, script
+  mode Previous part, Fountain mode Nothing): selects the part before the
+  cursor and opens its list, as Tab's Next part goes forward. With nothing
+  selected, the part the cursor is in or just after; with a part selected,
+  the one before it. It stops at the location (the scene type isn't a
+  part with a list) and at a cue's name. Other lines keep their Shift+Tab.
+  - [ ] `INT. BARN - DAY|`, Shift+Tab: `INT. BARN - [DAY]` with the times
+        list; again: `INT. [BARN] - DAY` with the locations; again: no change.
+  - [ ] `JEN (V.O.)|`, Shift+Tab: `JEN ([V.O.])` with the extensions.
+  - [ ] `She runs|.` (action), Shift+Tab: nothing changes.
 
 ## Backspace and Delete (strict)
 

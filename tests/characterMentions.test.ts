@@ -145,3 +145,24 @@ describe("mention groups from the whole scene (#282)", () => {
     ]);
   });
 });
+
+describe("fuzzier + groups (#286)", () => {
+  const spell = (name: string) =>
+    name.charAt(0) + name.slice(1).toLocaleLowerCase();
+  const scene = ["JEN", "BLAKE", "GEORGE"];
+
+  it("ignores spaces and commas: +Jenandb finds Jen and Blake", () => {
+    expect(mentionGroups("Jenandb", [], scene, spell)).toContain(
+      "Jen and Blake",
+    );
+  });
+
+  it("takes the start of a name in a list: +j,b", () => {
+    expect(mentionGroups("j,b", [], scene, spell)).toContain(
+      "Jen, Blake, and George",
+    );
+    expect(mentionGroups("j and b", [], scene, spell)).toEqual([
+      "Jen and Blake",
+    ]);
+  });
+});

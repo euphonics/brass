@@ -40,7 +40,11 @@ import {
   mentionText,
   sceneCharacters,
 } from "./characterMentions";
-import { getEnterInsidePlan, getTabInsidePlan } from "./tabInside";
+import {
+  getEnterInsidePlan,
+  getShiftTabPartPlan,
+  getTabInsidePlan,
+} from "./tabInside";
 import {
   acceptCompletion,
   closeCompletion,
@@ -1979,6 +1983,48 @@ export function createScreenplayCompletionExtension(
     }, 0);
   });
 
+  // Shift+Tab inside a slugline or cue selects the part before and opens
+  // its list (#287), the way Tab's "Next part" goes forward.
+  const shiftTabPart = (view: EditorView): boolean => {
+    const file = view.state.field(editorInfoField, false)?.file ?? null;
+    if (file === null || !plugin.isScreenplayFile(file)) return false;
+    const choice = plugin.isScriptMode()
+      ? plugin.settings.shiftTabInsideScript
+      : plugin.settings.shiftTabInsidePlain;
+    if (choice !== "previous-part") return false;
+    const { state } = view;
+    if (state.selection.ranges.length > 1) return false;
+    const { from, to } = state.selection.main;
+    const line = state.doc.lineAt(from);
+    if (to > line.to) return false;
+    const lines = state.doc.toString().split("\n");
+    const knownTimes = new Set(
+      plugin.settings.preferredTimesOfDay.map((time) =>
+        time.toLocaleUpperCase(),
+      ),
+    );
+    const plan = getShiftTabPartPlan(
+      lines,
+      line.number - 1,
+      line.from,
+      from - line.from,
+      to - line.from,
+      // A last part after " - " counts as the time unless it is clearly
+      // part of the location; the list that opens shows the choices.
+      (text) => knownTimes.has(text.toLocaleUpperCase()) || text !== "",
+    );
+    if (plan === null) return false;
+    if (plan.type === "stay") return true;
+    closeCompletion(view);
+    view.dispatch({
+      selection: { anchor: plan.anchor, head: plan.head },
+      scrollIntoView: true,
+      userEvent: "select",
+    });
+    startCompletion(view);
+    return true;
+  };
+
   return [
     forcedListField,
     extensionListField,
@@ -1992,6 +2038,7 @@ export function createScreenplayCompletionExtension(
     Prec.highest(
       keymap.of([
         { key: "Tab", run: tab },
+        { key: "Shift-Tab", run: shiftTabPart },
         { key: "Enter", run: enter },
         { key: "Shift-Enter", run: shiftEnter },
       ]),

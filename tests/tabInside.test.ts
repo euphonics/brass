@@ -27,6 +27,7 @@ import {
 } from "../src/editor/enterTargets";
 import {
   getEnterInsidePlan,
+  getShiftTabPartPlan,
   getTabInsidePlan,
   type EnterInsidePlan,
   type TabInsidePlan,
@@ -226,5 +227,49 @@ describe("Enter inside a line", () => {
     );
     expect(actions.action).toBe("nothing");
     expect(actions.dialogue).toBe("line-break");
+  });
+});
+
+describe("Shift+Tab selects the part before (#287)", () => {
+  const select = (
+    line: string,
+    from: number,
+    to = from,
+    before: string[] = ["Jen waits.", ""],
+  ) => {
+    const lines = [...before, line];
+    const plan = getShiftTabPartPlan(lines, lines.length - 1, 0, from, to);
+    if (plan === null || plan.type !== "select") return plan?.type ?? null;
+    return line.slice(plan.head, plan.anchor);
+  };
+
+  it("walks a slugline backward from the end", () => {
+    const slug = "INT. BARN - DAY";
+    expect(select(slug, slug.length)).toBe("DAY");
+    expect(select(slug, 12, 15)).toBe("BARN");
+    expect(select(slug, 5, 9)).toBe("stay");
+  });
+
+  it("includes the modifier", () => {
+    const slug = "EXT. YARD - NIGHT (FLASHBACK)";
+    expect(select(slug, slug.length)).toBe("FLASHBACK");
+    expect(select(slug, 19, 28)).toBe("NIGHT");
+  });
+
+  it("walks a character cue: extension, then name", () => {
+    const lines = ["JEN (V.O.)", "Hi."];
+    const plan = (from: number, to = from) => {
+      const result = getShiftTabPartPlan(lines, 0, 0, from, to);
+      return result?.type === "select"
+        ? lines[0].slice(result.head, result.anchor)
+        : (result?.type ?? null);
+    };
+    expect(plan(10)).toBe("V.O.");
+    expect(plan(5, 9)).toBe("JEN");
+    expect(plan(0, 3)).toBe("stay");
+  });
+
+  it("leaves other lines alone", () => {
+    expect(select("She runs to the barn.", 5)).toBeNull();
   });
 });
