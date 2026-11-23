@@ -27,6 +27,10 @@ project follows
   Final Draft files leave them out. New **Remove synopses** and **Remove
   boneyard** rows; **Line comments** can become a Fountain note or
   boneyard. "Links to other notes" is now **Wikilinks**.
+- `+` groups use everyone named in the scene so far, not only those who
+  speak; a list you type is completed name by name (`+Jen, Blake, and H` →
+  `Jen, Blake, and Helios`); and a group already offered as a name isn't
+  listed twice.
 - `%% comments %%` can also become Fountain notes or boneyard in the
   clean Fountain file (Note is the default there).
 - Wikilinks: keep the alias (falling back to the file name), the file

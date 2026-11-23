@@ -19,6 +19,7 @@ import { describe, expect, it } from "vitest";
 import {
   mentionAtEnd,
   mentionGroups,
+  sceneCharacters,
   mentionText,
 } from "../src/editor/characterMentions";
 
@@ -74,6 +75,73 @@ describe("mention groups (#255)", () => {
   it("writes groups in capitals when typed in capitals", () => {
     expect(mentionGroups("JE", ["Jen and Zora"], [], spell)).toEqual([
       "JEN AND ZORA",
+    ]);
+  });
+});
+
+describe("mention groups from the whole scene (#282)", () => {
+  const spell = (name: string) =>
+    name.charAt(0) + name.slice(1).toLocaleLowerCase();
+  const known = ["JEN", "JENNA", "BLAKE", "HELIOS", "FIONA", "JEN AND BLAKE"];
+
+  it("counts characters named in action, not only speakers", () => {
+    const scene = [
+      "INT. BARN - NIGHT",
+      "",
+      "Helios struggles against the rope.",
+      "",
+      "JEN",
+      "Find scissors.",
+      "",
+      "Fiona looks between Jen, Blake, and Helios",
+    ].join("\n");
+    expect(sceneCharacters(scene, known)).toEqual([
+      "HELIOS",
+      "JEN",
+      "FIONA",
+      "BLAKE",
+    ]);
+  });
+
+  it("doesn't repeat a group already offered as a name", () => {
+    expect(
+      mentionGroups("Je", ["Jen and Blake"], ["JEN", "BLAKE"], spell, known, [
+        "Jen",
+        "Jen and Blake",
+      ]),
+    ).toEqual([]);
+  });
+
+  it("keeps the whole-scene list near the top of a long scene", () => {
+    const groups = mentionGroups(
+      "Je",
+      [],
+      ["JEN", "BLAKE", "HELIOS", "FIONA"],
+      spell,
+    );
+    expect(groups.slice(0, 3)).toEqual([
+      "Jen and Blake",
+      "Jen and Helios",
+      "Jen, Blake, Helios, and Fiona",
+    ]);
+  });
+
+  it("completes a list being typed, name by name", () => {
+    const scene = ["JEN", "BLAKE", "HELIOS", "FIONA"];
+    expect(mentionGroups("Jen, Blake, and H", [], scene, spell, known)).toEqual(
+      ["Jen, Blake, and Helios"],
+    );
+    expect(mentionGroups("Jen, Blake, H", [], scene, spell, known)).toEqual([
+      "Jen, Blake, and Helios",
+      "Jen, Blake, Helios, and Fiona",
+    ]);
+    expect(mentionGroups("Jen and B", [], scene, spell, known)).toEqual([
+      "Jen and Blake",
+    ]);
+    expect(mentionGroups("Jen, B", [], scene, spell, known)).toEqual([
+      "Jen, Blake, and Helios",
+      "Jen, Blake, and Fiona",
+      "Jen, Blake, Helios, and Fiona",
     ]);
   });
 });

@@ -94,12 +94,20 @@ flowchart TD
 - The name is written in mixed case: as the note already spells it in
   action (`McAllister`), or else each word capitalized (`Mary Ann`).
   Typed capitals (`+JE`) give capitals (`JEN`).
-- **Groups** follow the names (#255, added 2026-11-22): first groups the
-  script already writes in action (`Jen and Blake`), most used first; then,
-  from the current scene's speakers, each pair and the whole Oxford-comma
-  list. Only groups starting with what you typed, commas included
-  (`+Jen, B` keeps `Jen, Blake, and George`). A few groups stay in view
-  even when many names match.
+- **Groups** follow the names (#255, added 2026-11-22; #282): first groups
+  the script already writes in action (`Jen and Blake`), most used first;
+  then, from the scene's characters (everyone named in the scene so far,
+  in cues or action, in order of appearance), each pair and the whole
+  Oxford-comma list (after the first two pairs). A group already offered
+  as a name (a character listed in frontmatter) isn't repeated. A few
+  groups stay in view even when many names match.
+- **Typing a list** completes it name by name: after "and",
+  `+Jen, Blake, and H` offers `Jen, Blake, and Helios`; after a comma,
+  `+Jen, B` offers `Jen, Blake, and …` with each other scene character,
+  then the whole scene.
+  - [ ] Helios only in action earlier in the scene; type `+jen`: the list
+        has `Jen and Helios` and a whole-scene list with Helios.
+  - [ ] Type `+Jen, Blake, and H`, Enter: `Jen, Blake, and Helios|`.
   - [ ] Characters Jen and Jenna; scene speakers Jen, Blake, George; in
         action, type `+Je`: `Jen`, `Jenna`, `Jen and Blake`, `Jen and George`,
         `Jen, Blake, and George`.

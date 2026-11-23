@@ -34,7 +34,12 @@ import { forceElementPlan, type ForcedElement } from "./forceElement";
 import { menuLineKind } from "./layoutClassifier";
 import { docLineKinds, docLines } from "./docLines";
 import { variableAtEnd, variableSuggestions } from "./variables";
-import { mentionAtEnd, mentionGroups, mentionText } from "./characterMentions";
+import {
+  mentionAtEnd,
+  mentionGroups,
+  mentionText,
+  sceneCharacters,
+} from "./characterMentions";
 import { getEnterInsidePlan, getTabInsidePlan } from "./tabInside";
 import {
   acceptCompletion,
@@ -77,7 +82,6 @@ import {
   getSmartTabPlan,
   capitalizeLineStart,
   capitalizeSentenceStart,
-  recentSceneSpeakers,
   type SmartTabPlan,
 } from "./smartTab";
 import {
@@ -498,12 +502,17 @@ export function createScreenplayCompletionExtension(
         plugin.settings.recentItemsWeighting,
         limit,
       ).map((usage) => usage.value);
-      const sceneNames = recentSceneSpeakers(
-        editorSource.slice(Math.max(0, line.from - 60000), line.from),
-        Math.min(line.from, 60000),
-      ).reverse();
-      const groups = mentionGroups(mention.typed, written, sceneNames, (name) =>
-        mentionText(name, mention.typed, editorSource),
+      // Everyone named in the scene so far (cues and action, this line up
+      // to the "+"), not only those who speak (#282).
+      const known = index.characters.map((usage) => usage.value);
+      const scene = sceneCharacters(sceneTextBefore(editorSource, from), known);
+      const groups = mentionGroups(
+        mention.typed,
+        written,
+        scene,
+        (name) => mentionText(name, mention.typed, editorSource),
+        known,
+        names,
       );
       // Keep a few groups in view even when many names match.
       const keepGroups = Math.min(
@@ -2003,4 +2012,21 @@ export function createScreenplayCompletionExtension(
     }),
     EditorState.languageData.of(() => [{ autocomplete: source }]),
   ];
+}
+
+/**
+ * The scene's text before `offset`: back to its scene heading (at most
+ * 60,000 characters), for the "+" list's scene characters.
+ */
+function sceneTextBefore(source: string, offset: number): string {
+  const start = Math.max(0, offset - 60000);
+  const lines = source.slice(start, offset).split("\n");
+  let from = 0;
+  for (let index = lines.length - 1; index >= 0; index -= 1) {
+    if (isSceneHeading(lines[index] ?? "")) {
+      from = index;
+      break;
+    }
+  }
+  return lines.slice(from).join("\n");
 }

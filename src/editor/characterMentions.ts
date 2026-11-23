@@ -89,37 +89,130 @@ function oxfordList(names: readonly string[]): string {
   return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
 }
 
+/** A name that is itself a group ("JEN AND BLAKE" listed as a character). */
+function isGroupName(name: string): boolean {
+  return /,|&|\band\b/iu.test(name);
+}
+
 /**
- * Group suggestions for a "+" mention, offered after the names (#255):
- * first the groups the script already writes ("Jen and Blake"), in the
- * order given (most used first); then, from the current scene's speakers
- * (in order of appearance), each pair and the whole Oxford-comma list,
- * for every speaker the typed text matches. Only groups that start with
- * what was typed ("Jen, B" keeps "Jen, Blake, and George").
+ * The characters named in `sceneText` (the scene so far, cues and action),
+ * in the order they first appear: everyone in the scene, not only those
+ * who speak (#282). `known` are the script's character names.
+ */
+export function sceneCharacters(
+  sceneText: string,
+  known: readonly string[],
+): string[] {
+  const found: { name: string; at: number }[] = [];
+  for (const name of known) {
+    if (name.trim() === "" || isGroupName(name)) continue;
+    const match = new RegExp(
+      `(?<![\\p{L}\\p{N}_])${escapeForRegExp(name)}(?![\\p{L}\\p{N}_])`,
+      "iu",
+    ).exec(sceneText);
+    if (match) found.push({ name, at: match.index });
+  }
+  return found.sort((a, b) => a.at - b.at).map(({ name }) => name);
+}
+
+/**
+ * Group suggestions for a "+" mention, offered after the names (#255,
+ * #282). Only groups starting with what was typed.
+ *
+ * - Plain text (`+Je`): groups the script already writes, most used first;
+ *   then, for each scene character the text matches, pairs with the
+ *   others and the Oxford-comma list of the whole scene.
+ * - A list being typed (`+Jen, Blake, and H`): the names so far are kept
+ *   and the last one is completed from the scene's characters, then the
+ *   script's others: `Jen, Blake, and Helios`. After a comma
+ *   (`+Jen, B`) the list goes on with one more name each
+ *   (`Jen, Blake, and Helios`), and the rest of the scene.
+ *
+ * `names` are the names already offered above, so a group isn't listed
+ * twice; `others` are the script's other characters.
  */
 export function mentionGroups(
   typed: string,
   written: readonly string[],
-  sceneNames: readonly string[],
+  scene: readonly string[],
   spell: (name: string) => string,
+  others: readonly string[] = [],
+  names: readonly string[] = [],
 ): string[] {
   const query = typed.trimStart().toLocaleUpperCase();
   const caps = typedInCapitals(typed);
   const groups: string[] = [];
-  const seen = new Set<string>();
-  const add = (group: string) => {
+  const seen = new Set(names.map((name) => name.toLocaleUpperCase()));
+  // `matched`: the group was built from what was typed (a list), so it
+  // needn't start with it ("Jen, Blake, H" -> "Jen, Blake, and Helios").
+  const add = (group: string, matched = false) => {
     const text = caps ? group.toLocaleUpperCase() : group;
     const key = text.toLocaleUpperCase();
-    if (seen.has(key) || key === query || !key.startsWith(query)) return;
+    if (seen.has(key) || key === query) return;
+    if (!matched && !key.startsWith(query)) return;
     seen.add(key);
     groups.push(text);
   };
-  written.forEach(add);
-  const names = sceneNames.map(spell);
-  for (const first of names) {
-    const others = names.filter((name) => name !== first);
-    for (const other of others) add(oxfordList([first, other]));
-    if (others.length >= 2) add(oxfordList([first, ...others]));
+  const sceneNames = [...new Set(scene.map(spell))];
+  const otherNames = [...new Set(others.filter((n) => !isGroupName(n)))]
+    .map(spell)
+    .filter((name) => !sceneNames.includes(name));
+  const everyone = [...sceneNames, ...otherNames];
+  const same = (a: string, b: string) =>
+    a.toLocaleUpperCase() === b.toLocaleUpperCase();
+
+  for (const group of written) add(group);
+
+  const separator = /(,\s*(?:and\s+)?|\s+and\s+)(?=[^,]*$)/iu.exec(typed);
+  if (separator !== null) {
+    const chosenText = typed
+      .slice(0, separator.index)
+      .split(/\s*,\s*(?:and\s+)?|\s+and\s+/iu)
+      .map((part) => part.trim())
+      .filter((part) => part !== "");
+    const chosen = chosenText.map((part) =>
+      everyone.find((name) => same(name, part)),
+    );
+    if (chosen.length > 0 && chosen.every((name) => name !== undefined)) {
+      const picked = chosen;
+      const partial = typed
+        .slice(separator.index + separator[0].length)
+        .trim()
+        .toLocaleUpperCase();
+      const left = everyone.filter(
+        (name) => !picked.some((p) => same(p, name)),
+      );
+      const matching = left.filter((name) =>
+        name.toLocaleUpperCase().startsWith(partial),
+      );
+      const afterComma = !/\band\s*$/iu.test(separator[0].trim() + " ");
+      for (const next of matching) {
+        if (!afterComma || picked.length >= 2) {
+          add(oxfordList([...picked, next]), true);
+        }
+        if (afterComma) {
+          const rest = sceneNames.filter(
+            (name) => !same(name, next) && !picked.some((p) => same(p, name)),
+          );
+          for (const last of rest)
+            add(oxfordList([...picked, next, last]), true);
+          if (rest.length >= 2)
+            add(oxfordList([...picked, next, ...rest]), true);
+        }
+      }
+      return groups;
+    }
+  }
+
+  for (const first of sceneNames) {
+    const rest = sceneNames.filter((name) => name !== first);
+    const pairs = rest.map((other) => oxfordList([first, other]));
+    const whole = rest.length >= 2 ? [oxfordList([first, ...rest])] : [];
+    // The whole scene comes after the first two pairs, so a long scene
+    // doesn't push it out of the list.
+    [...pairs.slice(0, 2), ...whole, ...pairs.slice(2)].forEach((group) =>
+      add(group),
+    );
   }
   return groups;
 }
