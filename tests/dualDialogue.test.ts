@@ -15,50 +15,45 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from "vitest";
-import { findDualDialogue } from "../src/editor/dualDialogue";
-import { classifyLayoutLines } from "../src/editor/layoutClassifier";
+import { describe, expect, it, vi } from "vitest";
 
-const find = (text: string) => {
-  const lines = text.split("\n");
-  return findDualDialogue(lines, classifyLayoutLines(lines));
-};
+vi.mock("obsidian", () => ({ Notice: class {} }));
 
-describe("dual dialogue", () => {
-  it("pairs a ^ cue with the speech before it", () => {
-    const pairs = find(
-      [
-        "Jen and Blake exchange a look then—",
-        "",
-        "JEN",
-        "No.",
-        "",
-        "BLAKE^",
-        "(quietly)",
-        "No.",
-        "",
-        "FIONA",
-        "I'm just pumped up.",
-      ].join("\n"),
-    );
-    expect(pairs).toEqual([
-      {
-        startLine: 2,
-        endLine: 7,
-        left: { cue: "JEN", lines: [{ kind: "dialogue", text: "No." }] },
-        right: {
-          cue: "BLAKE",
-          lines: [
-            { kind: "parenthetical", text: "(quietly)" },
-            { kind: "dialogue", text: "No." },
-          ],
-        },
-      },
-    ]);
+const { toggleDualDialogue } = await import("../src/commands/dualDialogue");
+
+const script = [
+  "Jen waits.",
+  "",
+  "JEN",
+  "Now?",
+  "",
+  "BLAKE",
+  "(quietly)",
+  "Now.",
+  "",
+  "Fiona runs.",
+];
+
+describe("Toggle dual dialogue (#211)", () => {
+  it("adds ^ to the cue of the speech holding the cursor", () => {
+    expect(toggleDualDialogue(script, 7)).toEqual({ line: 5, text: "BLAKE ^" });
+    expect(toggleDualDialogue(script, 5)).toEqual({ line: 5, text: "BLAKE ^" });
   });
 
-  it("needs a speech before the ^ cue", () => {
-    expect(find("She runs.\n\nBLAKE ^\nNo.")).toEqual([]);
-    expect(find("JEN\nNo.\n\nBLAKE\nYes.")).toEqual([]);
+  it("removes it again", () => {
+    const dual = script.map((line, at) => (at === 5 ? "BLAKE ^" : line));
+    expect(toggleDualDialogue(dual, 6)).toEqual({ line: 5, text: "BLAKE" });
+  });
+
+  it("needs a speech right above", () => {
+    expect(toggleDualDialogue(script, 3)).toHaveProperty("problem");
+    expect(toggleDualDialogue(script, 9)).toHaveProperty("problem");
+    expect(toggleDualDialogue(script, 1)).toHaveProperty("problem");
+  });
+
+  it("won't pair with a speech that is already the second half", () => {
+    const chain = [...script.slice(0, 8), "", "FIONA", "Wait."];
+    const second = chain.map((line, at) => (at === 5 ? "BLAKE ^" : line));
+    expect(toggleDualDialogue(second, 10)).toHaveProperty("problem");
   });
 });

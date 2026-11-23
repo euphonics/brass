@@ -27,6 +27,12 @@ project follows
   Final Draft files leave them out. New **Remove synopses** and **Remove
   boneyard** rows; **Line comments** can become a Fountain note or
   boneyard. "Links to other notes" is now **Wikilinks**.
+- New command **Screenplay: Toggle dual dialogue**: adds or removes the
+  `^` on the cue of the speech the cursor is in, when there's a speech
+  right above to pair with.
+- A Fountain note or section between two speeches now stops them pairing
+  as dual dialogue in the PDF, preview and Final Draft export, as
+  Fountain's rules say.
 - Picking a location in the slugline list fills in the whole slug it
   shows, time and modifier included (`STUDIO, BARN - NIGHT (FLASHBACK)`).
   **Picking a location fills in** (Suggestions) has Time and Modifier

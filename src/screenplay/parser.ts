@@ -47,6 +47,10 @@ export function parseFountain(source: string): ScreenplayDocument {
   let blankLines = 0;
   // A "===" line: the next printed element starts a new page.
   let pageBreak = false;
+  // A Fountain note ("[[...]]") or section ("# ...") since the last
+  // element: Fountain's rule is that it stops two speeches pairing as dual
+  // dialogue; a boneyard doesn't (#264).
+  let breaksDual = false;
 
   for (let index = 0; index < lines.length; index += 1) {
     // Line comments ("// note") aren't part of the script.
@@ -58,6 +62,7 @@ export function parseFountain(source: string): ScreenplayDocument {
 
     if (kind === null) {
       if (text === "") blankLines += 1;
+      else if (/^#/u.test(text)) breaksDual = true;
       continue;
     }
     // Notes, comments, synopses and page breaks aren't printed or counted. A
@@ -66,7 +71,10 @@ export function parseFountain(source: string): ScreenplayDocument {
       pageBreak = true;
       continue;
     }
-    if (kind === "note" || text === "") continue;
+    if (kind === "note" || text === "") {
+      if (/^(?:\[\[|#)/u.test(text)) breaksDual = true;
+      continue;
+    }
     const before = elements.length;
 
     switch (kind) {
@@ -77,7 +85,7 @@ export function parseFountain(source: string): ScreenplayDocument {
           text: cue?.name ?? text,
           line,
           ...(cue?.extension ? { characterExtension: cue.extension } : {}),
-          ...(/\^\s*$/u.test(text) ? { dual: true } : {}),
+          ...(/\^\s*$/u.test(text) && !breaksDual ? { dual: true } : {}),
         });
         break;
       }
@@ -93,6 +101,7 @@ export function parseFountain(source: string): ScreenplayDocument {
       default:
         elements.push({ type: kind, text, line });
     }
+    if (elements.length > before) breaksDual = false;
     if (pageBreak && elements.length > before) {
       const added = elements[elements.length - 1];
       if (added) added.pageBreakBefore = true;

@@ -128,3 +128,19 @@ describe("Fountain rules", () => {
     ]);
   });
 });
+
+describe("dual dialogue and what sits between the speeches (#264)", () => {
+  const pair = (between: string) =>
+    parseFountain(`JEN\nNow?\n\n${between}BLAKE ^\nNow.\n`).elements.find(
+      (element) => element.type === "character" && element.text === "BLAKE",
+    )?.dual === true;
+
+  it("pairs across blank lines", () => {
+    expect(pair("")).toBe(true);
+  });
+
+  it("doesn't pair across a Fountain note or a section", () => {
+    expect(pair("[[A note between them.]]\n\n")).toBe(false);
+    expect(pair("# Act Two\n\n")).toBe(false);
+  });
+});

@@ -550,6 +550,14 @@ Test cases:
 - After a line is set to character, anything typed on it is uppercased
   (setting: **Uppercase character names as you type**).
 
+- **Toggle dual dialogue** (command, #211): with the cursor anywhere in a
+  speech, adds ` ^` to its cue (`BLAKE` → `BLAKE ^`), or removes it. It
+  needs a speech right above, with only blank lines between, that isn't
+  already the second half of a pair; otherwise a notice says why.
+  - [ ] Cursor in BLAKE's dialogue under JEN's speech, run it: `BLAKE ^`,
+        cursor still in the dialogue. Run it again: `BLAKE`.
+  - [ ] Cursor in the first speech of a scene: a notice, nothing changes.
+
 ## Automatic capitals while typing
 
 - Sluglines are uppercased as you type, once the line reads as one

@@ -39,6 +39,7 @@ import {
 import type { Command, TFile } from "obsidian";
 import { openCharacterPicker } from "./commands/character";
 import { copyConfiguration } from "./commands/copyConfiguration";
+import { toggleDualDialogueInEditor } from "./commands/dualDialogue";
 import { elementLines } from "./commands/selectElement";
 import { createThreadExtension } from "./editor/threads";
 import {
@@ -322,6 +323,16 @@ export default class ScribidianPlugin extends Plugin {
       id: "create-example-screenplay",
       name: "Create example screenplay",
       callback: () => void createExampleScreenplay(this),
+    });
+
+    this.addCommand({
+      id: "screenplay-toggle-dual-dialogue",
+      name: "Screenplay: Toggle dual dialogue",
+      editorCheckCallback: (checking, editor, context) => {
+        if (!this.isScreenplayFile(context.file)) return false;
+        if (!checking) toggleDualDialogueInEditor(editor);
+        return true;
+      },
     });
 
     this.addCommand({
