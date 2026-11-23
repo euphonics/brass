@@ -16,7 +16,11 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { mentionAtEnd, mentionText } from "../src/editor/characterMentions";
+import {
+  mentionAtEnd,
+  mentionGroups,
+  mentionText,
+} from "../src/editor/characterMentions";
 
 describe("+ character mentions", () => {
   it("finds the mention being typed", () => {
@@ -42,5 +46,34 @@ describe("+ character mentions", () => {
     expect(mentionText("MCALLISTER", "mc", source)).toBe("McAllister");
     expect(mentionText("MCALLISTER", "MC", source)).toBe("MCALLISTER");
     expect(mentionText("JEN", "", "Jenny waves.")).toBe("Jen");
+  });
+});
+
+describe("mention groups (#255)", () => {
+  const spell = (name: string) =>
+    name.charAt(0) + name.slice(1).toLocaleLowerCase();
+
+  it("offers written groups, then scene pairs, then the Oxford list", () => {
+    expect(mentionGroups("Je", [], ["JEN", "BLAKE", "GEORGE"], spell)).toEqual([
+      "Jen and Blake",
+      "Jen and George",
+      "Jen, Blake, and George",
+    ]);
+    expect(
+      mentionGroups("Je", ["Jen and Zora"], ["JEN", "BLAKE"], spell),
+    ).toEqual(["Jen and Zora", "Jen and Blake"]);
+  });
+
+  it("filters by what was typed, commas included", () => {
+    expect(
+      mentionGroups("Jen, B", [], ["JEN", "BLAKE", "GEORGE"], spell),
+    ).toEqual(["Jen, Blake, and George"]);
+    expect(mentionAtEnd("She sees +Jen, B")).toEqual({ typed: "Jen, B" });
+  });
+
+  it("writes groups in capitals when typed in capitals", () => {
+    expect(mentionGroups("JE", ["Jen and Zora"], [], spell)).toEqual([
+      "JEN AND ZORA",
+    ]);
   });
 });

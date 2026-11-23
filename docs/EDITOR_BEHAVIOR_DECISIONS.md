@@ -94,6 +94,16 @@ flowchart TD
 - The name is written in mixed case: as the note already spells it in
   action (`McAllister`), or else each word capitalized (`Mary Ann`).
   Typed capitals (`+JE`) give capitals (`JEN`).
+- **Groups** follow the names (#255, added 2026-11-22): first groups the
+  script already writes in action (`Jen and Blake`), most used first; then,
+  from the current scene's speakers, each pair and the whole Oxford-comma
+  list. Only groups starting with what you typed, commas included
+  (`+Jen, B` keeps `Jen, Blake, and George`). A few groups stay in view
+  even when many names match.
+  - [ ] Characters Jen and Jenna; scene speakers Jen, Blake, George; in
+        action, type `+Je`: `Jen`, `Jenna`, `Jen and Blake`, `Jen and George`,
+        `Jen, Blake, and George`.
+  - [ ] Type `+Jen, B`, Enter: `Jen, Blake, and George|`.
 - Needs Suggestions on.
 - The `+` can be changed: **Character name character** in Suggestions
   (one symbol, different from the variable character).
@@ -553,6 +563,15 @@ Test cases:
   first: most recent (the whole slug) or shortest (the location, then the
   times). A location never used with a time or modifier has one item
   (added 2026-11-21).
+- **Mini sluglines** (a forced heading, `.HALL`): the location list also
+  has a bare `HALL` item (detail "No time"), which fills in just the
+  location, with no `-` and no times list. It comes right after the
+  location item, or first when that location's last slug had no time
+  (`.HALL` used bare before). Slugs with a scene type (`INT. HALL`) keep
+  the usual list (#256, added 2026-11-22).
+  - [ ] `.HALL - NIGHT` earlier; type `.HA`, Down, Enter: `.HALL|`.
+  - [ ] `.HALL` used bare last; type `.HA`, Enter: `.HALL|`.
+  - [ ] `INT. HA`: no "No time" item.
 - **Times of day after a location**: the time that location had last
   comes first (`INT. KITCHEN - ` after `INT. KITCHEN - NIGHT` puts NIGHT at
   the top), when it matches what is typed (added 2026-11-21).

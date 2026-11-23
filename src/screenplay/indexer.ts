@@ -161,6 +161,7 @@ export function buildScreenplayIndex(
   }
 
   return {
+    characterGroups: characterGroups(document, [...characters.values()]),
     characters: [...characters.values()],
     locations: [...locations.values()],
     timesOfDay: [...timesOfDay.values()],
@@ -171,6 +172,36 @@ export function buildScreenplayIndex(
     lastTimeByLocation,
     lastSlugByLocation,
   };
+}
+
+/**
+ * Groups of known characters written in action lines: "Jen and Blake",
+ * "Jen, Blake, and George" (with or without the Oxford comma), as written.
+ */
+function characterGroups(
+  document: ScreenplayDocument,
+  characters: readonly Usage[],
+): Usage[] {
+  const names = characters
+    .map((usage) => usage.value.trim())
+    .filter((name) => name.length > 0)
+    .sort((a, b) => b.length - a.length)
+    .slice(0, 300)
+    .map((name) => name.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"));
+  if (names.length < 2) return [];
+  const name = `(?:${names.join("|")})`;
+  const group = new RegExp(
+    `(?<![\\p{L}\\p{N}_])${name}(?:,\\s+${name})*,?\\s+and\\s+${name}(?![\\p{L}\\p{N}_])`,
+    "giu",
+  );
+  const groups = new Map<string, Usage>();
+  for (const element of document.elements) {
+    if (element.type !== "action") continue;
+    for (const match of element.text.matchAll(group)) {
+      addUsage(groups, match[0].replace(/\s+/gu, " "), element.line);
+    }
+  }
+  return [...groups.values()];
 }
 
 export function rankUsages(

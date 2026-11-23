@@ -91,6 +91,11 @@ export interface ScreenplayIndex {
   slugModifiers: Usage[];
   parentheticals: Usage[];
   transitions: Usage[];
+  /**
+   * Groups of characters written in action ("Jen and Blake", "Jen, Blake,
+   * and George"), as written, for "+" lists (#255).
+   */
+  characterGroups?: Usage[];
   /** The time of day last used with each location, keyed in capitals. */
   lastTimeByLocation?: Record<string, string>;
   /**

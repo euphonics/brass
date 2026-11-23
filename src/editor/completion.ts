@@ -34,7 +34,7 @@ import { forceElementPlan, type ForcedElement } from "./forceElement";
 import { menuLineKind } from "./layoutClassifier";
 import { docLineKinds, docLines } from "./docLines";
 import { variableAtEnd, variableSuggestions } from "./variables";
-import { mentionAtEnd, mentionText } from "./characterMentions";
+import { mentionAtEnd, mentionGroups, mentionText } from "./characterMentions";
 import { getEnterInsidePlan, getTabInsidePlan } from "./tabInside";
 import {
   acceptCompletion,
@@ -77,6 +77,7 @@ import {
   getSmartTabPlan,
   capitalizeLineStart,
   capitalizeSentenceStart,
+  recentSceneSpeakers,
   type SmartTabPlan,
 } from "./smartTab";
 import {
@@ -482,22 +483,50 @@ export function createScreenplayCompletionExtension(
           "action")
     ) {
       const from = context.pos - mention.typed.length - mentionPrefix.length;
+      const limit = plugin.settings.maximumSuggestions;
       const names = rankUsages(
         index.characters,
         mention.typed,
         plugin.settings.recentItemsWeighting,
-        plugin.settings.maximumSuggestions,
+        limit,
+      ).map((usage) => mentionText(usage.value, mention.typed, editorSource));
+      // Then groups (#255): those the script writes, and pairs and the
+      // Oxford-comma list from this scene's speakers.
+      const written = rankUsages(
+        index.characterGroups ?? [],
+        mention.typed,
+        plugin.settings.recentItemsWeighting,
+        limit,
+      ).map((usage) => usage.value);
+      const sceneNames = recentSceneSpeakers(
+        editorSource.slice(Math.max(0, line.from - 60000), line.from),
+        Math.min(line.from, 60000),
+      ).reverse();
+      const groups = mentionGroups(mention.typed, written, sceneNames, (name) =>
+        mentionText(name, mention.typed, editorSource),
       );
-      if (names.length === 0) return null;
+      // Keep a few groups in view even when many names match.
+      const keepGroups = Math.min(
+        groups.length,
+        Math.max(3, limit - names.length),
+      );
+      const items = [
+        ...names
+          .slice(0, Math.max(0, limit - keepGroups))
+          .map((text) => ({ text, detail: "Character" })),
+        ...groups
+          .slice(0, keepGroups)
+          .map((text) => ({ text, detail: "Characters" })),
+      ];
+      if (items.length === 0) return null;
       return {
         from,
         to: context.pos,
         filter: false,
-        options: names.map((usage) => {
-          const text = mentionText(usage.value, mention.typed, editorSource);
+        options: items.map(({ text, detail }) => {
           return {
             label: text,
-            detail: "Character",
+            detail,
             apply: (view, completion, applyFrom, applyTo) => {
               view.dispatch({
                 changes: { from: applyFrom, to: applyTo, insert: text },

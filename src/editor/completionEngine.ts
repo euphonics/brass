@@ -428,12 +428,7 @@ function scenePlan(
   );
 
   if (canContinueLocation || !value.includes(" - ")) {
-    const candidates = rankUsages(
-      index.locations,
-      value,
-      preferences.recentItemsWeighting,
-      preferences.maximumSuggestions,
-    ).flatMap((usage): CompletionCandidate[] => {
+    const locationItems = (usage: Usage): CompletionCandidate[] => {
       const key = usage.value.toLocaleUpperCase();
       const last = index.lastTimeByLocation?.[key];
       const slug = index.lastSlugByLocation?.[key];
@@ -467,6 +462,30 @@ function scenePlan(
           detail: "Location",
         },
       ];
+    };
+    const candidates = rankUsages(
+      index.locations,
+      value,
+      preferences.recentItemsWeighting,
+      preferences.maximumSuggestions,
+    ).flatMap((usage): CompletionCandidate[] => {
+      const items = locationItems(usage);
+      if (!untypedForced) return items;
+      // Mini slugs (".HALL") often have no time: a bare item fills just
+      // the location. It comes first when the location's last slug had
+      // no time, else right after the location (#256).
+      const key = usage.value.toLocaleUpperCase();
+      const bare: CompletionCandidate = {
+        label: usage.value,
+        applyText: usage.value,
+        detail: "No time",
+      };
+      const lastSlug = index.lastSlugByLocation?.[key];
+      const bareLast =
+        lastSlug !== undefined && lastSlug.toLocaleUpperCase() === key;
+      return bareLast
+        ? [bare, ...items]
+        : [...items.slice(0, 1), bare, ...items.slice(1)];
     });
     candidates.length = Math.min(
       candidates.length,

@@ -125,3 +125,28 @@ describe("smart quotes", () => {
     expect(index.characters[0]?.count).toBe(2);
   });
 });
+
+describe("character groups (#255)", () => {
+  it("finds groups of characters written in action", () => {
+    const index = buildScreenplayIndex(
+      parseFountain(`INT. ROOM - DAY
+
+JEN
+Hi.
+
+BLAKE
+Hey.
+
+GEORGE
+Welcome.
+
+Jen and Blake sit. Later, Jen, Blake, and George eat. Jen and Blake leave.`),
+    );
+    expect(
+      index.characterGroups?.map((usage) => [usage.value, usage.count]),
+    ).toEqual([
+      ["Jen and Blake", 2],
+      ["Jen, Blake, and George", 1],
+    ]);
+  });
+});

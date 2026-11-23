@@ -34,7 +34,7 @@ export function mentionAtEnd(
 ): { typed: string } | null {
   const escaped = escapeForRegExp(prefix);
   const match = new RegExp(
-    `(?:^|[^\\p{L}\\p{N}_${escaped}])${escaped}([\\p{L}\\p{N}'’. -]{0,40})$`,
+    `(?:^|[^\\p{L}\\p{N}_${escaped}])${escaped}([\\p{L}\\p{N}'’., -]{0,80})$`,
     "u",
   ).exec(before);
   return match ? { typed: match[1] ?? "" } : null;
@@ -53,13 +53,7 @@ export function mentionText(
   typed: string,
   source: string,
 ): string {
-  if (
-    hasLetter.test(typed) &&
-    typed === typed.toLocaleUpperCase() &&
-    typed !== typed.toLocaleLowerCase()
-  ) {
-    return name.toLocaleUpperCase();
-  }
+  if (typedInCapitals(typed)) return name.toLocaleUpperCase();
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
   const spellings = new Map<string, number>();
   for (const match of source.matchAll(
@@ -78,4 +72,54 @@ export function mentionText(
       (_, start: string, letter: string) =>
         `${start}${letter.toLocaleUpperCase()}`,
     );
+}
+
+/** True when the writer typed the mention in capitals ("+JE"). */
+function typedInCapitals(typed: string): boolean {
+  return (
+    hasLetter.test(typed) &&
+    typed === typed.toLocaleUpperCase() &&
+    typed !== typed.toLocaleLowerCase()
+  );
+}
+
+/** "Jen and Blake"; "Jen, Blake, and George". */
+function oxfordList(names: readonly string[]): string {
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
+}
+
+/**
+ * Group suggestions for a "+" mention, offered after the names (#255):
+ * first the groups the script already writes ("Jen and Blake"), in the
+ * order given (most used first); then, from the current scene's speakers
+ * (in order of appearance), each pair and the whole Oxford-comma list,
+ * for every speaker the typed text matches. Only groups that start with
+ * what was typed ("Jen, B" keeps "Jen, Blake, and George").
+ */
+export function mentionGroups(
+  typed: string,
+  written: readonly string[],
+  sceneNames: readonly string[],
+  spell: (name: string) => string,
+): string[] {
+  const query = typed.trimStart().toLocaleUpperCase();
+  const caps = typedInCapitals(typed);
+  const groups: string[] = [];
+  const seen = new Set<string>();
+  const add = (group: string) => {
+    const text = caps ? group.toLocaleUpperCase() : group;
+    const key = text.toLocaleUpperCase();
+    if (seen.has(key) || key === query || !key.startsWith(query)) return;
+    seen.add(key);
+    groups.push(text);
+  };
+  written.forEach(add);
+  const names = sceneNames.map(spell);
+  for (const first of names) {
+    const others = names.filter((name) => name !== first);
+    for (const other of others) add(oxfordList([first, other]));
+    if (others.length >= 2) add(oxfordList([first, ...others]));
+  }
+  return groups;
 }

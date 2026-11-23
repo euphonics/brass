@@ -320,6 +320,53 @@ Up here.
     expect(timePlan?.kind).toBe("scene-time");
   });
 
+  it("offers a bare mini slug item after a forced heading dot (#256)", () => {
+    const timed = `${screenplay}
+.HALL - NIGHT
+
+.HA`;
+    const timedPlan = getScreenplayCompletionPlan(
+      timed,
+      timed.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+    );
+    expect(
+      timedPlan?.candidates.slice(0, 2).map((c) => [c.applyText, c.detail]),
+    ).toEqual([
+      ["HALL - ", "Location"],
+      ["HALL", "No time"],
+    ]);
+
+    const bare = `${screenplay}
+.HALL - NIGHT
+
+.HALL
+
+.HA`;
+    const barePlan = getScreenplayCompletionPlan(
+      bare,
+      bare.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+    );
+    expect(barePlan?.candidates[0]).toMatchObject({
+      applyText: "HALL",
+      detail: "No time",
+    });
+
+    const typed = `${screenplay}
+.HALL
+
+INT. HA`;
+    const typedPlan = getScreenplayCompletionPlan(
+      typed,
+      typed.length,
+      DEFAULT_COMPLETION_PREFERENCES,
+    );
+    expect(typedPlan?.candidates.some((c) => c.detail === "No time")).toBe(
+      false,
+    );
+  });
+
   it("does not treat a leading ellipsis as a forced heading", () => {
     const source = `${screenplay}
 ..`;

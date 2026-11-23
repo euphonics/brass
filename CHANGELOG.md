@@ -7,6 +7,16 @@ project follows
 
 ## [Unreleased]
 
+### Added (writer wish list, 2026-11-22)
+
+- Mini sluglines: after `.HA`, the location list also offers a bare `HALL`
+  that fills in just the location, with no time. It comes first when the
+  location was last used without a time.
+- `+` names in action also offer groups after the names: groups the script
+  already writes (`Jen and Blake`), then pairs and the Oxford-comma list of
+  the scene's speakers (`Jen, Blake, and George`). Typing a comma keeps
+  narrowing the list.
+
 ### Changed (performance, 2026-11-22)
 
 - Typing in long scripts is much faster. In a 500-page script, a keystroke
