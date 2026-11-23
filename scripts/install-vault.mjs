@@ -21,8 +21,16 @@
 //   node scripts/install-vault.mjs notes   (the everyday Notes vault, once
 //                                           a batch is tested in Dev)
 //   node scripts/install-vault.mjs <vault folder>
+//
+// Installing into Notes also resets Scribidian's settings to the defaults
+// (the writer's rule: every Notes install starts from the defaults, so they
+// check what a new user gets). The old settings are kept as
+// settings-backups/data-<date>.json in the plugin folder (the last 10), and
+// the plugin is reloaded in Obsidian so the running copy doesn't save the
+// old settings back. Add --keep-settings to skip the reset.
 
-import { copyFile, stat } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { copyFile, mkdir, readdir, rm, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -35,6 +43,7 @@ const VAULTS = {
 };
 
 const target = process.argv[2] ?? "dev";
+const keepSettings = process.argv.includes("--keep-settings");
 const vaultRoot = VAULTS[target] ?? path.resolve(target);
 const pluginRoot = path.join(vaultRoot, ".obsidian", "plugins", "scribidian");
 const projectRoot = path.resolve(
@@ -47,7 +56,64 @@ const projectRoot = path.resolve(
 await stat(pluginRoot).catch(() => {
   throw new Error(`No Scribidian plugin folder at ${pluginRoot}`);
 });
+
+const resetSettings = target === "notes" && !keepSettings;
+if (resetSettings) {
+  const data = path.join(pluginRoot, "data.json");
+  const exists = await stat(data).then(
+    () => true,
+    () => false,
+  );
+  if (exists) {
+    const backups = path.join(pluginRoot, "settings-backups");
+    await mkdir(backups, { recursive: true });
+    const stamp = new Date()
+      .toISOString()
+      .replace(/[-:]/gu, "")
+      .replace("T", "-")
+      .slice(0, 15);
+    const backup = path.join(backups, `data-${stamp}.json`);
+    await copyFile(data, backup);
+    const old = (await readdir(backups))
+      .filter((name) => /^data-\d{8}-\d{6}\.json$/u.test(name))
+      .sort()
+      .reverse()
+      .slice(10);
+    for (const name of old) await rm(path.join(backups, name));
+    // Without data.json, Scribidian starts from its defaults.
+    await rm(data);
+    console.log(`Reset Scribidian settings to defaults (backup: ${backup})`);
+  } else {
+    console.log("Scribidian settings were already the defaults.");
+  }
+}
+
 for (const name of ["main.js", "manifest.json", "styles.css"]) {
   await copyFile(path.join(projectRoot, name), path.join(pluginRoot, name));
 }
 console.log(`Installed Scribidian in ${pluginRoot}`);
+
+// Reload the running plugin, so it reads the defaults rather than saving
+// its old settings again. Needs Obsidian open with its command line on;
+// otherwise the next Obsidian start loads the defaults.
+if (resetSettings && process.platform === "win32") {
+  await new Promise((resolve) => {
+    execFile(
+      "powershell.exe",
+      [
+        "-NoProfile",
+        "-Command",
+        "obsidian vault=Notes plugin:reload id=scribidian",
+      ],
+      { timeout: 30000 },
+      (error, stdout) => {
+        console.log(
+          error
+            ? "Couldn't reload Scribidian in Obsidian: reload it (or restart Obsidian) before changing any setting."
+            : stdout.trim() || "Reloaded Scribidian in Notes.",
+        );
+        resolve();
+      },
+    );
+  });
+}

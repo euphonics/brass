@@ -101,7 +101,12 @@ than screenshots when testing other apps.
 - **Pipeline: Dev, then Notes and GitHub, then a release.** Test every
   change in the Dev vault first (`npm run install-vault`). Once it passes
   there, do these together without asking: `npm run install-notes`, so the
-  writer can check it in their Notes vault, then commit and push. Publish a
+  writer can check it in their Notes vault, then commit and push.
+  `install-notes` also resets Scribidian's settings in Notes to the
+  defaults every time (the writer's rule, so they always check what a new
+  user gets): it backs up `data.json` to `settings-backups/` in the plugin
+  folder (last 10), deletes it, and reloads the plugin in Obsidian. Don't
+  skip it (`--keep-settings`) unless the writer asks. Publish a
   GitHub release only on the writer's explicit approval, once per checked
   batch (see docs/RELEASING.md). Before every public release, run the speed
   check (`& tools/perf/check.ps1` in the Dev vault, about 2 minutes); it
