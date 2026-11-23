@@ -27,6 +27,8 @@ export default tseslint.config(
       "Scribidian Test Vault",
       "graphify-out",
       "output",
+      // Measurement scripts run inside Obsidian (obsidian eval), not built.
+      "tools",
     ],
   },
   ...obsidianmd.configs.recommended,

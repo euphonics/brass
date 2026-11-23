@@ -135,6 +135,29 @@ Dev Vault\Dev`, `obsidian vault=Dev ...`), in its `Scribidian Example`
   stops if the path is outside that folder. (A test once overwrote TIGHTER
   this way; it was recovered with undo.)
 
+## Performance rules
+
+Follow the vault note **Obsidian Plugin Development - Performance
+Guidelines** (`Tech/Obsidian/` in the Notes vault) for anything that runs
+while the writer types. In short:
+
+- A keystroke's work is proportional to the edit, never to the note: no
+  `doc.toString()`, `getValue()` or whole-note parse or classify in
+  transaction filters, `update` methods or what they call. Use the changed
+  range, the visible range, or mapped decorations.
+- Incremental code uses the same rules as the full pass and falls back to
+  it whenever an edit could reach further (see `reclassifyAround` in
+  `src/editor/screenplayLayout.ts`).
+- Work that can arrive a moment later (counts, statistics, indexes) runs in
+  the Web Worker (`src/workers/`), from pure code with a main-thread
+  fallback.
+- Caches key on everything their answer depends on. No stale results where
+  the writer acts on them (suggestion lists).
+- Measure with `tools/perf/` (README) in the Dev vault: at about 500 pages,
+  alone and with the writer's plugins. Replay the recorded behavior cases
+  against the previous build before shipping a speedup. Results so far:
+  `docs/PERFORMANCE.md`.
+
 ## Checks before committing
 
 ```
