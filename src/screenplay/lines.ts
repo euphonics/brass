@@ -174,6 +174,14 @@ export interface CharacterCue {
 export function characterCue(line: string): CharacterCue | null {
   const text = line.trim();
   const forced = text.startsWith("@");
+  // Fast path for most lines (action, dialogue): a lowercase letter before
+  // any "(" is in the name, so this can't be a cue. Same result as the
+  // checks below, without running them.
+  if (!forced) {
+    const paren = text.indexOf("(");
+    if (LOWERCASE_LETTER.test(paren === -1 ? text : text.slice(0, paren)))
+      return null;
+  }
   const candidate = (forced ? text.slice(1) : text)
     .replace(DUAL_DIALOGUE_CARET, "")
     .trim();

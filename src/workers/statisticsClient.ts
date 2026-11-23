@@ -16,10 +16,15 @@
  */
 
 import workerSource from "./statisticsWorker.ts?worker-source";
-import type { ScreenplayStatistics } from "../screenplay/model";
+import type {
+  ScreenplayIndex,
+  ScreenplayStatistics,
+} from "../screenplay/model";
 import {
   computeCurrentPage,
+  computeIndex,
   computeStatistics,
+  type IndexRequest,
   type PageRequest,
   type StatisticsRequest,
 } from "./statisticsCompute";
@@ -49,8 +54,12 @@ export class StatisticsWorker {
     return this.run("page", request, () => computeCurrentPage(request));
   }
 
+  index(request: IndexRequest): Promise<ScreenplayIndex> {
+    return this.run("index", request, () => computeIndex(request));
+  }
+
   private run<T>(
-    kind: "statistics" | "page",
+    kind: "statistics" | "page" | "index",
     request: object,
     fallback: () => T,
   ): Promise<T> {

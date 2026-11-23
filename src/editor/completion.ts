@@ -62,7 +62,11 @@ import {
 import { EditorView, keymap, tooltips } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
 import type ScribidianPlugin from "../main";
-import { loadScreenplayContext } from "../projects/vault";
+import {
+  charactersListedIn,
+  loadScreenplayContext,
+  projectForFile,
+} from "../projects/vault";
 import { buildScreenplayIndex, rankUsages } from "../screenplay/indexer";
 import { withListedCharacters } from "../screenplay/listedCharacters";
 import { parseFountain } from "../screenplay/parser";
@@ -432,18 +436,29 @@ export function createScreenplayCompletionExtension(
     const editorSource = context.state.doc.toString();
     const line = context.state.doc.lineAt(context.pos);
     const outside = textOutsideLine(editorSource, line.from, line.to);
-    const index = await indexCache.get(file.path, outside, async () => {
-      const screenplay = await loadScreenplayContext(
-        plugin.app,
-        file,
-        plugin.settings.characterFolder,
-        outside,
-      );
-      return withListedCharacters(
-        buildScreenplayIndex(screenplay.document),
-        screenplay.listedCharacters,
-      );
-    });
+    // A single note: the index is built in the background worker, so a
+    // new line (Enter) never holds up typing while the note is read again.
+    // Project parts are read from the vault, as before.
+    const single = projectForFile(plugin.app, file) === null;
+    const index = single
+      ? await indexCache.get(file.path, outside, async () =>
+          withListedCharacters(
+            await plugin.statisticsWorker.index({ source: outside }),
+            charactersListedIn([outside]),
+          ),
+        )
+      : await indexCache.get(file.path, outside, async () => {
+          const screenplay = await loadScreenplayContext(
+            plugin.app,
+            file,
+            plugin.settings.characterFolder,
+            outside,
+          );
+          return withListedCharacters(
+            buildScreenplayIndex(screenplay.document),
+            screenplay.listedCharacters,
+          );
+        });
     // A line set to an element (Set line, Shift+Tab) only gets that
     // element's list: none for centered text, only scene parts for action
     // (Escape said "no cue", not "no slugline"), scene parts at the left

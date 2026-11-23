@@ -23,14 +23,17 @@
 
 import {
   computeCurrentPage,
+  computeIndex,
   computeStatistics,
+  type IndexRequest,
   type PageRequest,
   type StatisticsRequest,
 } from "./statisticsCompute";
 
 type Message =
   | ({ id: number; kind: "statistics" } & StatisticsRequest)
-  | ({ id: number; kind: "page" } & PageRequest);
+  | ({ id: number; kind: "page" } & PageRequest)
+  | ({ id: number; kind: "index" } & IndexRequest);
 
 interface WorkerScope {
   onmessage: ((event: { data: Message }) => void) | null;
@@ -45,7 +48,9 @@ scope.onmessage = (event) => {
     const result =
       message.kind === "page"
         ? computeCurrentPage(message)
-        : computeStatistics(message);
+        : message.kind === "index"
+          ? computeIndex(message)
+          : computeStatistics(message);
     scope.postMessage({ id: message.id, result });
   } catch (error) {
     scope.postMessage({ id: message.id, error: String(error) });

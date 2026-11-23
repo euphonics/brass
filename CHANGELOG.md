@@ -19,6 +19,10 @@ project follows
   fast as a plain Obsidian note, even at 500 pages. Line comments and
   boneyard markers scan only edited lines, and the status bar's statistics
   and current page are counted in a background worker.
+- Enter and Tab in long scripts are about two to three times faster: the
+  layout updates only the paragraphs around the cursor when a suggestion
+  list opens or a line is set to an element, and the suggestion index is
+  built in the background worker.
 
 ### Added (PDF, 2026-11-22)
 

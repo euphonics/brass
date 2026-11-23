@@ -1026,7 +1026,8 @@ export default class ScribidianPlugin extends Plugin {
     return statistics;
   }
 
-  private readonly statisticsWorker = new StatisticsWorker();
+  /** Background thread for statistics, the current page and the suggestion index. */
+  readonly statisticsWorker = new StatisticsWorker();
 
   private statisticsCache: {
     key: string;

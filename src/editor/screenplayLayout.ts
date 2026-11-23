@@ -160,6 +160,12 @@ export function createScreenplayLayoutExtension(
             update.changes.mapPos(from, -1),
           );
         }
+        const fileChanged =
+          update.startState.field(editorInfoField, false)?.file !==
+          update.state.field(editorInfoField, false)?.file;
+        const fullPass = update.transactions.some((tr) =>
+          tr.effects.some((effect) => effect.is(fullLayout)),
+        );
         const otherReasons =
           (cursorMoved && this.cueFrom !== null) ||
           (cursorMoved &&
@@ -167,20 +173,18 @@ export function createScreenplayLayoutExtension(
               cursorAffectsLayout(update.state.doc, cursorLine))) ||
           openMenuKind(update.state) !== this.menuKind ||
           update.startState.field(lineKindField, false) !==
-            update.state.field(lineKindField, false) ||
-          update.startState.field(editorInfoField, false)?.file !==
-            update.state.field(editorInfoField, false)?.file ||
-          update.transactions.some((tr) =>
-            tr.effects.some((effect) => effect.is(fullLayout)),
-          );
-        // Typing in a long script: reclassify only the paragraphs around the
-        // edit (a full pass runs once typing pauses).
+            update.state.field(lineKindField, false);
+        // Typing, Enter, Tab, a suggestion list opening, the cursor moving
+        // onto a line that lays out differently: reclassify only the
+        // paragraphs around the lines involved.
+        const needed = update.docChanged || otherReasons;
         const incremental =
-          update.docChanged &&
-          !otherReasons &&
+          needed &&
+          !fileChanged &&
+          !fullPass &&
           this.active &&
-          this.reclassifyAround(update);
-        const reclassify = (update.docChanged && !incremental) || otherReasons;
+          this.reclassifyAround(update, cursorLine);
+        const reclassify = (needed && !incremental) || fileChanged || fullPass;
         const wasActive = this.active;
         // Checking the file is not free, so only when something could change it.
         if (
@@ -207,91 +211,144 @@ export function createScreenplayLayoutExtension(
       }
 
       /**
-       * Reclassify only the lines between the blank line before an edit and
-       * the blank line after it. The classifier's state (dialogue, notes,
-       * boneyards) resets at a blank line outside notes, so the result
-       * matches a full pass, unless the edit adds or removes a multi-line
-       * construct or the note has code fences: then (or when no such
-       * window is found) it returns false and the caller does a full pass.
-       * True when the kinds were updated.
+       * Reclassify only the lines between the blank line before the lines
+       * involved (an edit, the old and new cursor lines, a line set to an
+       * element) and the blank line after them. The classifier's state
+       * (dialogue, notes, boneyards) resets at a blank line outside notes,
+       * so the result matches a full pass, unless an edit adds or removes a
+       * multi-line construct or the note has code fences: then (or when no
+       * such window is found) it returns false and the caller does a full
+       * pass. True when the kinds were updated.
        */
-      private reclassifyAround(update: ViewUpdate): boolean {
+      private reclassifyAround(
+        update: ViewUpdate,
+        cursorLine: number,
+      ): boolean {
         const { state, startState } = update;
-        const ranges: [number, number, number, number][] = [];
-        update.changes.iterChangedRanges((fromA, toA, fromB, toB) => {
-          ranges.push([fromA, toA, fromB, toB]);
-        });
-        const range = ranges.length === 1 ? ranges[0] : undefined;
-        if (range === undefined || this.hasFence) return false;
-        const [fromA, toA, fromB, toB] = range;
         const before = startState.doc;
         const doc = state.doc;
-        if (this.kinds.length !== before.lines) return false;
-        if (state.field(lineKindField, false) != null) return false;
-        if (this.menuKind !== null || openMenuKind(state) !== null)
-          return false;
-        const changedBefore = before.sliceString(
-          before.lineAt(fromA).from,
-          before.lineAt(toA).to,
-        );
-        const changedAfter = doc.sliceString(
-          doc.lineAt(fromB).from,
-          doc.lineAt(toB).to,
-        );
-        if (MULTI_LINE.test(changedBefore) || MULTI_LINE.test(changedAfter))
-          return false;
-        const firstLine = doc.lineAt(fromB).number - 1;
-        const lastLine = doc.lineAt(toB).number - 1;
-        const delta =
-          lastLine -
-          firstLine -
-          (before.lineAt(toA).number - before.lineAt(fromA).number);
-        const blank = (line: number, oldIndex: number): boolean =>
-          doc.line(line + 1).text === "" && this.kinds[oldIndex] === null;
+        if (this.hasFence || this.kinds.length !== before.lines) return false;
+        // The lines involved, in the new document, and the line shift
+        // after them (old index = new index - delta past the edit).
+        let firstLine = Math.min(cursorLine, this.cursorLine);
+        let lastLine = Math.max(cursorLine, this.cursorLine);
+        let delta = 0;
+        if (update.docChanged) {
+          const ranges: [number, number, number, number][] = [];
+          update.changes.iterChangedRanges((fromA, toA, fromB, toB) => {
+            ranges.push([fromA, toA, fromB, toB]);
+          });
+          const range = ranges.length === 1 ? ranges[0] : undefined;
+          if (range === undefined) return false;
+          const [fromA, toA, fromB, toB] = range;
+          const changedBefore = before.sliceString(
+            before.lineAt(fromA).from,
+            before.lineAt(toA).to,
+          );
+          const changedAfter = doc.sliceString(
+            doc.lineAt(fromB).from,
+            doc.lineAt(toB).to,
+          );
+          if (MULTI_LINE.test(changedBefore) || MULTI_LINE.test(changedAfter))
+            return false;
+          const editFirst = doc.lineAt(fromB).number - 1;
+          const editLast = doc.lineAt(toB).number - 1;
+          delta =
+            editLast -
+            editFirst -
+            (before.lineAt(toA).number - before.lineAt(fromA).number);
+          // The old cursor line, in new-document terms.
+          const oldCursor =
+            doc.lineAt(
+              update.changes.mapPos(before.line(this.cursorLine + 1).from),
+            ).number - 1;
+          firstLine = Math.min(editFirst, cursorLine, oldCursor);
+          lastLine = Math.max(editLast, cursorLine, oldCursor);
+        }
+        // Lines set to an element, before and after.
+        const forced = state.field(lineKindField, false) ?? null;
+        const forcedLine =
+          forced !== null ? doc.lineAt(forced.from).number - 1 : null;
+        const wasForced = startState.field(lineKindField, false) ?? null;
+        const wasForcedLine =
+          wasForced !== null
+            ? doc.lineAt(update.changes.mapPos(wasForced.from)).number - 1
+            : null;
+        for (const line of [forcedLine, wasForcedLine])
+          if (line !== null) {
+            firstLine = Math.min(firstLine, line);
+            lastLine = Math.max(lastLine, line);
+          }
+        // A line past the involved lines keeps its old index minus the
+        // shift; one before them keeps its index.
+        const oldIndex = (line: number): number =>
+          line > lastLine ? line - delta : line;
+        const blank = (line: number): boolean =>
+          doc.line(line + 1).text === "" && this.kinds[oldIndex(line)] === null;
         let start = firstLine - 1;
-        while (start > FRONTMATTER_GUARD && !blank(start, start)) {
+        while (start > FRONTMATTER_GUARD && !blank(start)) {
           if (firstLine - start > WINDOW_LIMIT) return false;
           start -= 1;
         }
         if (start <= FRONTMATTER_GUARD) return false;
         let end = lastLine + 1;
-        while (end < doc.lines && !blank(end, end - delta)) {
+        while (end < doc.lines && !blank(end)) {
           if (end - lastLine > WINDOW_LIMIT) return false;
           end += 1;
         }
         if (end >= doc.lines) return false;
-        const cursorLine = doc.lineAt(state.selection.main.head).number - 1;
-        if (cursorLine < start || cursorLine > end) return false;
-        if (this.cursorLine < start || this.cursorLine > end - delta)
-          return false;
         const lines: string[] = [];
         for (let line = start; line <= end; line += 1)
           lines.push(doc.line(line + 1).text);
-        const windowKinds = classifyLines(lines, {
-          cursorLine: cursorLine - start,
-          frontmatter: false,
-        });
+        // The same choices as the full pass (refresh): a line set to an
+        // element, else an open list on the cursor line, else neither.
+        const menuKind = openMenuKind(state);
+        const override =
+          forcedLine !== null && forced !== null
+            ? { line: forcedLine - start, kind: forced.kind }
+            : menuKind !== null
+              ? { line: cursorLine - start, kind: menuKind }
+              : null;
+        const classify = (
+          forcedOverride: { line: number; kind: LayoutLineKind } | null,
+        ): (LayoutLineKind | null)[] =>
+          classifyLines(lines, {
+            cursorLine: cursorLine - start,
+            frontmatter: false,
+            ...(forcedOverride !== null ? { forced: forcedOverride } : {}),
+          });
+        let windowKinds = classify(override);
         if (windowKinds[0] !== null || windowKinds[lines.length - 1] !== null)
           return false;
+        // A cue whose dialogue was just deleted keeps its column while the
+        // cursor stays on it.
+        const cursorFrom = doc.line(cursorLine + 1).from;
+        const remembered =
+          this.cueFrom === cursorFrom || this.cueStarts.includes(cursorFrom);
+        let cueFrom: number | null =
+          windowKinds[cursorLine - start] === "character" ? cursorFrom : null;
+        if (
+          cueFrom === null &&
+          remembered &&
+          override === null &&
+          windowKinds[cursorLine - start] === "action" &&
+          characterCue(lines[cursorLine - start] ?? "") !== null
+        ) {
+          windowKinds = classify({
+            line: cursorLine - start,
+            kind: "character",
+          });
+          cueFrom = cursorFrom;
+        }
         const kinds = [
           ...this.kinds.slice(0, start),
           ...windowKinds,
           ...this.kinds.slice(end - delta + 1),
         ];
         if (kinds.length !== doc.lines) return false;
-        // A cue whose dialogue was just deleted keeps its column: leave
-        // that case to the full pass.
-        const cursorFrom = doc.line(cursorLine + 1).from;
-        const remembered =
-          this.cueFrom === cursorFrom || this.cueStarts.includes(cursorFrom);
-        if (
-          remembered &&
-          kinds[cursorLine] === "action" &&
-          characterCue(doc.line(cursorLine + 1).text) !== null
-        )
-          return false;
         this.kinds = kinds;
-        this.cueFrom = kinds[cursorLine] === "character" ? cursorFrom : null;
+        this.menuKind = menuKind;
+        this.cueFrom = cueFrom;
         const windowFrom = doc.line(start + 1).from;
         const windowTo = doc.line(end + 1).to;
         this.cueStarts = this.cueStarts.filter(
@@ -301,18 +358,20 @@ export function createScreenplayLayoutExtension(
           if (kind === "character")
             this.cueStarts.push(doc.line(start + index + 1).from);
         });
-        // A full pass once typing pauses, in case anything further away
-        // depended on this edit. Skipped in long notes, where it would be a
-        // noticeable pause of its own: the cases where a far line could
-        // change already take the full pass above.
-        if (this.fullTimer !== null) window.clearTimeout(this.fullTimer);
-        this.fullTimer = null;
-        if (doc.lines <= FULL_PASS_MAX_LINES) {
-          const view = update.view;
-          this.fullTimer = window.setTimeout(() => {
-            this.fullTimer = null;
-            view.dispatch({ effects: fullLayout.of(null) });
-          }, FULL_PASS_DELAY);
+        // After an edit, a full pass once typing pauses, in case anything
+        // further away depended on it. Skipped in long notes, where it
+        // would be a noticeable pause of its own: the cases where a far
+        // line could change already take the full pass above.
+        if (update.docChanged) {
+          if (this.fullTimer !== null) window.clearTimeout(this.fullTimer);
+          this.fullTimer = null;
+          if (doc.lines <= FULL_PASS_MAX_LINES) {
+            const view = update.view;
+            this.fullTimer = window.setTimeout(() => {
+              this.fullTimer = null;
+              view.dispatch({ effects: fullLayout.of(null) });
+            }, FULL_PASS_DELAY);
+          }
         }
         return true;
       }

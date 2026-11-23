@@ -61,7 +61,7 @@ function documentWithProperties(source: string): ScreenplayDocument {
 }
 
 /** The `characters` frontmatter property of each source, merged. */
-function charactersListedIn(sources: readonly string[]): string[] {
+export function charactersListedIn(sources: readonly string[]): string[] {
   const names: string[] = [];
   for (const source of sources) {
     const info = getFrontMatterInfo(source);

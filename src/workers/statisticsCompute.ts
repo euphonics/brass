@@ -20,11 +20,13 @@ import { stripObsidianFrontmatter } from "../export/fountain";
 import { estimateCurrentPage } from "../screenplay/currentPage";
 import type {
   PageSize,
+  ScreenplayIndex,
   ScreenplayStatistics,
   ScreenplayTitlePage,
 } from "../screenplay/model";
 import { parseFountain } from "../screenplay/parser";
 import { calculateStatistics } from "../screenplay/statistics";
+import { buildScreenplayIndex } from "../screenplay/indexer";
 
 export interface StatisticsRequest {
   source: string;
@@ -79,4 +81,14 @@ export function computeCurrentPage(request: PageRequest): number {
     },
   );
   return estimateCurrentPage(before, before.length, request.pageSize);
+}
+
+export interface IndexRequest {
+  /** The note's text with the line being typed emptied. */
+  source: string;
+}
+
+/** The suggestion index (characters, locations, times, ...) for a note. */
+export function computeIndex(request: IndexRequest): ScreenplayIndex {
+  return buildScreenplayIndex(parseFountain(request.source));
 }

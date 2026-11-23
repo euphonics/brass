@@ -79,6 +79,20 @@ every keystroke. Now typing produces none, at either size.
    on the editor's document, the current page is cached per line, and both
    wait for the browser to be idle.
 
+6. **Enter and Tab reclassified the whole note, and rebuilt the suggestion
+   index on the main thread.** A suggestion list opening, a line set to an
+   element (Tab) and a cursor move onto a line that lays out differently
+   now use the same windowed reclassify as typing, with the same rules as
+   the full pass (the forced element, the open list, the remembered cue).
+   The suggestion index for a single note is built in the worker (a new line
+   waits for it, but typing doesn't). `characterCue`, the busiest function
+   in every whole-note pass, rejects lines with a lowercase letter before
+   any `(` first, before its other checks (same result). Median per press,
+   Scribidian alone: Enter 34 to 12 ms (120 pages) and 48 to 19 ms (500
+   pages); Tab 35 to 11 ms and 48 to 13 ms. All 204 recorded behavior cases
+   (cases1–22) give the same results as before, including each line's
+   layout.
+
 ## Other plugins in the writer's vault (500 pages, per keystroke)
 
 | Plugin                                   | About    |
@@ -97,9 +111,9 @@ edit and could be made incremental.
 
 ## Still to check
 
-- Enter and Tab still classify the whole note once per press (the Smart
-  Enter and Tab plans). That's one keystroke at a time, but in a 500-page
-  script it may be noticeable.
+- The Smart Enter and Tab plans still read the whole note (about 6 ms of
+  each press at 500 pages); the first Tab after opening a note can take
+  about 120 ms while the worker starts and builds the first index.
 - Screenplay projects: completion builds its index from every part when the
   text outside the cursor's line changes; worth profiling in a large
   project.
