@@ -9,7 +9,7 @@ Copy-Item "$s/main-$Build.js" $plugin -Force
 obsidian vault=Dev eval code="(async()=>{await app.plugins.disablePlugin('scribidian'); await app.plugins.enablePlugin('scribidian'); return 'ok'})()" | Out-Null
 Start-Sleep 2
 $out = "$s/survey-out.json"
-foreach ($n in 1..22) {
+foreach ($n in 1..99) {
   $case = "$Cases/cases$n.js"
   if (-not (Test-Path $case)) { continue }
   $before = if (Test-Path $out) { (Get-Item $out).LastWriteTime } else { [datetime]::MinValue }

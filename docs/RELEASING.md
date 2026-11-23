@@ -35,11 +35,27 @@ from releases.
    npm run build
    ```
 
-8. Confirm README, feature tour, compatibility/privacy guides and screenshots
+8. Run the typing-speed check (required for every public release; see
+   [tools/perf/README.md](../tools/perf/README.md#speed-check-before-a-release)).
+   With the release build installed in the Dev vault (`npm run install-vault`),
+   in PowerShell:
+
+   ```powershell
+   & tools/perf/check.ps1
+   ```
+
+   It takes about 2 minutes and must print `PASS`. On `FAIL`, run it once
+   more; if it fails again, find the cause before releasing (or, if the
+   slowdown is an accepted cost of a new feature, say so in the release notes
+   and save a new baseline with `-SaveBaseline`). After a release that
+   changes speed for the better, save a new baseline too, so later checks
+   compare against it.
+
+9. Confirm README, feature tour, compatibility/privacy guides and screenshots
    distinguish the published version from unreleased features. Capture scene and
    inspector screenshots; the existing video shows an older PDF export and needs replacing.
-9. Confirm the complete audit is clean and [Dependabot alert 1](https://github.com/grobmeier/firstdraft/security/dependabot/1)
-   is closed after pushing the Moment fix. See [dependency security](DEPENDENCY_SECURITY.md).
+10. Confirm the complete audit is clean and [Dependabot alert 1](https://github.com/grobmeier/firstdraft/security/dependabot/1)
+    is closed after pushing the Moment fix. See [dependency security](DEPENDENCY_SECURITY.md).
 
 ## Publish
 

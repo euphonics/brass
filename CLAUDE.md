@@ -103,7 +103,9 @@ than screenshots when testing other apps.
   there, do these together without asking: `npm run install-notes`, so the
   writer can check it in their Notes vault, then commit and push. Publish a
   GitHub release only on the writer's explicit approval, once per checked
-  batch (see docs/RELEASING.md). Never push to the upstream First Draft
+  batch (see docs/RELEASING.md). Before every public release, run the speed
+  check (`& tools/perf/check.ps1` in the Dev vault, about 2 minutes); it
+  must pass. Never push to the upstream First Draft
   repository (grobmeier/firstdraft).
 - **Keep Apache 2.0 credit.** Changed or new code files carry the license
   header with the "Modifications copyright 2026 arvn" line
@@ -153,6 +155,8 @@ while the writer types. In short:
   fallback.
 - Caches key on everything their answer depends on. No stale results where
   the writer acts on them (suggestion lists).
+- Before every public release: `& tools/perf/check.ps1` (compares typing,
+  Enter and Tab with `tools/perf/baseline.json`; must print PASS).
 - Measure with `tools/perf/` (README) in the Dev vault: at about 500 pages,
   alone and with the writer's plugins. Replay the recorded behavior cases
   against the previous build before shipping a speedup. Results so far:

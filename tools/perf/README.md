@@ -7,6 +7,39 @@ Obsidian through the `obsidian` CLI (PowerShell on Windows) and only ever
 in the **Dev** vault; each one checks `app.vault.getName() === "Dev"`.
 Results go to `%TEMP%/scribidian-perf/`.
 
+## Speed check before a release
+
+`check.ps1` is the one-command check that runs before every public release
+(docs/RELEASING.md). It measures the build installed in the Dev vault, so
+run `npm run install-vault` first, then:
+
+```powershell
+& tools/perf/check.ps1
+```
+
+About 2 minutes; don't type in Obsidian meanwhile. It types in an action
+line at about 120 and 500 pages with Scribidian off (plain Obsidian), in
+script mode and in plain mode, then times Enter and Tab at 500 pages. Only
+Scribidian runs (the Dev vault's other plugins are off for the session; add
+`-WithPlugins` to keep them). Scribidian's cost is each mode minus plain
+Obsidian in the same run, so a busy machine doesn't count against it.
+
+It compares with `baseline.json` (committed) and prints a table, then
+`PASS` (exit 0) or `FAIL` (exit 1). Fails when, compared with the baseline:
+
+- Scribidian's typing cost grows by more than 3 ms (medians wobble about
+  1.5 ms between runs);
+- script mode's 95th percentile grows by over 50% and 15 ms, and is also
+  15 ms above plain Obsidian's in the same run;
+- a new long task (over 50 ms) appears while typing in script mode;
+- Enter or Tab grows by over 25% and 5 ms.
+
+On a fail, run it again; a repeat means a real slowdown to profile (below).
+`-SaveBaseline` measures and saves a new baseline: do that after an
+accepted change in speed. The baseline is for this machine; on another
+computer, save a new one first. Results of the last run:
+`%TEMP%/scribidian-perf/check-latest.json`.
+
 ## Typing latency
 
 `latency.js` types real keystrokes (`document.execCommand("insertText")`)

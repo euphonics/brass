@@ -1,0 +1,48 @@
+﻿{
+  "date": "2026-11-22 22:15",
+  "commit": "ad3ceb9",
+  "solo": true,
+  "keys": 60,
+  "typing": {
+    "2": {
+      "off": {
+        "median": 12.1,
+        "p95": 14,
+        "long": 0
+      },
+      "screenplay": {
+        "median": 12.6,
+        "p95": 15.3,
+        "long": 0
+      },
+      "plain": {
+        "median": 11.2,
+        "p95": 16.3,
+        "long": 0
+      },
+      "scriptCost": 0.5,
+      "plainCost": -0.9
+    },
+    "8": {
+      "off": {
+        "median": 12.1,
+        "p95": 15.2,
+        "long": 0
+      },
+      "screenplay": {
+        "median": 14,
+        "p95": 17.8,
+        "long": 0
+      },
+      "plain": {
+        "median": 13.8,
+        "p95": 20.4,
+        "long": 0
+      },
+      "scriptCost": 1.9,
+      "plainCost": 1.7
+    }
+  },
+  "enter": 70.5,
+  "tab": 51.3
+}
