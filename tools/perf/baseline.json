@@ -1,48 +1,48 @@
 ﻿{
-  "date": "2026-11-22 22:15",
-  "commit": "ad3ceb9",
+  "date": "2026-11-23 13:07",
+  "commit": "1e2ca8d",
   "solo": true,
   "keys": 60,
   "typing": {
     "2": {
       "off": {
-        "median": 12.1,
+        "median": 8.8,
+        "p95": 14.2,
+        "long": 0
+      },
+      "screenplay": {
+        "median": 9.2,
+        "p95": 13.3,
+        "long": 0
+      },
+      "plain": {
+        "median": 9.5,
+        "p95": 14.7,
+        "long": 0
+      },
+      "scriptCost": 0.4,
+      "plainCost": 0.7
+    },
+    "8": {
+      "off": {
+        "median": 9.7,
         "p95": 14,
         "long": 0
       },
       "screenplay": {
-        "median": 12.6,
-        "p95": 15.3,
+        "median": 10.8,
+        "p95": 17.5,
         "long": 0
       },
       "plain": {
-        "median": 11.2,
-        "p95": 16.3,
+        "median": 9.6,
+        "p95": 15.1,
         "long": 0
       },
-      "scriptCost": 0.5,
-      "plainCost": -0.9
-    },
-    "8": {
-      "off": {
-        "median": 12.1,
-        "p95": 15.2,
-        "long": 0
-      },
-      "screenplay": {
-        "median": 14,
-        "p95": 17.8,
-        "long": 0
-      },
-      "plain": {
-        "median": 13.8,
-        "p95": 20.4,
-        "long": 0
-      },
-      "scriptCost": 1.9,
-      "plainCost": 1.7
+      "scriptCost": 1.1,
+      "plainCost": -0.1
     }
   },
-  "enter": 70.5,
-  "tab": 51.3
+  "enter": 40.8,
+  "tab": 29.7
 }
