@@ -27,6 +27,11 @@ project follows
   outline note too, sending text to the outline's own boneyard note under
   the heading it came from.
 
+### Fixed
+
+- A line starting with a thread and a colon (`[&reveal]: ...`) no longer
+  shows in small text.
+
 ## [0.1.3] - 2026-11-24
 
 ### Added (writer wish list, 2026-11-23)

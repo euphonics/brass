@@ -159,6 +159,7 @@ export function createThreadExtension(
   options: () => ThreadOptions,
 ): Extension {
   const raw = Decoration.mark({ class: "scribidian-thread-text" });
+  const threadLine = Decoration.line({ class: "scribidian-thread-line" });
   const build = (view: EditorView): DecorationSet => {
     const builder = new RangeSetBuilder<Decoration>();
     const { enabled, display } = options();
@@ -173,6 +174,15 @@ export function createThreadExtension(
       const editing = ranges.some(
         (range) => range.from <= mark.to && range.to >= mark.from,
       );
+      // "[&name]: text" at a line's start reads to Markdown as a link
+      // reference, which Obsidian draws small: keep the line full size.
+      const line = view.state.doc.lineAt(mark.from);
+      if (
+        mark.from === line.from &&
+        view.state.doc.sliceString(mark.to, mark.to + 1) === ":"
+      ) {
+        builder.add(line.from, line.from, threadLine);
+      }
       builder.add(
         mark.from,
         mark.to,

@@ -937,3 +937,9 @@ body {
 .scribidian-thread-text-only .scribidian-thread-alias {
   margin-inline: 0;
 }
+
+/* A line starting "[&name]: text" reads to Markdown as a link reference,
+   which Obsidian draws small: keep it the size of the text around it. */
+.markdown-source-view.mod-cm6 .cm-line.HyperMD-footnote.scribidian-thread-line {
+  font-size: inherit;
+}
