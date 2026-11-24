@@ -24,13 +24,22 @@
 //
 // Installing into Notes also resets Scribidian's settings to the defaults
 // (the writer's rule: every Notes install starts from the defaults, so they
-// check what a new user gets). The old settings are kept as
+// check what a new user gets), except which commands show in the command
+// palette (#296). The old settings are kept as
 // settings-backups/data-<date>.json in the plugin folder (the last 10), and
 // the plugin is reloaded in Obsidian so the running copy doesn't save the
 // old settings back. Add --keep-settings to skip the reset.
 
 import { execFile } from "node:child_process";
-import { copyFile, mkdir, readdir, rm, stat } from "node:fs/promises";
+import {
+  copyFile,
+  mkdir,
+  readFile,
+  readdir,
+  rm,
+  stat,
+  writeFile,
+} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -80,9 +89,24 @@ if (resetSettings) {
       .reverse()
       .slice(10);
     for (const name of old) await rm(path.join(backups, name));
-    // Without data.json, Scribidian starts from its defaults.
-    await rm(data);
-    console.log(`Reset Scribidian settings to defaults (backup: ${backup})`);
+    // Everything back to the defaults, except the writer's choice of
+    // commands in the command palette (#296): Scribidian fills in the rest.
+    const stored = JSON.parse(await readFile(data, "utf8"));
+    const kept =
+      stored && typeof stored.commandVisibility === "object"
+        ? { commandVisibility: stored.commandVisibility }
+        : null;
+    if (kept && Object.keys(kept.commandVisibility).length > 0) {
+      await writeFile(
+        data,
+        JSON.stringify(kept, null, 2) + String.fromCharCode(10),
+      );
+    } else {
+      await rm(data);
+    }
+    console.log(
+      `Reset Scribidian settings to defaults, keeping your command palette choices (backup: ${backup})`,
+    );
   } else {
     console.log("Scribidian settings were already the defaults.");
   }

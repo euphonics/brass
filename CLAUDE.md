@@ -104,8 +104,10 @@ than screenshots when testing other apps.
   writer can check it in their Notes vault, then commit and push.
   `install-notes` also resets Scribidian's settings in Notes to the
   defaults every time (the writer's rule, so they always check what a new
-  user gets): it backs up `data.json` to `settings-backups/` in the plugin
-  folder (last 10), deletes it, and reloads the plugin in Obsidian. Don't
+  user gets), except the writer's choice of commands in the command palette
+  (#296), which it keeps: it backs up `data.json` to `settings-backups/` in
+  the plugin folder (last 10), resets the rest, and reloads the plugin in
+  Obsidian. Don't
   skip it (`--keep-settings`) unless the writer asks. Publish a
   GitHub release only on the writer's explicit approval, once per checked
   batch (see docs/RELEASING.md). Before every public release, run the speed
