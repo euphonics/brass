@@ -344,6 +344,7 @@ export class ThreadSuggest extends EditorSuggest<{
     cursor: EditorPosition,
     editor: Editor,
   ): EditorSuggestTriggerInfo | null {
+    if (!this.navigator.plugin.settings.threadsEnabled) return null;
     const before = editor.getLine(cursor.line).slice(0, cursor.ch);
     const match = /\[&([^\]\n]*)$/u.exec(before);
     if (!match) return null;

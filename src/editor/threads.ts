@@ -25,6 +25,7 @@ import {
   type ViewUpdate,
 } from "@codemirror/view";
 import { findThreads, type ThreadMark } from "../screenplay/threads";
+import type { ThreadDisplay } from "../settings/settings";
 
 /*
  * Threads in the editor: each `[&name]` shows as a small 🧵. Click: the next
@@ -33,6 +34,12 @@ import { findThreads, type ThreadMark } from "../screenplay/threads";
  * the Threads panel. With the cursor in it or right next to
  * it, the text shows (faded) so the name can be read and edited.
  */
+
+/** The thread settings the editor reads (#298). */
+export interface ThreadOptions {
+  enabled: boolean;
+  display: ThreadDisplay;
+}
 
 /** What a click on a thread asks for. */
 export type OpenThread = (
@@ -48,6 +55,7 @@ class ThreadWidget extends WidgetType {
   constructor(
     private readonly mark: ThreadMark,
     private readonly open: OpenThread,
+    private readonly display: ThreadDisplay,
   ) {
     super();
   }
@@ -58,27 +66,35 @@ class ThreadWidget extends WidgetType {
       other.mark.to === this.mark.to &&
       other.mark.name === this.mark.name &&
       other.mark.alias === this.mark.alias &&
-      other.mark.hidden === this.mark.hidden
+      other.mark.hidden === this.mark.hidden &&
+      other.display === this.display
     );
   }
 
   toDOM(view: EditorView): HTMLElement {
     // The spool, then the thread's text: "[&gun|the pistol]" shows its
     // alias (part of the script, #289); "[&gun]" shows its name in the
-    // thread color (#293); "[&gun|]" shows the spool only (#295).
+    // thread color (#293); "[&gun|]" shows the spool only (#295). The
+    // Thread text setting puts the text after or before the spool, or
+    // hides it (#298).
+    const textShown = !this.mark.hidden && this.display !== "icon";
     const el = createSpan({
-      cls: this.mark.hidden
-        ? "scribidian-thread"
-        : "scribidian-thread scribidian-thread-with-text",
+      cls: textShown
+        ? `scribidian-thread scribidian-thread-with-text scribidian-thread-${this.display}`
+        : "scribidian-thread",
     });
-    el.createSpan({ cls: "scribidian-thread-spool", text: "🧵" });
-    if (this.mark.hidden) {
-      // Nothing after the spool.
+    const spool = (): void => {
+      el.createSpan({ cls: "scribidian-thread-spool", text: "🧵" });
+    };
+    if (!textShown || this.display === "left") spool();
+    if (!textShown) {
+      // Nothing but the spool.
     } else if (this.mark.alias !== undefined) {
       el.createSpan({ cls: "scribidian-thread-alias", text: this.mark.alias });
     } else {
       el.createSpan({ cls: "scribidian-thread-name", text: this.mark.name });
     }
+    if (textShown && this.display === "right") spool();
     el.setAttribute("aria-label", `Thread: ${this.mark.name}`);
     el.setAttribute(
       "title",
@@ -132,11 +148,19 @@ function visibleThreads(view: EditorView): ThreadMark[] {
   return marks;
 }
 
-/** Show threads as 🧵 in every note (they're rare outside scripts). */
-export function createThreadExtension(open: OpenThread): Extension {
+/**
+ * Show threads as 🧵 in every note (they're rare outside scripts). With
+ * threads off (#298) nothing is drawn: "[&name]" is plain text.
+ */
+export function createThreadExtension(
+  open: OpenThread,
+  options: () => ThreadOptions,
+): Extension {
   const raw = Decoration.mark({ class: "scribidian-thread-text" });
   const build = (view: EditorView): DecorationSet => {
     const builder = new RangeSetBuilder<Decoration>();
+    const { enabled, display } = options();
+    if (!enabled) return builder.finish();
     const ranges = view.state.selection.ranges;
     let last = -1;
     for (const mark of visibleThreads(view)) {
@@ -152,10 +176,16 @@ export function createThreadExtension(open: OpenThread): Extension {
         mark.to,
         editing
           ? raw
-          : Decoration.replace({ widget: new ThreadWidget(mark, open) }),
+          : Decoration.replace({
+              widget: new ThreadWidget(mark, open, display),
+            }),
       );
     }
     return builder.finish();
+  };
+  const optionsKey = (): string => {
+    const { enabled, display } = options();
+    return `${enabled}:${display}`;
   };
   // High precedence: the thread's mark wraps Obsidian's own syntax marks
   // ("[&name]" can read as a link), so its color wins over theirs.
@@ -163,17 +193,23 @@ export function createThreadExtension(open: OpenThread): Extension {
     ViewPlugin.fromClass(
       class {
         decorations: DecorationSet;
+        private shown: string;
         constructor(view: EditorView) {
+          this.shown = optionsKey();
           this.decorations = build(view);
         }
         update(update: ViewUpdate): void {
           // Moving the cursor only matters when a thread is on screen (it
-          // shows its text when the cursor is in it).
+          // shows its text when the cursor is in it). A settings change
+          // reaches here as a reconfigure (updateOptions).
+          const shown = optionsKey();
           if (
             update.docChanged ||
             update.viewportChanged ||
+            shown !== this.shown ||
             (update.selectionSet && this.decorations.size > 0)
           ) {
+            this.shown = shown;
             this.decorations = build(update.view);
           }
         }

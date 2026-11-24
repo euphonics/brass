@@ -151,6 +151,10 @@ export interface ScribidianSettings {
   namesInAction: boolean;
   /** Where Link scene headings puts the outline link (#292). */
   outlineLinkPlacement: "heading" | "slugline";
+  /** Threads ([&name]): spool, suggestions, clicks, panel (#298). */
+  threadsEnabled: boolean;
+  /** How a thread shows in the editor (#298). */
+  threadDisplay: ThreadDisplay;
   /** Completr's suggestion popup stays closed in screenplay notes (#271). */
   quietCompletrInScripts: boolean;
   /** Extensions the script uses come before (V.O.), (O.S.) and the rest. */
@@ -426,6 +430,8 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   namesInAction: true,
   quietCompletrInScripts: true,
   outlineLinkPlacement: "heading",
+  threadsEnabled: true,
+  threadDisplay: "left",
   customExtensionsFirst: false,
   variablePrefix: "$",
   characterMentionPrefix: "+",
@@ -485,6 +491,16 @@ export type TabWithList = "pick" | "move";
 
 /** What Shift+Tab does inside a slugline or character cue (#287). */
 export type ShiftTabInside = "previous-part" | "nothing";
+
+/**
+ * How a thread shows (#298): the spool then its text, its text then the
+ * spool, or the spool only.
+ */
+export type ThreadDisplay = "left" | "right" | "icon";
+
+function isThreadDisplay(value: unknown): value is ThreadDisplay {
+  return value === "left" || value === "right" || value === "icon";
+}
 
 const SHIFT_TAB_INSIDE_LABELS: Record<ShiftTabInside, string> = {
   "previous-part": "Previous part",
@@ -553,6 +569,9 @@ export function migrateSettings(
     rest.outlineLinkPlacement !== "slugline"
   ) {
     settings.outlineLinkPlacement = DEFAULT_SETTINGS.outlineLinkPlacement;
+  }
+  if (!isThreadDisplay(rest.threadDisplay)) {
+    settings.threadDisplay = DEFAULT_SETTINGS.threadDisplay;
   }
   if (
     typeof rest.commandVisibility !== "object" ||
@@ -776,6 +795,10 @@ const SETTING_GROUPS: {
       "variablePrefix",
       "characterMentionPrefix",
     ],
+  },
+  {
+    heading: "Threads",
+    keys: ["threadsEnabled", "threadDisplay"],
   },
   {
     heading: "Page count and status bar",
@@ -1742,6 +1765,30 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Use threads",
+        desc: "Threads ([&name]) tie places together across a script and its notes. On: each shows as a 🧵 you can click to go to the next place, [& lists the threads you've used, and the Threads panel and commands work. Off: [&name] stays plain text, and the other thread settings do nothing. Exports remove thread marks either way.",
+        control: {
+          type: "toggle",
+          key: "threadsEnabled",
+          defaultValue: DEFAULT_SETTINGS.threadsEnabled,
+        },
+      },
+      {
+        name: "Thread text",
+        desc: "Where a thread's text shows next to its 🧵: its name, or its own text ([&gun|the pistol]). Spool only hides the text in every thread; it shows while the cursor is in the thread. [&gun|] always shows the spool only.",
+        control: {
+          type: "dropdown",
+          key: "threadDisplay",
+          options: {
+            left: "🧵 then text",
+            right: "Text then 🧵",
+            icon: "🧵 only",
+          },
+          defaultValue: DEFAULT_SETTINGS.threadDisplay,
+          disabled: () => !this.plugin.settings.threadsEnabled,
+        },
+      },
+      {
         name: "Turn off Completr in screenplays",
         desc: "Completr (a word-completion plugin) opens its own list while you type, on top of Scribidian's. On: Completr stays quiet in screenplay notes and works as usual in every other note. Does nothing if Completr isn't installed.",
         control: {
@@ -2088,6 +2135,9 @@ export class ScribidianSettingTab extends PluginSettingTab {
     } else if (key === "outlineLinkPlacement") {
       if (value !== "heading" && value !== "slugline") return;
       this.plugin.settings.outlineLinkPlacement = value;
+    } else if (key === "threadDisplay") {
+      if (!isThreadDisplay(value)) return;
+      this.plugin.settings.threadDisplay = value;
     } else if (
       key === "shiftTabInsideScript" ||
       key === "shiftTabInsidePlain"
@@ -2112,6 +2162,11 @@ export class ScribidianSettingTab extends PluginSettingTab {
 
     await this.plugin.saveSettings();
     if (key === "showAllCommands") this.plugin.applyCommandVisibility();
+    if (key === "threadsEnabled" || key === "threadDisplay") {
+      this.plugin.applyThreadSettings();
+      // The other thread settings turn on or off with threads.
+      if (key === "threadsEnabled") this.update();
+    }
     if (
       key === "editorLayout" ||
       key === "bottomTypingMargin" ||
@@ -2169,6 +2224,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "characterMatchCase":
       case "namesInAction":
       case "quietCompletrInScripts":
+      case "threadsEnabled":
       case "offerFullSlugs":
       case "markCapitalsAsAction":
       case "statusBarEnabled":

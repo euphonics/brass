@@ -15,6 +15,10 @@ project follows
   their own key or menu, plus Create example screenplay, Open local graph,
   Select element, Toggle strict cursor placement, the plain PDF and Final
   Draft exports, and the cheat sheet.
+- **Threads** settings section: **Use threads** turns threads on or off
+  (off: `[&name]` is plain text, and the thread list, commands and panel
+  go away), and **Thread text** shows the text after the spool, before
+  it, or not at all.
 
 ## [0.1.3] - 2026-11-24
 

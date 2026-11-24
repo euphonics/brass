@@ -908,6 +908,13 @@ body {
   color: var(--scribidian-thread-color);
 }
 
+/* Thread text before the spool (#298): the gap moves to the other side. */
+.scribidian-thread-right .scribidian-thread-name,
+.scribidian-thread-right .scribidian-thread-alias {
+  margin-inline-start: 0;
+  margin-inline-end: 0.15em;
+}
+
 /* Settings: Commands in the command palette (#296). */
 .scribidian-command-list {
   display: grid;

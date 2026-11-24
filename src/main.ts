@@ -207,11 +207,17 @@ export default class ScribidianPlugin extends Plugin {
       createBoneyardMarkerExtension(this),
       createLineCommentExtension(this),
       createVariableHighlightExtension(this),
-      createThreadExtension((view, mark, step, panel, across) => {
-        // Ctrl/Cmd+click: the thread in the Threads panel.
-        if (panel) void this.openThreads(mark.key);
-        else void this.threads.open(view, mark, step, false, across);
-      }),
+      createThreadExtension(
+        (view, mark, step, panel, across) => {
+          // Ctrl/Cmd+click: the thread in the Threads panel.
+          if (panel) void this.openThreads(mark.key);
+          else void this.threads.open(view, mark, step, false, across);
+        },
+        () => ({
+          enabled: this.settings.threadsEnabled,
+          display: this.settings.threadDisplay,
+        }),
+      ),
       EditorView.updateListener.of((update) => {
         if (update.selectionSet && !update.docChanged) this.onCursorMoved();
       }),
@@ -280,35 +286,44 @@ export default class ScribidianPlugin extends Plugin {
       id: "thread-next",
       name: "Next in thread",
       icon: "spool",
-      editorCallback: (editor) => {
-        this.threads.openFromCursor(editor, 1);
+      editorCheckCallback: (checking, editor) => {
+        if (!this.settings.threadsEnabled) return false;
+        if (!checking) this.threads.openFromCursor(editor, 1);
+        return true;
       },
     });
     this.addCommand({
       id: "thread-previous",
       name: "Previous in thread",
       icon: "spool",
-      editorCallback: (editor) => {
-        this.threads.openFromCursor(editor, -1);
+      editorCheckCallback: (checking, editor) => {
+        if (!this.settings.threadsEnabled) return false;
+        if (!checking) this.threads.openFromCursor(editor, -1);
+        return true;
       },
     });
     this.addCommand({
       id: "show-threads",
       name: "Show threads",
       icon: "spool",
-      callback: () => {
+      checkCallback: (checking) => {
+        if (!this.settings.threadsEnabled) return false;
+        if (checking) return true;
         const editor = this.activeMarkdownView()?.editor ?? null;
         void this.openThreads(
           editor === null ? null : this.threads.keyAtCursor(editor),
         );
+        return true;
       },
     });
     this.addCommand({
       id: "thread-next-across",
       name: "Next in thread, across notes",
       icon: "spool",
-      editorCallback: (editor) => {
-        this.threads.openFromCursor(editor, 1, true);
+      editorCheckCallback: (checking, editor) => {
+        if (!this.settings.threadsEnabled) return false;
+        if (!checking) this.threads.openFromCursor(editor, 1, true);
+        return true;
       },
     });
     this.addCommand({
@@ -1386,6 +1401,7 @@ export default class ScribidianPlugin extends Plugin {
       editorCallback: command.editorCallback,
     };
     const onThread = (checking: boolean): boolean => {
+      if (!this.settings.threadsEnabled) return false;
       const view = this.app.workspace.getActiveViewOfType(MarkdownView);
       const cm = (view?.editor as { cm?: unknown } | undefined)?.cm;
       if (!(cm instanceof EditorView)) return false;
@@ -1434,6 +1450,21 @@ export default class ScribidianPlugin extends Plugin {
       previous();
       restore();
     };
+  }
+
+  /**
+   * Redraw threads after the Threads settings change (#298). With threads
+   * off, the Threads panel closes too.
+   */
+  applyThreadSettings(): void {
+    this.app.workspace.updateOptions();
+    if (!this.settings.threadsEnabled) {
+      for (const leaf of this.app.workspace.getLeavesOfType(
+        THREADS_VIEW_TYPE,
+      )) {
+        leaf.detach();
+      }
+    }
   }
 
   /** Open the Threads sidebar, showing thread `key` (or all of them). */
