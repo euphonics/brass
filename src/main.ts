@@ -41,6 +41,7 @@ import { openCharacterPicker } from "./commands/character";
 import { copyConfiguration } from "./commands/copyConfiguration";
 import { toggleDualDialogueInEditor } from "./commands/dualDialogue";
 import { moveToBoneyard } from "./commands/moveToBoneyard";
+import { linkSceneHeadings } from "./commands/linkSceneHeadings";
 import { quietCompletr } from "./integrations/completr";
 import { elementLines } from "./commands/selectElement";
 import { createThreadExtension } from "./editor/threads";
@@ -330,6 +331,16 @@ export default class ScribidianPlugin extends Plugin {
       callback: () => void createExampleScreenplay(this),
     });
 
+    this.addCommand({
+      id: "screenplay-link-scene-headings",
+      name: "Screenplay: Link scene headings across documents",
+      checkCallback: (checking) => {
+        const view = this.activeMarkdownView();
+        if (view === null || !this.isScreenplayFile(view.file)) return false;
+        if (!checking) void linkSceneHeadings(this, view);
+        return true;
+      },
+    });
     this.addCommand({
       id: "screenplay-move-to-boneyard",
       name: "Screenplay: Move boneyard to the boneyard note",

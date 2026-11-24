@@ -9,6 +9,12 @@ project follows
 
 ### Added (writer wish list, 2026-11-23)
 
+- **Link scene headings across documents** (command): links each scene to
+  its outline heading both ways. Sluglines get `= [[Outline#Heading]]`,
+  and the outline heading gets a link back to the scene's heading in the
+  script. Scenes are matched by heading name; others ask which heading.
+  The outline is set in an `outline` property.
+
 - Clean export's **Embeds** can be **Include text** (per format): the
   embedded note, heading section or block goes into the export and
   preview in place of `![[...]]`, cleaned like the script; embeds inside
