@@ -11,7 +11,10 @@ project follows
 
 - **Commands in the command palette** (Settings → Getting started): check
   or uncheck each Scribidian command to show or hide it in the palette.
-  Replaces **Show all commands**; the same commands start hidden.
+  Replaces **Show all commands**. Hidden at first: the commands with
+  their own key or menu, plus Create example screenplay, Open local graph,
+  Select element, Toggle strict cursor placement, the plain PDF and Final
+  Draft exports, and the cheat sheet.
 
 ## [0.1.3] - 2026-11-24
 

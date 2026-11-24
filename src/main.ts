@@ -144,6 +144,20 @@ export function paletteOrdered(name: string, rank: number): string {
  * reloaded plugin is new code, so only a global symbol is shared).
  */
 const EXTENSIONS_TAG = Symbol.for("scribidian.editorExtensions");
+/**
+ * Commands that start hidden from the command palette (#296, #297): used
+ * once, niche, or with a better choice next to them (the clean exports).
+ * The writer can show any of them in Settings -> Getting started.
+ */
+const HIDDEN_BY_DEFAULT = new Set([
+  "create-example-screenplay",
+  "character-open-local-graph",
+  "screenplay-select-element",
+  "toggle-strict-cursor",
+  "screenplay-export-pdf",
+  "screenplay-export-final-draft-fdx",
+  "open-screenplay-cheat-sheet",
+]);
 /** The loaded instance, on window, so a reloaded copy can find it (#220). */
 const LIVE_INSTANCE = Symbol.for("scribidian.liveInstance");
 
@@ -797,7 +811,10 @@ export default class ScribidianPlugin extends Plugin {
   private trackCommand(command: Command, extra: boolean): Command {
     // Obsidian prefixes the id and name in place: keep a clean copy.
     const clean = { ...command };
-    this.knownCommands.set(clean.id, { command: clean, extra });
+    this.knownCommands.set(clean.id, {
+      command: clean,
+      extra: extra || HIDDEN_BY_DEFAULT.has(clean.id),
+    });
     if (!this.commandShown(clean.id)) return clean;
     this.shownCommands.add(clean.id);
     return super.addCommand({ ...clean });
