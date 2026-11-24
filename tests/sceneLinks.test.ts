@@ -84,7 +84,7 @@ describe("Link scene headings across documents (#254)", () => {
   it("adds synopsis links under each slugline, once", () => {
     const [jen] = sceneUnits(script);
     const links = new Map<SceneUnit, string>([[jen, "Jen finds the key"]]);
-    expect(scriptLinkInserts(script, links, "Outline")).toEqual([
+    expect(scriptLinkInserts(script, links, "Outline", "slugline")).toEqual([
       { after: 8, text: "= [[Outline#Jen finds the key]]" },
       { after: 12, text: "= [[Outline#Jen finds the key]]" },
     ]);
@@ -128,5 +128,36 @@ describe("scenes already linked (#254)", () => {
     ];
     const [unit] = sceneUnits(lines);
     expect(unit && existingLink(unit, lines, "Outline")).toBe("The chase");
+  });
+});
+
+describe("outline links under headings (#292)", () => {
+  it("puts one link under the scene's heading by default", () => {
+    const [jen] = sceneUnits(script);
+    const links = new Map<SceneUnit, string>([[jen, "Jen finds the key"]]);
+    expect(scriptLinkInserts(script, links, "Outline")).toEqual([
+      { after: 6, text: "= [[Outline#Jen finds the key]]" },
+    ]);
+  });
+
+  it("uses the slugline when there's no heading, and skips linked scenes", () => {
+    const lines = ["EXT. YARD - NIGHT", "", "Blake ducks."];
+    const [unit] = sceneUnits(lines);
+    expect(
+      scriptLinkInserts(lines, new Map([[unit, "The chase"]]), "Outline"),
+    ).toEqual([{ after: 0, text: "= [[Outline#The chase]]" }]);
+    const linked = [
+      "## Blake hides",
+      "= [[Outline#The chase]]",
+      "",
+      "EXT. YARD - NIGHT",
+      "",
+      "Ducks.",
+    ];
+    const [done] = sceneUnits(linked);
+    expect(existingLink(done, linked, "Outline")).toBe("The chase");
+    expect(
+      scriptLinkInserts(linked, new Map([[done, "The chase"]]), "Outline"),
+    ).toEqual([]);
   });
 });

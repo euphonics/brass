@@ -9,6 +9,11 @@ project follows
 
 ### Added (writer wish list, 2026-11-23)
 
+- **Outline links go under** (Suggestions): Link scene headings puts one
+  link under each scene's heading (default) or under each slugline.
+- A thread shows its name next to the spool (`[&black widow Fiona]` →
+  🧵 black widow Fiona), faded since it isn't part of the script.
+
 - **Link scene headings across documents** (command): links each scene to
   its outline heading both ways. Sluglines get `= [[Outline#Heading]]`,
   and the outline heading gets a link back to the scene's heading in the

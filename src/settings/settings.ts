@@ -147,6 +147,8 @@ export interface ScribidianSettings {
   sceneTypeMatchCase: boolean;
   characterMatchCase: boolean;
   namesInAction: boolean;
+  /** Where Link scene headings puts the outline link (#292). */
+  outlineLinkPlacement: "heading" | "slugline";
   /** Completr's suggestion popup stays closed in screenplay notes (#271). */
   quietCompletrInScripts: boolean;
   /** Extensions the script uses come before (V.O.), (O.S.) and the rest. */
@@ -420,6 +422,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   characterMatchCase: true,
   namesInAction: true,
   quietCompletrInScripts: true,
+  outlineLinkPlacement: "heading",
   customExtensionsFirst: false,
   variablePrefix: "$",
   characterMentionPrefix: "+",
@@ -541,6 +544,12 @@ export function migrateSettings(
     if (rest[key] !== "previous-part" && rest[key] !== "nothing") {
       settings[key] = DEFAULT_SETTINGS[key];
     }
+  }
+  if (
+    rest.outlineLinkPlacement !== "heading" &&
+    rest.outlineLinkPlacement !== "slugline"
+  ) {
+    settings.outlineLinkPlacement = DEFAULT_SETTINGS.outlineLinkPlacement;
   }
   if (!isTabWithList(rest.tabWithListScript)) {
     settings.tabWithListScript = "pick";
@@ -749,6 +758,7 @@ const SETTING_GROUPS: {
       "characterMatchCase",
       "namesInAction",
       "quietCompletrInScripts",
+      "outlineLinkPlacement",
       "customExtensionsFirst",
       "variablePrefix",
       "characterMentionPrefix",
@@ -1658,6 +1668,16 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Outline links go under",
+        desc: "Where Link scene headings across documents puts each scene's link to the outline (= [[Outline#Heading]]). Headings: one line under the scene's heading. Sluglines: one under each slugline. A scene with no heading above it always gets it under the slugline.",
+        control: {
+          type: "dropdown",
+          key: "outlineLinkPlacement",
+          options: { heading: "Headings", slugline: "Sluglines" },
+          defaultValue: DEFAULT_SETTINGS.outlineLinkPlacement,
+        },
+      },
+      {
         name: "Turn off Completr in screenplays",
         desc: "Completr (a word-completion plugin) opens its own list while you type, on top of Scribidian's. On: Completr stays quiet in screenplay notes and works as usual in every other note. Does nothing if Completr isn't installed.",
         control: {
@@ -2006,6 +2026,9 @@ export class ScribidianSettingTab extends PluginSettingTab {
     } else if (key === "characterTemplate") {
       if (typeof value !== "string") return;
       this.plugin.settings.characterTemplate = value.trim();
+    } else if (key === "outlineLinkPlacement") {
+      if (value !== "heading" && value !== "slugline") return;
+      this.plugin.settings.outlineLinkPlacement = value;
     } else if (
       key === "shiftTabInsideScript" ||
       key === "shiftTabInsidePlain"

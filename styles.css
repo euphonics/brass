@@ -900,3 +900,12 @@ body {
   text-decoration: underline dotted var(--text-faint);
   text-underline-offset: 0.2em;
 }
+
+/* A thread without text, "[&gun]": its name, faded and smaller, since
+   it isn't part of the script. */
+.scribidian-thread-name {
+  margin-inline-start: 0.15em;
+  color: var(--text-faint);
+  font-size: 0.85em;
+  font-style: italic;
+}

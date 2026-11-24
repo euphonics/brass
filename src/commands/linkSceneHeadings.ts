@@ -122,7 +122,12 @@ export async function linkSceneHeadings(
   }
 
   const scriptName = app.metadataCache.fileToLinktext(file, outline.path);
-  const inserts = scriptLinkInserts(lines, links, outlineName);
+  const inserts = scriptLinkInserts(
+    lines,
+    links,
+    outlineName,
+    plugin.settings.outlineLinkPlacement,
+  );
   if (inserts.length > 0) {
     editor.transaction({
       changes: inserts.map((insert) => {

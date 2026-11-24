@@ -30,6 +30,8 @@ import { frontmatterEnd, isSceneHeading } from "./lines";
 export interface SceneUnit {
   /** The Markdown heading above the sluglines, or null. */
   heading: string | null;
+  /** 0-based line of that heading, or null. */
+  headingLine: number | null;
   /** The first slugline's text (the scene's name when there's no heading). */
   slug: string;
   /** 0-based lines of its sluglines. */
@@ -69,12 +71,14 @@ export function noteHeadings(lines: readonly string[]): NoteHeading[] {
 export function sceneUnits(lines: readonly string[]): SceneUnit[] {
   const units: SceneUnit[] = [];
   let heading: string | null = null;
+  let headingLine: number | null = null;
   let current: SceneUnit | null = null;
   for (let line = frontmatterEnd(lines) + 1; line < lines.length; line += 1) {
     const text = (lines[line] ?? "").trim();
     const match = HEADING.exec(text);
     if (match) {
       heading = match[2] ?? null;
+      headingLine = line;
       current = null;
       continue;
     }
@@ -85,7 +89,7 @@ export function sceneUnits(lines: readonly string[]): SceneUnit[] {
       current.slugLines.push(line);
       continue;
     }
-    current = { heading, slug: text, slugLines: [line] };
+    current = { heading, headingLine, slug: text, slugLines: [line] };
     units.push(current);
   }
   return units;
@@ -113,7 +117,11 @@ export function existingLink(
   outlineName: string,
 ): string | null {
   const prefix = `[[${outlineName}#`;
-  for (const line of unit.slugLines) {
+  const under =
+    unit.headingLine === null
+      ? unit.slugLines
+      : [unit.headingLine, ...unit.slugLines];
+  for (const line of under) {
     const below = lines[line + 1] ?? "";
     const at = below.indexOf(prefix);
     if (at === -1) continue;
@@ -126,19 +134,31 @@ export function existingLink(
 }
 
 /**
- * The synopsis lines to add to the script: after each slugline of a linked
- * scene, `= [[Outline#Heading]]`, unless the line under the slugline
- * already links to the outline. Returns the lines to insert after, in
- * order, with their text.
+ * The synopsis lines to add to the script, `= [[Outline#Heading]]`: under
+ * the scene's heading or under each of its sluglines (setting), unless the
+ * scene is linked already. Returns the lines to insert after, in order,
+ * with their text.
  */
 export function scriptLinkInserts(
   lines: readonly string[],
   links: ReadonlyMap<SceneUnit, string>,
   outlineName: string,
+  /**
+   * "heading" (default): one link under the scene's heading; a scene with
+   * no heading gets it under its sluglines. "slugline": under each
+   * slugline (#292).
+   */
+  placement: "heading" | "slugline" = "heading",
 ): { after: number; text: string }[] {
   const inserts: { after: number; text: string }[] = [];
   for (const [unit, heading] of links) {
-    for (const line of unit.slugLines) {
+    // Linked already, under the heading or a slugline: leave it be.
+    if (existingLink(unit, lines, outlineName) !== null) continue;
+    const targets =
+      placement === "heading" && unit.headingLine !== null
+        ? [unit.headingLine]
+        : unit.slugLines;
+    for (const line of targets) {
       const below = lines[line + 1] ?? "";
       if (
         below.includes(`[[${outlineName}#`) ||
