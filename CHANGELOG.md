@@ -9,6 +9,10 @@ project follows
 
 ### Added (writer wish list, 2026-11-23)
 
+- **Turn off Completr in screenplays** (Suggestions, on by default): the
+  Completr plugin's word list stays closed in screenplay notes, so it
+  doesn't compete with Scribidian's lists; other notes keep it.
+
 - Shift+Tab inside a slugline or character selects the part before and
   opens its list (`INT. BARN - DAY|` → DAY, then BARN), the way Tab's Next
   part goes forward. A setting under Tab and Enter keys (on in script

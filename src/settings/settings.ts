@@ -147,6 +147,8 @@ export interface ScribidianSettings {
   sceneTypeMatchCase: boolean;
   characterMatchCase: boolean;
   namesInAction: boolean;
+  /** Completr's suggestion popup stays closed in screenplay notes (#271). */
+  quietCompletrInScripts: boolean;
   /** Extensions the script uses come before (V.O.), (O.S.) and the rest. */
   customExtensionsFirst: boolean;
   /** Typed before a variable's name: "$" by default. */
@@ -412,6 +414,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   sceneTypeMatchCase: false,
   characterMatchCase: true,
   namesInAction: true,
+  quietCompletrInScripts: true,
   customExtensionsFirst: false,
   variablePrefix: "$",
   characterMentionPrefix: "+",
@@ -740,6 +743,7 @@ const SETTING_GROUPS: {
       "sceneTypeMatchCase",
       "characterMatchCase",
       "namesInAction",
+      "quietCompletrInScripts",
       "customExtensionsFirst",
       "variablePrefix",
       "characterMentionPrefix",
@@ -1649,6 +1653,15 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Turn off Completr in screenplays",
+        desc: "Completr (a word-completion plugin) opens its own list while you type, on top of Scribidian's. On: Completr stays quiet in screenplay notes and works as usual in every other note. Does nothing if Completr isn't installed.",
+        control: {
+          type: "toggle",
+          key: "quietCompletrInScripts",
+          defaultValue: DEFAULT_SETTINGS.quietCompletrInScripts,
+        },
+      },
+      {
         name: "Suggest character names in action",
         desc: "Typing a name in capitals inside an action line (JE in \"She sees JE\") lists the script's characters that start with it, like Final Draft's SmartType for a character's first appearance. Enter picks the name, which stays in the action line. On by default. Enter after capitals that start a name (THE for THEO) picks the name, so press Escape first, or turn this off to keep action typing quiet.",
         control: {
@@ -2068,6 +2081,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "sceneTypeMatchCase":
       case "characterMatchCase":
       case "namesInAction":
+      case "quietCompletrInScripts":
       case "offerFullSlugs":
       case "markCapitalsAsAction":
       case "statusBarEnabled":

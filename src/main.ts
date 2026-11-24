@@ -40,6 +40,7 @@ import type { Command, TFile } from "obsidian";
 import { openCharacterPicker } from "./commands/character";
 import { copyConfiguration } from "./commands/copyConfiguration";
 import { toggleDualDialogueInEditor } from "./commands/dualDialogue";
+import { quietCompletr } from "./integrations/completr";
 import { elementLines } from "./commands/selectElement";
 import { createThreadExtension } from "./editor/threads";
 import {
@@ -201,10 +202,13 @@ export default class ScribidianPlugin extends Plugin {
       putSuggestFirst(this.app, threadSuggest),
     );
     this.registerEvent(
-      this.app.workspace.on("active-leaf-change", () =>
-        putSuggestFirst(this.app, threadSuggest),
-      ),
+      this.app.workspace.on("active-leaf-change", () => {
+        putSuggestFirst(this.app, threadSuggest);
+        this.quietCompletrIfOn();
+      }),
     );
+    this.app.workspace.onLayoutReady(() => this.quietCompletrIfOn());
+    this.register(() => this.restoreCompletr());
     this.app.workspace.onLayoutReady(() => this.followLinkOnThreads());
     registerFountainCodeBlockProcessor(this);
     this.registerOwnView(
@@ -1308,6 +1312,29 @@ export default class ScribidianPlugin extends Plugin {
       };
     }
     this.register(() => Object.assign(command, original));
+  }
+
+  /** Puts Completr's popup back as it was (see quietCompletr). */
+  private restoreCompletr: () => void = () => {};
+
+  /**
+   * Keep Completr's popup out of screenplay notes (setting, #271). Called
+   * again when the editor changes, in case Completr was turned on later.
+   */
+  quietCompletrIfOn(): void {
+    if (!this.settings.quietCompletrInScripts) return;
+    const restore = quietCompletr(
+      this.app,
+      (file) =>
+        this.settings.quietCompletrInScripts &&
+        file !== null &&
+        (this.isScreenplayFile(file) || this.isProjectFile(file)),
+    );
+    const previous = this.restoreCompletr;
+    this.restoreCompletr = () => {
+      previous();
+      restore();
+    };
   }
 
   /** Open the Threads sidebar, showing thread `key` (or all of them). */
