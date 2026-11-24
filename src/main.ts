@@ -40,6 +40,7 @@ import type { Command, TFile } from "obsidian";
 import { openCharacterPicker } from "./commands/character";
 import { copyConfiguration } from "./commands/copyConfiguration";
 import { toggleDualDialogueInEditor } from "./commands/dualDialogue";
+import { moveToBoneyard } from "./commands/moveToBoneyard";
 import { quietCompletr } from "./integrations/completr";
 import { elementLines } from "./commands/selectElement";
 import { createThreadExtension } from "./editor/threads";
@@ -329,6 +330,16 @@ export default class ScribidianPlugin extends Plugin {
       callback: () => void createExampleScreenplay(this),
     });
 
+    this.addCommand({
+      id: "screenplay-move-to-boneyard",
+      name: "Screenplay: Move boneyard to the boneyard note",
+      checkCallback: (checking) => {
+        const view = this.activeMarkdownView();
+        if (view === null || !this.isScreenplayFile(view.file)) return false;
+        if (!checking) void moveToBoneyard(this, view);
+        return true;
+      },
+    });
     this.addCommand({
       id: "screenplay-toggle-dual-dialogue",
       name: "Screenplay: Toggle dual dialogue",

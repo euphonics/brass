@@ -9,6 +9,11 @@ project follows
 
 ### Added (writer wish list, 2026-11-23)
 
+- **Move boneyard to the boneyard note** (command): every `/* ... */`
+  block leaves the script and lands in the screenplay's boneyard note,
+  under a dated heading for each scene. The first time, pick a note or
+  create `<script> Boneyard`; it's remembered in a `boneyard` property.
+
 - **Turn off Completr in screenplays** (Suggestions, on by default): the
   Completr plugin's word list stays closed in screenplay notes, so it
   doesn't compete with Scribidian's lists; other notes keep it.
