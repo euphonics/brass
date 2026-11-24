@@ -44,7 +44,14 @@ export interface BoneyardEdit {
  * lines takes its lines (and one blank line, so no double gap is left); a
  * block inside a line takes the space before it. An unclosed `/*` stays.
  */
-export function findBoneyard(source: string): {
+export function findBoneyard(
+  source: string,
+  /**
+   * Take just this range as the one block (#294): a selection, with or
+   * without its own markers.
+   */
+  only?: { from: number; to: number },
+): {
   blocks: BoneyardBlock[];
   edits: BoneyardEdit[];
 } {
@@ -87,14 +94,9 @@ export function findBoneyard(source: string): {
     return null;
   };
 
-  let search = bodyStart;
-  for (;;) {
-    const open = source.indexOf("/*", search);
-    if (open === -1) break;
-    const close = source.indexOf("*/", open + 2);
-    if (close === -1) break;
-    const blockEnd = close + 2;
-    const text = source.slice(open + 2, close).trim();
+  // One block, from `open` to `blockEnd`, its text `inner`.
+  const take = (open: number, blockEnd: number, inner: string): void => {
+    const text = inner.trim();
     blocks.push({
       text,
       scene: sceneBefore(open),
@@ -142,7 +144,24 @@ export function findBoneyard(source: string): {
         insert: keepSpace && /^\S/u.test(after) ? " " : "",
       });
     }
-    search = blockEnd;
+  };
+
+  if (only !== undefined) {
+    const selected = source.slice(only.from, only.to);
+    const unwrapped = /^\s*\/\*([\s\S]*)\*\/\s*$/u.exec(selected);
+    if (selected.trim() !== "") {
+      take(only.from, only.to, unwrapped ? (unwrapped[1] ?? "") : selected);
+    }
+    return { blocks, edits };
+  }
+  let search = bodyStart;
+  for (;;) {
+    const open = source.indexOf("/*", search);
+    if (open === -1) break;
+    const close = source.indexOf("*/", open + 2);
+    if (close === -1) break;
+    take(open, close + 2, source.slice(open + 2, close));
+    search = close + 2;
   }
   return { blocks, edits };
 }
@@ -201,4 +220,20 @@ export function boneyardSection(
         }]])\n\n${texts.filter((text) => text !== "").join("\n\n")}\n`,
     )
     .join("\n");
+}
+
+/**
+ * Wrap `selected` in boneyard markers, or take them off when it already
+ * has them (#294). Whole lines get the markers on lines of their own.
+ */
+export function toggleBoneyardMarkers(
+  selected: string,
+  wholeLines: boolean,
+): string {
+  const wrapped = /^(\s*)\/\*\s?([\s\S]*?)\s?\*\/(\s*)$/u.exec(selected);
+  if (wrapped) {
+    const inner = (wrapped[2] ?? "").replace(/^\n|\n$/gu, "");
+    return `${wrapped[1] ?? ""}${inner}${wrapped[3] ?? ""}`;
+  }
+  return wholeLines ? `/*\n${selected}\n*/` : `/* ${selected} */`;
 }

@@ -20,6 +20,7 @@ import {
   applyBoneyardEdits,
   boneyardSection,
   findBoneyard,
+  toggleBoneyardMarkers,
 } from "../src/screenplay/boneyard";
 
 const script = [
@@ -126,5 +127,36 @@ describe("Move to boneyard (#288)", () => {
     expect(
       boneyardSection(block ? [block] : [], "November 24, 2026", "Script"),
     ).toContain("([[Script#Act 1]])");
+  });
+});
+
+describe("boneyard for a selection (#294)", () => {
+  const text =
+    "INT. BARN - DAY\n\nHay everywhere.\n\nShe waits. Too slow. Then runs.\n";
+
+  it("takes the selected text, markers or not", () => {
+    const from = text.indexOf("Too slow.");
+    const plain = findBoneyard(text, { from, to: from + "Too slow.".length });
+    expect(plain.blocks).toEqual([
+      { text: "Too slow.", scene: "INT. BARN - DAY", heading: null },
+    ]);
+    expect(applyBoneyardEdits(text, plain.edits)).toBe(
+      "INT. BARN - DAY\n\nHay everywhere.\n\nShe waits. Then runs.\n",
+    );
+    const lineFrom = text.indexOf("Hay");
+    const whole = findBoneyard(text, {
+      from: lineFrom,
+      to: lineFrom + "Hay everywhere.".length,
+    });
+    expect(applyBoneyardEdits(text, whole.edits)).toBe(
+      "INT. BARN - DAY\n\nShe waits. Too slow. Then runs.\n",
+    );
+  });
+
+  it("wraps and unwraps the markers", () => {
+    expect(toggleBoneyardMarkers("Too slow.", false)).toBe("/* Too slow. */");
+    expect(toggleBoneyardMarkers("/* Too slow. */", false)).toBe("Too slow.");
+    expect(toggleBoneyardMarkers("A.\nB.", true)).toBe("/*\nA.\nB.\n*/");
+    expect(toggleBoneyardMarkers("/*\nA.\nB.\n*/", true)).toBe("A.\nB.");
   });
 });

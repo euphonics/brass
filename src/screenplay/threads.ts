@@ -32,6 +32,8 @@ export interface ThreadMark {
   key: string;
   /** The text after "|" (`[&gun|the pistol]`), shown and exported. */
   alias?: string;
+  /** `[&gun|]`: a "|" with nothing after it shows the spool only (#295). */
+  hidden?: boolean;
 }
 
 const THREAD = /\[&([^\]\n]+)\]/gu;
@@ -60,6 +62,7 @@ export function findThreads(text: string): ThreadMark[] {
       name,
       key: threadKey(name),
       ...(alias !== "" ? { alias } : {}),
+      ...(pipe !== -1 && alias === "" ? { hidden: true } : {}),
     });
   }
   return marks;

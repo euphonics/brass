@@ -57,19 +57,24 @@ class ThreadWidget extends WidgetType {
       other.mark.from === this.mark.from &&
       other.mark.to === this.mark.to &&
       other.mark.name === this.mark.name &&
-      other.mark.alias === this.mark.alias
+      other.mark.alias === this.mark.alias &&
+      other.mark.hidden === this.mark.hidden
     );
   }
 
   toDOM(view: EditorView): HTMLElement {
     // The spool, then the thread's text: "[&gun|the pistol]" shows its
-    // alias (part of the script, #289); "[&gun]" shows its name, faded,
-    // since it isn't script and exports leave it out (#293).
+    // alias (part of the script, #289); "[&gun]" shows its name in the
+    // thread color (#293); "[&gun|]" shows the spool only (#295).
     const el = createSpan({
-      cls: "scribidian-thread scribidian-thread-with-text",
+      cls: this.mark.hidden
+        ? "scribidian-thread"
+        : "scribidian-thread scribidian-thread-with-text",
     });
     el.createSpan({ cls: "scribidian-thread-spool", text: "🧵" });
-    if (this.mark.alias !== undefined) {
+    if (this.mark.hidden) {
+      // Nothing after the spool.
+    } else if (this.mark.alias !== undefined) {
       el.createSpan({ cls: "scribidian-thread-alias", text: this.mark.alias });
     } else {
       el.createSpan({ cls: "scribidian-thread-name", text: this.mark.name });

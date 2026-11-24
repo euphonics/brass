@@ -901,11 +901,9 @@ body {
   text-underline-offset: 0.2em;
 }
 
-/* A thread without text, "[&gun]": its name, faded and smaller, since
-   it isn't part of the script. */
+/* A thread without text, "[&gun]": its name in the thread color, at the
+   script's size. */
 .scribidian-thread-name {
   margin-inline-start: 0.15em;
-  color: var(--text-faint);
-  font-size: 0.85em;
-  font-style: italic;
+  color: var(--scribidian-thread-color);
 }

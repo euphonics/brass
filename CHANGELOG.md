@@ -7,12 +7,19 @@ project follows
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-11-24
+
 ### Added (writer wish list, 2026-11-23)
+
+- **Wrap selection in boneyard** and **Move selection to the boneyard
+  note** (commands, hotkeys possible): wrap or unwrap `/* */`, or send the
+  selected text straight to the boneyard note.
+- `[&ropehead|]` shows the thread's spool only.
 
 - **Outline links go under** (Suggestions): Link scene headings puts one
   link under each scene's heading (default) or under each slugline.
-- A thread shows its name next to the spool (`[&black widow Fiona]` →
-  🧵 black widow Fiona), faded since it isn't part of the script.
+- A thread shows its name next to the spool in the thread color
+  (`[&black widow Fiona]` → 🧵black widow Fiona).
 
 - **Link scene headings across documents** (command): links each scene to
   its outline heading both ways. Sluglines get `= [[Outline#Heading]]`,

@@ -117,3 +117,12 @@ describe("threads with text (#289)", () => {
     ).toContain("He finds the pistol.");
   });
 });
+
+describe("threads that show the spool only (#295)", () => {
+  it("reads [&name|] as hidden, still the same thread", () => {
+    const [mark] = findThreads("A beat. [&ropehead|]");
+    expect(mark).toMatchObject({ name: "ropehead", hidden: true });
+    expect(mark?.alias).toBeUndefined();
+    expect(stripThreads("A beat. [&ropehead|]")).toBe("A beat.");
+  });
+});

@@ -1,7 +1,7 @@
 {
   "id": "scribidian",
   "name": "Scribidian",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "minAppVersion": "1.13.7",
   "description": "Write screenplays efficiently in portable Fountain text. Derived from First Draft by Christian Grobmeier.",
   "author": "arvn",
