@@ -78,15 +78,17 @@ class ThreadWidget extends WidgetType {
     // Thread text setting puts the text after or before the spool, or
     // hides it (#298).
     const textShown = !this.mark.hidden && this.display !== "icon";
+    // Text only (#301): no spool, unless there's no text to show.
+    const spoolShown = !textShown || this.display !== "text";
     const el = createSpan({
       cls: textShown
-        ? `scribidian-thread scribidian-thread-with-text scribidian-thread-${this.display}`
+        ? `scribidian-thread scribidian-thread-with-text scribidian-thread-${this.display === "text" ? "text-only" : this.display}`
         : "scribidian-thread",
     });
     const spool = (): void => {
       el.createSpan({ cls: "scribidian-thread-spool", text: "🧵" });
     };
-    if (!textShown || this.display === "left") spool();
+    if (spoolShown && (!textShown || this.display === "left")) spool();
     if (!textShown) {
       // Nothing but the spool.
     } else if (this.mark.alias !== undefined) {

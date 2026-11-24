@@ -897,6 +897,7 @@ body {
 }
 .scribidian-thread-alias {
   margin-inline-start: 0.15em;
+  color: var(--scribidian-thread-color);
   text-decoration: underline dotted var(--text-faint);
   text-underline-offset: 0.2em;
 }
@@ -929,4 +930,10 @@ body {
   gap: var(--size-4-1);
   cursor: pointer;
   font-size: var(--font-ui-small);
+}
+
+/* Text only (#301): no spool, so no gap. */
+.scribidian-thread-text-only .scribidian-thread-name,
+.scribidian-thread-text-only .scribidian-thread-alias {
+  margin-inline: 0;
 }

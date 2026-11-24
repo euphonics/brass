@@ -25,6 +25,7 @@ import {
   applyScreenplayFont,
   screenplayFontCss,
   applyLineCommentColor,
+  applyThreadColor,
 } from "./editor/screenplayFont";
 import { createBottomMarginExtension } from "./editor/bottomMargin";
 import { createScreenplayLayoutExtension } from "./editor/screenplayLayout";
@@ -880,6 +881,7 @@ export default class ScribidianPlugin extends Plugin {
       ),
     );
     applyLineCommentColor(this.settings.lineCommentColor);
+    applyThreadColor(this.settings.threadColor);
   }
 
   async saveSettings(): Promise<void> {

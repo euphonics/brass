@@ -157,6 +157,8 @@ export interface ScribidianSettings {
   threadDisplay: ThreadDisplay;
   /** Typing "&&" in a screenplay becomes "[&" (#299). */
   threadAmpersands: boolean;
+  /** Color of thread text and the raw mark; "" = the theme's orange. */
+  threadColor: string;
   /** Completr's suggestion popup stays closed in screenplay notes (#271). */
   quietCompletrInScripts: boolean;
   /** Extensions the script uses come before (V.O.), (O.S.) and the rest. */
@@ -433,8 +435,9 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   quietCompletrInScripts: true,
   outlineLinkPlacement: "heading",
   threadsEnabled: true,
-  threadDisplay: "left",
+  threadDisplay: "right",
   threadAmpersands: true,
+  threadColor: "",
   customExtensionsFirst: false,
   variablePrefix: "$",
   characterMentionPrefix: "+",
@@ -496,13 +499,18 @@ export type TabWithList = "pick" | "move";
 export type ShiftTabInside = "previous-part" | "nothing";
 
 /**
- * How a thread shows (#298): the spool then its text, its text then the
- * spool, or the spool only.
+ * How a thread shows (#298): its text then the spool (default), the spool
+ * then its text, the spool only, or the text only.
  */
-export type ThreadDisplay = "left" | "right" | "icon";
+export type ThreadDisplay = "left" | "right" | "icon" | "text";
 
 function isThreadDisplay(value: unknown): value is ThreadDisplay {
-  return value === "left" || value === "right" || value === "icon";
+  return (
+    value === "left" ||
+    value === "right" ||
+    value === "icon" ||
+    value === "text"
+  );
 }
 
 const SHIFT_TAB_INSIDE_LABELS: Record<ShiftTabInside, string> = {
@@ -801,7 +809,12 @@ const SETTING_GROUPS: {
   },
   {
     heading: "Threads",
-    keys: ["threadsEnabled", "threadDisplay", "threadAmpersands"],
+    keys: [
+      "threadsEnabled",
+      "threadDisplay",
+      "threadColor",
+      "threadAmpersands",
+    ],
   },
   {
     heading: "Page count and status bar",
@@ -1778,16 +1791,27 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Thread text",
-        desc: "Where a thread's text shows next to its 🧵: its name, or its own text ([&gun|the pistol]). Spool only hides the text in every thread; it shows while the cursor is in the thread. [&gun|] always shows the spool only.",
+        desc: "How a thread shows: its text (its name, or its own text as in [&gun|the pistol]) before or after the 🧵, the text alone, or the 🧵 alone. With the 🧵 alone, the text shows while the cursor is in the thread. [&gun|] always shows the 🧵 only.",
         control: {
           type: "dropdown",
           key: "threadDisplay",
           options: {
-            left: "🧵 then text",
             right: "Text then 🧵",
+            left: "🧵 then text",
+            text: "Text only",
             icon: "🧵 only",
           },
           defaultValue: DEFAULT_SETTINGS.threadDisplay,
+          disabled: () => !this.plugin.settings.threadsEnabled,
+        },
+      },
+      {
+        name: "Thread color",
+        desc: "The color of a thread's text, and of [&name] while you edit it. Leave it unset for your theme's orange.",
+        control: {
+          type: "color",
+          key: "threadColor",
+          defaultValue: DEFAULT_SETTINGS.threadColor,
           disabled: () => !this.plugin.settings.threadsEnabled,
         },
       },
@@ -2120,6 +2144,10 @@ export class ScribidianSettingTab extends PluginSettingTab {
       const folder = value.trim().replace(/\/+$/gu, "");
       if (!folder || folder === "/") return;
       this.plugin.settings.characterFolder = folder;
+    } else if (key === "threadColor") {
+      if (typeof value !== "string") return;
+      this.plugin.settings.threadColor = value.trim();
+      this.plugin.applyScreenplayFont();
     } else if (key === "lineCommentColor") {
       if (typeof value !== "string") return;
       this.plugin.settings.lineCommentColor = value.trim();

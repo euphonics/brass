@@ -21,6 +21,8 @@ project follows
   it, or not at all.
 - **Type && to start a thread** (on by default): in a screenplay, `&&`
   becomes `[&` and opens the thread list.
+- **Thread text** now defaults to text then 🧵, and can be **Text only**.
+  **Thread color** sets the color of thread text.
 
 ## [0.1.3] - 2026-11-24
 

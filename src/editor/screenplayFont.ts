@@ -165,6 +165,14 @@ export function applyScreenplayFont(css: string | null): void {
 }
 
 /** The "Line comment color" setting, as a CSS variable on the app window. */
+/** The writer's thread color (#301), or the theme's orange when unset. */
+export function applyThreadColor(color: string): void {
+  const body = activeDocument.body;
+  if (/^#[0-9a-f]{3,8}$/iu.test(color))
+    body.style.setProperty("--scribidian-thread-color", color);
+  else body.style.removeProperty("--scribidian-thread-color");
+}
+
 export function applyLineCommentColor(color: string): void {
   const body = activeDocument.body;
   if (/^#[0-9a-f]{3,8}$/iu.test(color))
