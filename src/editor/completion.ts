@@ -70,7 +70,9 @@ import {
   type TransactionSpec,
 } from "@codemirror/state";
 import { EditorView, keymap, tooltips } from "@codemirror/view";
-import { editorInfoField } from "obsidian";
+import { editorInfoField, type TFile } from "obsidian";
+import type { ScreenplayIndex } from "../screenplay/model";
+import { scriptForRelatedNote } from "../projects/relatedNotes";
 import type ScribidianPlugin from "../main";
 import {
   charactersListedIn,
@@ -366,6 +368,8 @@ export function createScreenplayCompletionExtension(
   );
   const variableOptions = async (
     context: CompletionContext,
+    /** For a related note: the script whose folder shares variables. */
+    sharedWith?: TFile,
   ): Promise<CompletionResult | null> => {
     const { state, pos } = context;
     const line = state.doc.lineAt(pos);
@@ -376,7 +380,9 @@ export function createScreenplayCompletionExtension(
     // The project folder's other notes share their variables (#270).
     const file = state.field(editorInfoField, false)?.file ?? null;
     const others =
-      file === null ? [] : await projectVariables.others(file, prefix);
+      file === null
+        ? []
+        : await projectVariables.others(file, prefix, sharedWith);
     const names = variableSuggestions(
       state.doc.toString(),
       typing.typed,
@@ -405,17 +411,141 @@ export function createScreenplayCompletionExtension(
     };
   };
 
+  // The "+" list: the characters, then groups (#255, #282). `inScript`:
+  // the note is the script, so the scene's characters count; an outline
+  // or other related note (#290) has no scenes.
+  const mentionResult = (
+    context: CompletionContext,
+    typed: string,
+    index: ScreenplayIndex,
+    editorSource: string,
+    inScript: boolean,
+  ): CompletionResult | null => {
+    const mentionPrefix = plugin.settings.characterMentionPrefix;
+    const from = context.pos - typed.length - mentionPrefix.length;
+    const limit = plugin.settings.maximumSuggestions;
+    const names = rankUsages(
+      index.characters,
+      typed,
+      plugin.settings.recentItemsWeighting,
+      limit,
+    ).map((usage) => mentionText(usage.value, typed, editorSource));
+    // Then groups (#255): those the script writes, and pairs and the
+    // Oxford-comma list from this scene's speakers.
+    const written = rankUsages(
+      index.characterGroups ?? [],
+      typed,
+      plugin.settings.recentItemsWeighting,
+      limit,
+    ).map((usage) => usage.value);
+    // Everyone named in the scene so far (cues and action, this line up
+    // to the "+"), not only those who speak (#282).
+    const known = index.characters.map((usage) => usage.value);
+    const scene = inScript
+      ? sceneCharacters(sceneTextBefore(editorSource, from), known)
+      : [];
+    const groups = mentionGroups(
+      typed,
+      written,
+      scene,
+      (name) => mentionText(name, typed, editorSource),
+      known,
+      names,
+    );
+    // Keep a few groups in view even when many names match.
+    const keepGroups = Math.min(
+      groups.length,
+      Math.max(3, limit - names.length),
+    );
+    const items = [
+      ...names
+        .slice(0, Math.max(0, limit - keepGroups))
+        .map((text) => ({ text, detail: "Character" })),
+      ...groups
+        .slice(0, keepGroups)
+        .map((text) => ({ text, detail: "Characters" })),
+    ];
+    if (items.length === 0) return null;
+    return {
+      from,
+      to: context.pos,
+      filter: false,
+      options: items.map(({ text, detail }) => {
+        return {
+          label: text,
+          detail,
+          apply: (view, completion, applyFrom, applyTo) => {
+            view.dispatch({
+              changes: { from: applyFrom, to: applyTo, insert: text },
+              selection: { anchor: applyFrom + text.length },
+              annotations: pickedCompletion.of(completion),
+              userEvent: "input",
+            });
+          },
+        };
+      }),
+    };
+  };
+
+  // An outline or other note that belongs with a script (#290): "+" names
+  // and "$" variables from the script, nothing else of the screenplay.
+  const relatedIndexes = new Map<
+    string,
+    { mtime: number; index: ScreenplayIndex }
+  >();
+  const relatedNoteOptions = async (
+    context: CompletionContext,
+    file: TFile,
+  ): Promise<CompletionResult | null> => {
+    if (plugin.isProjectFile(file)) return null;
+    const script = scriptForRelatedNote(
+      plugin.app,
+      file,
+      (candidate) => plugin.isProjectFile(candidate),
+      (candidate) => plugin.isScreenplayFile(candidate),
+    );
+    if (script === null) return null;
+    const variables = await variableOptions(context, script);
+    if (variables !== null) return variables;
+    const line = context.state.doc.lineAt(context.pos);
+    const mention = mentionAtEnd(
+      line.text.slice(0, context.pos - line.from),
+      plugin.settings.characterMentionPrefix,
+    );
+    if (mention === null) return null;
+    let cached = relatedIndexes.get(script.path);
+    if (cached === undefined || cached.mtime !== script.stat.mtime) {
+      const screenplay = await loadScreenplayContext(
+        plugin.app,
+        script,
+        plugin.settings.characterFolder,
+      );
+      cached = {
+        mtime: script.stat.mtime,
+        index: withListedCharacters(
+          buildScreenplayIndex(screenplay.document),
+          screenplay.listedCharacters,
+        ),
+      };
+      relatedIndexes.set(script.path, cached);
+    }
+    return mentionResult(
+      context,
+      mention.typed,
+      cached.index,
+      context.state.doc.toString(),
+      false,
+    );
+  };
+
   const source = async (
     context: CompletionContext,
   ): Promise<CompletionResult | null> => {
     const info = context.state.field(editorInfoField, false);
     const file = info?.file ?? null;
-    if (
-      !plugin.settings.autocompleteEnabled ||
-      !plugin.isScreenplayFile(file) ||
-      file === null
-    ) {
-      return null;
+    if (!plugin.settings.autocompleteEnabled || file === null) return null;
+    if (!plugin.isScreenplayFile(file)) {
+      return relatedNoteOptions(context, file);
     }
 
     // Tab inside a cue with no extension: list them after the name.
@@ -504,67 +634,7 @@ export function createScreenplayCompletionExtension(
         docLineKinds(context.state.doc, line.number - 1)[line.number - 1] ===
           "action")
     ) {
-      const from = context.pos - mention.typed.length - mentionPrefix.length;
-      const limit = plugin.settings.maximumSuggestions;
-      const names = rankUsages(
-        index.characters,
-        mention.typed,
-        plugin.settings.recentItemsWeighting,
-        limit,
-      ).map((usage) => mentionText(usage.value, mention.typed, editorSource));
-      // Then groups (#255): those the script writes, and pairs and the
-      // Oxford-comma list from this scene's speakers.
-      const written = rankUsages(
-        index.characterGroups ?? [],
-        mention.typed,
-        plugin.settings.recentItemsWeighting,
-        limit,
-      ).map((usage) => usage.value);
-      // Everyone named in the scene so far (cues and action, this line up
-      // to the "+"), not only those who speak (#282).
-      const known = index.characters.map((usage) => usage.value);
-      const scene = sceneCharacters(sceneTextBefore(editorSource, from), known);
-      const groups = mentionGroups(
-        mention.typed,
-        written,
-        scene,
-        (name) => mentionText(name, mention.typed, editorSource),
-        known,
-        names,
-      );
-      // Keep a few groups in view even when many names match.
-      const keepGroups = Math.min(
-        groups.length,
-        Math.max(3, limit - names.length),
-      );
-      const items = [
-        ...names
-          .slice(0, Math.max(0, limit - keepGroups))
-          .map((text) => ({ text, detail: "Character" })),
-        ...groups
-          .slice(0, keepGroups)
-          .map((text) => ({ text, detail: "Characters" })),
-      ];
-      if (items.length === 0) return null;
-      return {
-        from,
-        to: context.pos,
-        filter: false,
-        options: items.map(({ text, detail }) => {
-          return {
-            label: text,
-            detail,
-            apply: (view, completion, applyFrom, applyTo) => {
-              view.dispatch({
-                changes: { from: applyFrom, to: applyTo, insert: text },
-                selection: { anchor: applyFrom + text.length },
-                annotations: pickedCompletion.of(completion),
-                userEvent: "input",
-              });
-            },
-          };
-        }),
-      };
+      return mentionResult(context, mention.typed, index, editorSource, true);
     }
     const forced =
       context.state.field(forcedListField, false) ??

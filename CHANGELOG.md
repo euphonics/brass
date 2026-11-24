@@ -9,6 +9,11 @@ project follows
 
 ### Added (writer wish list, 2026-11-23)
 
+- Outlines and other notes that belong with a script (in its project
+  folder, its own folder, or named in its `outline` property) get `+`
+  character names and the script's `$` variables, without the screenplay
+  layout.
+
 - `$` variables are shared across a project: the list offers the
   variables used in every note in the screenplay's project folder (or the
   script's folder), not only this note's.

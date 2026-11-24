@@ -115,6 +115,10 @@ flowchart TD
         action, type `+Je`: `Jen`, `Jenna`, `Jen and Blake`, `Jen and George`,
         `Jen, Blake, and George`.
   - [ ] Type `+Jen, B`, Enter: `Jen, Blake, and George|`.
+- **In related notes** (#290): an outline or other note that belongs with
+  a script (its project folder, its folder, or its `outline` property)
+  gets the `+` list with the script's characters, and the `$` list with
+  the script folder's variables; nothing else of the screenplay.
 - Needs Suggestions on.
 - The `+` can be changed: **Character name character** in Suggestions
   (one symbol, different from the variable character).

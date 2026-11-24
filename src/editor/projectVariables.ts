@@ -55,8 +55,13 @@ export class ProjectVariables {
   }
 
   /** The variables of the other notes in `file`'s folder. */
-  async others(file: TFile, prefix: string): Promise<NoteVariables[]> {
-    const folder = variablesFolder(this.app, file);
+  async others(
+    file: TFile,
+    prefix: string,
+    /** A related note (#290) shares the folder of this script instead. */
+    sharedWith?: TFile,
+  ): Promise<NoteVariables[]> {
+    const folder = variablesFolder(this.app, sharedWith ?? file);
     if (folder === null) return [];
     const notes: TFile[] = [];
     const walk = (at: TFolder): void => {
