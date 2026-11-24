@@ -9,6 +9,10 @@ project follows
 
 ### Added (writer wish list, 2026-11-23)
 
+- `$` variables are shared across a project: the list offers the
+  variables used in every note in the screenplay's project folder (or the
+  script's folder), not only this note's.
+
 - **Move boneyard to the boneyard note** (command): every `/* ... */`
   block leaves the script and lands in the screenplay's boneyard note,
   under a dated heading for each scene. The first time, pick a note or

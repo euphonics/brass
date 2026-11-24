@@ -34,6 +34,7 @@ import { forceElementPlan, type ForcedElement } from "./forceElement";
 import { menuLineKind } from "./layoutClassifier";
 import { docLineKinds, docLines } from "./docLines";
 import { variableAtEnd, variableSuggestions } from "./variables";
+import { ProjectVariables } from "./projectVariables";
 import {
   mentionAtEnd,
   mentionGroups,
@@ -357,21 +358,32 @@ export function createScreenplayCompletionExtension(
   // Typing a "$" variable: the note's variables that start with what's
   // typed, most used first. Null when the cursor isn't on one (or the note
   // has no other variables that fit).
-  const variableOptions = (
+  const projectVariables = new ProjectVariables(plugin.app);
+  plugin.registerEvent(
+    plugin.app.vault.on("modify", (changed) =>
+      projectVariables.invalidate(changed.path),
+    ),
+  );
+  const variableOptions = async (
     context: CompletionContext,
-  ): CompletionResult | null => {
+  ): Promise<CompletionResult | null> => {
     const { state, pos } = context;
     const line = state.doc.lineAt(pos);
     const prefix = plugin.settings.variablePrefix;
     const typing = variableAtEnd(line.text.slice(0, pos - line.from), prefix);
     if (typing === null) return null;
     const from = pos - typing.typed.length - prefix.length;
+    // The project folder's other notes share their variables (#270).
+    const file = state.field(editorInfoField, false)?.file ?? null;
+    const others =
+      file === null ? [] : await projectVariables.others(file, prefix);
     const names = variableSuggestions(
       state.doc.toString(),
       typing.typed,
       from,
       plugin.settings.maximumSuggestions,
       prefix,
+      others,
     );
     if (names.length === 0) return null;
     return {
@@ -441,7 +453,7 @@ export function createScreenplayCompletionExtension(
     }
 
     // "$": the note's other variables, wherever the cursor is.
-    const variables = variableOptions(context);
+    const variables = await variableOptions(context);
     if (variables !== null) return variables;
 
     const editorSource = context.state.doc.toString();

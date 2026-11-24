@@ -82,3 +82,34 @@ describe("$ variable list", () => {
     expect(variableSuggestions("Costs $12. $", "", 11, 8)).toEqual([]);
   });
 });
+
+describe("shared project variables (#270)", () => {
+  it("offers the other notes' variables too", () => {
+    expect(
+      variableSuggestions("Jen meets $v", "v", 10, 8, "$", [
+        { counts: new Map([["$villain", 3]]), mtime: 1 },
+      ]),
+    ).toEqual(["$villain"]);
+  });
+
+  it("uses this note's spelling, else the most recently changed note's", () => {
+    const others = [
+      { counts: new Map([["$Villain", 1]]), mtime: 1 },
+      { counts: new Map([["$VILLAIN", 1]]), mtime: 2 },
+    ];
+    expect(variableSuggestions("$v", "v", 0, 8, "$", others)).toEqual([
+      "$VILLAIN",
+    ]);
+    expect(
+      variableSuggestions("$villain hides. $v", "v", 16, 8, "$", others),
+    ).toEqual(["$villain"]);
+  });
+
+  it("ranks by use across all the notes", () => {
+    expect(
+      variableSuggestions("$alpha $alpha $a", "a", 14, 8, "$", [
+        { counts: new Map([["$apple", 5]]), mtime: 1 },
+      ]),
+    ).toEqual(["$apple", "$alpha"]);
+  });
+});

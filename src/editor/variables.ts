@@ -98,13 +98,53 @@ export function variableSuggestions(
   skipFrom: number,
   maximum: number,
   prefix = "$",
+  /**
+   * The variables of the other notes in the project folder (#270). A name
+   * is counted across all of them; its spelling is this note's, or else
+   * the most recently changed note's.
+   */
+  others: readonly {
+    counts: ReadonlyMap<string, number>;
+    mtime: number;
+  }[] = [],
 ): string[] {
-  const counts = new Map<string, number>();
+  const own = new Map<string, number>();
   for (const { from, to } of variableRanges(text, 0, prefix)) {
     if (from === skipFrom) continue;
     const name = text.slice(from, to);
-    counts.set(name, (counts.get(name) ?? 0) + 1);
+    own.set(name, (own.get(name) ?? 0) + 1);
   }
+  const byKey = new Map<
+    string,
+    { name: string; count: number; mine: boolean; mtime: number }
+  >();
+  for (const [name, count] of own) {
+    const key = name.toLocaleLowerCase();
+    const entry = byKey.get(key);
+    if (entry === undefined) {
+      byKey.set(key, { name, count, mine: true, mtime: Infinity });
+    } else {
+      entry.count += count;
+    }
+  }
+  for (const note of others) {
+    for (const [name, count] of note.counts) {
+      const key = name.toLocaleLowerCase();
+      const entry = byKey.get(key);
+      if (entry === undefined) {
+        byKey.set(key, { name, count, mine: false, mtime: note.mtime });
+      } else {
+        entry.count += count;
+        if (!entry.mine && note.mtime > entry.mtime) {
+          entry.name = name;
+          entry.mtime = note.mtime;
+        }
+      }
+    }
+  }
+  const counts = new Map(
+    [...byKey.values()].map((entry) => [entry.name, entry.count]),
+  );
   const start = `${prefix}${typed}`.toLocaleLowerCase();
   return [...counts.entries()]
     .filter(
