@@ -38,10 +38,12 @@ import {
   type WorkspaceLeaf,
 } from "obsidian";
 import type { Command, TFile } from "obsidian";
+import { scriptByOutline } from "./projects/relatedNotes";
 import { openCharacterPicker } from "./commands/character";
 import { copyConfiguration } from "./commands/copyConfiguration";
 import { toggleDualDialogueInEditor } from "./commands/dualDialogue";
 import {
+  type BoneyardSource,
   moveSelectionToBoneyard,
   moveToBoneyard,
   wrapSelectionInBoneyard,
@@ -383,7 +385,7 @@ export default class ScribidianPlugin extends Plugin {
       id: "screenplay-wrap-in-boneyard",
       name: "Screenplay: Wrap selection in boneyard",
       editorCheckCallback: (checking, editor, context) => {
-        if (!this.isScreenplayFile(context.file)) return false;
+        if (this.boneyardSource(context.file) === null) return false;
         if (!checking) wrapSelectionInBoneyard(editor);
         return true;
       },
@@ -393,8 +395,9 @@ export default class ScribidianPlugin extends Plugin {
       name: "Screenplay: Move selection to the boneyard note",
       checkCallback: (checking) => {
         const view = this.activeMarkdownView();
-        if (view === null || !this.isScreenplayFile(view.file)) return false;
-        if (!checking) void moveSelectionToBoneyard(this, view);
+        const source = this.boneyardSource(view?.file ?? null);
+        if (view === null || source === null) return false;
+        if (!checking) void moveSelectionToBoneyard(this, view, source);
         return true;
       },
     });
@@ -403,8 +406,9 @@ export default class ScribidianPlugin extends Plugin {
       name: "Screenplay: Move boneyard to the boneyard note",
       checkCallback: (checking) => {
         const view = this.activeMarkdownView();
-        if (view === null || !this.isScreenplayFile(view.file)) return false;
-        if (!checking) void moveToBoneyard(this, view);
+        const source = this.boneyardSource(view?.file ?? null);
+        if (view === null || source === null) return false;
+        if (!checking) void moveToBoneyard(this, view, source);
         return true;
       },
     });
@@ -1452,6 +1456,21 @@ export default class ScribidianPlugin extends Plugin {
       previous();
       restore();
     };
+  }
+
+  /**
+   * Whether the boneyard commands work in `file`: a screenplay, or the note
+   * a screenplay names in its `outline` property (#300).
+   */
+  boneyardSource(file: TFile | null): BoneyardSource | null {
+    if (file === null) return null;
+    if (this.isScreenplayFile(file)) return "script";
+    if (file.extension !== "md") return null;
+    return scriptByOutline(this.app, file, (other) =>
+      this.isScreenplayFile(other),
+    ) === null
+      ? null
+      : "outline";
   }
 
   /**

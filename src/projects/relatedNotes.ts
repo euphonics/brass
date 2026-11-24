@@ -30,7 +30,7 @@ import { TFile, type App, type TFolder } from "obsidian";
 const MAX_DEPTH = 4;
 
 /** A script whose `outline` property links to `file`. */
-function scriptByOutline(
+export function scriptByOutline(
   app: App,
   file: TFile,
   isScript: (file: TFile) => boolean,

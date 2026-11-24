@@ -190,6 +190,11 @@ export function boneyardSection(
   date: string,
   /** The script's link text, as `[[...]]` would hold it. */
   scriptName: string,
+  /**
+   * From an outline (#300): each section is named by the heading the text
+   * sat under, not by a scene.
+   */
+  outline = false,
 ): string {
   const groups: {
     scene: string | null;
@@ -215,7 +220,11 @@ export function boneyardSection(
   return groups
     .map(
       ({ scene, heading, texts }) =>
-        `## ${date} · ${scene ?? "Before the first scene"} ([[${scriptName}${
+        `## ${date} · ${
+          outline
+            ? (heading ?? "Before the first heading")
+            : (scene ?? "Before the first scene")
+        } ([[${scriptName}${
           heading === null ? "" : `#${heading}`
         }]])\n\n${texts.filter((text) => text !== "").join("\n\n")}\n`,
     )

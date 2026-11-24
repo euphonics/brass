@@ -45,6 +45,12 @@ import {
 
 const PROPERTY = "boneyard";
 
+/**
+ * Where the text comes from: a screenplay, or the note a screenplay names
+ * as its outline (#300), which has its own boneyard note.
+ */
+export type BoneyardSource = "script" | "outline";
+
 /** Today as a link to the daily note when Daily notes is on, else text. */
 function today(app: App): string {
   const label = now().format("MMMM DD, YYYY");
@@ -72,7 +78,9 @@ async function boneyardTarget(
   plugin: ScribidianPlugin,
   file: TFile,
   editor: Editor,
+  source: BoneyardSource,
 ): Promise<TFile | null> {
+  const what = source === "outline" ? "outline" : "script";
   const app = plugin.app;
   if (file.extension !== "md") {
     return createOrGet(app, siblingPath(file, "Boneyard"));
@@ -80,10 +88,10 @@ async function boneyardTarget(
   const set = noteFromProperty(app, file, editor.getValue(), PROPERTY);
   if (set !== null) return set;
   const target = await pickNearbyNote(app, file, {
-    title: "Boneyard note for this script",
+    title: `Boneyard note for this ${what}`,
     placeholder: "Pick a note, or create one",
     create: {
-      label: `Create "${file.basename} Boneyard" next to this script`,
+      label: `Create "${file.basename} Boneyard" next to this ${what}`,
       path: siblingPath(file, "Boneyard"),
     },
   });
@@ -104,12 +112,14 @@ async function moveBlocks(
   editor: Editor,
   target: TFile,
   { blocks, edits }: ReturnType<typeof findBoneyard>,
+  source: BoneyardSource,
 ): Promise<void> {
   const app = plugin.app;
   const section = boneyardSection(
     blocks,
     today(app),
     app.metadataCache.fileToLinktext(file, target.path),
+    source === "outline",
   );
   await app.vault.process(target, (text) =>
     text.trim() === "" ? section : `${text.trimEnd()}\n\n${section}`,
@@ -128,6 +138,7 @@ async function moveBlocks(
 export async function moveToBoneyard(
   plugin: ScribidianPlugin,
   view: MarkdownView,
+  source: BoneyardSource = "script",
 ): Promise<void> {
   const file = view.file;
   if (file === null) return;
@@ -136,12 +147,12 @@ export async function moveToBoneyard(
     new Notice("No /* boneyard */ text in this note.");
     return;
   }
-  const target = await boneyardTarget(plugin, file, editor);
+  const target = await boneyardTarget(plugin, file, editor, source);
   if (target === null) return;
   // Read the note again now: setting the property moved the text.
   const found = findBoneyard(editor.getValue());
   if (found.blocks.length === 0) return;
-  await moveBlocks(plugin, file, editor, target, found);
+  await moveBlocks(plugin, file, editor, target, found, source);
   const count =
     found.blocks.length === 1 ? "1 block" : `${found.blocks.length} blocks`;
   new Notice(`Moved ${count} to ${target.basename}.`);
@@ -154,6 +165,7 @@ export async function moveToBoneyard(
 export async function moveSelectionToBoneyard(
   plugin: ScribidianPlugin,
   view: MarkdownView,
+  source: BoneyardSource = "script",
 ): Promise<void> {
   const file = view.file;
   if (file === null) return;
@@ -162,14 +174,14 @@ export async function moveSelectionToBoneyard(
     new Notice("Select the text to move to the boneyard.");
     return;
   }
-  const target = await boneyardTarget(plugin, file, editor);
+  const target = await boneyardTarget(plugin, file, editor, source);
   if (target === null) return;
   // The selection after the property was set (the editor keeps it mapped).
   const from = editor.posToOffset(editor.getCursor("from"));
   const to = editor.posToOffset(editor.getCursor("to"));
   const found = findBoneyard(editor.getValue(), { from, to });
   if (found.blocks.length === 0) return;
-  await moveBlocks(plugin, file, editor, target, found);
+  await moveBlocks(plugin, file, editor, target, found, source);
   new Notice(`Moved the selection to ${target.basename}.`);
 }
 

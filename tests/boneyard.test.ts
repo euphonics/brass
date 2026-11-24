@@ -159,4 +159,32 @@ describe("boneyard for a selection (#294)", () => {
     expect(toggleBoneyardMarkers("A.\nB.", true)).toBe("/*\nA.\nB.\n*/");
     expect(toggleBoneyardMarkers("/*\nA.\nB.\n*/", true)).toBe("A.\nB.");
   });
+
+  it("names outline sections by their heading (#300)", () => {
+    const outline = [
+      "# Act 1",
+      "",
+      "Jen finds the gun.",
+      "",
+      "/* Old beat. */",
+      "",
+      "# Act 2",
+      "",
+      "/* Cut chase. */",
+    ].join("\n");
+    const { blocks } = findBoneyard(outline);
+    const section = boneyardSection(
+      blocks,
+      "November 24, 2026",
+      "Outline",
+      true,
+    );
+    expect(section).toContain(
+      "## November 24, 2026 · Act 1 ([[Outline#Act 1]])",
+    );
+    expect(section).toContain(
+      "## November 24, 2026 · Act 2 ([[Outline#Act 2]])",
+    );
+    expect(section).not.toContain("Before the first scene");
+  });
 });

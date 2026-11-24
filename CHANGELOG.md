@@ -23,6 +23,9 @@ project follows
   becomes `[&` and opens the thread list.
 - **Thread text** now defaults to text then 🧵, and can be **Text only**.
   **Thread color** sets the color of thread text.
+- **Boneyard for outlines**: the boneyard commands work in a screenplay's
+  outline note too, sending text to the outline's own boneyard note under
+  the heading it came from.
 
 ## [0.1.3] - 2026-11-24
 
