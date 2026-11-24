@@ -155,6 +155,8 @@ export interface ScribidianSettings {
   threadsEnabled: boolean;
   /** How a thread shows in the editor (#298). */
   threadDisplay: ThreadDisplay;
+  /** Typing "&&" in a screenplay becomes "[&" (#299). */
+  threadAmpersands: boolean;
   /** Completr's suggestion popup stays closed in screenplay notes (#271). */
   quietCompletrInScripts: boolean;
   /** Extensions the script uses come before (V.O.), (O.S.) and the rest. */
@@ -432,6 +434,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   outlineLinkPlacement: "heading",
   threadsEnabled: true,
   threadDisplay: "left",
+  threadAmpersands: true,
   customExtensionsFirst: false,
   variablePrefix: "$",
   characterMentionPrefix: "+",
@@ -798,7 +801,7 @@ const SETTING_GROUPS: {
   },
   {
     heading: "Threads",
-    keys: ["threadsEnabled", "threadDisplay"],
+    keys: ["threadsEnabled", "threadDisplay", "threadAmpersands"],
   },
   {
     heading: "Page count and status bar",
@@ -1789,6 +1792,16 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Type && to start a thread",
+        desc: "In a screenplay, typing && turns into [& and opens the thread list, so you don't have to reach for the bracket. Not after [ or a third &.",
+        control: {
+          type: "toggle",
+          key: "threadAmpersands",
+          defaultValue: DEFAULT_SETTINGS.threadAmpersands,
+          disabled: () => !this.plugin.settings.threadsEnabled,
+        },
+      },
+      {
         name: "Turn off Completr in screenplays",
         desc: "Completr (a word-completion plugin) opens its own list while you type, on top of Scribidian's. On: Completr stays quiet in screenplay notes and works as usual in every other note. Does nothing if Completr isn't installed.",
         control: {
@@ -2225,6 +2238,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "namesInAction":
       case "quietCompletrInScripts":
       case "threadsEnabled":
+      case "threadAmpersands":
       case "offerFullSlugs":
       case "markCapitalsAsAction":
       case "statusBarEnabled":

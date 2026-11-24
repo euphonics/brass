@@ -2143,6 +2143,29 @@ export function createScreenplayCompletionExtension(
       view.dispatch({ selection: { anchor: from + 1 }, userEvent: "select" });
       return true;
     }),
+    // Typing "&&" in a screenplay starts a thread: it becomes "[&", and the
+    // thread list opens (#299). Faster than reaching for "[".
+    EditorView.inputHandler.of((view, from, to, text) => {
+      if (text !== "&" || from !== to) return false;
+      const { settings } = plugin;
+      if (!settings.threadsEnabled || !settings.threadAmpersands) return false;
+      const { state } = view;
+      if (state.selection.ranges.length > 1) return false;
+      if (from === 0 || state.doc.sliceString(from - 1, from) !== "&") {
+        return false;
+      }
+      // Not "[&&" or "&&&": the writer is typing something else.
+      const before = state.doc.sliceString(Math.max(0, from - 2), from - 1);
+      if (before === "[" || before === "&") return false;
+      const file = state.field(editorInfoField, false)?.file ?? null;
+      if (file === null || !plugin.isScreenplayFile(file)) return false;
+      view.dispatch({
+        changes: { from: from - 1, to, insert: "[&" },
+        selection: { anchor: from + 1 },
+        userEvent: "input.type",
+      });
+      return true;
+    }),
     // Suggestion lists fit inside the editor pane, so one opened near the
     // right edge (a transition) moves left instead of being cut off.
     tooltips({

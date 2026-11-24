@@ -19,6 +19,8 @@ project follows
   (off: `[&name]` is plain text, and the thread list, commands and panel
   go away), and **Thread text** shows the text after the spool, before
   it, or not at all.
+- **Type && to start a thread** (on by default): in a screenplay, `&&`
+  becomes `[&` and opens the thread list.
 
 ## [0.1.3] - 2026-11-24
 
