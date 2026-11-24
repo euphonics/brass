@@ -182,8 +182,8 @@ export function applyBoneyardEdits(
 
 /**
  * The text added to the boneyard note: for each scene, a heading with the
- * date, the slugline, and a link back to the heading the text was under in
- * the script (or to the script when it had none).
+ * slugline, then a line with the date and a link back to the heading the
+ * text was under in the script (or to the script when it had none).
  */
 export function boneyardSection(
   blocks: readonly BoneyardBlock[],
@@ -220,13 +220,15 @@ export function boneyardSection(
   return groups
     .map(
       ({ scene, heading, texts }) =>
-        `## ${date} · ${
+        // The scene or heading as the title, then where and when it came
+        // from on a line of its own (#303).
+        `## ${
           outline
             ? (heading ?? "Before the first heading")
             : (scene ?? "Before the first scene")
-        } ([[${scriptName}${
+        }\n\nArchived on ${date} from [[${scriptName}${
           heading === null ? "" : `#${heading}`
-        }]])\n\n${texts.filter((text) => text !== "").join("\n\n")}\n`,
+        }]]\n\n${texts.filter((text) => text !== "").join("\n\n")}\n`,
     )
     .join("\n");
 }

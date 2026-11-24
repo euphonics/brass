@@ -81,13 +81,17 @@ describe("Move to boneyard (#288)", () => {
     const { blocks } = findBoneyard(script);
     expect(boneyardSection(blocks, "November 23, 2026", "Script")).toBe(
       [
-        "## November 23, 2026 · INT. BARN - DAY ([[Script]])",
+        "## INT. BARN - DAY",
+        "",
+        "Archived on November 23, 2026 from [[Script]]",
         "",
         "A cut beat.",
         "",
         "too slow",
         "",
-        "## November 23, 2026 · EXT. YARD - NIGHT ([[Script]])",
+        "## EXT. YARD - NIGHT",
+        "",
+        "Archived on November 23, 2026 from [[Script]]",
         "",
         "old ending",
         "",
@@ -126,7 +130,7 @@ describe("Move to boneyard (#288)", () => {
     expect(block?.heading).toBe("Act 1");
     expect(
       boneyardSection(block ? [block] : [], "November 24, 2026", "Script"),
-    ).toContain("([[Script#Act 1]])");
+    ).toContain("from [[Script#Act 1]]");
   });
 });
 
@@ -180,10 +184,10 @@ describe("boneyard for a selection (#294)", () => {
       true,
     );
     expect(section).toContain(
-      "## November 24, 2026 · Act 1 ([[Outline#Act 1]])",
+      "## Act 1\n\nArchived on November 24, 2026 from [[Outline#Act 1]]\n\nOld beat.",
     );
     expect(section).toContain(
-      "## November 24, 2026 · Act 2 ([[Outline#Act 2]])",
+      "## Act 2\n\nArchived on November 24, 2026 from [[Outline#Act 2]]\n\nCut chase.",
     );
     expect(section).not.toContain("Before the first scene");
   });

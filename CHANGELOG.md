@@ -26,6 +26,8 @@ project follows
 - **Boneyard for outlines**: the boneyard commands work in a screenplay's
   outline note too, sending text to the outline's own boneyard note under
   the heading it came from.
+- Boneyard sections are titled by the scene or heading alone, with
+  `Archived on <date> from [[link]]` on the line below.
 
 ### Fixed
 
