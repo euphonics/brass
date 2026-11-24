@@ -154,8 +154,12 @@ export default class ScribidianPlugin extends Plugin {
    * the command palette" is on: ones with their own key or menu (Tab,
    * Shift+Backspace, the suggestion lists) or rarely needed.
    */
-  private readonly extraCommands: Command[] = [];
-  private extraCommandsShown = false;
+  private readonly knownCommands = new Map<
+    string,
+    { command: Command; extra: boolean }
+  >();
+  /** Commands registered with Obsidian now (the others are hidden). */
+  private readonly shownCommands = new Set<string>();
   private statusBarItem: HTMLElement | null = null;
   /** Threads ("[&name]"): the vault index and going between places. */
   threads!: ThreadNavigator;
@@ -776,25 +780,58 @@ export default class ScribidianPlugin extends Plugin {
     this.clearProjectViewClasses();
   }
 
-  /** Register a command that only shows with "Show all commands" on. */
-  private addExtraCommand(command: Command): void {
-    // addCommand prefixes the id and name in place: keep a clean copy.
-    this.extraCommands.push({ ...command });
-    if (this.settings.showAllCommands) {
-      this.addCommand({ ...command });
-      this.extraCommandsShown = true;
-    }
+  /**
+   * Every command goes through here, so the Command palette setting can
+   * show or hide each one (#296). A hidden command isn't registered with
+   * Obsidian, so it can't be run from a hotkey either.
+   */
+  addCommand(command: Command): Command {
+    return this.trackCommand(command, false);
   }
 
-  /** Add or remove the extra commands to match the setting. */
+  /** A command hidden by default: it has its own key or menu (Tab, ...). */
+  private addExtraCommand(command: Command): void {
+    this.trackCommand(command, true);
+  }
+
+  private trackCommand(command: Command, extra: boolean): Command {
+    // Obsidian prefixes the id and name in place: keep a clean copy.
+    const clean = { ...command };
+    this.knownCommands.set(clean.id, { command: clean, extra });
+    if (!this.commandShown(clean.id)) return clean;
+    this.shownCommands.add(clean.id);
+    return super.addCommand({ ...clean });
+  }
+
+  /** Whether a command is in the palette: the writer's choice or default. */
+  commandShown(id: string): boolean {
+    const choice = this.settings.commandVisibility[id];
+    if (typeof choice === "boolean") return choice;
+    const known = this.knownCommands.get(id);
+    return known === undefined || !known.extra || this.settings.showAllCommands;
+  }
+
+  /** Every Scribidian command, in the order registered, for the setting. */
+  listCommands(): { id: string; name: string; shown: boolean }[] {
+    return [...this.knownCommands.values()].map(({ command }) => ({
+      id: command.id,
+      name: command.name.replace(/\u200b/gu, ""),
+      shown: this.commandShown(command.id),
+    }));
+  }
+
+  /** Add or remove commands to match the Command palette setting. */
   applyCommandVisibility(): void {
-    const show = this.settings.showAllCommands;
-    if (show === this.extraCommandsShown) return;
-    for (const command of this.extraCommands) {
-      if (show) this.addCommand({ ...command });
-      else this.removeCommand(command.id);
+    for (const [id, { command }] of this.knownCommands) {
+      const shown = this.commandShown(id);
+      if (shown && !this.shownCommands.has(id)) {
+        super.addCommand({ ...command });
+        this.shownCommands.add(id);
+      } else if (!shown && this.shownCommands.has(id)) {
+        this.removeCommand(id);
+        this.shownCommands.delete(id);
+      }
     }
-    this.extraCommandsShown = show;
   }
 
   async loadSettings(): Promise<void> {

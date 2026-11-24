@@ -88,6 +88,8 @@ export interface ScribidianSettings {
   smartTabEnabled: boolean;
   smartEnterEnabled: boolean;
   showAllCommands: boolean;
+  /** Commands the writer showed or hid in the palette, by id (#296). */
+  commandVisibility: Record<string, boolean>;
   indentActionWithSpaces: boolean;
   /** Typing settings, set separately for script and plain mode. */
   capitalizeLineStartsScript: boolean;
@@ -385,6 +387,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   smartTabEnabled: true,
   smartEnterEnabled: true,
   showAllCommands: false,
+  commandVisibility: {},
   tabWithListScript: "pick",
   backspaceEmptyCueToAction: true,
   enterAfterCueMovesDown: true,
@@ -551,6 +554,13 @@ export function migrateSettings(
   ) {
     settings.outlineLinkPlacement = DEFAULT_SETTINGS.outlineLinkPlacement;
   }
+  if (
+    typeof rest.commandVisibility !== "object" ||
+    rest.commandVisibility === null ||
+    Array.isArray(rest.commandVisibility)
+  ) {
+    settings.commandVisibility = {};
+  }
   if (!isTabWithList(rest.tabWithListScript)) {
     settings.tabWithListScript = "pick";
   }
@@ -679,6 +689,8 @@ const MORE_SUGGESTIONS_NAME = "More suggestion settings";
 const MORE_SUGGESTIONS_KEY = "moreSuggestionsToggle";
 const SLUG_ORDER_NAME = "Order of slug suggestions";
 const SLUG_ORDER_KEY = "slugOrderList";
+const COMMANDS_NAME = "Commands in the command palette";
+const COMMANDS_KEY = "commandPaletteList";
 const SLUG_FILL_NAME = "Picking a location fills in";
 const SLUG_FILL_KEY = "slugFillChecks";
 /** Items without a control, placed in their section by name. */
@@ -690,6 +702,7 @@ const NAMED_ITEM_KEYS: Record<string, string> = {
   [MORE_SUGGESTIONS_NAME]: MORE_SUGGESTIONS_KEY,
   [SLUG_ORDER_NAME]: SLUG_ORDER_KEY,
   [SLUG_FILL_NAME]: SLUG_FILL_KEY,
+  [COMMANDS_NAME]: COMMANDS_KEY,
   [CLEAN_EXPORT_NAME]: CLEAN_EXPORT_KEY,
 };
 
@@ -709,7 +722,7 @@ const SETTING_GROUPS: {
       "activateFountainFiles",
       "activateFrontmatter",
       HOTKEYS_KEY,
-      "showAllCommands",
+      COMMANDS_KEY,
     ],
   },
   {
@@ -1037,6 +1050,57 @@ export class ScribidianSettingTab extends PluginSettingTab {
         }
       }
     }
+  }
+
+  /**
+   * A checkbox for each Scribidian command: checked shows it in the
+   * command palette, unchecked hides it (#296). Hidden commands can't be
+   * run from a hotkey either. Some are hidden at first: they have their own
+   * key or menu (Smart Tab, the suggestion lists).
+   */
+  private renderCommandList(setting: Setting): void {
+    setting.setName(COMMANDS_NAME);
+    setting.setDesc(
+      "Uncheck a command to hide it from the command palette and make the list shorter. A hidden command can't be run with a hotkey either: keep it checked to give it one, or to put Smart Tab on the phone toolbar.",
+    );
+    const showAll = setting.controlEl.createEl("button", { text: "Show all" });
+    const reset = setting.controlEl.createEl("button", { text: "Reset" });
+    const list = setting.settingEl.createDiv({
+      cls: "scribidian-command-list",
+    });
+    const draw = (): void => {
+      list.empty();
+      for (const command of this.plugin.listCommands()) {
+        const row = list.createEl("label", { cls: "scribidian-command-row" });
+        const box = row.createEl("input", { type: "checkbox" });
+        box.checked = command.shown;
+        row.createSpan({ text: command.name });
+        box.addEventListener("change", () => {
+          this.plugin.settings.commandVisibility = {
+            ...this.plugin.settings.commandVisibility,
+            [command.id]: box.checked,
+          };
+          void this.plugin.saveSettings();
+          this.plugin.applyCommandVisibility();
+        });
+      }
+    };
+    showAll.addEventListener("click", () => {
+      this.plugin.settings.commandVisibility = Object.fromEntries(
+        this.plugin.listCommands().map((command) => [command.id, true]),
+      );
+      void this.plugin.saveSettings();
+      this.plugin.applyCommandVisibility();
+      draw();
+    });
+    reset.addEventListener("click", () => {
+      this.plugin.settings.commandVisibility = {};
+      this.plugin.settings.showAllCommands = false;
+      void this.plugin.saveSettings();
+      this.plugin.applyCommandVisibility();
+      draw();
+    });
+    draw();
   }
 
   /** Keys of the "show more" rows that are currently open. */
@@ -1744,13 +1808,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
         action: () => this.openPluginHotkeys(),
       },
       {
-        name: "Show all commands in the command palette",
-        desc: "Also list commands that have their own key or menu: Smart Tab and Smart Tab back, Delete and merge with line above or below, New scene, Character, Wryly, Transition and Preview. Turn on to give one a keyboard shortcut or put Smart Tab on the phone toolbar.",
-        control: {
-          type: "toggle",
-          key: "showAllCommands",
-          defaultValue: DEFAULT_SETTINGS.showAllCommands,
-        },
+        name: COMMANDS_NAME,
+        render: (setting) => this.renderCommandList(setting),
       },
       {
         name: ADVANCED_NAME,

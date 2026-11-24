@@ -907,3 +907,19 @@ body {
   margin-inline-start: 0.15em;
   color: var(--scribidian-thread-color);
 }
+
+/* Settings: Commands in the command palette (#296). */
+.scribidian-command-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18em, 1fr));
+  gap: var(--size-2-2) var(--size-4-4);
+  margin-top: var(--size-4-2);
+  width: 100%;
+}
+.scribidian-command-row {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-1);
+  cursor: pointer;
+  font-size: var(--font-ui-small);
+}
