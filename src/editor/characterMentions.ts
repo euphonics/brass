@@ -251,7 +251,7 @@ function nameStarts(
   const walk = (rest: string, used: number[]): void => {
     if (found.length >= 20) return;
     if (rest === "") {
-      if (used.length >= 2) found.push(used.map((index) => names[index]!));
+      if (used.length >= 2) found.push(used.map((index) => names[index]));
       return;
     }
     if (used.length >= 4) return;
