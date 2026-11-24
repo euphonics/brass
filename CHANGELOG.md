@@ -28,6 +28,8 @@ project follows
   the heading it came from.
 - Boneyard sections are titled by the scene or heading alone, with
   `Archived on <date> from [[link]]` on the line below.
+- `+` names: the letters can be the start of each name in turn, so `+zg`
+  finds Zorana and George, from anywhere in the script.
 
 ### Fixed
 

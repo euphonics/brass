@@ -225,5 +225,51 @@ export function mentionGroups(
       add(group),
     );
   }
+
+  // The start of each name in turn (#304): "+zg" finds "Zorana and
+  // George", "+jenbl" "Jen and Blake", from the scene's characters first,
+  // then the script's.
+  if (compactQuery.length >= 2 && compactQuery.length <= 16) {
+    for (const found of nameStarts(compactQuery, everyone, compact)) {
+      add(oxfordList(found), true);
+    }
+  }
   return groups;
+}
+
+/**
+ * Ways to read `query` as the starts of two to four different names, in
+ * order ("ZG": Zorana, George). At most 20, so a long cast stays quick.
+ */
+function nameStarts(
+  query: string,
+  names: readonly string[],
+  compact: (text: string) => string,
+): string[][] {
+  const found: string[][] = [];
+  const keys = names.map(compact);
+  const walk = (rest: string, used: number[]): void => {
+    if (found.length >= 20) return;
+    if (rest === "") {
+      if (used.length >= 2) found.push(used.map((index) => names[index]!));
+      return;
+    }
+    if (used.length >= 4) return;
+    keys.forEach((key, index) => {
+      if (used.includes(index) || key === "") return;
+      let shared = 0;
+      while (
+        shared < key.length &&
+        shared < rest.length &&
+        key[shared] === rest[shared]
+      ) {
+        shared += 1;
+      }
+      for (let length = shared; length >= 1; length -= 1) {
+        walk(rest.slice(length), [...used, index]);
+      }
+    });
+  };
+  walk(query, []);
+  return found;
 }

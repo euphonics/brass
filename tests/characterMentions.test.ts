@@ -54,6 +54,23 @@ describe("mention groups (#255)", () => {
   const spell = (name: string) =>
     name.charAt(0) + name.slice(1).toLocaleLowerCase();
 
+  it("reads letters as the start of each name in turn (#304)", () => {
+    const scene = ["JEN", "BLAKE"];
+    const script = ["ZORANA", "GEORGE", "JEN", "BLAKE"];
+    expect(mentionGroups("zg", [], scene, spell, script)).toContain(
+      "Zorana and George",
+    );
+    expect(mentionGroups("jenbl", [], scene, spell, script)).toContain(
+      "Jen and Blake",
+    );
+    expect(mentionGroups("zgj", [], scene, spell, script)).toContain(
+      "Zorana, George, and Jen",
+    );
+    expect(mentionGroups("gz", [], scene, spell, script)).toContain(
+      "George and Zorana",
+    );
+  });
+
   it("offers written groups, then scene pairs, then the Oxford list", () => {
     expect(mentionGroups("Je", [], ["JEN", "BLAKE", "GEORGE"], spell)).toEqual([
       "Jen and Blake",
