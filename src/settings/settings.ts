@@ -264,9 +264,14 @@ const CLEAN_EXPORT_SETTINGS: {
     },
   },
   {
-    option: "removeEmbeds",
-    name: "Remove embeds",
-    desc: "Embedded images and notes, like ![[image.png]].",
+    option: "embeds",
+    name: "Embeds",
+    desc: "Embedded notes and images, like ![[Scene notes]] or ![[image.png]]. Include text: the embedded note's text goes into the export where the embed is (a heading or block embed brings just that part), cleaned like the script, and embeds inside it up to three levels; an embed inside a sentence stays on that line. Images are left out for now.",
+    choices: {
+      remove: "Remove",
+      include: "Include text",
+      keep: "Keep",
+    },
   },
   {
     option: "markdownLinks",

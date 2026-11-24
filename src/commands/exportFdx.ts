@@ -20,7 +20,7 @@ import type { MarkdownView } from "obsidian";
 import type ScribidianPlugin from "../main";
 import { fdxExportPath, serializeFdx } from "../export/fdx";
 import { loadScreenplayContext } from "../projects/vault";
-import { printedScreenplay } from "./exportFountain";
+import { printedScreenplay, sourceWithEmbeds } from "./exportFountain";
 
 export async function exportFdx(
   plugin: ScribidianPlugin,
@@ -44,7 +44,13 @@ export async function exportFdx(
   const content = serializeFdx(
     printedScreenplay(
       plugin,
-      context.source,
+      await sourceWithEmbeds(
+        plugin,
+        context.source,
+        context.owner.path,
+        clean,
+        "fdx",
+      ),
       context.document.titlePage,
       clean,
       "fdx",

@@ -9,6 +9,11 @@ project follows
 
 ### Added (writer wish list, 2026-11-23)
 
+- Clean export's **Embeds** can be **Include text** (per format): the
+  embedded note, heading section or block goes into the export and
+  preview in place of `![[...]]`, cleaned like the script; embeds inside
+  it up to three levels. Images are left out for now.
+
 - Outlines and other notes that belong with a script (in its project
   folder, its own folder, or named in its `outline` property) get `+`
   character names and the script's `$` variables, without the screenplay

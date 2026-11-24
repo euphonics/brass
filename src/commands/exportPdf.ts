@@ -23,7 +23,7 @@ import type * as PdfExport from "../export/pdf";
 // plugin's size) loads on the first export, not when Obsidian starts.
 type PdfModule = typeof PdfExport;
 import { loadScreenplayContext } from "../projects/vault";
-import { printedScreenplay } from "./exportFountain";
+import { printedScreenplay, sourceWithEmbeds } from "./exportFountain";
 import { ScreenplayLayoutError } from "../export/screenplayLayout";
 
 const activeExports = new WeakSet<ScribidianPlugin>();
@@ -66,7 +66,13 @@ export async function exportPdf(
     );
     const document = printedScreenplay(
       plugin,
-      context.source,
+      await sourceWithEmbeds(
+        plugin,
+        context.source,
+        context.owner.path,
+        clean,
+        "pdf",
+      ),
       context.document.titlePage,
       clean,
     );

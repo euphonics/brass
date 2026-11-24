@@ -69,8 +69,11 @@ export interface CleanExportOptions {
   removeTasks: boolean;
   /** `[[file name|alias]]`: see WikilinkHandling. */
   wikilinks: WikilinkHandling;
-  /** `![[image.png]]` and `![alt](image.png)`. */
-  removeEmbeds: boolean;
+  /**
+   * `![[note]]`, `![[image.png]]` and `![alt](image.png)`: remove, include
+   * the embedded note's text (#272), or keep as written.
+   */
+  embeds: EmbedHandling;
   /** `[name](link)`: see MarkdownLinkHandling. */
   markdownLinks: MarkdownLinkHandling;
   /** ```` ``` ```` / `~~~` fenced code blocks. */
@@ -105,6 +108,11 @@ export interface CleanExportOptions {
   removeTags: boolean;
 }
 
+/** What a clean export does with an embed (#272). */
+export type EmbedHandling = "remove" | "include" | "keep";
+
+const EMBED_HANDLING: readonly EmbedHandling[] = ["remove", "include", "keep"];
+
 /** What a clean export does with a `%% comment %%` or `// line comment`. */
 export type CommentHandling = "keep" | "note" | "boneyard" | "remove";
 
@@ -123,7 +131,7 @@ const COMMENT_HANDLING: readonly CommentHandling[] = [
 export const DEFAULT_CLEAN_EXPORT_OPTIONS: CleanExportOptions = {
   removeTasks: true,
   wikilinks: "alias",
-  removeEmbeds: true,
+  embeds: "remove",
   markdownLinks: "name",
   codeBlocks: "remove",
   removeHeadings: false,
@@ -261,6 +269,12 @@ export function normalizeCleanExportOptions(
   }
   if (stored.lineComments === undefined && stored.removeLineComments === false)
     options.lineComments = "keep";
+  // "Remove embeds" was a toggle: off kept them (#272).
+  if (!EMBED_HANDLING.includes(options.embeds)) {
+    options.embeds = defaults.embeds;
+  }
+  if (stored.embeds === undefined && stored.removeEmbeds === false)
+    options.embeds = "keep";
   if (!COMMENT_HANDLING.includes(options.comments)) {
     options.comments = defaults.comments;
   }
@@ -328,7 +342,9 @@ export function closeGaps(text: string): string {
 
 function cleanInline(line: string, options: CleanExportOptions): string {
   let text = line;
-  if (options.removeEmbeds) text = text.replace(EMBED, GAP);
+  // "Include text": the export put the embedded text in before cleaning;
+  // what's left (images, missing notes) goes.
+  if (options.embeds !== "keep") text = text.replace(EMBED, GAP);
   if (options.wikilinks === "alias" || options.wikilinks === "file")
     text = unwrapWikilinks(text, options.wikilinks);
   if (options.wikilinks === "remove") {

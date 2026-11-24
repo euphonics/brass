@@ -19,7 +19,7 @@ import type { MarkdownView } from "obsidian";
 import type ScribidianPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
 import { ScreenplayPreviewModal } from "../ui/screenplayPreviewModal";
-import { printedScreenplay } from "./exportFountain";
+import { printedScreenplay, sourceWithEmbeds } from "./exportFountain";
 import { exportPdf } from "./exportPdf";
 
 export async function previewScreenplay(
@@ -37,7 +37,17 @@ export async function previewScreenplay(
   const title = context.project?.project.title ?? context.owner.basename;
   new ScreenplayPreviewModal(
     plugin.app,
-    printedScreenplay(plugin, context.source, context.document.titlePage),
+    printedScreenplay(
+      plugin,
+      await sourceWithEmbeds(
+        plugin,
+        context.source,
+        context.owner.path,
+        true,
+        "pdf",
+      ),
+      context.document.titlePage,
+    ),
     plugin.settings.pageSize,
     title,
     () => exportPdf(plugin, view, true),

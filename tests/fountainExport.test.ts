@@ -100,7 +100,7 @@ Hello.
     expect(
       cleanFountainSource(source, {
         ...DEFAULT_CLEAN_EXPORT_OPTIONS,
-        removeEmbeds: false,
+        embeds: "keep",
       }),
     ).toBe(
       [
@@ -127,7 +127,7 @@ Hello.
     const none: CleanExportOptions = {
       removeTasks: false,
       wikilinks: "keep",
-      removeEmbeds: false,
+      embeds: "keep",
       markdownLinks: "keep",
       codeBlocks: "keep",
       removeHeadings: false,
@@ -187,10 +187,7 @@ Hello.
       cleanFountainSource("A ==big== moment", on({ removeHighlights: true })),
     ).toBe("A big moment");
     expect(
-      cleanFountainSource(
-        "Look ![[photo.png]] here",
-        on({ removeEmbeds: true }),
-      ),
+      cleanFountainSource("Look ![[photo.png]] here", on({ embeds: "remove" })),
     ).toBe("Look here");
     expect(
       cleanFountainSource("She runs #idea/later", on({ removeTags: true })),
@@ -303,7 +300,7 @@ Hello.
     const unwrap = (text: string) =>
       cleanFountainSource(text, {
         ...DEFAULT_CLEAN_EXPORT_OPTIONS,
-        removeEmbeds: false,
+        embeds: "keep",
         wikilinks: "alias",
         markdownLinks: "name",
       });
