@@ -451,6 +451,7 @@ export function createScreenplayCompletionExtension(
       (name) => mentionText(name, typed, editorSource),
       known,
       names,
+      plugin.settings.fuzzyCharacterGroups,
     );
     // Keep a few groups in view even when many names match.
     const keepGroups = Math.min(

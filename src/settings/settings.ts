@@ -167,6 +167,11 @@ export interface ScribidianSettings {
   variablePrefix: string;
   /** Typed in action to list the characters: "+" by default. */
   characterMentionPrefix: string;
+  /**
+   * "+" groups also match loosely (#305): spaces and commas skipped, the
+   * start of each name in turn ("+zg" for Zorana and George).
+   */
+  fuzzyCharacterGroups: boolean;
   recentItemsWeighting: number;
   maximumSuggestions: number;
   preferredSceneTypes: string[];
@@ -441,6 +446,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   customExtensionsFirst: false,
   variablePrefix: "$",
   characterMentionPrefix: "+",
+  fuzzyCharacterGroups: true,
   recentItemsWeighting: 0.65,
   maximumSuggestions: 8,
   preferredSceneTypes: DEFAULT_SCENE_TYPES,
@@ -799,13 +805,15 @@ const SETTING_GROUPS: {
       "sceneTypeMinimumLetters",
       "sceneTypeMatchCase",
       "characterMatchCase",
-      "namesInAction",
       "quietCompletrInScripts",
       "outlineLinkPlacement",
       "customExtensionsFirst",
       "variablePrefix",
-      "characterMentionPrefix",
     ],
+  },
+  {
+    heading: "Character names in action",
+    keys: ["namesInAction", "characterMentionPrefix", "fuzzyCharacterGroups"],
   },
   {
     heading: "Threads",
@@ -1873,6 +1881,15 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Fuzzy group matching",
+        desc: "Groups of characters in the + list also match loosely: spaces and commas can be skipped (+jenandb for Jen and Blake), a list can use the start of each name (+j,b), and letters can be the start of each name in turn (+zg for Zorana and George). Off: a group is offered only when it starts with exactly what you typed, and names in a list are typed in full.",
+        control: {
+          type: "toggle",
+          key: "fuzzyCharacterGroups",
+          defaultValue: DEFAULT_SETTINGS.fuzzyCharacterGroups,
+        },
+      },
+      {
         name: "Maximum suggestions",
         desc: "The most suggestions shown at once.",
         control: {
@@ -2264,6 +2281,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       case "sceneTypeMatchCase":
       case "characterMatchCase":
       case "namesInAction":
+      case "fuzzyCharacterGroups":
       case "quietCompletrInScripts":
       case "threadsEnabled":
       case "threadAmpersands":

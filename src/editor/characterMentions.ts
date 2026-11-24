@@ -129,7 +129,9 @@ export function sceneCharacters(
  *   (`Jen, Blake, and Helios`), and the rest of the scene.
  *
  * `names` are the names already offered above, so a group isn't listed
- * twice; `others` are the script's other characters.
+ * twice; `others` are the script's other characters. `fuzzy` (a setting,
+ * #305): off, a group must start with exactly what was typed, names in a
+ * list are typed in full, and letters aren't read as name starts.
  */
 export function mentionGroups(
   typed: string,
@@ -138,6 +140,7 @@ export function mentionGroups(
   spell: (name: string) => string,
   others: readonly string[] = [],
   names: readonly string[] = [],
+  fuzzy = true,
 ): string[] {
   const query = typed.trimStart().toLocaleUpperCase();
   const caps = typedInCapitals(typed);
@@ -154,7 +157,12 @@ export function mentionGroups(
     const text = caps ? group.toLocaleUpperCase() : group;
     const key = text.toLocaleUpperCase();
     if (seen.has(key) || key === query) return;
-    if (!matched && !compact(key).startsWith(compactQuery)) return;
+    if (
+      !matched &&
+      !(fuzzy ? compact(key).startsWith(compactQuery) : key.startsWith(query))
+    ) {
+      return;
+    }
     seen.add(key);
     groups.push(text);
   };
@@ -180,9 +188,11 @@ export function mentionGroups(
     const chosen = chosenText.map(
       (part) =>
         everyone.find((name) => same(name, part)) ??
-        everyone.find((name) =>
-          name.toLocaleUpperCase().startsWith(part.toLocaleUpperCase()),
-        ),
+        (fuzzy
+          ? everyone.find((name) =>
+              name.toLocaleUpperCase().startsWith(part.toLocaleUpperCase()),
+            )
+          : undefined),
     );
     if (chosen.length > 0 && chosen.every((name) => name !== undefined)) {
       const picked = chosen;
@@ -229,7 +239,7 @@ export function mentionGroups(
   // The start of each name in turn (#304): "+zg" finds "Zorana and
   // George", "+jenbl" "Jen and Blake", from the scene's characters first,
   // then the script's.
-  if (compactQuery.length >= 2 && compactQuery.length <= 16) {
+  if (fuzzy && compactQuery.length >= 2 && compactQuery.length <= 16) {
     for (const found of nameStarts(compactQuery, everyone, compact)) {
       add(oxfordList(found), true);
     }

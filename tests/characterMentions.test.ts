@@ -174,6 +174,17 @@ describe("fuzzier + groups (#286)", () => {
     );
   });
 
+  it("matches only exactly when fuzzy matching is off (#305)", () => {
+    const script = ["ZORANA", "GEORGE", "JEN", "BLAKE"];
+    const strict = (typed: string) =>
+      mentionGroups(typed, [], scene, spell, script, [], false);
+    expect(strict("zg")).toEqual([]);
+    expect(strict("Jenandb")).toEqual([]);
+    expect(strict("j,b")).toEqual([]);
+    expect(strict("Jen and B")).toEqual(["Jen and Blake"]);
+    expect(strict("Je")).toContain("Jen and Blake");
+  });
+
   it("takes the start of a name in a list: +j,b", () => {
     expect(mentionGroups("j,b", [], scene, spell)).toContain(
       "Jen, Blake, and George",

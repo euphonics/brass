@@ -9,6 +9,10 @@ project follows
 
 ### Added
 
+- **Fuzzy group matching** (Settings → Character names in action, on by
+  default): turn it off so `+` groups are offered only when they start
+  with exactly what you typed. The `+` and "Suggest character names in
+  action" settings now have their own section.
 - **Commands in the command palette** (Settings → Getting started): check
   or uncheck each Scribidian command to show or hide it in the palette.
   Replaces **Show all commands**. Hidden at first: the commands with
