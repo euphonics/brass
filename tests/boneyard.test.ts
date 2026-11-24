@@ -46,9 +46,9 @@ describe("Move to boneyard (#288)", () => {
   it("finds each block and the scene it was in", () => {
     const { blocks } = findBoneyard(script);
     expect(blocks).toEqual([
-      { text: "A cut beat.", scene: "INT. BARN - DAY" },
-      { text: "too slow", scene: "INT. BARN - DAY" },
-      { text: "old ending", scene: "EXT. YARD - NIGHT" },
+      { text: "A cut beat.", scene: "INT. BARN - DAY", heading: null },
+      { text: "too slow", scene: "INT. BARN - DAY", heading: null },
+      { text: "old ending", scene: "EXT. YARD - NIGHT", heading: null },
     ]);
   });
 
@@ -78,7 +78,7 @@ describe("Move to boneyard (#288)", () => {
 
   it("writes one dated heading per scene", () => {
     const { blocks } = findBoneyard(script);
-    expect(boneyardSection(blocks, "November 23, 2026", "[[Script]]")).toBe(
+    expect(boneyardSection(blocks, "November 23, 2026", "Script")).toBe(
       [
         "## November 23, 2026 · INT. BARN - DAY ([[Script]])",
         "",
@@ -92,5 +92,39 @@ describe("Move to boneyard (#288)", () => {
         "",
       ].join("\n"),
     );
+  });
+
+  it("links back to the heading above where the block starts", () => {
+    const outer = [
+      "# Act 1",
+      "",
+      "## The scene where this happens",
+      "",
+      "EXT. NEW SLUG - DAY",
+      "",
+      "Action.",
+      "",
+      "/*",
+      "INT. THE ACTUAL SLUGLINE - DAY",
+      "",
+      "The content.",
+      "*/",
+    ].join("\n");
+    expect(findBoneyard(outer).blocks[0]?.heading).toBe(
+      "The scene where this happens",
+    );
+    const inner = [
+      "# Act 1",
+      "/*",
+      "## The scene where this happens",
+      "",
+      "EXT. NEW SLUG - DAY",
+      "*/",
+    ].join("\n");
+    const block = findBoneyard(inner).blocks[0];
+    expect(block?.heading).toBe("Act 1");
+    expect(
+      boneyardSection(block ? [block] : [], "November 24, 2026", "Script"),
+    ).toContain("([[Script#Act 1]])");
   });
 });

@@ -217,7 +217,7 @@ export async function moveToBoneyard(
   const section = boneyardSection(
     blocks,
     today(app),
-    `[[${app.metadataCache.fileToLinktext(file, target.path)}]]`,
+    app.metadataCache.fileToLinktext(file, target.path),
   );
   await app.vault.process(target, (text) =>
     text.trim() === "" ? section : `${text.trimEnd()}\n\n${section}`,

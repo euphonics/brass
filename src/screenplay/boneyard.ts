@@ -23,6 +23,12 @@ export interface BoneyardBlock {
   text: string;
   /** The slugline of the scene it was in, or null before the first. */
   scene: string | null;
+  /**
+   * The Markdown heading above where the block starts (a heading inside
+   * the block doesn't count), linked from the boneyard note; null when
+   * there is none.
+   */
+  heading: string | null;
 }
 
 /** A change to the script: replace `from`..`to` with `insert`. */
@@ -56,6 +62,19 @@ export function findBoneyard(source: string): {
     const next = source.indexOf("\n", offset);
     return next === -1 ? source.length : next;
   };
+  const headingBefore = (offset: number): string | null => {
+    let at = lineStartOf(offset);
+    while (at > bodyStart) {
+      const previousEnd = at - 1;
+      const previousStart = lineStartOf(previousEnd);
+      const heading = /^#{1,6}[ \t]+(.+?)[ \t#]*$/u.exec(
+        source.slice(previousStart, previousEnd),
+      );
+      if (heading) return heading[1] ?? null;
+      at = previousStart;
+    }
+    return null;
+  };
   const sceneBefore = (offset: number): string | null => {
     let at = lineStartOf(offset);
     while (at > bodyStart) {
@@ -76,7 +95,11 @@ export function findBoneyard(source: string): {
     if (close === -1) break;
     const blockEnd = close + 2;
     const text = source.slice(open + 2, close).trim();
-    blocks.push({ text, scene: sceneBefore(open) });
+    blocks.push({
+      text,
+      scene: sceneBefore(open),
+      heading: headingBefore(open),
+    });
 
     const startLine = lineStartOf(open);
     const endLine = lineEndOf(blockEnd);
@@ -140,28 +163,42 @@ export function applyBoneyardEdits(
 
 /**
  * The text added to the boneyard note: for each scene, a heading with the
- * date and where it came from, then its blocks.
+ * date, the slugline, and a link back to the heading the text was under in
+ * the script (or to the script when it had none).
  */
 export function boneyardSection(
   blocks: readonly BoneyardBlock[],
   date: string,
-  scriptLink: string,
+  /** The script's link text, as `[[...]]` would hold it. */
+  scriptName: string,
 ): string {
-  const groups: { scene: string | null; texts: string[] }[] = [];
+  const groups: {
+    scene: string | null;
+    heading: string | null;
+    texts: string[];
+  }[] = [];
   for (const block of blocks) {
     const last = groups[groups.length - 1];
-    if (last !== undefined && last.scene === block.scene) {
+    if (
+      last !== undefined &&
+      last.scene === block.scene &&
+      last.heading === block.heading
+    ) {
       last.texts.push(block.text);
     } else {
-      groups.push({ scene: block.scene, texts: [block.text] });
+      groups.push({
+        scene: block.scene,
+        heading: block.heading,
+        texts: [block.text],
+      });
     }
   }
   return groups
     .map(
-      ({ scene, texts }) =>
-        `## ${date} · ${scene ?? "Before the first scene"} (${scriptLink})\n\n${texts
-          .filter((text) => text !== "")
-          .join("\n\n")}\n`,
+      ({ scene, heading, texts }) =>
+        `## ${date} · ${scene ?? "Before the first scene"} ([[${scriptName}${
+          heading === null ? "" : `#${heading}`
+        }]])\n\n${texts.filter((text) => text !== "").join("\n\n")}\n`,
     )
     .join("\n");
 }
