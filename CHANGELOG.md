@@ -18,6 +18,8 @@ project follows
 
 ### Added
 
+- **Courier Prime on every device.** Brass brings its own Courier Prime, so scripts use it on phones and tablets too, without installing the font.
+
 - **Project notes get `&&`, `$` colors and name suggestions**: typing
   `&&` to start a thread, the color on `$variables`, and character names
   suggested for capitals (JE for Jen) now work in a screenplay's outline

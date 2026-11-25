@@ -49,6 +49,7 @@ import { scriptByOutline, scriptForRelatedNote } from "./projects/relatedNotes";
 import { renderThreads } from "./threads/threadRender";
 import { openCharacterPicker } from "./commands/character";
 import { BRASS_ICON, registerBrassIcon } from "./ui/brassIcon";
+import { registerBundledFont } from "./editor/bundledFont";
 import { copyConfiguration } from "./commands/copyConfiguration";
 import { toggleDualDialogueInEditor } from "./commands/dualDialogue";
 import {
@@ -283,6 +284,17 @@ export default class BrassPlugin extends Plugin {
     this.app.workspace.onLayoutReady(() => this.followLinkOnThreads());
     registerFountainCodeBlockProcessor(this);
     registerBrassIcon();
+    // Courier Prime on every device (phones have no installed copy), in
+    // the main window and in pop-out windows.
+    this.register(registerBundledFont(this.app.workspace.containerEl.doc));
+    this.registerEvent(
+      this.app.workspace.on("window-open", (win) =>
+        win.doc.defaultView?.addEventListener(
+          "unload",
+          registerBundledFont(win.doc),
+        ),
+      ),
+    );
     this.registerOwnView(
       SCENES_VIEW_TYPE,
       (leaf) => new ScenesView(leaf, this),

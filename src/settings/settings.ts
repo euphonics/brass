@@ -2067,7 +2067,7 @@ export class BrassSettingTab extends PluginSettingTab {
       },
       {
         name: "Screenplay font",
-        desc: "The font for scripts in the editor. PDFs always use Courier Prime, like a printed script; the page preview uses it too when it is installed on this device, otherwise Courier.",
+        desc: "The font for scripts in the editor. Courier Prime comes with Brass, so it works on every device, phones included. PDFs and the page preview always use it, like a printed script.",
         control: {
           type: "dropdown",
           key: "screenplayFont",
