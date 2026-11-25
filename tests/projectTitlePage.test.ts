@@ -62,7 +62,7 @@ function fixture(project = false) {
         frontmatter:
           project && file.path === owner.path
             ? {
-                scribidian: "screenplay-project",
+                brass: "screenplay-project",
                 title: "Project Title",
                 parts: ["Part"],
               }

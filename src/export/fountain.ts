@@ -91,7 +91,7 @@ export interface CleanExportOptions {
    */
   comments: CommentHandling;
   /**
-   * Line comments, `// note` to the end of the line (Scribidian): keep,
+   * Line comments, `// note` to the end of the line (Brass): keep,
    * turn into a Fountain note (`[[note]]`) or boneyard (`/* note *\/`),
    * or remove.
    */
@@ -593,7 +593,7 @@ export function cleanFountainSource(
 }
 
 /**
- * Put `!` in front of lines Scribidian reads as action that plain Fountain
+ * Put `!` in front of lines Brass reads as action that plain Fountain
  * (and Final Draft, Fade In) would read as a character: a line in capitals
  * ending in punctuation ("BANG!") with text right under it. Other lines
  * are left as they are.

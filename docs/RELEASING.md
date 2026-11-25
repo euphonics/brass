@@ -1,4 +1,4 @@
-# Releasing Scribidian
+# Releasing Brass
 
 Releases are built by GitHub Actions from an exact semantic-version tag. The
 tag must not have a `v` prefix because Obsidian requires it to match the version
@@ -63,7 +63,7 @@ Create and push an annotated tag whose name exactly matches the manifest
 version:
 
 ```bash
-git tag -a <version> -m "Scribidian <version>"
+git tag -a <version> -m "Brass <version>"
 git push origin <version>
 ```
 
@@ -88,7 +88,7 @@ version unless the tag never produced a public release.
 5. Verify the downloaded assets' provenance with:
 
    ```bash
-   gh attestation verify main.js -R euphonics/scribidian
-   gh attestation verify manifest.json -R euphonics/scribidian
-   gh attestation verify styles.css -R euphonics/scribidian
+   gh attestation verify main.js -R euphonics/brass
+   gh attestation verify manifest.json -R euphonics/brass
+   gh attestation verify styles.css -R euphonics/brass
    ```

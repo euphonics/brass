@@ -16,13 +16,13 @@
  */
 
 // Copies the built plugin (main.js, manifest.json, styles.css) into a
-// vault's .obsidian/plugins/scribidian folder. Usage:
+// vault's .obsidian/plugins/brass folder. Usage:
 //   node scripts/install-vault.mjs dev     (the Dev vault, for testing)
 //   node scripts/install-vault.mjs notes   (the everyday Notes vault, once
 //                                           a batch is tested in Dev)
 //   node scripts/install-vault.mjs <vault folder>
 //
-// Installing into Notes also resets Scribidian's settings to the defaults
+// Installing into Notes also resets Brass's settings to the defaults
 // (the writer's rule: every Notes install starts from the defaults, so they
 // check what a new user gets), except which commands show in the command
 // palette (#296). The old settings are kept as
@@ -54,7 +54,7 @@ const VAULTS = {
 const target = process.argv[2] ?? "dev";
 const keepSettings = process.argv.includes("--keep-settings");
 const vaultRoot = VAULTS[target] ?? path.resolve(target);
-const pluginRoot = path.join(vaultRoot, ".obsidian", "plugins", "scribidian");
+const pluginRoot = path.join(vaultRoot, ".obsidian", "plugins", "brass");
 const projectRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
@@ -63,7 +63,7 @@ const projectRoot = path.resolve(
 // Only install into a plugin folder that already exists: a mistyped path
 // should fail, not create a stray vault.
 await stat(pluginRoot).catch(() => {
-  throw new Error(`No Scribidian plugin folder at ${pluginRoot}`);
+  throw new Error(`No Brass plugin folder at ${pluginRoot}`);
 });
 
 const resetSettings = target === "notes" && !keepSettings;
@@ -90,7 +90,7 @@ if (resetSettings) {
       .slice(10);
     for (const name of old) await rm(path.join(backups, name));
     // Everything back to the defaults, except the writer's choice of
-    // commands in the command palette (#296): Scribidian fills in the rest.
+    // commands in the command palette (#296): Brass fills in the rest.
     const stored = JSON.parse(await readFile(data, "utf8"));
     const kept =
       stored && typeof stored.commandVisibility === "object"
@@ -105,17 +105,17 @@ if (resetSettings) {
       await rm(data);
     }
     console.log(
-      `Reset Scribidian settings to defaults, keeping your command palette choices (backup: ${backup})`,
+      `Reset Brass settings to defaults, keeping your command palette choices (backup: ${backup})`,
     );
   } else {
-    console.log("Scribidian settings were already the defaults.");
+    console.log("Brass settings were already the defaults.");
   }
 }
 
 for (const name of ["main.js", "manifest.json", "styles.css"]) {
   await copyFile(path.join(projectRoot, name), path.join(pluginRoot, name));
 }
-console.log(`Installed Scribidian in ${pluginRoot}`);
+console.log(`Installed Brass in ${pluginRoot}`);
 
 // Reload the running plugin, so it reads the defaults rather than saving
 // its old settings again. Needs Obsidian open with its command line on;
@@ -127,14 +127,14 @@ if (resetSettings && process.platform === "win32") {
       [
         "-NoProfile",
         "-Command",
-        "obsidian vault=Notes plugin:reload id=scribidian",
+        "obsidian vault=Notes plugin:reload id=brass",
       ],
       { timeout: 30000 },
       (error, stdout) => {
         console.log(
           error
-            ? "Couldn't reload Scribidian in Obsidian: reload it (or restart Obsidian) before changing any setting."
-            : stdout.trim() || "Reloaded Scribidian in Notes.",
+            ? "Couldn't reload Brass in Obsidian: reload it (or restart Obsidian) before changing any setting."
+            : stdout.trim() || "Reloaded Brass in Notes.",
         );
         resolve();
       },

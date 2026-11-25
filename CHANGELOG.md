@@ -7,6 +7,10 @@ project follows
 
 ## [Unreleased]
 
+### Changed
+
+- **Scribidian is now Brass**, named after the brass brads that bind a script. New plugin ID (`brass`), repo (`euphonics/brass`), logo (a brass brad) and note property (`brass:` instead of `scribidian:`). The first start copies your Scribidian settings and custom hotkeys and turns Scribidian off. The new command **Convert Scribidian properties in this folder** renames the property in a script's notes and the character folder; old notes keep working without it.
+
 ### Added
 
 - **Project notes get `&&`, `$` colors and name suggestions**: typing

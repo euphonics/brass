@@ -26,16 +26,16 @@ export class CheatSheetModal extends Modal {
 
   onOpen(): void {
     this.setTitle("Screenplay cheat sheet");
-    this.contentEl.addClass("scribidian-cheat-sheet");
+    this.contentEl.addClass("brass-cheat-sheet");
     this.contentEl.createEl("p", {
-      cls: "scribidian-palette-muted",
+      cls: "brass-palette-muted",
       text: "Examples are selectable. Use your normal copy shortcut after selecting the text you need.",
     });
 
     for (const section of CHEAT_SHEET_SECTIONS) {
       this.contentEl.createEl("h3", { text: section.title });
       this.contentEl.createEl("p", {
-        cls: "scribidian-palette-muted",
+        cls: "brass-palette-muted",
         text: section.introduction,
       });
       const entries = this.contentEl.createEl("dl");
@@ -57,9 +57,9 @@ export class CheatSheetModal extends Modal {
     term: string,
     example: string,
   ): void {
-    const row = container.createDiv({ cls: "scribidian-cheat-example" });
+    const row = container.createDiv({ cls: "brass-cheat-example" });
     const field = row.createEl("textarea", {
-      cls: "scribidian-cheat-example-text",
+      cls: "brass-cheat-example-text",
       attr: {
         "aria-label": `${term} example`,
         readonly: "",

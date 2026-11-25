@@ -16,7 +16,7 @@
  */
 
 import type { Editor } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { COMMON_TRANSITIONS } from "../screenplay/fountain";
 import { buildScreenplayIndex, rankUsages } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
@@ -39,7 +39,7 @@ function unique(values: readonly string[]): string[] {
   });
 }
 
-export function openTransition(plugin: ScribidianPlugin, editor: Editor): void {
+export function openTransition(plugin: BrassPlugin, editor: Editor): void {
   const index = buildScreenplayIndex(parseFountain(editor.getValue()));
   const discovered = rankUsages(
     index.transitions,

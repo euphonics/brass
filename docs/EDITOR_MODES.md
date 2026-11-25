@@ -1,12 +1,12 @@
 # Editor modes
 
-Scribidian has two editor modes, chosen in **Settings → Scribidian → Editor
+Brass has two editor modes, chosen in **Settings → Brass → Editor
 mode**, or switched with the command **Screenplay: Toggle script/Fountain
 mode**. Both edit the same plain Fountain text; only the display and the
 typing help differ.
 
 - **Script mode** (screenplay layout): the page is laid out like a
-  screenplay, and Scribidian may shape typing (for example Smart Enter). The
+  screenplay, and Brass may shape typing (for example Smart Enter). The
   [strict typing plan](ROADMAP.md#strict-typing-plan) grows this mode towards
   Final Draft and Fade In.
 - **Plain mode** (Fountain text): plain text and free typing.
@@ -59,5 +59,5 @@ by default; check `plugin.typingChangeEnabled(...)`.
 | Status bar, Scenes panel, inspector, commands                                       | Yes          | Yes                                                |
 
 These settings have a Plain and a Script column under
-**Settings → Scribidian → Typing in each mode**. **Screenplay: Toggle strict
+**Settings → Brass → Typing in each mode**. **Screenplay: Toggle strict
 cursor placement** turns strict on or off for the current mode.

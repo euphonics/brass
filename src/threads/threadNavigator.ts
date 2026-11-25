@@ -28,7 +28,7 @@ import {
   type EditorSuggestTriggerInfo,
 } from "obsidian";
 import { EditorView } from "@codemirror/view";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { projectForFile } from "../projects/vault";
 import { resolveCharacterFolder } from "../projects/model";
 import { characterPagesForScope } from "../characters/vault";
@@ -48,7 +48,7 @@ import {
  * `firstPaths` are the project's parts, which come first when cycling.
  */
 export function threadScope(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   file: TFile,
 ): { files: TFile[]; firstPaths: string[] } {
   const { app } = plugin;
@@ -111,7 +111,7 @@ export class ThreadIndex {
     { mtime: number; marks: ThreadMark[]; text: string }
   >();
 
-  constructor(private readonly plugin: ScribidianPlugin) {}
+  constructor(private readonly plugin: BrassPlugin) {}
 
   private async read(
     file: TFile,
@@ -177,7 +177,7 @@ export class ThreadIndex {
 export class ThreadNavigator {
   readonly index: ThreadIndex;
 
-  constructor(readonly plugin: ScribidianPlugin) {
+  constructor(readonly plugin: BrassPlugin) {
     this.index = new ThreadIndex(plugin);
   }
 
@@ -434,7 +434,7 @@ export class ThreadSuggest extends EditorSuggest<{
   ): void {
     el.createSpan({ text: `🧵 ${value.name}` });
     el.createSpan({
-      cls: "scribidian-thread-count",
+      cls: "brass-thread-count",
       text: ` ${value.count}`,
     });
   }

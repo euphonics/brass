@@ -158,7 +158,7 @@ This is the first draft.
     const pdf = await PDFDocument.load(bytes);
     expect(pdf.getPageCount()).toBe(1);
     expect(pdf.getTitle()).toBe("The Long Night");
-    expect(pdf.getCreator()).toBe("Scribidian");
+    expect(pdf.getCreator()).toBe("Brass");
   });
 
   it("uses A4 dimensions when configured", async () => {

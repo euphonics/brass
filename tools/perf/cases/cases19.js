@@ -1,6 +1,6 @@
 const pre =
   "Jen.\n\nINT. KITCHEN - DAY\n\nToast.\n\nINT. KITCHEN - NIGHT (FLASHBACK)\n\nDark.\n\nINT. KITCHEN HALLWAY - DAWN\n\nX.\n\n";
-const pl = app.plugins.plugins.scribidian;
+const pl = app.plugins.plugins.brass;
 window.__savedSlug = [
   pl.settings.offerFullSlugs,
   pl.settings.slugSuggestionOrder,

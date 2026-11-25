@@ -25,9 +25,9 @@ const projectRoot = path.resolve(
   "..",
 );
 const vaultRoot = path.resolve(
-  process.argv[2] ?? path.join(projectRoot, "Scribidian Test Vault"),
+  process.argv[2] ?? path.join(projectRoot, "Brass Test Vault"),
 );
-const pluginRoot = path.join(vaultRoot, ".obsidian", "plugins", "scribidian");
+const pluginRoot = path.join(vaultRoot, ".obsidian", "plugins", "brass");
 const characterRoot = path.join(vaultRoot, "Characters");
 const projectRootFolder = path.join(vaultRoot, "Long Night");
 const projectPartsFolder = path.join(projectRootFolder, "Parts");
@@ -54,7 +54,7 @@ const sceneDemoFolder = path.join(vaultRoot, "Scene Workspace Demo");
 await mkdir(path.join(sceneDemoFolder, "Elsewhere"), { recursive: true });
 const sceneDemoFiles = {
   "Project.md": `---
-scribidian: screenplay-project
+brass: screenplay-project
 title: The Last Train
 parts:
   - "[[01 - Arrival]]"
@@ -121,7 +121,7 @@ const inspectorRoot = path.join(vaultRoot, "Continuity Inspector Demo");
 await mkdir(path.join(inspectorRoot, "Characters"), { recursive: true });
 const inspectorFiles = {
   "Project.md": `---
-scribidian: screenplay-project
+brass: screenplay-project
 title: Inspector demo
 parts:
   - "[[Opening]]"
@@ -161,7 +161,7 @@ screenplay-project: "[[Continuity Inspector Demo/Project]]"
 出発しましょう。
 `,
   "Characters/Elise.md": `---
-scribidian: character
+brass: character
 character: ELISE
 aliases:
   - ÉLISE
@@ -172,7 +172,7 @@ screenplays:
 # Elise
 `,
   "Characters/Miller.md": `---
-scribidian: character
+brass: character
 character: MILLER
 screenplays:
   - "[[Continuity Inspector Demo/Project]]"
@@ -207,7 +207,7 @@ await copyFile(
 await writeFile(
   path.join(projectRootFolder, "Screenplay Project.md"),
   `---
-scribidian: screenplay-project
+brass: screenplay-project
 title: The Long Night
 parts:
   - "[[Parts/01 - Opening]]"
@@ -312,7 +312,7 @@ await writeFile(
 await writeFile(
   path.join(characterRoot, "Jane.md"),
   `---
-scribidian: character
+brass: character
 character: JANE
 aliases:
   - DR. JANE MORROW
@@ -345,7 +345,7 @@ Jane works at the military base.
 await writeFile(
   path.join(characterRoot, "Miller.md"),
   `---
-scribidian: character
+brass: character
 character: MILLER
 aliases: []
 screenplays:
@@ -373,4 +373,4 @@ related:
   if (error?.code !== "EEXIST") throw error;
 });
 
-console.log(`Installed Scribidian in test vault: ${vaultRoot}`);
+console.log(`Installed Brass in test vault: ${vaultRoot}`);

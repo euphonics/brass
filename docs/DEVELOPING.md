@@ -1,6 +1,6 @@
-# Developing Scribidian
+# Developing Brass
 
-For people who want to build, test or change Scribidian. Writers don't need
+For people who want to build, test or change Brass. Writers don't need
 any of this: see the [README](../README.md) instead. Contribution rules are in
 [CONTRIBUTING](../CONTRIBUTING.md).
 
@@ -22,14 +22,14 @@ Run `npm run dev` for a watch build.
 ## Test safely in Obsidian
 
 Never develop against your everyday vault. Build and install into the ignored,
-repository-local `Scribidian Test Vault` directory:
+repository-local `Brass Test Vault` directory:
 
 ```bash
 npm run test-vault
 ```
 
-Then open the visible `Scribidian Test Vault` directory as a separate Obsidian
-vault, enable or reload **Scribidian** in Settings → Community plugins, and
+Then open the visible `Brass Test Vault` directory as a separate Obsidian
+vault, enable or reload **Brass** in Settings → Community plugins, and
 open `Long Night/Screenplay Project.md` for project testing or `Milestone 4.md`
 for the standalone-screenplay checks.
 
@@ -51,7 +51,7 @@ Expected result:
 - put the caret on JANE or MILLER and run
   `Screenplay: Open or create character page`, then confirm the dossier shows
   linked screenplay usage and relationships;
-- do the same on REEVES and confirm Scribidian creates `Characters/Reeves.md`
+- do the same on REEVES and confirm Brass creates `Characters/Reeves.md`
   without modifying the screenplay;
 - before creating REEVES, run `Screenplay: Check Characters` and confirm it is
   reported as missing; run it again afterwards to clear that warning;
@@ -64,10 +64,10 @@ Expected result:
   common or custom direction;
 - on a blank line, run `Screenplay: Transition` and pick a common or custom
   transition;
-- run `Screenplay: Export to Fountain`; Scribidian opens a new sibling
+- run `Screenplay: Export to Fountain`; Brass opens a new sibling
   `.fountain` file with the Obsidian frontmatter removed, leaving the original
   note untouched;
-- run `Screenplay: Export to Final Draft FDX`; Scribidian creates a new sibling
+- run `Screenplay: Export to Final Draft FDX`; Brass creates a new sibling
   `.fdx` file without changing the source. Open that file in Final Draft and
   confirm the slugline, action, character extension, wryly,
   dialogue, and transition retain their element types;
@@ -78,7 +78,7 @@ Expected result:
   file opens in another screenplay app and a second export uses a numbered
   filename rather than overwriting the first;
 - switch page size, minutes per page, or individual status fields under
-  Settings → Scribidian and confirm the display updates;
+  Settings → Brass and confirm the display updates;
 - use `Milestone 3 Settings Demo.md` when comparing Letter/A4 or runtime ratios;
   its length makes the differences visible without editing the fixture;
 - type `JA` on the final blank line: choose `JANE` with Tab or Enter and start
@@ -102,7 +102,7 @@ into the dedicated Dev vault (`~/Code/Obsidian Dev Vault/Dev`), used for all
 live testing. Once a batch is tested there, `npm run install-notes` copies
 the same build into the everyday Notes vault. GitHub releases (through BRAT)
 are for other testers, once per tested batch. Both scripts refuse a vault
-without a `.obsidian/plugins/scribidian` folder.
+without a `.obsidian/plugins/brass` folder.
 
 To use another dedicated test vault:
 
@@ -124,6 +124,6 @@ harness is possible, but it would be platform-specific and more brittle than
 the model-level tests. The remaining acceptance check is therefore a short run
 in the isolated Obsidian vault; see [FDX compatibility](FDX_COMPATIBILITY.md).
 
-Scribidian keeps mobile support enabled. Before the public release, follow the
+Brass keeps mobile support enabled. Before the public release, follow the
 [mobile testing checklist](MOBILE_TESTING.md) on at least one physical
 device and record the Obsidian and operating-system versions used.

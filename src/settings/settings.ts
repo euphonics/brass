@@ -29,7 +29,7 @@ import {
   type SlugSuggestionKind,
 } from "../editor/completionEngine";
 import type { App, SettingDefinitionItem, SettingGroupItem } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import {
   DEFAULT_ENTER_TARGETS,
   DEFAULT_TAB_TARGETS,
@@ -76,7 +76,7 @@ import {
 /** Editor look for screenplay notes. */
 export type EditorLayout = "screenplay" | "plain";
 
-export interface ScribidianSettings {
+export interface BrassSettings {
   activateFountainFiles: boolean;
   activateFrontmatter: boolean;
   autocompleteEnabled: boolean;
@@ -204,7 +204,7 @@ export interface ScribidianSettings {
   cleanExportPdf: CleanExportOptions;
   /** What "Export to clean Final Draft FDX" removes. */
   cleanExportFdx: CleanExportOptions;
-  /** Fountain export: "!" in front of capitals Scribidian reads as action. */
+  /** Fountain export: "!" in front of capitals Brass reads as action. */
   markCapitalsAsAction: boolean;
   /** PDF export (and the page preview): which parts print in bold. */
   pdfBold: PdfBoldOptions;
@@ -224,7 +224,7 @@ const CLEAN_EXPORT_KEYS: Record<
 
 /** What a clean export to `format` removes. */
 export function cleanExportFor(
-  settings: ScribidianSettings,
+  settings: BrassSettings,
   format: CleanExportFormat,
 ): CleanExportOptions {
   return normalizeCleanExportOptions(
@@ -393,7 +393,7 @@ const CLEAN_EXPORT_SETTINGS: {
 
 const PDF_BOLD_PREFIX = "pdfBold.";
 
-export const DEFAULT_SETTINGS: ScribidianSettings = {
+export const DEFAULT_SETTINGS: BrassSettings = {
   activateFountainFiles: true,
   activateFrontmatter: true,
   autocompleteEnabled: true,
@@ -479,11 +479,11 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
 };
 
 /**
- * Settings where Scribidian's default differs from Fade In, with Fade In's
+ * Settings where Brass's default differs from Fade In, with Fade In's
  * value. For a future "Use Fade In behavior" preset button; each such
  * setting says "Off is Fade In's behavior" in its description.
  */
-export const FADE_IN_DEFAULTS: Partial<ScribidianSettings> = {
+export const FADE_IN_DEFAULTS: Partial<BrassSettings> = {
   backspaceEmptyCueToAction: false,
   enterAfterCueMovesDown: false,
   tabAtDialogueStartAddsWryly: false,
@@ -536,11 +536,11 @@ function isTabWithList(value: unknown): value is TabWithList {
 
 export function migrateSettings(
   stored: Record<string, unknown> | null,
-): ScribidianSettings {
+): BrassSettings {
   const { capitalizeLineStarts, tabInside, ...rest } = stored ?? {};
   const settings = {
     ...DEFAULT_SETTINGS,
-    ...(rest as Partial<ScribidianSettings>),
+    ...(rest as Partial<BrassSettings>),
   };
   settings.enterTargets = normalizeEnterTargets(rest.enterTargets);
   settings.pdfBold = normalizePdfBold(rest.pdfBold);
@@ -648,7 +648,7 @@ export function migrateSettings(
   return settings;
 }
 
-function isSettingKey(key: string): key is keyof ScribidianSettings {
+function isSettingKey(key: string): key is keyof BrassSettings {
   return key in DEFAULT_SETTINGS;
 }
 
@@ -757,7 +757,7 @@ interface SubSection {
 export const SETTING_SECTIONS: {
   heading: string;
   keys: (string | SubSection)[];
-  master?: keyof ScribidianSettings;
+  master?: keyof BrassSettings;
   /** Open the first time the tab is shown. */
   open?: boolean;
 }[] = [
@@ -883,7 +883,7 @@ export const SETTING_SECTIONS: {
  * covers several, a PDF bold toggle is part of `pdfBold`. Used to count
  * and reset a section's changes.
  */
-export function storedKeys(key: string): (keyof ScribidianSettings)[] {
+export function storedKeys(key: string): (keyof BrassSettings)[] {
   if (key === TYPING_CHANGES_KEY) {
     return TYPING_CHANGE_ROWS.flatMap((row) => [row.script, row.plain]);
   }
@@ -909,7 +909,7 @@ export function storedKeys(key: string): (keyof ScribidianSettings)[] {
 /** Stored settings of a section (or one sub-section), without repeats. */
 function sectionStoredKeys(
   keys: readonly (string | SubSection)[],
-): (keyof ScribidianSettings)[] {
+): (keyof BrassSettings)[] {
   return [
     ...new Set(
       keys.flatMap((key) => (typeof key === "string" ? storedKeys(key) : [])),
@@ -919,8 +919,8 @@ function sectionStoredKeys(
 
 /** True when a stored setting differs from its default. */
 export function isChanged(
-  settings: ScribidianSettings,
-  key: keyof ScribidianSettings,
+  settings: BrassSettings,
+  key: keyof BrassSettings,
 ): boolean {
   return (
     JSON.stringify(settings[key]) !== JSON.stringify(DEFAULT_SETTINGS[key])
@@ -960,14 +960,14 @@ export function groupSettings(
   const grouped = SETTING_SECTIONS.map(({ heading, keys }) => ({
     type: "group" as const,
     heading,
-    cls: "scribidian-section",
+    cls: "brass-section",
     items: keys.flatMap((key): SettingGroupItem[] => {
       if (typeof key !== "string") {
         const row: SettingGroupItem = {
           name: key.subsection,
           searchable: false,
           render: (setting: Setting) => {
-            setting.settingEl.addClass("scribidian-sub-toggle");
+            setting.settingEl.addClass("brass-sub-toggle");
             setting.settingEl.dataset.sub = key.subsection;
             setting.setName(key.subsection);
           },
@@ -989,7 +989,7 @@ export function groupSettings(
           {
             type: "group" as const,
             heading: "Other",
-            cls: "scribidian-section",
+            cls: "brass-section",
             items: rest,
           },
         ]
@@ -1047,10 +1047,10 @@ class ConfirmResetModal extends Modal {
   }
 }
 
-export class ScribidianSettingTab extends PluginSettingTab {
+export class BrassSettingTab extends PluginSettingTab {
   constructor(
     app: App,
-    private readonly plugin: ScribidianPlugin,
+    private readonly plugin: BrassPlugin,
   ) {
     super(app, plugin);
     // Keep the "changed" counts current after any control changes.
@@ -1089,7 +1089,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
   private sectionGroups(): HTMLElement[] {
     return Array.from(
       this.containerEl.querySelectorAll<HTMLElement>(
-        ".setting-group.scribidian-section",
+        ".setting-group.brass-section",
       ),
     );
   }
@@ -1113,15 +1113,15 @@ export class ScribidianSettingTab extends PluginSettingTab {
         .join("")
         .trim();
       group.dataset.section = title;
-      heading.addClass("scribidian-section-heading");
+      heading.addClass("brass-section-heading");
       this.makeFoldable(heading, nameEl, title);
-      if (heading.querySelector(".scribidian-section-badges") === null) {
+      if (heading.querySelector(".brass-section-badges") === null) {
         const badges = (nameEl ?? heading).createSpan({
-          cls: "scribidian-section-badges",
+          cls: "brass-section-badges",
         });
-        badges.createSpan({ cls: "scribidian-badge scribidian-badge-off" });
+        badges.createSpan({ cls: "brass-badge brass-badge-off" });
         badges.createSpan({
-          cls: "scribidian-badge scribidian-badge-changed",
+          cls: "brass-badge brass-badge-changed",
         });
       }
       const spec = SETTING_SECTIONS.find(
@@ -1129,13 +1129,13 @@ export class ScribidianSettingTab extends PluginSettingTab {
       );
       if (
         spec !== undefined &&
-        heading.querySelector(".scribidian-section-reset") === null
+        heading.querySelector(".brass-section-reset") === null
       ) {
         const control =
           heading.querySelector<HTMLElement>(".setting-item-control") ??
           heading.createDiv({ cls: "setting-item-control" });
         const reset = control.createEl("button", {
-          cls: "clickable-icon scribidian-section-reset",
+          cls: "clickable-icon brass-section-reset",
           attr: { "aria-label": `Reset ${title} settings to their defaults` },
         });
         setIcon(reset, "rotate-ccw");
@@ -1145,14 +1145,14 @@ export class ScribidianSettingTab extends PluginSettingTab {
         });
       }
       for (const row of Array.from(
-        group.querySelectorAll<HTMLElement>(".scribidian-sub-toggle"),
+        group.querySelectorAll<HTMLElement>(".brass-sub-toggle"),
       )) {
         const sub = row.dataset.sub ?? "";
         const subName = row.querySelector<HTMLElement>(".setting-item-name");
         this.makeFoldable(row, subName, `${title}/${sub}`);
-        if (row.querySelector(".scribidian-badge-changed") === null) {
+        if (row.querySelector(".brass-badge-changed") === null) {
           (subName ?? row).createSpan({
-            cls: "scribidian-badge scribidian-badge-changed",
+            cls: "brass-badge brass-badge-changed",
           });
         }
       }
@@ -1174,12 +1174,12 @@ export class ScribidianSettingTab extends PluginSettingTab {
     nameEl: HTMLElement | null,
     key: string,
   ): void {
-    row.addClass("scribidian-foldable");
+    row.addClass("brass-foldable");
     row.dataset.foldKey = key;
     row.setAttr("role", "button");
     row.setAttr("tabindex", "0");
-    if (row.querySelector(".scribidian-fold-chevron") === null) {
-      const chevron = createSpan({ cls: "scribidian-fold-chevron" });
+    if (row.querySelector(".brass-fold-chevron") === null) {
+      const chevron = createSpan({ cls: "brass-fold-chevron" });
       setIcon(chevron, "chevron-right");
       (nameEl ?? row).prepend(chevron);
     }
@@ -1212,21 +1212,21 @@ export class ScribidianSettingTab extends PluginSettingTab {
     for (const group of this.sectionGroups()) {
       const title = group.dataset.section ?? "";
       const isOpen = open.has(title);
-      group.toggleClass("scribidian-collapsed", !isOpen);
+      group.toggleClass("brass-collapsed", !isOpen);
       group
-        .querySelector(":scope > .scribidian-foldable")
+        .querySelector(":scope > .brass-foldable")
         ?.setAttr("aria-expanded", String(isOpen));
       let subOpen = true;
       for (const item of Array.from(
         group.querySelectorAll<HTMLElement>(".setting-items > .setting-item"),
       )) {
-        if (item.hasClass("scribidian-sub-toggle")) {
+        if (item.hasClass("brass-sub-toggle")) {
           subOpen = open.has(`${title}/${item.dataset.sub ?? ""}`);
           item.setAttr("aria-expanded", String(subOpen));
-          item.toggleClass("scribidian-sub-open", subOpen);
+          item.toggleClass("brass-sub-open", subOpen);
           continue;
         }
-        item.toggleClass("scribidian-sub-hidden", !subOpen);
+        item.toggleClass("brass-sub-hidden", !subOpen);
       }
     }
   }
@@ -1245,24 +1245,24 @@ export class ScribidianSettingTab extends PluginSettingTab {
         isChanged(settings, key),
       ).length;
       const off = spec.master !== undefined && settings[spec.master] === false;
-      group.toggleClass("scribidian-master-off", off);
+      group.toggleClass("brass-master-off", off);
       const heading = group.querySelector(":scope > .setting-item-heading");
       heading
-        ?.querySelector(".scribidian-badge-off")
+        ?.querySelector(".brass-badge-off")
         ?.setText(off ? "Off" : "");
       heading
-        ?.querySelector(".scribidian-badge-changed")
+        ?.querySelector(".brass-badge-changed")
         ?.setText(label(changed));
       heading
-        ?.querySelector(".scribidian-section-reset")
-        ?.toggleClass("scribidian-hidden", changed === 0);
+        ?.querySelector(".brass-section-reset")
+        ?.toggleClass("brass-hidden", changed === 0);
       for (const row of Array.from(
-        group.querySelectorAll<HTMLElement>(".scribidian-sub-toggle"),
+        group.querySelectorAll<HTMLElement>(".brass-sub-toggle"),
       )) {
         const count = sectionStoredKeys(
           subSectionKeys(spec.keys, row.dataset.sub ?? ""),
         ).filter((key) => isChanged(settings, key)).length;
-        row.querySelector(".scribidian-badge-changed")?.setText(label(count));
+        row.querySelector(".brass-badge-changed")?.setText(label(count));
       }
     }
   }
@@ -1270,7 +1270,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
   /** Ask, then put a section's settings back to their defaults. */
   private confirmReset(
     title: string,
-    keys: readonly (keyof ScribidianSettings)[],
+    keys: readonly (keyof BrassSettings)[],
   ): void {
     const changed = keys.filter((key) => isChanged(this.plugin.settings, key));
     if (changed.length === 0) return;
@@ -1284,7 +1284,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
   }
 
   private async resetSettings(
-    keys: readonly (keyof ScribidianSettings)[],
+    keys: readonly (keyof BrassSettings)[],
   ): Promise<void> {
     const settings = this.plugin.settings as unknown as Record<string, unknown>;
     for (const key of keys) {
@@ -1307,13 +1307,13 @@ export class ScribidianSettingTab extends PluginSettingTab {
     return [
       {
         type: "group",
-        cls: "scribidian-settings-search",
+        cls: "brass-settings-search",
         items: [
           {
             name: "Search settings",
             searchable: false,
             render: (setting) => {
-              setting.settingEl.addClass("scribidian-settings-search-row");
+              setting.settingEl.addClass("brass-settings-search-row");
               setting.infoEl.remove();
               setting.addSearch((search) => {
                 search.setPlaceholder("Type to find a setting…");
@@ -1322,7 +1322,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
                   this.query = value;
                   this.filterSettings();
                 });
-                search.inputEl.addClass("scribidian-settings-search-input");
+                search.inputEl.addClass("brass-settings-search-input");
               });
               // Reapply the search after each re-render of the tab.
               const expand = setting.controlEl.createEl("button", {
@@ -1357,12 +1357,12 @@ export class ScribidianSettingTab extends PluginSettingTab {
    * turns that whole mode on or off.
    */
   private renderTypingChanges(setting: Setting): void {
-    setting.settingEl.addClass("scribidian-settings-table-row");
+    setting.settingEl.addClass("brass-settings-table-row");
     setting.infoEl.remove();
     setting.controlEl.remove();
     const settings = this.plugin.settings;
     const table = setting.settingEl.createEl("table", {
-      cls: "scribidian-settings-table scribidian-typing-table",
+      cls: "brass-settings-table brass-typing-table",
     });
     const head = table.createEl("thead").createEl("tr");
     head.createEl("th", { text: "Setting" });
@@ -1386,7 +1386,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
 
     for (const { mode, title } of columns) {
       const label = head
-        .createEl("th", { cls: "scribidian-typing-mode" })
+        .createEl("th", { cls: "brass-typing-mode" })
         .createEl("label");
       const master = label.createEl("input", { type: "checkbox" });
       master.setAttr(
@@ -1411,13 +1411,13 @@ export class ScribidianSettingTab extends PluginSettingTab {
 
     for (const row of TYPING_CHANGE_ROWS) {
       const tr = body.createEl("tr");
-      const info = tr.createEl("td", { cls: "scribidian-typing-info" });
+      const info = tr.createEl("td", { cls: "brass-typing-info" });
       info.createDiv({ cls: "setting-item-name", text: row.name });
       info.createDiv({ cls: "setting-item-description", text: row.desc });
       for (const { mode, title } of columns) {
         const key = row[mode];
         const box = tr
-          .createEl("td", { cls: "scribidian-typing-mode" })
+          .createEl("td", { cls: "brass-typing-mode" })
           .createEl("input", { type: "checkbox" });
         box.checked = settings[key];
         box.setAttr("aria-label", `${title} mode: ${row.name}`);
@@ -1440,20 +1440,20 @@ export class ScribidianSettingTab extends PluginSettingTab {
    * each with its own checkbox or dropdown. Plain exports keep everything.
    */
   private renderCleanExport(setting: Setting): void {
-    setting.settingEl.addClass("scribidian-settings-table-row");
+    setting.settingEl.addClass("brass-settings-table-row");
     setting.infoEl.remove();
     setting.controlEl.remove();
     setting.settingEl.createDiv({
-      cls: "setting-item-description scribidian-settings-table-note",
+      cls: "setting-item-description brass-settings-table-note",
       text: "What the clean exports leave out: Export to clean Fountain, Export clean PDF (and the page preview), and Export to clean Final Draft FDX. The other exports keep everything. Your script is never changed.",
     });
     const table = setting.settingEl.createEl("table", {
-      cls: "scribidian-settings-table scribidian-clean-table",
+      cls: "brass-settings-table brass-clean-table",
     });
     const head = table.createEl("thead").createEl("tr");
     head.createEl("th", { text: "Markup" });
     for (const { title } of CLEAN_EXPORT_COLUMNS) {
-      head.createEl("th", { cls: "scribidian-clean-format", text: title });
+      head.createEl("th", { cls: "brass-clean-format", text: title });
     }
     const body = table.createEl("tbody");
     for (const {
@@ -1465,11 +1465,11 @@ export class ScribidianSettingTab extends PluginSettingTab {
       fixed,
     } of CLEAN_EXPORT_SETTINGS) {
       const tr = body.createEl("tr");
-      const info = tr.createEl("td", { cls: "scribidian-clean-info" });
+      const info = tr.createEl("td", { cls: "brass-clean-info" });
       info.createDiv({ cls: "setting-item-name", text: name });
       info.createDiv({ cls: "setting-item-description", text: desc });
       for (const { format, title } of CLEAN_EXPORT_COLUMNS) {
-        const cell = tr.createEl("td", { cls: "scribidian-clean-format" });
+        const cell = tr.createEl("td", { cls: "brass-clean-format" });
         const choices = choicesFor?.[format] ?? allChoices;
         const reason = fixed?.[format];
         if (reason !== undefined) {
@@ -1511,7 +1511,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
   }
 
   /**
-   * A checkbox for each Scribidian command: checked shows it in the
+   * A checkbox for each Brass command: checked shows it in the
    * command palette, unchecked hides it (#296). Hidden commands can't be
    * run from a hotkey either. Some are hidden at first: they have their own
    * key or menu (Smart Tab, the suggestion lists).
@@ -1519,14 +1519,14 @@ export class ScribidianSettingTab extends PluginSettingTab {
   private renderCommandList(setting: Setting): void {
     setting.setName(COMMANDS_NAME);
     // The list goes on its own row under the name and buttons.
-    setting.settingEl.addClass("scribidian-command-setting");
+    setting.settingEl.addClass("brass-command-setting");
     setting.setDesc(
       "Uncheck a command to hide it from the command palette and make the list shorter. A hidden command can't be run with a hotkey either: keep it checked to give it one, or to put Smart Tab on the phone toolbar.",
     );
     const showAll = setting.controlEl.createEl("button", { text: "Show all" });
     const reset = setting.controlEl.createEl("button", { text: "Reset" });
     const list = setting.settingEl.createDiv({
-      cls: "scribidian-command-list",
+      cls: "brass-command-list",
     });
     const draw = (): void => {
       list.empty();
@@ -1534,7 +1534,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
         a.name.localeCompare(b.name),
       );
       for (const command of commands) {
-        const row = list.createEl("label", { cls: "scribidian-command-row" });
+        const row = list.createEl("label", { cls: "brass-command-row" });
         const box = row.createEl("input", { type: "checkbox" });
         box.checked = command.shown;
         row.createSpan({ text: command.name });
@@ -1577,17 +1577,17 @@ export class ScribidianSettingTab extends PluginSettingTab {
         "Most recent: the last slug used with that location (KITCHEN - NIGHT (FLASHBACK))",
       shortest: "Shortest: the location alone (KITCHEN), then the times",
     };
-    const list = setting.settingEl.createDiv({ cls: "scribidian-order-list" });
+    const list = setting.settingEl.createDiv({ cls: "brass-order-list" });
     let dragged: SlugSuggestionKind | null = null;
     const draw = (): void => {
       list.empty();
       const order = slugOrder(this.plugin.settings.slugSuggestionOrder);
       order.forEach((kind, at) => {
         const row = list.createDiv({
-          cls: "scribidian-order-item",
+          cls: "brass-order-item",
           attr: { draggable: "true", "data-kind": kind },
         });
-        row.createSpan({ cls: "scribidian-order-handle", text: "⋮⋮" });
+        row.createSpan({ cls: "brass-order-handle", text: "⋮⋮" });
         row.createSpan({ text: `${at + 1}. ${labels[kind]}` });
         const move = row.createEl("button", {
           text: at === 0 ? "Move down" : "Move up",
@@ -1635,7 +1635,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
     ] as const;
     for (const { key, label } of options) {
       const wrap = setting.controlEl.createEl("label", {
-        cls: "scribidian-slug-fill-option",
+        cls: "brass-slug-fill-option",
       });
       const box = wrap.createEl("input", { type: "checkbox" });
       box.checked = this.plugin.settings[key];
@@ -1662,7 +1662,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
    * its default).
    */
   private renderEnterTargets(setting: Setting): void {
-    setting.settingEl.addClass("scribidian-settings-table-row");
+    setting.settingEl.addClass("brass-settings-table-row");
     setting.infoEl.remove();
     setting.controlEl.remove();
     const columns = [
@@ -1678,15 +1678,15 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
     ];
     setting.settingEl.createDiv({
-      cls: "scribidian-settings-subheading",
+      cls: "brass-settings-subheading",
       text: "At the end of a line",
     });
     setting.settingEl.createDiv({
-      cls: "setting-item-description scribidian-settings-table-note",
+      cls: "setting-item-description brass-settings-table-note",
       text: 'What pressing Tab or Enter at the end of a line starts next, with Smart Tab or Smart Enter on. Enter works this way in script mode only. Tab first completes a slugline (" - ", the time of day, a modifier); its choice applies after that. What they do in the middle of a line is set in the next two tables. Shift+Enter is always a plain line break that keeps the same element.',
     });
     const table = setting.settingEl.createEl("table", {
-      cls: "scribidian-settings-table scribidian-enter-table",
+      cls: "brass-settings-table brass-enter-table",
     });
     const head = table.createEl("thead").createEl("tr");
     head.createEl("th", { text: "Element" });
@@ -1727,11 +1727,11 @@ export class ScribidianSettingTab extends PluginSettingTab {
       }
     }
     const button = setting.settingEl.createEl("button", {
-      cls: "scribidian-settings-table-more",
+      cls: "brass-settings-table-more",
     });
     const update = (): void => {
       for (const tr of moreRows) {
-        tr.toggleClass("scribidian-hidden", !this.showAllEnterRows);
+        tr.toggleClass("brass-hidden", !this.showAllEnterRows);
       }
       button.setText(this.showAllEnterRows ? "Show less" : "Show more");
     };
@@ -1748,11 +1748,11 @@ export class ScribidianSettingTab extends PluginSettingTab {
   /** What Tab does while a suggestion list is open (script mode). */
   private renderTabWithList(parent: HTMLElement): void {
     parent.createDiv({
-      cls: "scribidian-settings-subheading",
+      cls: "brass-settings-subheading",
       text: "Tab with a list open",
     });
     parent.createDiv({
-      cls: "setting-item-description scribidian-settings-table-note",
+      cls: "setting-item-description brass-settings-table-note",
       text: "Script mode only. Picks: the highlighted suggestion goes in. Moves to the next element: the list closes and the key works as if it weren't open, so on an empty line after a transition it goes to the character column. Enter always picks. In Fountain mode the key always picks.",
     });
     const select = parent.createEl("select", { cls: "dropdown" });
@@ -1810,15 +1810,15 @@ export class ScribidianSettingTab extends PluginSettingTab {
     },
   ): void {
     parent.createDiv({
-      cls: "scribidian-settings-subheading",
+      cls: "brass-settings-subheading",
       text: spec.heading,
     });
     parent.createDiv({
-      cls: "setting-item-description scribidian-settings-table-note",
+      cls: "setting-item-description brass-settings-table-note",
       text: spec.note,
     });
     const table = parent.createEl("table", {
-      cls: "scribidian-settings-table scribidian-enter-table",
+      cls: "brass-settings-table brass-enter-table",
     });
     const head = table.createEl("thead").createEl("tr");
     head.createEl("th", { text: "Element" });
@@ -1891,8 +1891,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
     for (const group of Array.from(
       this.containerEl.querySelectorAll<HTMLElement>(".setting-group"),
     )) {
-      if (group.hasClass("scribidian-settings-search")) continue;
-      group.toggleClass("scribidian-searching", words.length > 0);
+      if (group.hasClass("brass-settings-search")) continue;
+      group.toggleClass("brass-searching", words.length > 0);
       const heading =
         group.querySelector(":scope > .setting-item-heading")?.textContent ??
         "";
@@ -1900,12 +1900,12 @@ export class ScribidianSettingTab extends PluginSettingTab {
       let subRow: HTMLElement | null = null;
       let subShown = false;
       const closeSub = (): void => {
-        subRow?.toggleClass("scribidian-hidden", !subShown);
+        subRow?.toggleClass("brass-hidden", !subShown);
       };
       for (const item of Array.from(
         group.querySelectorAll<HTMLElement>(".setting-items > .setting-item"),
       )) {
-        if (item.hasClass("scribidian-sub-toggle")) {
+        if (item.hasClass("brass-sub-toggle")) {
           closeSub();
           subRow = item;
           subShown = words.length === 0;
@@ -1914,14 +1914,14 @@ export class ScribidianSettingTab extends PluginSettingTab {
         const text =
           `${heading} ${subRow?.textContent ?? ""} ${item.textContent ?? ""}`.toLocaleLowerCase();
         const match = words.every((word) => text.includes(word));
-        item.toggleClass("scribidian-hidden", !match);
+        item.toggleClass("brass-hidden", !match);
         if (match) {
           shown += 1;
           subShown = true;
         }
       }
       closeSub();
-      group.toggleClass("scribidian-hidden", shown === 0);
+      group.toggleClass("brass-hidden", shown === 0);
     }
   }
 
@@ -1930,7 +1930,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
     return [
       {
         name: "Open .fountain files as screenplays",
-        desc: "Files ending in .fountain open with Scribidian's screenplay tools.",
+        desc: "Files ending in .fountain open with Brass's screenplay tools.",
         control: {
           type: "toggle",
           key: "activateFountainFiles",
@@ -2230,7 +2230,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Turn off Completr in screenplays",
-        desc: "Completr (a word-completion plugin) opens its own list while you type, on top of Scribidian's. On: Completr stays quiet in screenplay notes and works as usual in every other note. Does nothing if Completr isn't installed.",
+        desc: "Completr (a word-completion plugin) opens its own list while you type, on top of Brass's. On: Completr stays quiet in screenplay notes and works as usual in every other note. Does nothing if Completr isn't installed.",
         control: {
           type: "toggle",
           key: "quietCompletrInScripts",
@@ -2299,7 +2299,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: HOTKEYS_NAME,
-        desc: "Set keyboard shortcuts for Scribidian's commands, such as Set line to slugline.",
+        desc: "Set keyboard shortcuts for Brass's commands, such as Set line to slugline.",
         aliases: ["hotkeys", "keyboard", "shortcut", "keys"],
         action: () => this.openPluginHotkeys(),
       },
@@ -2435,7 +2435,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       })),
       {
         name: "Mark capitals that are action",
-        desc: "Scribidian reads a line in capitals ending in punctuation (BANG!, SILENCE.) as action. Final Draft, Fade In and other Fountain apps read it as a character when text follows it. On: exports put ! in front of such lines (!BANG!) so those apps read them as action too. Your script is never changed.",
+        desc: "Brass reads a line in capitals ending in punctuation (BANG!, SILENCE.) as action. Final Draft, Fade In and other Fountain apps read it as a character when text follows it. On: exports put ! in front of such lines (!BANG!) so those apps read them as action too. Your script is never changed.",
         control: {
           type: "toggle",
           key: "markCapitalsAsAction",
@@ -2549,7 +2549,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       const problem = triggerProblem(trimmed, other);
       if (problem !== null) {
         // Not while the box is being cleared to type a new one.
-        if (trimmed !== "") new Notice(`Scribidian: ${problem}`);
+        if (trimmed !== "") new Notice(`Brass: ${problem}`);
         return;
       }
       this.plugin.settings[key] = trimmed;
@@ -2621,7 +2621,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
   }
 
   private setBooleanSetting(
-    key: keyof ScribidianSettings,
+    key: keyof BrassSettings,
     value: boolean,
   ): void {
     switch (key) {
@@ -2672,7 +2672,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
     }
   }
 
-  private setNumberSetting(key: keyof ScribidianSettings, value: number): void {
+  private setNumberSetting(key: keyof BrassSettings, value: number): void {
     switch (key) {
       case "recentItemsWeighting":
       case "maximumSuggestions":

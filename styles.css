@@ -15,66 +15,66 @@
  * limitations under the License.
  */
 
-.scribidian-prompt-input {
+.brass-prompt-input {
   width: 100%;
 }
 
-.scribidian-statistics-summary {
+.brass-statistics-summary {
   display: grid;
   grid-template-columns: minmax(10rem, 1fr) auto;
   gap: 0.4rem 1.5rem;
 }
 
-.scribidian-statistics-summary dt {
+.brass-statistics-summary dt {
   color: var(--text-muted);
 }
 
-.scribidian-statistics-summary dd {
+.brass-statistics-summary dd {
   margin: 0;
   text-align: right;
 }
 
-.scribidian-character-statistics {
+.brass-character-statistics {
   width: 100%;
 }
 
-.scribidian-character-statistics th:last-child,
-.scribidian-character-statistics td:last-child {
+.brass-character-statistics th:last-child,
+.brass-character-statistics td:last-child {
   text-align: right;
 }
 
-.scribidian-palette {
+.brass-palette {
   padding: var(--size-4-3);
 }
 
-.scribidian-palette h2,
-.scribidian-palette h3,
-.scribidian-palette h4 {
+.brass-palette h2,
+.brass-palette h3,
+.brass-palette h4 {
   margin-block: var(--size-4-3) var(--size-4-2);
 }
 
-.scribidian-project-note
+.brass-project-note
   .metadata-property[data-property-key="parts"]
   .multi-select-container {
   flex-direction: column;
   align-items: flex-start;
 }
 
-.scribidian-project-note
+.brass-project-note
   .metadata-property[data-property-key="parts"]
   .multi-select-pill {
   max-width: 100%;
 }
 
-.scribidian-palette-muted {
+.brass-palette-muted {
   color: var(--text-muted);
 }
 
-.scribidian-character-graph {
+.brass-character-graph {
   width: 100%;
 }
 
-.scribidian-character-check-link {
+.brass-character-check-link {
   width: auto;
   height: auto;
   padding: 0;
@@ -82,30 +82,30 @@
   text-align: start;
 }
 
-.scribidian-cheat-sheet {
+.brass-cheat-sheet {
   max-height: min(75vh, 48rem);
   overflow-y: auto;
 }
 
-.scribidian-cheat-sheet dl {
+.brass-cheat-sheet dl {
   margin-block: var(--size-4-2) var(--size-4-5);
 }
 
-.scribidian-cheat-sheet dt {
+.brass-cheat-sheet dt {
   margin-top: var(--size-4-3);
   font-weight: var(--font-semibold);
 }
 
-.scribidian-cheat-sheet dd {
+.brass-cheat-sheet dd {
   margin-inline-start: 0;
   color: var(--text-muted);
 }
 
-.scribidian-cheat-example {
+.brass-cheat-example {
   margin-top: var(--size-4-1);
 }
 
-.scribidian-cheat-example-text {
+.brass-cheat-example-text {
   width: 100%;
   padding: var(--size-4-2);
   overflow-x: auto;
@@ -118,16 +118,16 @@
   resize: none;
 }
 
-.scribidian-preview-modal {
+.brass-preview-modal {
   width: min(94vw, 960px);
   max-width: 960px;
 }
 
-.scribidian-preview {
+.brass-preview {
   padding-bottom: var(--size-4-6);
 }
 
-.scribidian-preview-toolbar {
+.brass-preview-toolbar {
   position: sticky;
   top: 0;
   z-index: 2;
@@ -140,12 +140,12 @@
   background: var(--background-primary);
 }
 
-.scribidian-preview-toolbar p {
+.brass-preview-toolbar p {
   margin: 0;
   color: var(--text-muted);
 }
 
-.scribidian-preview-pages {
+.brass-preview-pages {
   display: grid;
   justify-items: center;
   gap: var(--size-4-6);
@@ -154,7 +154,7 @@
   border-radius: var(--radius-m);
 }
 
-.scribidian-preview-page {
+.brass-preview-page {
   position: relative;
   container-type: inline-size;
   width: min(100%, 816px);
@@ -164,7 +164,7 @@
   box-shadow: 0 4px 18px rgb(0 0 0 / 18%);
 }
 
-.scribidian-preview-block {
+.brass-preview-block {
   position: absolute;
   margin: 0;
   white-space: pre-wrap;
@@ -173,38 +173,38 @@
   line-height: 1;
 }
 
-.scribidian-scene-actions {
+.brass-scene-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-block: 8px;
 }
-.scribidian-scene-actions button {
+.brass-scene-actions button {
   height: auto;
   min-height: 28px;
   white-space: normal;
 }
-.scribidian-scene-filters {
+.brass-scene-filters {
   display: grid;
   gap: 8px;
   margin-block: 12px;
 }
-.scribidian-scene-filters input,
-.scribidian-scene-filters select {
+.brass-scene-filters input,
+.brass-scene-filters select {
   width: 100%;
   min-width: 0;
 }
-.scribidian-scene-card {
+.brass-scene-card {
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   padding: 10px;
   margin-block: 10px;
   overflow-wrap: anywhere;
 }
-.scribidian-scene-card.is-active {
+.brass-scene-card.is-active {
   border-color: var(--interactive-accent);
 }
-.scribidian-scene-heading {
+.brass-scene-heading {
   display: block;
   width: 100%;
   text-align: left;
@@ -212,18 +212,18 @@
   height: auto;
   min-height: 32px;
 }
-.scribidian-scene-card p {
+.brass-scene-card p {
   margin-block: 6px;
 }
-.scribidian-scene-synopsis,
-.scribidian-scene-warning {
+.brass-scene-synopsis,
+.brass-scene-warning {
   white-space: pre-wrap;
 }
-.scribidian-scene-warning {
+.brass-scene-warning {
   color: var(--text-warning);
 }
 
-.scribidian-inspector-evidence {
+.brass-inspector-evidence {
   display: block;
   width: 100%;
   height: auto;
@@ -234,154 +234,154 @@
   margin-block: 6px;
 }
 
-/* "$" variables, a Scribidian addition: the theme's accent color. */
-.markdown-source-view.mod-cm6 .scribidian-variable {
+/* "$" variables, a Brass addition: the theme's accent color. */
+.markdown-source-view.mod-cm6 .brass-variable {
   color: var(--text-accent);
 }
 
-/* Threads ("[&name]"), a Scribidian addition: a small 🧵 that goes to the
+/* Threads ("[&name]"), a Brass addition: a small 🧵 that goes to the
    next place in the thread; the text, in its own color, while the cursor is
-   on it. A snippet can set --scribidian-thread-color. */
+   on it. A snippet can set --brass-thread-color. */
 body {
-  --scribidian-thread-color: var(--color-orange);
+  --brass-thread-color: var(--color-orange);
 }
-.markdown-source-view.mod-cm6 .scribidian-thread,
-.markdown-rendered .scribidian-thread {
+.markdown-source-view.mod-cm6 .brass-thread,
+.markdown-rendered .brass-thread {
   cursor: pointer;
   font-size: 0.85em;
   opacity: 0.8;
   padding-inline: 1px;
 }
-.markdown-source-view.mod-cm6 .scribidian-thread:hover,
-.markdown-rendered .scribidian-thread:hover {
+.markdown-source-view.mod-cm6 .brass-thread:hover,
+.markdown-rendered .brass-thread:hover {
   opacity: 1;
 }
-.markdown-source-view.mod-cm6 .scribidian-thread-text,
-.markdown-source-view.mod-cm6 .scribidian-thread-text * {
-  color: var(--scribidian-thread-color);
+.markdown-source-view.mod-cm6 .brass-thread-text,
+.markdown-source-view.mod-cm6 .brass-thread-text * {
+  color: var(--brass-thread-color);
   opacity: 1;
   text-decoration: none;
 }
 /* Threads panel (sidebar): a tree like Obsidian's search results. */
-.scribidian-threads {
+.brass-threads {
   padding: var(--size-4-2);
 }
-.scribidian-threads-header {
+.brass-threads-header {
   display: flex;
   align-items: center;
   gap: var(--size-4-2);
   margin-block: var(--size-4-2);
 }
-.scribidian-threads-title {
+.brass-threads-title {
   flex: 1;
   font-weight: var(--font-semibold);
 }
-.scribidian-threads-buttons {
+.brass-threads-buttons {
   display: flex;
   gap: var(--size-2-1);
 }
-.scribidian-threads-self,
-.scribidian-threads-place {
+.brass-threads-self,
+.brass-threads-place {
   cursor: pointer;
   border-radius: var(--radius-s);
   padding: var(--size-2-2) var(--size-4-2);
 }
-.scribidian-threads-self {
+.brass-threads-self {
   display: flex;
   gap: var(--size-4-1);
   align-items: center;
   padding-inline-start: var(--size-2-1);
 }
-.scribidian-threads-self:hover,
-.scribidian-threads-place:hover {
+.brass-threads-self:hover,
+.brass-threads-place:hover {
   background: var(--background-modifier-hover);
 }
-.scribidian-threads-self.is-active {
+.brass-threads-self.is-active {
   background: var(--background-modifier-active-hover);
 }
-.scribidian-threads-chevron {
+.brass-threads-chevron {
   display: flex;
   flex: 0 0 auto;
   color: var(--icon-color);
   width: var(--icon-s);
   height: var(--icon-s);
 }
-.scribidian-threads-chevron svg {
+.brass-threads-chevron svg {
   width: var(--icon-s);
   height: var(--icon-s);
   transition: transform 100ms ease-in-out;
 }
-.scribidian-threads-item.is-collapsed
-  > .scribidian-threads-self
-  > .scribidian-threads-chevron
+.brass-threads-item.is-collapsed
+  > .brass-threads-self
+  > .brass-threads-chevron
   svg {
   transform: rotate(-90deg);
 }
-.scribidian-threads-item.is-collapsed > .scribidian-threads-children {
+.brass-threads-item.is-collapsed > .brass-threads-children {
   display: none;
 }
-.scribidian-threads-children {
+.brass-threads-children {
   margin-inline-start: calc(var(--icon-s) / 2 + var(--size-2-1));
   padding-inline-start: var(--size-4-1);
   border-inline-start: var(--border-width) solid
     var(--background-modifier-border);
 }
-.scribidian-threads-name,
-.scribidian-threads-note-name {
+.brass-threads-name,
+.brass-threads-note-name {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.scribidian-threads-count {
+.brass-threads-count {
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);
 }
-.scribidian-threads-once {
+.brass-threads-once {
   color: var(--text-warning);
   font-size: var(--font-ui-smaller);
 }
-.scribidian-threads-note {
+.brass-threads-note {
   color: var(--text-muted);
   font-size: var(--font-ui-small);
   font-weight: var(--font-semibold);
 }
-.scribidian-threads-place {
+.brass-threads-place {
   font-size: var(--font-ui-small);
 }
-.scribidian-threads-empty {
+.brass-threads-empty {
   color: var(--text-muted);
 }
-.scribidian-thread-count {
+.brass-thread-count {
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);
 }
 
-/* Line comments ("// note"), a Scribidian addition to Fountain: faded,
+/* Line comments ("// note"), a Brass addition to Fountain: faded,
    and not part of the script. */
-.markdown-source-view.mod-cm6 .scribidian-line-comment {
-  color: var(--scribidian-line-comment-color, var(--text-muted));
+.markdown-source-view.mod-cm6 .brass-line-comment {
+  color: var(--brass-line-comment-color, var(--text-muted));
 }
 
-.scribidian-preview-lyric {
+.brass-preview-lyric {
   font-style: italic;
 }
 
 /* Emphasis in the page preview, as the PDF prints it. */
-.scribidian-preview-block .scribidian-preview-bold {
+.brass-preview-block .brass-preview-bold {
   font-weight: 700;
 }
 
-.scribidian-preview-block .scribidian-preview-italic {
+.brass-preview-block .brass-preview-italic {
   font-style: italic;
 }
 
-.scribidian-preview-block .scribidian-preview-underline {
+.brass-preview-block .brass-preview-underline {
   text-decoration: underline;
 }
 
-.scribidian-preview-page-number {
+.brass-preview-page-number {
   position: absolute;
   right: 11.75%;
   top: 3.5%;
@@ -391,15 +391,15 @@ body {
 }
 
 @media (max-width: 600px) {
-  .scribidian-preview-modal {
+  .brass-preview-modal {
     width: 100vw;
   }
 
-  .scribidian-preview-toolbar {
+  .brass-preview-toolbar {
     align-items: flex-start;
   }
 
-  .scribidian-preview-pages {
+  .brass-preview-pages {
     gap: var(--size-4-3);
     padding: var(--size-4-2);
   }
@@ -411,7 +411,7 @@ body {
  * page on desktop and shrink in proportion on a phone.
  */
 /*
- * Layout lock. In screenplay notes Scribidian owns everything that decides
+ * Layout lock. In screenplay notes Brass owns everything that decides
  * where text sits and where lines break: the font, the 60-character column,
  * indents, spacing and alignment. Themes keep colors, background, text size,
  * cursor and selection. The !important flags are deliberate and limited to
@@ -420,9 +420,9 @@ body {
  * lines in a screenplay note (headings, lists, quotes, embeds) keep the
  * theme's look apart from the column width.
  */
-.markdown-source-view.mod-cm6 .cm-editor.scribidian-screenplay-layout {
-  --scribidian-layout-font: var(
-    --scribidian-screenplay-font,
+.markdown-source-view.mod-cm6 .cm-editor.brass-screenplay-layout {
+  --brass-layout-font: var(
+    --brass-screenplay-font,
     "Courier Prime",
     "Courier New",
     Courier,
@@ -431,13 +431,13 @@ body {
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
+  .cm-editor.brass-screenplay-layout
   .cm-scroller {
-  font-family: var(--scribidian-layout-font) !important;
+  font-family: var(--brass-layout-font) !important;
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
+  .cm-editor.brass-screenplay-layout
   .cm-sizer {
   /* 60 characters, plus a little room so a full line is not wrapped early.
      On a narrow screen, keep the theme's side margins (Minimal makes them
@@ -449,10 +449,10 @@ body {
 /* The column is the sizer: the content area inside it gets no extra width
    limit or side padding from a theme. */
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
+  .cm-editor.brass-screenplay-layout
   .cm-contentContainer,
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
+  .cm-editor.brass-screenplay-layout
   .cm-contentContainer
   > .cm-content {
   max-width: none !important;
@@ -463,7 +463,7 @@ body {
 /* Themes can size lines on their own (e.g. Minimal's --line-width and
    --max-width: 88%); the layout needs exactly the 60-character column. */
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
+  .cm-editor.brass-screenplay-layout
   .cm-contentContainer
   > .cm-content
   > .cm-line {
@@ -476,20 +476,20 @@ body {
 /* Screenplay lines: reset everything a theme could use to move text. The
    rules for each kind below set their own indents and alignment. */
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
+  .cm-editor.brass-screenplay-layout
   .cm-line:is(
-    .scribidian-sp-scene-heading,
-    .scribidian-sp-action,
-    .scribidian-sp-character,
-    .scribidian-sp-dialogue,
-    .scribidian-sp-parenthetical,
-    .scribidian-sp-transition,
-    .scribidian-sp-centered,
-    .scribidian-sp-lyric,
-    .scribidian-sp-page-break,
-    .scribidian-sp-note
+    .brass-sp-scene-heading,
+    .brass-sp-action,
+    .brass-sp-character,
+    .brass-sp-dialogue,
+    .brass-sp-parenthetical,
+    .brass-sp-transition,
+    .brass-sp-centered,
+    .brass-sp-lyric,
+    .brass-sp-page-break,
+    .brass-sp-note
   ) {
-  font-family: var(--scribidian-layout-font) !important;
+  font-family: var(--brass-layout-font) !important;
   font-size: inherit !important;
   letter-spacing: normal !important;
   word-spacing: normal !important;
@@ -502,18 +502,18 @@ body {
    or inside a fenced code block (which keeps Obsidian's inner margin).
    (:where keeps this rule's weight equal to the rules for each kind.) */
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
+  .cm-editor.brass-screenplay-layout
   .cm-line:is(
-    .scribidian-sp-scene-heading,
-    .scribidian-sp-action,
-    .scribidian-sp-character,
-    .scribidian-sp-dialogue,
-    .scribidian-sp-parenthetical,
-    .scribidian-sp-transition,
-    .scribidian-sp-centered,
-    .scribidian-sp-lyric,
-    .scribidian-sp-page-break,
-    .scribidian-sp-note
+    .brass-sp-scene-heading,
+    .brass-sp-action,
+    .brass-sp-character,
+    .brass-sp-dialogue,
+    .brass-sp-parenthetical,
+    .brass-sp-transition,
+    .brass-sp-centered,
+    .brass-sp-lyric,
+    .brass-sp-page-break,
+    .brass-sp-note
   ):not(:where(.HyperMD-list-line, .HyperMD-codeblock)) {
   text-indent: 0 !important;
   padding-inline: 0 !important;
@@ -522,7 +522,7 @@ body {
 /* Fenced code blocks (notes in a script): the same inner margin on the
    right as Obsidian gives on the left, so text doesn't run to the edge. */
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
+  .cm-editor.brass-screenplay-layout
   .cm-line.HyperMD-codeblock:not(.HyperMD-list-line) {
   padding-inline-end: var(--size-4-4);
 }
@@ -531,18 +531,18 @@ body {
    highlights) uses the line's font, size and spacing, so a theme styling it
    can't change where lines wrap. Colors and decoration stay the theme's. */
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
+  .cm-editor.brass-screenplay-layout
   .cm-line:is(
-    .scribidian-sp-scene-heading,
-    .scribidian-sp-action,
-    .scribidian-sp-character,
-    .scribidian-sp-dialogue,
-    .scribidian-sp-parenthetical,
-    .scribidian-sp-transition,
-    .scribidian-sp-centered,
-    .scribidian-sp-lyric,
-    .scribidian-sp-page-break,
-    .scribidian-sp-note
+    .brass-sp-scene-heading,
+    .brass-sp-action,
+    .brass-sp-character,
+    .brass-sp-dialogue,
+    .brass-sp-parenthetical,
+    .brass-sp-transition,
+    .brass-sp-centered,
+    .brass-sp-lyric,
+    .brass-sp-page-break,
+    .brass-sp-note
   )
   :is(span, a) {
   font-family: inherit !important;
@@ -552,61 +552,61 @@ body {
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
-  .cm-line.scribidian-sp-scene-heading {
+  .cm-editor.brass-screenplay-layout
+  .cm-line.brass-sp-scene-heading {
   font-weight: var(--font-bold);
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
-  .cm-line.scribidian-sp-character {
+  .cm-editor.brass-screenplay-layout
+  .cm-line.brass-sp-character {
   padding-inline-start: 36.667% !important;
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
-  .cm-line.scribidian-sp-dialogue {
+  .cm-editor.brass-screenplay-layout
+  .cm-line.brass-sp-dialogue {
   padding-inline-start: 16.667% !important;
   padding-inline-end: 25% !important;
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
-  .cm-line.scribidian-sp-parenthetical {
+  .cm-editor.brass-screenplay-layout
+  .cm-line.brass-sp-parenthetical {
   padding-inline-start: 26.667% !important;
   padding-inline-end: 31.667% !important;
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
-  .cm-line.scribidian-sp-transition {
+  .cm-editor.brass-screenplay-layout
+  .cm-line.brass-sp-transition {
   text-align: end !important;
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
-  .cm-line.scribidian-sp-centered {
+  .cm-editor.brass-screenplay-layout
+  .cm-line.brass-sp-centered {
   text-align: center !important;
   font-weight: var(--font-bold);
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
-  .cm-line.scribidian-sp-lyric {
+  .cm-editor.brass-screenplay-layout
+  .cm-line.brass-sp-lyric {
   font-style: italic;
   padding-inline-start: 16.667% !important;
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
-  .cm-line.scribidian-sp-page-break {
+  .cm-editor.brass-screenplay-layout
+  .cm-line.brass-sp-page-break {
   border-bottom: 1px dashed var(--background-modifier-border);
   color: var(--text-faint);
 }
 
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
-  .cm-line.scribidian-sp-note {
+  .cm-editor.brass-screenplay-layout
+  .cm-line.brass-sp-note {
   color: var(--text-muted);
 }
 
@@ -615,9 +615,9 @@ body {
  * Applies screenplay indentation to ```fountain fenced blocks in any note.
  * Mirrors the editor screenplay-layout percentages so the two look alike.
  */
-.scribidian-fountain-codeblock {
+.brass-fountain-codeblock {
   font-family: var(
-    --scribidian-screenplay-font,
+    --brass-screenplay-font,
     "Courier Prime",
     "Courier New",
     Courier,
@@ -629,100 +629,100 @@ body {
   line-height: 1.5;
 }
 
-.scribidian-fountain-codeblock .scribidian-sp-scene-heading {
+.brass-fountain-codeblock .brass-sp-scene-heading {
   font-weight: var(--font-bold);
 }
 
-.scribidian-fountain-codeblock .scribidian-sp-character {
+.brass-fountain-codeblock .brass-sp-character {
   padding-inline-start: 36.667%;
 }
 
-.scribidian-fountain-codeblock .scribidian-sp-dialogue {
+.brass-fountain-codeblock .brass-sp-dialogue {
   padding-inline-start: 16.667%;
   padding-inline-end: 25%;
 }
 
-.scribidian-fountain-codeblock .scribidian-sp-parenthetical {
+.brass-fountain-codeblock .brass-sp-parenthetical {
   padding-inline-start: 26.667%;
   padding-inline-end: 31.667%;
 }
 
-.scribidian-fountain-codeblock .scribidian-sp-transition {
+.brass-fountain-codeblock .brass-sp-transition {
   text-align: end;
 }
 
-.scribidian-fountain-codeblock .scribidian-sp-centered {
+.brass-fountain-codeblock .brass-sp-centered {
   text-align: center;
   font-weight: var(--font-bold);
 }
 
-.scribidian-fountain-codeblock .scribidian-sp-lyric {
+.brass-fountain-codeblock .brass-sp-lyric {
   font-style: italic;
   padding-inline-start: 16.667%;
 }
 
-.scribidian-fountain-codeblock .scribidian-sp-page-break {
+.brass-fountain-codeblock .brass-sp-page-break {
   border-bottom: 1px dashed var(--background-modifier-border);
   color: var(--text-faint);
 }
 
-.scribidian-fountain-codeblock .scribidian-sp-note {
+.brass-fountain-codeblock .brass-sp-note {
   color: var(--text-muted);
 }
 
-.scribidian-fountain-codeblock .scribidian-codeblock-blank {
+.brass-fountain-codeblock .brass-codeblock-blank {
   min-height: 1.5em;
 }
 
 /* Bottom typing margin (Settings > Bottom typing margin). */
-.markdown-source-view.mod-cm6 .cm-editor.scribidian-bottom-margin .cm-scroller {
-  margin-bottom: var(--scribidian-bottom-margin);
+.markdown-source-view.mod-cm6 .cm-editor.brass-bottom-margin .cm-scroller {
+  margin-bottom: var(--brass-bottom-margin);
 }
 
 /* Screenplay font (Settings > Screenplay font), also in plain Fountain text. */
-.scribidian-custom-screenplay-font
+.brass-custom-screenplay-font
   .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-editor
+  .cm-editor.brass-screenplay-editor
   .cm-scroller {
-  font-family: var(--scribidian-screenplay-font);
+  font-family: var(--brass-screenplay-font);
 }
 
 /* "> THE END <" and "> CUT TO:" are Fountain, not quotes: no quote bar. */
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
+  .cm-editor.brass-screenplay-layout
   .cm-line.HyperMD-quote:is(
-    .scribidian-sp-centered,
-    .scribidian-sp-transition
+    .brass-sp-centered,
+    .brass-sp-transition
   )::before {
   display: none;
 }
 
-/* Settings search (top of the Scribidian settings tab). */
-.scribidian-hidden {
+/* Settings search (top of the Brass settings tab). */
+.brass-hidden {
   display: none !important;
 }
 
-.scribidian-settings-search-row .setting-item-control {
+.brass-settings-search-row .setting-item-control {
   flex: 1 1 auto;
   justify-content: stretch;
 }
 
-.scribidian-settings-search-row .search-input-container {
+.brass-settings-search-row .search-input-container {
   width: 100%;
 }
 
 /* Settings sections that fold (#306); a search shows everything open. */
-.scribidian-foldable {
+.brass-foldable {
   cursor: pointer;
   user-select: none;
 }
 
-.scribidian-foldable:focus-visible {
+.brass-foldable:focus-visible {
   box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
   border-radius: var(--radius-s);
 }
 
-.scribidian-fold-chevron {
+.brass-fold-chevron {
   display: inline-flex;
   vertical-align: middle;
   margin-inline-end: var(--size-4-1);
@@ -730,48 +730,48 @@ body {
   transition: transform 120ms ease;
 }
 
-.scribidian-fold-chevron svg {
+.brass-fold-chevron svg {
   width: var(--icon-s);
   height: var(--icon-s);
 }
 
-.scribidian-section:not(.scribidian-collapsed)
-  > .scribidian-foldable
-  .scribidian-fold-chevron,
-.scribidian-sub-open .scribidian-fold-chevron,
-.scribidian-searching .scribidian-fold-chevron {
+.brass-section:not(.brass-collapsed)
+  > .brass-foldable
+  .brass-fold-chevron,
+.brass-sub-open .brass-fold-chevron,
+.brass-searching .brass-fold-chevron {
   transform: rotate(90deg);
 }
 
-.scribidian-section.scribidian-collapsed:not(.scribidian-searching)
+.brass-section.brass-collapsed:not(.brass-searching)
   > .setting-items {
   display: none;
 }
 
-.scribidian-section:not(.scribidian-searching) .scribidian-sub-hidden {
+.brass-section:not(.brass-searching) .brass-sub-hidden {
   display: none;
 }
 
-.scribidian-sub-toggle .setting-item-name {
+.brass-sub-toggle .setting-item-name {
   font-weight: var(--font-semibold);
 }
 
-.scribidian-section-reset {
+.brass-section-reset {
   margin-block: calc(-1 * var(--size-4-2));
 }
 
-.scribidian-badge:empty {
+.brass-badge:empty {
   display: none;
 }
 
-.scribidian-badge {
+.brass-badge {
   margin-inline-start: var(--size-4-2);
   font-size: var(--font-ui-smaller);
   font-weight: var(--font-normal);
   color: var(--text-accent);
 }
 
-.scribidian-badge-off {
+.brass-badge-off {
   padding: 0 var(--size-4-1);
   border-radius: var(--radius-s);
   background-color: var(--background-modifier-hover);
@@ -779,83 +779,83 @@ body {
 }
 
 /* A section's on/off setting is off: the rest of it is dimmed. */
-.scribidian-master-off > .setting-items > .setting-item:not(:first-child) {
+.brass-master-off > .setting-items > .setting-item:not(:first-child) {
   opacity: 0.5;
   pointer-events: none;
 }
 
 /* Settings tables: "Typing in each mode" and "Tab and Enter keys". */
-.scribidian-settings-table-row {
+.brass-settings-table-row {
   display: block;
 }
 
-.scribidian-settings-table {
+.brass-settings-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.scribidian-settings-table th,
-.scribidian-settings-table td {
+.brass-settings-table th,
+.brass-settings-table td {
   padding: var(--size-4-2);
   border-bottom: 1px solid var(--background-modifier-border);
   vertical-align: middle;
 }
 
-.scribidian-settings-table tbody tr:last-of-type td {
+.brass-settings-table tbody tr:last-of-type td {
   border-bottom: none;
 }
 
-.scribidian-settings-table th {
+.brass-settings-table th {
   font-weight: var(--font-semibold);
   text-align: start;
 }
 
-.scribidian-settings-subheading {
+.brass-settings-subheading {
   font-weight: var(--font-semibold);
   margin-top: var(--size-4-4);
   margin-bottom: var(--size-4-1);
 }
 
-.scribidian-settings-subheading:first-child {
+.brass-settings-subheading:first-child {
   margin-top: 0;
 }
 
-.scribidian-settings-table-note {
+.brass-settings-table-note {
   margin-bottom: var(--size-4-2);
 }
 
-.scribidian-settings-table-more {
+.brass-settings-table-more {
   margin-top: var(--size-4-2);
 }
 
-.scribidian-enter-table td:not(:first-child) {
+.brass-enter-table td:not(:first-child) {
   width: 36%;
 }
 
-.scribidian-enter-table select {
+.brass-enter-table select {
   width: 100%;
 }
 
-.scribidian-clean-table .scribidian-clean-format {
+.brass-clean-table .brass-clean-format {
   width: 7.5em;
   text-align: center;
 }
 
-.scribidian-clean-table select {
+.brass-clean-table select {
   max-width: 7.5em;
 }
 
-.scribidian-clean-table input[type="checkbox"] {
+.brass-clean-table input[type="checkbox"] {
   margin: 0;
   cursor: pointer;
 }
 
-.scribidian-typing-table .scribidian-typing-mode {
+.brass-typing-table .brass-typing-mode {
   width: 5.5em;
   text-align: center;
 }
 
-.scribidian-typing-table th.scribidian-typing-mode label {
+.brass-typing-table th.brass-typing-mode label {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -863,7 +863,7 @@ body {
   cursor: pointer;
 }
 
-.scribidian-typing-table input[type="checkbox"] {
+.brass-typing-table input[type="checkbox"] {
   margin: 0;
   cursor: pointer;
 }
@@ -871,10 +871,10 @@ body {
 /* Dual dialogue side by side (screenplay layout, cursor outside the pair). */
 /* Beats Obsidian's ".cm-content > *" block rule and theme line widths. */
 .markdown-source-view.mod-cm6
-  .cm-editor.scribidian-screenplay-layout
+  .cm-editor.brass-screenplay-layout
   .cm-contentContainer
   > .cm-content
-  > .scribidian-dual {
+  > .brass-dual {
   display: flex;
   gap: 2ch;
   width: auto;
@@ -884,26 +884,26 @@ body {
   white-space: pre-wrap;
 }
 
-.scribidian-dual-column {
+.brass-dual-column {
   flex: 1 1 0;
   min-width: 0;
 }
 
-.scribidian-dual-cue {
+.brass-dual-cue {
   padding-inline-start: 30%;
 }
 
-.scribidian-dual-parenthetical {
+.brass-dual-parenthetical {
   padding-inline-start: 12%;
   padding-inline-end: 8%;
 }
 
-.scribidian-dual-dialogue {
+.brass-dual-dialogue {
   padding-inline-end: 4%;
 }
 
 /* Settings: a short list to drag into order (slug suggestions). */
-.scribidian-order-list {
+.brass-order-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -911,7 +911,7 @@ body {
   margin-top: 8px;
 }
 
-.scribidian-order-item {
+.brass-order-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -923,20 +923,20 @@ body {
   cursor: grab;
 }
 
-.scribidian-order-item span:nth-child(2) {
+.brass-order-item span:nth-child(2) {
   flex: 1;
 }
 
-.scribidian-order-item.is-dragging {
+.brass-order-item.is-dragging {
   opacity: 0.5;
 }
 
-.scribidian-order-handle {
+.brass-order-handle {
   color: var(--text-faint);
 }
 
 /* Settings: "Picking a location fills in" checkboxes. */
-.scribidian-slug-fill-option {
+.brass-slug-fill-option {
   display: inline-flex;
   align-items: center;
   gap: var(--size-2-2);
@@ -946,51 +946,51 @@ body {
 
 /* A thread with text, "[&gun|the pistol]": the spool, then its text at
    the script's size. */
-.markdown-source-view.mod-cm6 .scribidian-thread.scribidian-thread-with-text,
-.markdown-rendered .scribidian-thread.scribidian-thread-with-text {
+.markdown-source-view.mod-cm6 .brass-thread.brass-thread-with-text,
+.markdown-rendered .brass-thread.brass-thread-with-text {
   font-size: inherit;
   opacity: 1;
 }
-.scribidian-thread-spool {
+.brass-thread-spool {
   font-size: 0.85em;
   opacity: 0.8;
 }
-.scribidian-thread-alias {
+.brass-thread-alias {
   margin-inline-start: 0.15em;
-  color: var(--scribidian-thread-color);
+  color: var(--brass-thread-color);
   text-decoration: underline dotted var(--text-faint);
   text-underline-offset: 0.2em;
 }
 
 /* A thread without text, "[&gun]": its name in the thread color, at the
    script's size. */
-.scribidian-thread-name {
+.brass-thread-name {
   margin-inline-start: 0.15em;
-  color: var(--scribidian-thread-color);
+  color: var(--brass-thread-color);
 }
 
 /* Thread text before the spool (#298): the gap moves to the other side. */
-.scribidian-thread-right .scribidian-thread-name,
-.scribidian-thread-right .scribidian-thread-alias {
+.brass-thread-right .brass-thread-name,
+.brass-thread-right .brass-thread-alias {
   margin-inline-start: 0;
   margin-inline-end: 0.15em;
 }
 
 /* Settings: Commands in the command palette (#296). */
-.scribidian-command-setting {
+.brass-command-setting {
   flex-wrap: wrap;
 }
-.scribidian-command-setting .scribidian-command-list {
+.brass-command-setting .brass-command-list {
   flex-basis: 100%;
 }
-.scribidian-command-list {
+.brass-command-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(18em, 1fr));
   gap: var(--size-2-2) var(--size-4-4);
   margin-top: var(--size-4-2);
   width: 100%;
 }
-.scribidian-command-row {
+.brass-command-row {
   display: flex;
   align-items: center;
   gap: var(--size-4-1);
@@ -999,13 +999,13 @@ body {
 }
 
 /* Text only (#301): no spool, so no gap. */
-.scribidian-thread-text-only .scribidian-thread-name,
-.scribidian-thread-text-only .scribidian-thread-alias {
+.brass-thread-text-only .brass-thread-name,
+.brass-thread-text-only .brass-thread-alias {
   margin-inline: 0;
 }
 
 /* A line starting "[&name]: text" reads to Markdown as a link reference,
    which Obsidian draws small: keep it the size of the text around it. */
-.markdown-source-view.mod-cm6 .cm-line.HyperMD-footnote.scribidian-thread-line {
+.markdown-source-view.mod-cm6 .cm-line.HyperMD-footnote.brass-thread-line {
   font-size: inherit;
 }

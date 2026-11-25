@@ -19,11 +19,11 @@ import { describe, expect, it } from "vitest";
 import { CHEAT_SHEET_SECTIONS } from "../src/onboarding/cheatSheet";
 
 describe("screenplay cheat sheet", () => {
-  it("covers screenplay, Fountain, and Scribidian terms", () => {
+  it("covers screenplay, Fountain, and Brass terms", () => {
     expect(CHEAT_SHEET_SECTIONS.map((section) => section.title)).toEqual([
       "Screenplay terms",
       "Fountain quick syntax",
-      "Scribidian terms",
+      "Brass terms",
     ]);
     const terms = CHEAT_SHEET_SECTIONS.flatMap((section) =>
       section.entries.map((entry) => entry.term),

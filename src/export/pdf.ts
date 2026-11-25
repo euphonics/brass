@@ -72,8 +72,8 @@ export async function serializePdf(
   pdf.setTitle(metadataText(document.titlePage?.title) ?? options.title);
   const author = metadataText(document.titlePage?.author);
   if (author) pdf.setAuthor(author);
-  pdf.setCreator("Scribidian");
-  pdf.setProducer("Scribidian");
+  pdf.setCreator("Brass");
+  pdf.setProducer("Brass");
   const fonts = await embedScreenplayFonts(pdf);
   const { regular, bold } = fonts;
   const characterSets = new Map(

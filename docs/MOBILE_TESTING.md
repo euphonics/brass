@@ -1,24 +1,24 @@
 # Mobile testing
 
-Scribidian supports iPhone, iPad and Android, but has so far been tested on a
+Brass supports iPhone, iPad and Android, but has so far been tested on a
 phone by one person. These steps are for friends testing a beta. Use a test
 vault, or a copy of your vault, with no private screenplays in it.
 
 ## Install with BRAT (iPhone, iPad and Android)
 
-Until Scribidian is in Obsidian's community plugin directory, BRAT is the way to
+Until Brass is in Obsidian's community plugin directory, BRAT is the way to
 install it on a phone. BRAT installs plugins straight from their GitHub
 releases.
 
 1. In Obsidian, open **Settings → Community plugins**, turn off Restricted mode
    if asked, then **Browse** and install **BRAT** (Obsidian42 - BRAT). Enable it.
 2. Open **Settings → BRAT → Add beta plugin**.
-3. Enter `euphonics/scribidian` and choose the latest release.
-4. Enable **Scribidian** under **Settings → Community plugins**.
-5. Run **Scribidian: Create example screenplay** from the command palette to
+3. Enter `euphonics/brass` and choose the latest release.
+4. Enable **Brass** under **Settings → Community plugins**.
+5. Run **Brass: Create example screenplay** from the command palette to
    get a sample script to try.
 
-BRAT only installs Scribidian; Scribidian itself never goes online.
+BRAT only installs Brass; Brass itself never goes online.
 
 If you used First Draft before, turn it off first. Both plugins open
 `.fountain` files and lay out the editor, so having both on causes clashes.
@@ -27,9 +27,9 @@ Hotkeys and settings don't carry over; set them again.
 ## Android: install by hand
 
 On a computer, download `main.js`, `manifest.json` and `styles.css` from the
-[latest release](https://github.com/euphonics/scribidian/releases/latest) and
-copy them into `<vault>/.obsidian/plugins/scribidian/` on the phone (USB or
-your sync app). Restart Obsidian and enable Scribidian. On iPhone this is
+[latest release](https://github.com/euphonics/brass/releases/latest) and
+copy them into `<vault>/.obsidian/plugins/brass/` on the phone (USB or
+your sync app). Restart Obsidian and enable Brass. On iPhone this is
 impractical; use BRAT.
 
 ## Put Smart Tab on the toolbar
@@ -37,11 +37,11 @@ impractical; use BRAT.
 Phone keyboards have no Tab key. To use Smart Tab (move from action to
 character to dialogue), add its commands to the toolbar above the keyboard:
 
-1. In **Settings → Scribidian**, turn on **Show all commands in the command
+1. In **Settings → Brass**, turn on **Show all commands in the command
    palette**. Smart Tab is hidden from the command list until you do.
 2. Open **Settings → Mobile → Manage toolbar options** (called "Mobile" or
    "Toolbar" depending on the Obsidian version).
-3. Add **Scribidian: Screenplay: Smart Tab** and **Scribidian: Screenplay:
+3. Add **Brass: Screenplay: Smart Tab** and **Brass: Screenplay:
    Smart Tab back**.
 4. Optionally add the **Set line** commands (Slugline, Action, Character,
    Wryly, Transition, Centered text).
@@ -50,7 +50,7 @@ Tapping Smart Tab does exactly what pressing Tab does on a computer.
 
 ## Phone tips
 
-- **iPhone Smart Punctuation** turns `'` into `’`. Scribidian treats `O'BRIEN`
+- **iPhone Smart Punctuation** turns `'` into `’`. Brass treats `O'BRIEN`
   and `O’BRIEN` as the same character, but `--` still becomes `—`. To keep
   plain quotes and dashes, turn off **Settings → General → Keyboard → Smart
   Punctuation** on the iPhone.
@@ -77,7 +77,7 @@ Tapping Smart Tab does exactly what pressing Tab does on a computer.
 - Preview a standalone screenplay and a multi-part project in both portrait
   and landscape orientation without horizontal page clipping.
 - Export Fountain and FDX files without changing the source document.
-- Change Scribidian settings, restart Obsidian, and confirm they persist.
+- Change Brass settings, restart Obsidian, and confirm they persist.
 - Lock and resume the device, then confirm the active screenplay still works.
 
 Record the Obsidian version, operating system version, and device type with the
@@ -86,7 +86,7 @@ the desktop test-vault check.
 
 ## Report what you find
 
-Use the [bug report form](https://github.com/euphonics/scribidian/issues/new/choose)
+Use the [bug report form](https://github.com/euphonics/brass/issues/new/choose)
 and include the device, the OS version, the Obsidian version and the theme. The
 list of things that still need a person to check, grouped by device, is in the
 [roadmap](ROADMAP.md#human-test-checklist).

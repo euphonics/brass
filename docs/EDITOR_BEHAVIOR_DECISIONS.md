@@ -1,6 +1,6 @@
 # Screenwriting editor behavior: decisions and test cases
 
-This is a plain-English record of how Scribidian's script-mode editor should
+This is a plain-English record of how Brass's script-mode editor should
 behave while someone types a screenplay, and of the cases worth testing. Each
 rule came from hands-on testing, and most match Fade In or Final Draft. It is
 written to be read by people and by AI coding assistants. Keep it up to date
@@ -68,7 +68,7 @@ flowchart TD
   preview and FDX export, on every wrapped line.
 - Tabs don't indent action: the Tab key moves between elements.
 
-## $ variables (Scribidian addition)
+## $ variables (Brass addition)
 
 - Text after a `$` (`$my_variable`, `$ABC123`, `$1ABC`) shows in the theme's accent
   color, as a placeholder to fill in later.
@@ -85,7 +85,7 @@ flowchart TD
 - Two `$` on one line can look like Obsidian inline math (`$a and '$b`):
   Obsidian then renders the text between them as math.
 
-## + character names in action (Scribidian addition)
+## + character names in action (Brass addition)
 
 - Typing `+` in an action line lists the characters, narrowed as you type
   (`+je`, `+mary a`). Picking one replaces the `+` and the typed letters
@@ -123,7 +123,7 @@ flowchart TD
 - The `+` can be changed: **Character name character** in Suggestions
   (one symbol, different from the variable character).
 
-## Characters listed in frontmatter (Scribidian addition)
+## Characters listed in frontmatter (Brass addition)
 
 - A `characters` property in a screenplay note's frontmatter adds those
   names to the character lists (cues, `+` in action, capitals in action,
@@ -135,7 +135,7 @@ flowchart TD
   characters who speak. Statistics and character checks still count only
   real cues.
 
-## Line comments (Scribidian addition)
+## Line comments (Brass addition)
 
 - `// note` at the start of a line or after a space, to the end of the
   line, is a comment. It shows in a muted color (setting **Line comment
@@ -151,7 +151,7 @@ flowchart TD
   show as notes and never print; Boneyard (`/* late */`), Keep and Remove
   are the other choices. Clean PDF and Final Draft remove them. Preview, PDF and FDX leave them out.
 
-## Threads (Scribidian addition)
+## Threads (Brass addition)
 
 - `[&name]` ties lines together by name: every `[&…]` with the same name
   (case and extra spaces don't count) is one thread, in the script or in a
@@ -207,7 +207,7 @@ finds the pistol under the bed.`
   character list. Two capitals ("JE") can.
 - Option: **Character suggestions match capitals.** On (default), typing
   must be in capitals to open the list. Off, "Je" also finds JEN.
-- On Fountain export, an option puts `!` in front of capitals that Scribidian
+- On Fountain export, an option puts `!` in front of capitals that Brass
   reads as action but other apps would read as a character ("BANG!" with text
   below becomes "!BANG!"). The script itself is never changed.
 
@@ -648,7 +648,7 @@ Test cases:
 ## Fade In comparison
 
 Tested on 2026-11-17 by sending real keystrokes to Fade In (Windows) and
-running the same steps in Scribidian (script mode, strict cursor
+running the same steps in Brass (script mode, strict cursor
 placement on, default settings). Fade In has no Fountain markers: each
 line has an element, shown in its Format panel.
 
@@ -672,10 +672,10 @@ line has an element, shown in its Format panel.
 
 ### Different
 
-| #   | Steps                                                                | Fade In                                           | Scribidian                                                          | To match Fade In                                                                             |
+| #   | Steps                                                                | Fade In                                           | Brass                                                          | To match Fade In                                                                             |
 | --- | -------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | 2   | Character list after a speech                                        | Alternates: the other speaker first               | The other speaker first                                             | Same (corrected 2026-11-19)                                                                  |
-| 3   | Escape with the character list open on an empty line                 | Line stays a character                            | Line becomes action, remembered for that line                       | Keep Scribidian's (decided 2026-11-19)                                                       |
+| 3   | Escape with the character list open on an empty line                 | Line stays a character                            | Line becomes action, remembered for that line                       | Keep Brass's (decided 2026-11-19)                                                       |
 | 4   | Backspace on an empty character line                                 | Line deleted, cursor at the end of the line above | Line stays, moves to the action margin                              | Setting: Backspace on an empty character line makes it action → off                          |
 | 5   | Type `beat` in `(                                                    | )`, then Tab or Enter                             | Closes `(beat)` and goes to a new dialogue line                     | Picks `(beat)` from the list and stays on the wryly line; a second press moves on            | Fixed 2026-11-17: now the same as Fade In |
 | 6   | Enter in an empty `(                                                 | )`                                                | Goes to dialogue, `()` stays                                        | The wryly list's first item `(beat)` is picked                                               | Fixed 2026-11-17: now the same as Fade In |
@@ -683,17 +683,17 @@ line has an element, shown in its Format panel.
 | 8   | Tab in the middle of dialogue                                        | Nothing                                           | Splits the speech with a wryly                                      | Setting: Tab inside a line → Dialogue → Nothing                                              |
 | 9   | Tab in the middle of a character name or slugline                    | Nothing                                           | Next part                                                           | Setting: Tab inside a line → Nothing                                                         |
 | 10  | Tab at the start of an action line with text                         | Nothing                                           | Line becomes a character. Mixed case gives `@She runs to the door.` | Fixed 2026-11-17: a sentence now stays action; a name still becomes a character              |
-| 11  | `JOHN` in action, then Enter                                         | Stays action                                      | Becomes a character, dialogue next                                  | Keep Scribidian's (decided 2026-11-19: Fountain reads it as a cue)                           |
+| 11  | `JOHN` in action, then Enter                                         | Stays action                                      | Becomes a character, dialogue next                                  | Keep Brass's (decided 2026-11-19: Fountain reads it as a cue)                           |
 | 12  | Enter on an empty dialogue line                                      | That line becomes a new character line, list open | The cue above becomes action and the cursor starts a new block      | Decided 2026-11-17: Enter does nothing there (Fade In's result can't be written in Fountain) |
 | 13  | Tab after a transition                                               | Action                                            | Scene heading                                                       | Setting: Tab and Enter keys → Transition → Action line                                       |
 | 14  | Tab after a slugline's time (`INT. OFFICE - DAY`)                    | Action                                            | Modifier list; a second Tab adds FLASHBACK (roadmap #117)           | Fixed 2026-11-17: now the same as Fade In                                                    |
-| 15  | Tab in an empty `()` on its own block                                | Line becomes empty dialogue                       | Line becomes an empty action line (2026-11-19)                      | Keep Scribidian's (a wryly or dialogue can't stand without a cue)                            |
+| 15  | Tab in an empty `()` on its own block                                | Line becomes empty dialogue                       | Line becomes an empty action line (2026-11-19)                      | Keep Brass's (a wryly or dialogue can't stand without a cue)                            |
 | 16  | A cue left with no dialogue under it (after deleting the line below) | Still a character                                 | Shown at the action margin                                          | Fixed 2026-11-17: keeps the character column while the cursor stays on it                    |
-| 17  | Type `(` on a dialogue line                                          | Stays dialogue                                    | Becomes a wryly, list open                                          | Keep Scribidian's (it matches Fountain)                                                      |
+| 17  | Type `(` on a dialogue line                                          | Stays dialogue                                    | Becomes a wryly, list open                                          | Keep Brass's (it matches Fountain)                                                      |
 | 18  | Enter on an empty action line                                        | Another empty action line                         | Strict mode keeps a single blank line between blocks                | Keep (strict mode's purpose)                                                                 |
 
 Not compared: Enter on an empty character line with the list closed (in
-Scribidian, Escape already turns the line into action, see #3), and a
+Brass, Escape already turns the line into action, see #3), and a
 lowercase `cut to:` typed on its own block.
 
 ## How to test

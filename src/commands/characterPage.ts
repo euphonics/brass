@@ -17,7 +17,7 @@
 
 import { Notice } from "obsidian";
 import type { Editor, TFile } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import {
   characterPagesForScope,
   ensureCharacterPage,
@@ -29,7 +29,7 @@ import { buildScreenplayIndex, rankUsages } from "../screenplay/indexer";
 import { PickerModal } from "../ui/pickers";
 
 export function openCharacterDossier(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   editor: Editor,
   screenplay: TFile,
   preferredCue?: string,
@@ -45,7 +45,7 @@ export function openCharacterDossier(
 }
 
 async function openDossierPicker(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   editor: Editor,
   screenplay: TFile,
 ): Promise<void> {
@@ -77,7 +77,7 @@ async function openDossierPicker(
 }
 
 async function ensureAndOpen(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   screenplay: TFile,
   currentSource: string,
   cue: string,

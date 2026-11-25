@@ -1,5 +1,5 @@
-window.__namesWas = app.plugins.plugins.scribidian.settings.namesInAction;
-app.plugins.plugins.scribidian.settings.namesInAction = true;
+window.__namesWas = app.plugins.plugins.brass.settings.namesInAction;
+app.plugins.plugins.brass.settings.namesInAction = true;
 const base = "INT. HOUSE - DAY\n\nJENNY\nHi.\n\nTHEO\nYo.\n\n";
 window.__surveyCases = [
   {

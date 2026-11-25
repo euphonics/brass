@@ -24,11 +24,11 @@ import {
   type ViewUpdate,
 } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { escapeForRegExp } from "./triggers";
 
 /*
- * "$" variables ("$my_variable", "$ABC123"), a Scribidian addition: shown
+ * "$" variables ("$my_variable", "$ABC123"), a Brass addition: shown
  * in the theme's accent color so placeholders stand out. Dollar amounts
  * ("$123", "$123.12", "$1,123.12") aren't variables and stay as they are.
  */
@@ -162,9 +162,9 @@ export function variableSuggestions(
  * (#321), per the mode's setting.
  */
 export function createVariableHighlightExtension(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
 ): Extension {
-  const mark = Decoration.mark({ class: "scribidian-variable" });
+  const mark = Decoration.mark({ class: "brass-variable" });
   const build = (view: EditorView): DecorationSet => {
     const file = view.state.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isProjectNote(file)) return Decoration.none;

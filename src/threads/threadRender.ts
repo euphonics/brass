@@ -41,7 +41,7 @@ export function renderThreads(
   for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
     const text = node as Text;
     if (!text.data.includes("[&")) continue;
-    if (text.parentElement?.closest("code, pre, .scribidian-thread")) continue;
+    if (text.parentElement?.closest("code, pre, .brass-thread")) continue;
     nodes.push(text);
   }
   const seen = new Map<string, number>();

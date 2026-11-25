@@ -16,7 +16,7 @@
  */
 
 import { MarkdownView, Modal, Notice, Setting } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import {
   sceneFile,
   filterScenes,
@@ -125,7 +125,7 @@ interface RenderedSceneList {
 const renderedLists = new WeakMap<HTMLElement, RenderedSceneList>();
 
 export async function renderSceneWorkspace(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   container: HTMLElement,
   filters: SceneFilters,
   isCurrent: () => boolean,
@@ -139,7 +139,7 @@ export async function renderSceneWorkspace(
     renderedLists.delete(container);
     container.empty();
     container.createEl("h2", { text: "Scenes" });
-    const bar = container.createDiv({ cls: "scribidian-scene-actions" });
+    const bar = container.createDiv({ cls: "brass-scene-actions" });
     action(bar, "Refresh", refresh);
     action(bar, "Inspect continuity", () => plugin.openContinuityInspector());
     container.createEl("p", {
@@ -160,7 +160,7 @@ export async function renderSceneWorkspace(
   const workspace = loaded;
   container.empty();
   container.createEl("h2", { text: "Scenes" });
-  const bar = container.createDiv({ cls: "scribidian-scene-actions" });
+  const bar = container.createDiv({ cls: "brass-scene-actions" });
   action(bar, "Refresh", refresh);
   action(bar, "Inspect continuity", () => plugin.openContinuityInspector());
   {
@@ -173,7 +173,7 @@ export async function renderSceneWorkspace(
     ];
     if (issues.length)
       container.createEl("p", {
-        cls: "scribidian-scene-warning",
+        cls: "brass-scene-warning",
         text: issues.join("\n"),
       });
     const writeIssue = workspace.issues[0] ?? null;
@@ -209,7 +209,7 @@ export async function renderSceneWorkspace(
           () => {},
         ),
     );
-    const controls = container.createDiv({ cls: "scribidian-scene-filters" });
+    const controls = container.createDiv({ cls: "brass-scene-filters" });
     const search = controls.createEl("input", {
       type: "search",
       placeholder: "Find scenes or synopses",
@@ -242,7 +242,7 @@ export async function renderSceneWorkspace(
         values: all.map((scene) => scene.time),
       },
     ];
-    const list = container.createDiv({ cls: "scribidian-scene-list" });
+    const list = container.createDiv({ cls: "brass-scene-list" });
     const cards: {
       card: HTMLElement;
       heading: HTMLElement;
@@ -267,7 +267,7 @@ export async function renderSceneWorkspace(
             : "No scenes yet. Choose New scene to begin.",
         });
       list.createEl("p", {
-        cls: "scribidian-palette-muted",
+        cls: "brass-palette-muted",
         text: `${visible.length} of ${all.length} scenes · page positions are approximate`,
       });
       cards.length = 0;
@@ -283,7 +283,7 @@ export async function renderSceneWorkspace(
           const liveFile = current.workspace.files[fileIndex] ?? file;
           return { file: liveFile, scene: liveFile.scenes[local] ?? scene };
         };
-        const card = list.createDiv({ cls: "scribidian-scene-card" });
+        const card = list.createDiv({ cls: "brass-scene-card" });
         const index = all.indexOf(scene);
         const heading = action(card, `${index + 1}. ${scene.heading}`, () => {
           const target = live();
@@ -292,23 +292,23 @@ export async function renderSceneWorkspace(
             refresh,
           );
         });
-        heading.addClass("scribidian-scene-heading");
+        heading.addClass("brass-scene-heading");
         cards.push({ card, heading, live });
         card.createEl("p", {
-          cls: "scribidian-palette-muted",
+          cls: "brass-palette-muted",
           text: `${scene.path} · ~p. ${scene.page.toFixed(1)}`,
         });
         if (scene.synopsis)
           card.createEl("p", {
-            cls: "scribidian-scene-synopsis",
+            cls: "brass-scene-synopsis",
             text: scene.synopsis,
           });
         if (scene.characters.length)
           card.createEl("p", {
-            cls: "scribidian-palette-muted",
+            cls: "brass-palette-muted",
             text: scene.characters.join(", "),
           });
-        const buttons = card.createDiv({ cls: "scribidian-scene-actions" });
+        const buttons = card.createDiv({ cls: "brass-scene-actions" });
         const disabled: string | false = writeIssue ?? file.issue ?? false;
         const filtered = Boolean(
           filters.query ||
@@ -415,7 +415,7 @@ class SceneEditModal extends Modal {
   private synopsis = "";
   private submitting = false;
   constructor(
-    private plugin: ScribidianPlugin,
+    private plugin: BrassPlugin,
     private workspace: SceneWorkspace,
     private scene: Scene | null,
     private mode: "create" | "move" | "synopsis",
@@ -563,7 +563,7 @@ class SceneEditModal extends Modal {
         text: "Confirm the destination before moving. Cross-file moves save a local recovery copy; save both notes first. A new cross-file move replaces the previous recovery copy.",
       });
     const error = this.contentEl.createEl("p", {
-      cls: "scribidian-scene-warning",
+      cls: "brass-scene-warning",
     });
     const button = action(
       this.contentEl,
@@ -649,7 +649,7 @@ class SceneEditModal extends Modal {
 
 class RecoveryModal extends Modal {
   constructor(
-    private plugin: ScribidianPlugin,
+    private plugin: BrassPlugin,
     private record: SceneRecovery,
     private refresh: () => void,
   ) {

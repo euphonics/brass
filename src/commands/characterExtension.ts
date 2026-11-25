@@ -16,7 +16,7 @@
  */
 
 import type { Editor } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import {
   isLikelyCharacterCue,
   withCharacterExtension,
@@ -27,7 +27,7 @@ import { PickerModal } from "../ui/pickers";
 export { isLikelyCharacterCue };
 
 export function openCharacterExtension(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   editor: Editor,
 ): void {
   const cursor = editor.getCursor();

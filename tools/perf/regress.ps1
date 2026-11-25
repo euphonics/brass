@@ -6,11 +6,11 @@ $ErrorActionPreference = "Stop"
 # Forward slashes: these paths go into JavaScript strings, where "\" escapes.
 $tools = $PSScriptRoot -replace '\\', '/'
 $Cases = $Cases -replace '\\', '/'
-$s = "$env:TEMP/scribidian-perf" -replace '\\', '/'
+$s = "$env:TEMP/brass-perf" -replace '\\', '/'
 New-Item -ItemType Directory -Force $s | Out-Null
-$plugin = "C:/Users/arunc/Code/Obsidian Dev Vault/Dev/.obsidian/plugins/scribidian/main.js"
+$plugin = "C:/Users/arunc/Code/Obsidian Dev Vault/Dev/.obsidian/plugins/brass/main.js"
 Copy-Item "$s/main-$Build.js" $plugin -Force
-obsidian vault=Dev eval code="(async()=>{await app.plugins.disablePlugin('scribidian'); await app.plugins.enablePlugin('scribidian'); return 'ok'})()" | Out-Null
+obsidian vault=Dev eval code="(async()=>{await app.plugins.disablePlugin('brass'); await app.plugins.enablePlugin('brass'); return 'ok'})()" | Out-Null
 Start-Sleep 2
 $out = "$s/survey-out.json"
 $ran = 0

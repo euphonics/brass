@@ -16,7 +16,7 @@
  */
 
 import type { Editor } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
 import { buildScreenplayIndex, rankUsages } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
@@ -46,12 +46,12 @@ function unique(values: readonly string[]): string[] {
   });
 }
 
-export function openNewScene(plugin: ScribidianPlugin, editor: Editor): void {
+export function openNewScene(plugin: BrassPlugin, editor: Editor): void {
   void openNewSceneForContext(plugin, editor);
 }
 
 async function projectIndex(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   editor: Editor,
 ): Promise<ReturnType<typeof buildScreenplayIndex>> {
   const file = plugin.activeMarkdownView()?.file ?? null;
@@ -67,7 +67,7 @@ async function projectIndex(
 }
 
 async function openNewSceneForContext(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   editor: Editor,
 ): Promise<void> {
   const index = await projectIndex(plugin, editor);
@@ -81,7 +81,7 @@ async function openNewSceneForContext(
 }
 
 export function openNewSceneAtLocation(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   editor: Editor,
   location: string,
 ): void {
@@ -89,7 +89,7 @@ export function openNewSceneAtLocation(
 }
 
 async function openNewSceneAtLocationForContext(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   editor: Editor,
   location: string,
 ): Promise<void> {
@@ -105,7 +105,7 @@ async function openNewSceneAtLocationForContext(
 }
 
 function chooseLocation(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   editor: Editor,
   index: ReturnType<typeof buildScreenplayIndex>,
   sceneType: string,
@@ -138,7 +138,7 @@ function chooseLocation(
 }
 
 function chooseTime(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   editor: Editor,
   index: ReturnType<typeof buildScreenplayIndex>,
   sceneType: string,

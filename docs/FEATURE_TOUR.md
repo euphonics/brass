@@ -1,6 +1,6 @@
-# Scribidian feature tour
+# Brass feature tour
 
-Scribidian keeps Fountain or Markdown as the source of truth and adds a
+Brass keeps Fountain or Markdown as the source of truth and adds a
 screenplay-aware workspace around it. Everything shown below runs locally in
 Obsidian.
 
@@ -67,7 +67,7 @@ The configured US Letter or A4 size controls the preview and page counts.
 ## Keep character context in normal Markdown
 
 Character dossiers hold background, wants, voice, relationships, and
-continuity notes. Scribidian derives appearances and dialogue usage from the
+continuity notes. Brass derives appearances and dialogue usage from the
 screenplay and offers the normal Obsidian Local Graph for relationships.
 
 ![Character dossier and derived screenplay context](images/character-workspace.png)
@@ -106,5 +106,5 @@ only for the command **Copy configuration to clipboard**.
 Run **Create example screenplay** from the command palette. It creates a self-contained tour with a project, parts, and character
 dossiers. Existing vault content is never overwritten.
 
-The 13-second [preview demo](images/scribidian-demo.mp4), recorded when Scribidian still had PDF export, is also
+The 13-second [preview demo](images/brass-demo.mp4), recorded when Brass still had PDF export, is also
 available as a compact video.

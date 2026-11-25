@@ -17,7 +17,7 @@
 
 import { MarkdownView, Notice, Platform, apiVersion } from "obsidian";
 import type { EditorView } from "@codemirror/view";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { classifyLines } from "../screenplay/lines";
 
 const onOff = (value: boolean): string => (value ? "on" : "off");
@@ -27,7 +27,7 @@ const onOff = (value: boolean): string => (value ? "on" : "off");
  * the element each line is read as. Null without a Markdown editor.
  */
 function cursorContext(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
 ): { file: string; screenplay: boolean; text: string } | null {
   const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
   if (view === null || view.file === null) return null;
@@ -69,7 +69,7 @@ function cursorContext(
 }
 
 /** Debugging information: versions, mode, key settings, the cursor. */
-export function buildConfigurationReport(plugin: ScribidianPlugin): string {
+export function buildConfigurationReport(plugin: BrassPlugin): string {
   const s = plugin.settings;
   const script = plugin.isScriptMode();
   const strict = script ? s.lockBlankLinesScript : s.lockBlankLinesPlain;
@@ -84,9 +84,9 @@ export function buildConfigurationReport(plugin: ScribidianPlugin): string {
         : "Linux";
   const context = cursorContext(plugin);
   const out: string[] = [
-    "## Scribidian configuration",
+    "## Brass configuration",
     "",
-    `- Scribidian ${plugin.manifest.version}, Obsidian ${apiVersion}, ${platform}`,
+    `- Brass ${plugin.manifest.version}, Obsidian ${apiVersion}, ${platform}`,
     `- Mode: ${script ? "Script (formatted)" : "Fountain (plain text)"}`,
     `- Strict cursor placement (this mode): ${onOff(strict)} (script ${onOff(s.lockBlankLinesScript)}, Fountain ${onOff(s.lockBlankLinesPlain)})`,
     `- Smart Tab: ${onOff(s.smartTabEnabled)}, Smart Enter: ${onOff(s.smartEnterEnabled)}`,
@@ -136,12 +136,12 @@ export function buildConfigurationReport(plugin: ScribidianPlugin): string {
 
 /** "Copy configuration to clipboard": paste it into a bug report. */
 export async function copyConfiguration(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
 ): Promise<void> {
   try {
     await navigator.clipboard.writeText(buildConfigurationReport(plugin));
-    new Notice("Scribidian: configuration copied to the clipboard");
+    new Notice("Brass: configuration copied to the clipboard");
   } catch {
-    new Notice("Scribidian: couldn't copy the configuration");
+    new Notice("Brass: couldn't copy the configuration");
   }
 }

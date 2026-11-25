@@ -17,7 +17,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TFile } from "obsidian";
-import type ScribidianPlugin from "../src/main";
+import type BrassPlugin from "../src/main";
 import { activateScreenplayNote } from "../src/commands/activateScreenplay";
 import { activateScreenplay } from "../src/onboarding/activateScreenplay";
 
@@ -44,7 +44,7 @@ describe("activation feedback", () => {
     async (result) => {
       vi.mocked(activateScreenplay).mockResolvedValue(result);
       const refreshStatus = vi.fn();
-      const plugin = { refreshStatus } as unknown as ScribidianPlugin;
+      const plugin = { refreshStatus } as unknown as BrassPlugin;
       const file = new TFile();
       await activateScreenplayNote(plugin, file);
       expect(refreshStatus).toHaveBeenCalledOnce();
@@ -60,7 +60,7 @@ describe("activation feedback", () => {
     vi.mocked(activateScreenplay).mockResolvedValue("unavailable");
     const refreshStatus = vi.fn();
     await activateScreenplayNote(
-      { refreshStatus } as unknown as ScribidianPlugin,
+      { refreshStatus } as unknown as BrassPlugin,
       new TFile(),
     );
     expect(refreshStatus).not.toHaveBeenCalled();

@@ -1,10 +1,10 @@
 # Contributing
 
-Scribidian welcomes issues and pull requests.
+Brass welcomes issues and pull requests.
 
 ## Languages
 
-Scribidian supports languages written in the Latin alphabet. Support for
+Brass supports languages written in the Latin alphabet. Support for
 right-to-left scripts (Hebrew, Arabic) and scripts without capital letters
 (Chinese, Japanese, Korean) is out of scope for the maintainer, but welcome as a
 contribution from people who write screenplays in those languages. Fountain

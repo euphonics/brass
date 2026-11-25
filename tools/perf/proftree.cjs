@@ -1,4 +1,4 @@
-// node proftree.cjs prof.json  -> scribidian functions by self and inclusive time (unminified names)
+// node proftree.cjs prof.json  -> brass functions by self and inclusive time (unminified names)
 const fs = require("fs");
 const p = JSON.parse(
   fs.readFileSync(process.argv[2], "utf8").replace(/^﻿/, ""),
@@ -11,7 +11,7 @@ const counts = new Map();
 pr.samples.forEach((id, i) =>
   counts.set(id, (counts.get(id) || 0) + (pr.timeDeltas[i] || 0)),
 );
-const isS = (n) => /scribidian/.test(decodeURIComponent(n.callFrame.url));
+const isS = (n) => /brass/.test(decodeURIComponent(n.callFrame.url));
 const self = new Map(),
   tot = new Map();
 for (const [id, us] of counts) {
@@ -46,5 +46,5 @@ const pr2 = (m, n) =>
     .slice(0, n)
     .map(([k, v]) => (v / 1000).toFixed(0).padStart(5) + " " + k)
     .join("\n");
-console.log("INCLUSIVE (scribidian frames):\n" + pr2(tot, 30));
-console.log("SELF (leaf frames, in scribidian stacks):\n" + pr2(self, 20));
+console.log("INCLUSIVE (brass frames):\n" + pr2(tot, 30));
+console.log("SELF (leaf frames, in brass stacks):\n" + pr2(self, 20));

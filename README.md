@@ -1,7 +1,11 @@
-# Scribidian
+<p align="center"><img src="assets/logo/brass-logo.png" alt="Brass logo: a brass brad" width="160"></p>
+
+# Brass
+
+Formerly Scribidian.
 
 Write your screenplay in Obsidian, right beside your outlines, research and
-character notes. Scribidian lays the page out like a real script as you
+character notes. Brass lays the page out like a real script as you
 type, finishes character names and places for you, keeps a running page
 count, and gives you a clean script to take into Final Draft, Fade In or any
 other screenplay app.
@@ -13,7 +17,7 @@ screenplay apps can open.
 ## Why writers use it
 
 **Character names finish themselves, even in action.** Type the first few
-letters of a character in capitals and Scribidian offers the full name. That
+letters of a character in capitals and Brass offers the full name. That
 works on the character line above dialogue and in the middle of an action
 line, where a character first walks on:
 
@@ -30,11 +34,11 @@ Every name is spelled the same on page 90 as on page 1.
 **Keep your notes in the script. They stay out of the finished page.** Put a
 link to your research, a photo of the location, a to-do, a comment or a
 highlighted line right under the scene it's about. When you export,
-Scribidian takes all of it out, so the script you send is clean.
+Brass takes all of it out, so the script you send is clean.
 
 **Write now, name it later.** Don't know the villain's name yet? Type
 `$villain` and keep going. It stays highlighted until you decide, and
-Scribidian suggests it each time you start typing it, so it's spelled the
+Brass suggests it each time you start typing it, so it's spelled the
 same everywhere and easy to find when you finally choose.
 
 **It works the way you work.** Choose what Tab and Enter do after each part
@@ -44,29 +48,29 @@ typing help you want. Coming from Fade In? Several settings can match it.
 **Follow your setups to their payoffs.** Give a setup and its payoff the
 same tag, like `[&the-gun]`, and jump between them anywhere in the script.
 
-![Writing in Scribidian, then previewing it as pages](docs/images/firstdraft-demo.gif)
+![Writing in Brass, then previewing it as pages](docs/images/firstdraft-demo.gif)
 
-**This is a beta.** Scribidian 0.1.0 has so far been tested by one writer.
+**This is a beta.** Brass 0.1.0 has so far been tested by one writer.
 Keep backups of your scripts, and please
-[report problems](https://github.com/euphonics/scribidian/issues).
+[report problems](https://github.com/euphonics/brass/issues).
 
 ## Install
 
-Scribidian isn't in Obsidian's community plugin directory yet. Until it is,
+Brass isn't in Obsidian's community plugin directory yet. Until it is,
 install it with BRAT, a helper plugin that installs plugins from GitHub. This
 works on computers, iPhone, iPad and Android.
 
 1. In Obsidian, open **Settings → Community plugins**, turn off Restricted
    mode if asked, then choose **Browse** and install **BRAT**. Enable it.
 2. Open **Settings → BRAT → Add beta plugin**.
-3. Enter `euphonics/scribidian` and choose the latest release.
-4. Enable **Scribidian** under **Settings → Community plugins**.
+3. Enter `euphonics/brass` and choose the latest release.
+4. Enable **Brass** under **Settings → Community plugins**.
 
 To install by hand instead, download `main.js`, `manifest.json` and
 `styles.css` from the
-[latest release](https://github.com/euphonics/scribidian/releases/latest) and
-put them in a folder called `scribidian` inside your vault's
-`.obsidian/plugins` folder. Then enable Scribidian under
+[latest release](https://github.com/euphonics/brass/releases/latest) and
+put them in a folder called `brass` inside your vault's
+`.obsidian/plugins` folder. Then enable Brass under
 **Settings → Community plugins**.
 
 **Used First Draft before?** Turn it off: both plugins open the same files.
@@ -75,7 +79,7 @@ See [Moving from First Draft](docs/releases/0.1.0.md#moving-from-first-draft).
 ## Your first five minutes
 
 1. **Try the example.** Open the command palette (**Ctrl+P**, or **Cmd+P** on
-   Mac), run **Scribidian: Create example screenplay**, and follow the
+   Mac), run **Brass: Create example screenplay**, and follow the
    `Start Here` note it opens. It goes in a new folder and never changes
    anything else.
 2. **Start your own script.** Create a file ending in `.fountain`, or open any
@@ -92,7 +96,7 @@ See [Moving from First Draft](docs/releases/0.1.0.md#moving-from-first-draft).
    printed pages, then **Export PDF** to share it, or **Export Fountain** to
    take it into Final Draft, Fade In or another screenplay app.
 
-Open **Scribidian: Open screenplay cheat sheet** any time for screenplay terms
+Open **Brass: Open screenplay cheat sheet** any time for screenplay terms
 and examples of the Fountain format.
 
 ## What it does
@@ -141,7 +145,7 @@ See the [feature tour](docs/FEATURE_TOUR.md) for pictures of each part.
 
 - [Feature tour](docs/FEATURE_TOUR.md): every feature, with screenshots.
 - [Editor modes](docs/EDITOR_MODES.md): what script mode and plain mode each do.
-- [Using Scribidian on a phone](docs/MOBILE_TESTING.md): installing, and
+- [Using Brass on a phone](docs/MOBILE_TESTING.md): installing, and
   putting Smart Tab on the toolbar.
 - [Scenes panel](docs/SCENE_WORKSPACE.md) and
   [continuity inspector](docs/CONTINUITY_INSPECTOR.md).
@@ -165,22 +169,22 @@ with **Screenplay: Toggle strict cursor placement**.
 
 **Reporting a problem.** Run **Copy configuration to clipboard** with the
 cursor where the problem happens, and paste the result into your report. It
-holds your Scribidian settings, mode and the few lines around the cursor, and
+holds your Brass settings, mode and the few lines around the cursor, and
 nothing else from your vault.
 
-**Themes.** Scribidian supports Obsidian's Default theme and Minimal, on
+**Themes.** Brass supports Obsidian's Default theme and Minimal, on
 computers and phones. Other themes should work but aren't tested. In scripts,
-Scribidian keeps control of the layout (font, the 60-character line, indents,
+Brass keeps control of the layout (font, the 60-character line, indents,
 spacing) so a theme can't knock it out of line; colors, dark mode and text
 size still follow your theme.
 
-- To change the script font, use **Settings → Scribidian → Screenplay font**.
+- To change the script font, use **Settings → Brass → Screenplay font**.
   This also works for fonts that help with reading. CSS snippets can't change
   it.
 - Settings that make notes wider don't widen a script: it stays 60 characters
   wide, like the printed page.
 
-**Languages.** Scribidian supports languages written in the Latin alphabet.
+**Languages.** Brass supports languages written in the Latin alphabet.
 Right-to-left languages (Hebrew, Arabic) and languages without capital letters
 (Chinese, Japanese, Korean) aren't supported for writing yet. If you write
 screenplays in one of them and would like to help, see
@@ -203,7 +207,7 @@ toolbar above the keyboard.
 
 - A line in capitals with text right below it reads as a character and
   dialogue, unless it ends in punctuation: `BANG!` or `SILENCE.` stays action
-  in Scribidian. Other apps follow plain Fountain and may read `BANG!` as a
+  in Brass. Other apps follow plain Fountain and may read `BANG!` as a
   character; put `!` in front (`!BANG!`) to make it action everywhere. For a
   name that does end in punctuation (`JOHN JR.`), put `@` in front.
 - Sluglines must start with INT, EXT, EST or I/E. For anything else, start the
@@ -211,18 +215,18 @@ toolbar above the keyboard.
 - Transitions must end in `TO:`. For others, start with `>`: `> FADE OUT.`
 - A line with just two spaces keeps a speech going across a gap.
 - `%% comments %%`, `[[notes]]`, `/* boneyard */` and `// line comments` are
-  left out of the preview. Line comments are a Scribidian addition; other
+  left out of the preview. Line comments are a Brass addition; other
   apps show them as text, so use a clean export (**Export to clean
   Fountain**, **Export clean PDF**, **Export to clean Final Draft FDX**) to
   remove them.
 - Lines starting with `~` are lyrics.
-- `[&name]` is a **thread**, a Scribidian addition: lines with the same
+- `[&name]` is a **thread**, a Brass addition: lines with the same
   name are tied together (a setup and its payoff, a red herring). It shows
   as 🧵; click it (or press Obsidian's Follow link hotkey on it) to go to
   the next place in the note, Alt+click to go on through the project and
   notes linked to it. **Show threads** lists every place in a sidebar.
   Exports leave threads out.
-- While Scribidian is turned off, `.fountain` files disappear from Obsidian's
+- While Brass is turned off, `.fountain` files disappear from Obsidian's
   file list unless **Settings → Files and links → Detect all file extensions**
   is on.
 
@@ -254,7 +258,7 @@ can live in any folder:
 
 ```yaml
 ---
-scribidian: screenplay-project
+brass: screenplay-project
 title: The Long Night
 parts:
   - "[[Parts/01 - Opening]]"
@@ -279,7 +283,7 @@ screenplay-project: "[[Long Night/Screenplay Project]]"
 
 ## Privacy
 
-Scribidian works entirely on your device. It never goes online, sends nothing
+Brass works entirely on your device. It never goes online, sends nothing
 anywhere, has no account and collects no data. Every change it makes to your
 notes is ordinary text you can undo. Details, including exactly what it reads
 and writes: [Privacy and security](PRIVACY.md).
@@ -287,7 +291,7 @@ and writes: [Privacy and security](PRIVACY.md).
 ## Help and contributing
 
 - Found a problem or have an idea?
-  [Open an issue](https://github.com/euphonics/scribidian/issues).
+  [Open an issue](https://github.com/euphonics/brass/issues).
 - Security problems: please report them privately, as described in
   [SECURITY.md](SECURITY.md).
 - Want to help? See [CONTRIBUTING](CONTRIBUTING.md) and the
@@ -297,10 +301,10 @@ and writes: [Privacy and security](PRIVACY.md).
 
 ## Credits
 
-Scribidian is derived from [First Draft](https://github.com/grobmeier/firstdraft)
+Brass is derived from [First Draft](https://github.com/grobmeier/firstdraft)
 by Christian Grobmeier, used under the Apache License 2.0. The screenplay
 parser, exports, palette, character and project features, and much else come
-from First Draft. Scribidian adds the screenplay layout in the editor, Smart
+from First Draft. Brass adds the screenplay layout in the editor, Smart
 Tab and Enter, element hotkeys, dual dialogue, slug modifiers, typing help,
 font and margin settings and more. "First Draft" is Christian Grobmeier's
 project name; this project is not affiliated with or endorsed by him.

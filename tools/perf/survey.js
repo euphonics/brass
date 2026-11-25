@@ -1,5 +1,5 @@
 ﻿(async () => {
-  const DIR = require("os").tmpdir().replace(/\\/g, "/") + "/scribidian-perf";
+  const DIR = require("os").tmpdir().replace(/\\/g, "/") + "/brass-perf";
   require("fs").mkdirSync(DIR, { recursive: true });
   const fs = require("fs");
   const OUT = DIR + "/survey-out.json";
@@ -13,10 +13,10 @@
   }
   if (app.vault.getName() !== "Dev")
     throw new Error("ABORT: harness runs only in the Dev vault");
-  const path = "Scribidian Example/Test Bench.md";
+  const path = "Brass Example/Test Bench.md";
   const f = app.vault.getAbstractFileByPath(path);
   if (!f) throw new Error("ABORT: no Test Bench");
-  const pl = app.plugins.plugins.scribidian;
+  const pl = app.plugins.plugins.brass;
   const saved = JSON.stringify(pl.settings);
   let leaf = app.workspace
     .getLeavesOfType("markdown")
@@ -91,7 +91,7 @@
       ".cm-line",
     );
     return el
-      ? (el.className.match(/scribidian-sp-([a-z-]+)/) || [])[1] || ""
+      ? (el.className.match(/brass-sp-([a-z-]+)/) || [])[1] || ""
       : "?";
   };
   const snap = (label) => out.push([label, show(), kind(), list()]);

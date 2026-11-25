@@ -38,7 +38,7 @@ export class CharacterCheckModal extends Modal {
 
   onOpen(): void {
     this.setTitle("Character check");
-    this.contentEl.addClass("scribidian-character-check");
+    this.contentEl.addClass("brass-character-check");
     if (this.issues.length === 0) {
       this.contentEl.createEl("p", {
         text: "No deterministic character-page issues were found.",
@@ -53,13 +53,13 @@ export class CharacterCheckModal extends Modal {
         text: `${LABELS[severity]} (${issues.length})`,
       });
       const list = this.contentEl.createEl("ul", {
-        cls: `scribidian-character-check-${severity}`,
+        cls: `brass-character-check-${severity}`,
       });
       for (const issue of issues) {
         const item = list.createEl("li");
         if (issue.path) {
           const button = item.createEl("button", {
-            cls: "clickable-icon scribidian-character-check-link",
+            cls: "clickable-icon brass-character-check-link",
             text: issue.message,
           });
           button.addEventListener(

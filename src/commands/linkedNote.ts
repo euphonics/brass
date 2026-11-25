@@ -109,7 +109,7 @@ export function setPropertyInEditor(
 
 /**
  * Ask for a note near the script: the notes in its folder and the folders
- * in it (Scribidian never lists the whole vault), with an optional
+ * in it (Brass never lists the whole vault), with an optional
  * "create" item first. Resolves to null when the dialog is closed.
  */
 export function pickNearbyNote(

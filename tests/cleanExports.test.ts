@@ -34,7 +34,7 @@ const { exportedFountainSource, printedScreenplay } =
   await import("../src/commands/exportFountain");
 const { DEFAULT_SETTINGS, migrateSettings } =
   await import("../src/settings/settings");
-import type ScribidianPlugin from "../src/main";
+import type BrassPlugin from "../src/main";
 import type { CleanExportFormat } from "../src/settings/settings";
 
 const source = `INT. HALL - NIGHT
@@ -46,16 +46,16 @@ Jen sees the clue.
 
 function pluginWith(
   changes: Partial<typeof DEFAULT_SETTINGS>,
-): ScribidianPlugin {
+): BrassPlugin {
   return {
     settings: { ...DEFAULT_SETTINGS, ...changes },
-  } as unknown as ScribidianPlugin;
+  } as unknown as BrassPlugin;
 }
 
 const keepTasks = { ...DEFAULT_SETTINGS.cleanExport, removeTasks: false };
 
 const printed = (
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   clean: boolean,
   format: CleanExportFormat,
 ) =>

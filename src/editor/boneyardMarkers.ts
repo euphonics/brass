@@ -30,7 +30,7 @@ import {
   type ViewUpdate,
 } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { findLineComment } from "../screenplay/lines";
 
 /*
@@ -52,7 +52,7 @@ class MarkerWidget extends WidgetType {
 
   toDOM(): HTMLElement {
     return createSpan({
-      cls: "scribidian-boneyard-marker",
+      cls: "brass-boneyard-marker",
       text: this.text,
     });
   }
@@ -113,7 +113,7 @@ export function boneyardStars(text: string): number[] {
 }
 
 export function createBoneyardMarkerExtension(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
 ): Extension {
   const build = (view: EditorView): DecorationSet => {
     const file = view.state.field(editorInfoField, false)?.file ?? null;
@@ -196,9 +196,9 @@ export function lineCommentRanges(
 
 /** Line comments shown faded in screenplay notes. */
 export function createLineCommentExtension(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
 ): Extension {
-  const faded = Decoration.mark({ class: "scribidian-line-comment" });
+  const faded = Decoration.mark({ class: "brass-line-comment" });
   const build = (view: EditorView): DecorationSet => {
     const file = view.state.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return Decoration.none;

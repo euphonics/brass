@@ -24,7 +24,7 @@ export default tseslint.config(
     ignores: [
       "main.js",
       "node_modules",
-      "Scribidian Test Vault",
+      "Brass Test Vault",
       "graphify-out",
       "output",
       // Measurement scripts run inside Obsidian (obsidian eval), not built.
@@ -67,7 +67,7 @@ export default tseslint.config(
         "warn",
         {
           brands: [
-            "Scribidian",
+            "Brass",
             "Final Draft",
             "Fountain",
             "Chinese",

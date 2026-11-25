@@ -17,7 +17,7 @@
 
 import { Notice } from "obsidian";
 import type { MarkdownView } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import type * as PdfExport from "../export/pdf";
 // The PDF code (pdf-lib, fontkit and the embedded fonts, most of the
 // plugin's size) loads on the first export, not when Obsidian starts.
@@ -26,10 +26,10 @@ import { loadScreenplayContext } from "../projects/vault";
 import { printedScreenplay, sourceWithEmbeds } from "./exportFountain";
 import { ScreenplayLayoutError } from "../export/screenplayLayout";
 
-const activeExports = new WeakSet<ScribidianPlugin>();
+const activeExports = new WeakSet<BrassPlugin>();
 
 export async function exportPdf(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   view: MarkdownView,
   clean = false,
 ): Promise<void> {
@@ -96,8 +96,8 @@ export async function exportPdf(
       new Notice(error.message, 15000);
       return;
     }
-    console.error("Scribidian could not export PDF", error);
-    new Notice("Scribidian could not export the screenplay PDF.");
+    console.error("Brass could not export PDF", error);
+    new Notice("Brass could not export the screenplay PDF.");
   } finally {
     progress.hide();
     activeExports.delete(plugin);

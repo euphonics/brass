@@ -1,11 +1,11 @@
 # Typing performance
 
-The question (2026-11-22): can Scribidian be as responsive as a dedicated
+The question (2026-11-22): can Brass be as responsive as a dedicated
 screenwriting app inside Obsidian, or does it need to become a separate
 app? **Answer: it can stay in Obsidian.** Typing in script mode now costs
 about the same as typing in a plain Obsidian note (within 1–2 ms, about
 the measurement noise), even in a 500-page script. Lag in a busy vault comes
-from other plugins, not from Scribidian or Obsidian.
+from other plugins, not from Brass or Obsidian.
 
 ## How it was measured
 
@@ -24,15 +24,15 @@ lets background work start between bursts.
 
 With all of the writer's plugins on:
 
-| Script                 | Before | After round 1 | Scribidian off |
+| Script                 | Before | After round 1 | Brass off |
 | ---------------------- | ------ | ------------- | -------------- |
 | 120 pages, script mode | 38     | 22            | 18             |
 | 500 pages, script mode | 112    | 48            | 43             |
 | 500 pages, plain mode  | 67     | 48            | 43             |
 
-With every other plugin off (Scribidian alone), after round 2:
+With every other plugin off (Brass alone), after round 2:
 
-| Script                              | Median    | 95th percentile | Scribidian off |
+| Script                              | Median    | 95th percentile | Brass off |
 | ----------------------------------- | --------- | --------------- | -------------- |
 | 500 pages, script mode              | 11.7–13.3 | 16              | 9.8–11.8       |
 | 500 pages, plain mode               | 10.2–12.4 | 16              | 9.8–11.8       |
@@ -42,7 +42,7 @@ With every other plugin off (Scribidian alone), after round 2:
 Before the fixes, script mode at 500 pages had a 70–220 ms long task on
 every keystroke. Now typing produces none, at either size.
 
-## What was slow in Scribidian, and the fixes
+## What was slow in Brass, and the fixes
 
 1. **Reading the frontmatter copied the whole note.** `isScreenplayFile`,
    which several editor extensions call on every edit, used
@@ -88,7 +88,7 @@ every keystroke. Now typing produces none, at either size.
    waits for it, but typing doesn't). `characterCue`, the busiest function
    in every whole-note pass, rejects lines with a lowercase letter before
    any `(` first, before its other checks (same result). Median per press,
-   Scribidian alone: Enter 34 to 12 ms (120 pages) and 48 to 19 ms (500
+   Brass alone: Enter 34 to 12 ms (120 pages) and 48 to 19 ms (500
    pages); Tab 35 to 11 ms and 48 to 13 ms. All 204 recorded behavior cases
    (cases1–22) give the same results as before, including each line's
    layout.
@@ -121,7 +121,7 @@ edit and could be made incremental.
 
 ## Threads panel (2026-11-23)
 
-Measured in the Dev vault on a 500-page script (`Scribidian Example/Threads
+Measured in the Dev vault on a 500-page script (`Brass Example/Threads
 Perf.md`, thread marks added to action lines), with the panel open. The
 panel works only after typing pauses, never per keystroke.
 
@@ -138,9 +138,9 @@ worker and redraw only the threads that changed (#285).
 
 ## Release check, 0.1.1 vs 0.1.2 (2026-11-23)
 
-`tools/perf/check.ps1` (only Scribidian on), baseline from the 0.1.1
-release build, then the 0.1.2 candidate. Scribidian's cost is script or
-plain mode minus Scribidian off, in the same run.
+`tools/perf/check.ps1` (only Brass on), baseline from the 0.1.1
+release build, then the 0.1.2 candidate. Brass's cost is script or
+plain mode minus Brass off, in the same run.
 
 | Check                                      | 0.1.1    | 0.1.2   |
 | ------------------------------------------ | -------- | ------- |

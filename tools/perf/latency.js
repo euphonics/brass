@@ -1,6 +1,6 @@
 // window.__lat = { size: 2|8, mode: "screenplay"|"plain"|"off", where: "action"|"dialogue", n: 60, gap: 90 }
 (async () => {
-  const DIR = require("os").tmpdir().replace(/\\/g, "/") + "/scribidian-perf";
+  const DIR = require("os").tmpdir().replace(/\\/g, "/") + "/brass-perf";
   require("fs").mkdirSync(DIR, { recursive: true });
   const fs = require("fs");
   const cfg = window.__lat;
@@ -16,11 +16,11 @@
       w.focus();
     }
   }
-  const path = `Scribidian Example/Perf ${cfg.size}x.md`;
+  const path = `Brass Example/Perf ${cfg.size}x.md`;
   if (!app.vault.getAbstractFileByPath(path)) {
     const src = fs
       .readFileSync(
-        "C:/Users/arunc/Code/Obsidian Dev Vault/Dev/2026.10.26 EXFILTRATION by Arun Croll SCRIBIDIAN.fountain",
+        "C:/Users/arunc/Code/Obsidian Dev Vault/Dev/2026.10.26 EXFILTRATION by Arun Croll BRASS.fountain",
         "utf8",
       )
       .replace(/^Title:[\s\S]*?\n\n/, "");
@@ -31,12 +31,12 @@
     );
   }
   if (cfg.mode === "off") {
-    if (app.plugins.plugins.scribidian)
-      await app.plugins.disablePlugin("scribidian");
-  } else if (!app.plugins.plugins.scribidian)
-    await app.plugins.enablePlugin("scribidian");
+    if (app.plugins.plugins.brass)
+      await app.plugins.disablePlugin("brass");
+  } else if (!app.plugins.plugins.brass)
+    await app.plugins.enablePlugin("brass");
   await wait(800);
-  const pl = app.plugins.plugins.scribidian;
+  const pl = app.plugins.plugins.brass;
   const saved = pl ? pl.settings.editorLayout : null;
   if (pl) {
     pl.settings.editorLayout = cfg.mode === "plain" ? "plain" : "screenplay";
@@ -116,7 +116,7 @@
       pl.settings.editorLayout = saved;
       app.workspace.updateOptions();
     }
-    if (cfg.mode === "off") await app.plugins.enablePlugin("scribidian");
+    if (cfg.mode === "off") await app.plugins.enablePlugin("brass");
   }
   const stats = (a) => {
     const s = [...a].sort((x, y) => x - y);

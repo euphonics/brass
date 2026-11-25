@@ -21,7 +21,7 @@ existing Markdown metadata; save them before refreshing the report.
 
 ## Desktop test
 
-Use **Scribidian Test Vault**, open `Continuity Inspector Demo/Project` and run
+Use **Brass Test Vault**, open `Continuity Inspector Demo/Project` and run
 **Inspect continuity**. Confirm optional-page advice, an empty scene, a missing
 time label and a spelling variant. Character pages remain optional.
 

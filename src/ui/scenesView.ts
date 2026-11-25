@@ -17,12 +17,12 @@
 
 import { ItemView } from "obsidian";
 import type { IconName, WorkspaceLeaf } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { renderSceneWorkspace } from "./sceneWorkspace";
 import { EMPTY_SCENE_FILTERS } from "../scenes/model";
 
 /** Kept from the old palette so sidebars saved with it still open. */
-export const SCENES_VIEW_TYPE = "scribidian-palette";
+export const SCENES_VIEW_TYPE = "brass-palette";
 
 /** The sidebar scene list: jump to, filter, add, edit and move scenes. */
 export class ScenesView extends ItemView {
@@ -31,7 +31,7 @@ export class ScenesView extends ItemView {
 
   constructor(
     leaf: WorkspaceLeaf,
-    private readonly plugin: ScribidianPlugin,
+    private readonly plugin: BrassPlugin,
   ) {
     super(leaf);
   }
@@ -49,7 +49,7 @@ export class ScenesView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
-    this.contentEl.addClass("scribidian-palette");
+    this.contentEl.addClass("brass-palette");
     this.refresh();
   }
 

@@ -33,10 +33,11 @@ import {
   wikiLinkTarget,
   LEGACY_PAGE_KIND_KEY,
   PAGE_KIND_KEY,
+  SCRIBIDIAN_PAGE_KIND_KEY,
 } from "./catalogue";
 import type { VerifiableCharacterPage } from "./verification";
 
-function markdownFilesInFolder(app: App, folderPath: string): TFile[] {
+export function markdownFilesInFolder(app: App, folderPath: string): TFile[] {
   const normalized = normalizePath(folderPath);
   if (!normalized) return [];
   const folder = app.vault.getFolderByPath(normalized);
@@ -205,7 +206,7 @@ export async function screenplayProjectName(
   return guessed;
 }
 
-/** Add the properties Scribidian uses to recognize a character page. */
+/** Add the properties Brass uses to recognize a character page. */
 async function markAsCharacterPage(
   app: App,
   file: TFile,
@@ -217,8 +218,11 @@ async function markAsCharacterPage(
   await app.fileManager.processFrontMatter(
     file,
     (frontmatter: Record<string, unknown>) => {
-      // A page already marked with First Draft's key keeps it as is.
-      if (frontmatter[LEGACY_PAGE_KIND_KEY] !== "character") {
+      // A page already marked with an older key keeps it as is.
+      if (
+        frontmatter[LEGACY_PAGE_KIND_KEY] !== "character" &&
+        frontmatter[SCRIBIDIAN_PAGE_KIND_KEY] !== "character"
+      ) {
         frontmatter[PAGE_KIND_KEY] = "character";
       }
       if (typeof frontmatter.character !== "string") {
@@ -261,7 +265,7 @@ export async function ensureCharacterPage(
 
   const projectName = await screenplayProjectName(app, owner);
 
-  // A page with the expected name may already exist without Scribidian's
+  // A page with the expected name may already exist without Brass's
   // properties (written by hand, or moved). Adopt it instead of making
   // "Name (Character in X) 2".
   const existing = app.metadataCache.getFirstLinkpathDest(
@@ -308,7 +312,7 @@ export async function ensureCharacterPage(
     time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
   });
   const file = await app.vault.create(path, content);
-  // The user's template may lack the properties Scribidian needs.
+  // The user's template may lack the properties Brass needs.
   await markAsCharacterPage(app, file, cue, owner, true);
   return file;
 }

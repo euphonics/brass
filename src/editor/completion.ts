@@ -72,7 +72,7 @@ import {
 import { EditorView, keymap, tooltips } from "@codemirror/view";
 import { editorInfoField, type TFile } from "obsidian";
 import type { ScreenplayIndex } from "../screenplay/model";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import {
   charactersListedIn,
   loadScreenplayContext,
@@ -340,7 +340,7 @@ function applyCandidate(
 }
 
 export function createScreenplayCompletionExtension(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
 ): Extension {
   // Smart rebuild: reuse the suggestion index while only the current line
   // changes. Edits to other notes (e.g. other project parts) clear it.

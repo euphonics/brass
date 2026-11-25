@@ -31,7 +31,7 @@ import {
   isTransitionText,
   looksLikeCharacterCue,
 } from "../screenplay/lines";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { docLineKinds } from "./docLines";
 
 /*
@@ -215,7 +215,7 @@ export function joinsDifferentElements(
  * anyway. Two action blocks join into one paragraph. Other edits and selections are left alone.
  */
 export function createBlankLineLockExtension(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
 ): Extension {
   const shiftBackspace = Prec.high(
     keymap.of([
@@ -300,7 +300,7 @@ export function createBlankLineLockExtension(
  * different elements, the end of the line above the join; otherwise null.
  */
 function elementJoin(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   tr: Transaction,
 ): {
   aboveEnd: number;

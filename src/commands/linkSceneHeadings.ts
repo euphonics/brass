@@ -17,7 +17,7 @@
 
 import { Notice } from "obsidian";
 import type { MarkdownView, TFile } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { variablesFolder } from "../editor/projectVariables";
 import {
   existingLink,
@@ -48,7 +48,7 @@ const SKIP = "Skip this scene";
 const SKIP_ALL = "Skip this and every other scene without a match";
 
 export async function linkSceneHeadings(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   view: MarkdownView,
 ): Promise<void> {
   const file = view.file;

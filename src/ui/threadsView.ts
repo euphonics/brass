@@ -17,14 +17,14 @@
 
 import { ItemView, TFile, setIcon } from "obsidian";
 import type { IconName, WorkspaceLeaf } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import {
   orderedPlaces,
   stripThreads,
   type ThreadPlace,
 } from "../screenplay/threads";
 
-export const THREADS_VIEW_TYPE = "scribidian-threads";
+export const THREADS_VIEW_TYPE = "brass-threads";
 
 /** A thread as the panel lists it. */
 interface ThreadSummary {
@@ -78,7 +78,7 @@ export class ThreadsView extends ItemView {
 
   constructor(
     leaf: WorkspaceLeaf,
-    private readonly plugin: ScribidianPlugin,
+    private readonly plugin: BrassPlugin,
   ) {
     super(leaf);
   }
@@ -96,7 +96,7 @@ export class ThreadsView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
-    this.contentEl.addClass("scribidian-threads");
+    this.contentEl.addClass("brass-threads");
     this.refresh();
   }
 
@@ -126,7 +126,7 @@ export class ThreadsView extends ItemView {
     if (view === null || !(file instanceof TFile)) {
       this.show("none", (el) => {
         el.createDiv({
-          cls: "scribidian-threads-empty",
+          cls: "brass-threads-empty",
           text: "Open a note to see its threads.",
         });
       });
@@ -187,7 +187,7 @@ export class ThreadsView extends ItemView {
     onToggle: (open: boolean) => void,
   ): void {
     const chevron = row.createDiv({
-      cls: "scribidian-threads-chevron",
+      cls: "brass-threads-chevron",
     });
     setIcon(chevron, "right-triangle");
     row.prepend(chevron);
@@ -219,19 +219,19 @@ export class ThreadsView extends ItemView {
     lines: string[][],
     file: TFile,
   ): void {
-    const header = el.createDiv({ cls: "scribidian-threads-header" });
-    header.createDiv({ cls: "scribidian-threads-title", text: "Threads" });
+    const header = el.createDiv({ cls: "brass-threads-header" });
+    header.createDiv({ cls: "brass-threads-title", text: "Threads" });
     if (threads.length === 0) {
       el.createDiv({
-        cls: "scribidian-threads-empty",
+        cls: "brass-threads-empty",
         text: `No threads in ${file.basename} or the notes linked to it. Add one with [&name] at the end of a line.`,
       });
       return;
     }
-    const buttons = header.createDiv({ cls: "scribidian-threads-buttons" });
+    const buttons = header.createDiv({ cls: "brass-threads-buttons" });
     const button = (icon: string, label: string, open: boolean): void => {
       const control = buttons.createDiv({
-        cls: "clickable-icon scribidian-threads-button",
+        cls: "clickable-icon brass-threads-button",
         attr: { "aria-label": label, role: "button", tabindex: "0" },
       });
       setIcon(control, icon);
@@ -240,11 +240,11 @@ export class ThreadsView extends ItemView {
         else this.expanded.clear();
         this.closedNotes.clear();
         for (const item of Array.from(
-          el.querySelectorAll<HTMLElement>(".scribidian-threads-item"),
+          el.querySelectorAll<HTMLElement>(".brass-threads-item"),
         )) {
           item.toggleClass("is-collapsed", !open);
           item
-            .querySelector(":scope > .scribidian-threads-self")
+            .querySelector(":scope > .brass-threads-self")
             ?.setAttribute("aria-expanded", String(open));
         }
       };
@@ -256,31 +256,31 @@ export class ThreadsView extends ItemView {
     button("chevrons-up-down", "Expand all", true);
     button("chevrons-down-up", "Collapse all", false);
 
-    const list = el.createDiv({ cls: "scribidian-threads-list" });
+    const list = el.createDiv({ cls: "brass-threads-list" });
     let selectedRow: HTMLElement | null = null;
     threads.forEach((thread, at) => {
       const item = list.createDiv({
-        cls: "scribidian-threads-item scribidian-threads-thread",
+        cls: "brass-threads-item brass-threads-thread",
       });
       const row = item.createDiv({
-        cls: "scribidian-threads-self scribidian-threads-row",
+        cls: "brass-threads-self brass-threads-row",
       });
       if (thread.key === this.selected) {
         row.addClass("is-active");
         selectedRow = row;
       }
       row.createSpan({
-        cls: "scribidian-threads-name",
+        cls: "brass-threads-name",
         text: `🧵 ${thread.name}`,
       });
       if (thread.places.length === 1) {
         row.createSpan({
-          cls: "scribidian-threads-once",
+          cls: "brass-threads-once",
           text: "Used once",
         });
       }
       row.createSpan({
-        cls: "scribidian-threads-count",
+        cls: "brass-threads-count",
         text: String(thread.places.length),
       });
       this.toggleRow(item, row, this.expanded.has(thread.key), (open) => {
@@ -288,24 +288,24 @@ export class ThreadsView extends ItemView {
         else this.expanded.delete(thread.key);
       });
       const children = item.createDiv({
-        cls: "scribidian-threads-children",
+        cls: "brass-threads-children",
       });
       let index = 0;
       for (const group of groupByNote(thread.places)) {
         const noteKey = `${thread.key}\n${group.path}`;
         const noteItem = children.createDiv({
-          cls: "scribidian-threads-item scribidian-threads-group",
+          cls: "brass-threads-item brass-threads-group",
         });
         const noteRow = noteItem.createDiv({
-          cls: "scribidian-threads-self scribidian-threads-note",
+          cls: "brass-threads-self brass-threads-note",
         });
         const note = this.app.vault.getAbstractFileByPath(group.path);
         noteRow.createSpan({
-          cls: "scribidian-threads-note-name",
+          cls: "brass-threads-note-name",
           text: note instanceof TFile ? note.basename : group.path,
         });
         noteRow.createSpan({
-          cls: "scribidian-threads-count",
+          cls: "brass-threads-count",
           text: String(group.places.length),
         });
         this.toggleRow(
@@ -318,13 +318,13 @@ export class ThreadsView extends ItemView {
           },
         );
         const placesEl = noteItem.createDiv({
-          cls: "scribidian-threads-children",
+          cls: "brass-threads-children",
         });
         for (const place of group.places) {
           const line = lines[at]?.[index] ?? "";
           index += 1;
           const placeEl = placesEl.createDiv({
-            cls: "scribidian-threads-place",
+            cls: "brass-threads-place",
             text: line === "" ? "(on its own line)" : line,
           });
           placeEl.setAttribute("role", "button");

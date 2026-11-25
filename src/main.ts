@@ -28,6 +28,13 @@ import {
   applyThreadColor,
 } from "./editor/screenplayFont";
 import { createBottomMarginExtension } from "./editor/bottomMargin";
+import {
+  convertOldKeys,
+  migrateFromScribidian,
+  notesWithOldKey,
+  readOldSettings,
+  turnOffOldPlugin,
+} from "./migration/fromScribidian";
 import { createScreenplayLayoutExtension } from "./editor/screenplayLayout";
 import {
   MarkdownView,
@@ -106,8 +113,8 @@ import { lineKindField } from "./editor/lineKindOverride";
 import {
   DEFAULT_SETTINGS,
   migrateSettings,
-  ScribidianSettingTab,
-  type ScribidianSettings,
+  BrassSettingTab,
+  type BrassSettings,
 } from "./settings/settings";
 import { SCENES_VIEW_TYPE, ScenesView } from "./ui/scenesView";
 import { THREADS_VIEW_TYPE, ThreadsView } from "./ui/threadsView";
@@ -147,7 +154,7 @@ export function paletteOrdered(name: string, rank: number): string {
  * Marks the editor extensions this plugin registered, across reloads (a
  * reloaded plugin is new code, so only a global symbol is shared).
  */
-const EXTENSIONS_TAG = Symbol.for("scribidian.editorExtensions");
+const EXTENSIONS_TAG = Symbol.for("brass.editorExtensions");
 /**
  * Commands that start hidden from the command palette (#296, #297): used
  * once, niche, or with a better choice next to them (the clean exports).
@@ -163,10 +170,10 @@ const HIDDEN_BY_DEFAULT = new Set([
   "open-screenplay-cheat-sheet",
 ]);
 /** The loaded instance, on window, so a reloaded copy can find it (#220). */
-const LIVE_INSTANCE = Symbol.for("scribidian.liveInstance");
+const LIVE_INSTANCE = Symbol.for("brass.liveInstance");
 
-export default class ScribidianPlugin extends Plugin {
-  settings: ScribidianSettings = { ...DEFAULT_SETTINGS };
+export default class BrassPlugin extends Plugin {
+  settings: BrassSettings = { ...DEFAULT_SETTINGS };
   /**
    * Commands kept out of the command palette unless "Show all commands in
    * the command palette" is on: ones with their own key or menu (Tab,
@@ -185,21 +192,31 @@ export default class ScribidianPlugin extends Plugin {
   private readonly noteContext = new NoteContext<TFile, MarkdownView>();
   /** Set up and not unloaded yet (see claimLiveInstance). */
   private live = false;
+  /** This start took its settings from Scribidian (the old plugin ID). */
+  private cameFromScribidian = false;
 
   async onload(): Promise<void> {
     await this.loadSettings();
     if (!this.claimLiveInstance()) return;
+    // Scribidian (the old ID) would fight Brass for .fountain and the
+    // editor, so it goes off before Brass sets anything up.
+    const oldTurnedOff = await turnOffOldPlugin(this.app).catch(() => false);
+    if (this.cameFromScribidian || oldTurnedOff) {
+      this.app.workspace.onLayoutReady(() => {
+        void migrateFromScribidian(this.app, this.manifest.id, oldTurnedOff);
+      });
+    }
     this.applyScreenplayFont();
     this.registerFountainExtension();
     this.threads = new ThreadNavigator(this);
     // Status items left by an earlier copy that was never unloaded (#220).
     activeDocument
-      .querySelectorAll(".status-bar-item.scribidian-status")
+      .querySelectorAll(".status-bar-item.brass-status")
       .forEach((item) => item.remove());
     this.statusBarItem = this.addStatusBarItem();
-    this.statusBarItem.addClass("scribidian-status");
+    this.statusBarItem.addClass("brass-status");
     this.statusBarItem.hide();
-    this.addSettingTab(new ScribidianSettingTab(this.app, this));
+    this.addSettingTab(new BrassSettingTab(this.app, this));
     // One call, in this order: each call makes Obsidian reconfigure every
     // open editor.
     const editorExtensions = [
@@ -740,6 +757,24 @@ export default class ScribidianPlugin extends Plugin {
       },
     });
     this.addCommand({
+      id: "convert-scribidian-properties",
+      name: "Convert Scribidian properties in this folder",
+      checkCallback: (checking) => {
+        const file = this.activeFile();
+        if (file === null) return false;
+        const folder = this.settings.characterFolder;
+        if (notesWithOldKey(this.app, file, folder).length === 0) return false;
+        if (!checking) {
+          void convertOldKeys(this.app, file, folder).then((count) => {
+            new Notice(
+              `Renamed the scribidian property to brass in ${count} notes.`,
+            );
+          });
+        }
+        return true;
+      },
+    });
+    this.addCommand({
       id: "screenplay-project-open-project-note",
       name: "Screenplay project: Open project note",
       checkCallback: (checking) => {
@@ -875,7 +910,7 @@ export default class ScribidianPlugin extends Plugin {
     return known === undefined || !known.extra || this.settings.showAllCommands;
   }
 
-  /** Every Scribidian command, in the order registered, for the setting. */
+  /** Every Brass command, in the order registered, for the setting. */
   listCommands(): { id: string; name: string; shown: boolean }[] {
     return [...this.knownCommands.values()].map(({ command }) => ({
       id: command.id,
@@ -899,8 +934,17 @@ export default class ScribidianPlugin extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    const stored = (await this.loadData()) as Record<string, unknown> | null;
+    let stored = (await this.loadData()) as Record<string, unknown> | null;
+    if (stored === null) {
+      // First start after the rename: take Scribidian's settings along.
+      const old = await readOldSettings(this.app);
+      if (old !== null) {
+        stored = old;
+        this.cameFromScribidian = true;
+      }
+    }
     this.settings = migrateSettings(stored);
+    if (this.cameFromScribidian) await this.saveData(this.settings);
   }
 
   /** Apply the "Screenplay font" setting to the app window. */
@@ -922,7 +966,7 @@ export default class ScribidianPlugin extends Plugin {
   /**
    * Open .fountain files as notes. Another plugin (or Custom File
    * Extensions) may have claimed .fountain already; Obsidian then refuses a
-   * second claim, which would otherwise stop Scribidian from loading.
+   * second claim, which would otherwise stop Brass from loading.
    */
   /**
    * Register the editor extensions, first dropping any left by an earlier
@@ -957,7 +1001,7 @@ export default class ScribidianPlugin extends Plugin {
 
   /**
    * registerView, first clearing a registration of the same type left by an
-   * earlier copy of Scribidian that was never unloaded (#220). Otherwise
+   * earlier copy of Brass that was never unloaded (#220). Otherwise
    * registerView throws and the rest of onload never runs.
    */
   private registerOwnView(
@@ -984,8 +1028,8 @@ export default class ScribidianPlugin extends Plugin {
 
   private registerFountainExtension(): void {
     // Already opened as notes: most likely left by an earlier copy of
-    // Scribidian that was never unloaded (#220). Take it over, so ours is
-    // the registration that goes when Scribidian unloads.
+    // Brass that was never unloaded (#220). Take it over, so ours is
+    // the registration that goes when Brass unloads.
     const registry = this.viewRegistry();
     if (registry?.typeByExtension?.fountain === "markdown") {
       registry.unregisterExtensions?.(["fountain"]);
@@ -994,7 +1038,7 @@ export default class ScribidianPlugin extends Plugin {
       this.registerExtensions(["fountain"], "markdown");
     } catch {
       new Notice(
-        "Scribidian: another plugin already opens .fountain files. Scribidian " +
+        "Brass: another plugin already opens .fountain files. Brass " +
           "still works in them if that plugin opens them as notes. Otherwise, " +
           "turn off that plugin's .fountain support and restart Obsidian.",
         15000,
@@ -1006,7 +1050,7 @@ export default class ScribidianPlugin extends Plugin {
    * The two editor modes (Settings > Editor layout):
    *
    * - Script mode ("Screenplay layout"): the page is laid out like a
-   *   screenplay and Scribidian may shape typing, e.g. Smart Enter.
+   *   screenplay and Brass may shape typing, e.g. Smart Enter.
    * - Plain mode ("Plain Fountain text"): plain text with free typing.
    *   Suggestions and Smart Tab still work; Enter is always Obsidian's own.
    *
@@ -1039,8 +1083,8 @@ export default class ScribidianPlugin extends Plugin {
     this.app.workspace.updateOptions();
     new Notice(
       this.isScriptMode()
-        ? "Scribidian: script mode (screenplay layout)"
-        : "Scribidian: plain mode (Fountain text)",
+        ? "Brass: script mode (screenplay layout)"
+        : "Brass: plain mode (Fountain text)",
     );
   }
 
@@ -1054,7 +1098,7 @@ export default class ScribidianPlugin extends Plugin {
     this.app.workspace.updateOptions();
     const mode = this.isScriptMode() ? "script" : "Fountain";
     new Notice(
-      `Scribidian: strict cursor placement ${this.settings[key] ? "on" : "off"} (${mode} mode)`,
+      `Brass: strict cursor placement ${this.settings[key] ? "on" : "off"} (${mode} mode)`,
     );
   }
 
@@ -1401,7 +1445,7 @@ export default class ScribidianPlugin extends Plugin {
     this.statusBarItem?.setText(status);
     this.statusBarItem?.setAttribute(
       "aria-label",
-      `Scribidian screenplay statistics: ${status}`,
+      `Brass screenplay statistics: ${status}`,
     );
     this.statusBarItem?.show();
   }
@@ -1451,7 +1495,7 @@ export default class ScribidianPlugin extends Plugin {
    * Obsidian's "Follow link" (Alt+Enter by default, or the writer's own
    * hotkey) with the cursor on, in or right next to a thread goes to the
    * next place in it, as a click on the 🧵 does. Anywhere else the command
-   * works as before. Undone when Scribidian is turned off.
+   * works as before. Undone when Brass is turned off.
    */
   private followLinkOnThreads(): void {
     const registry = (
@@ -1617,7 +1661,7 @@ export default class ScribidianPlugin extends Plugin {
     for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
       if (leaf.view instanceof MarkdownView) {
         leaf.view.containerEl.classList.toggle(
-          "scribidian-project-note",
+          "brass-project-note",
           this.isProjectFile(leaf.view.file),
         );
       }
@@ -1627,7 +1671,7 @@ export default class ScribidianPlugin extends Plugin {
   private clearProjectViewClasses(): void {
     for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
       if (leaf.view instanceof MarkdownView) {
-        leaf.view.containerEl.classList.remove("scribidian-project-note");
+        leaf.view.containerEl.classList.remove("brass-project-note");
       }
     }
   }

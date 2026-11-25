@@ -16,14 +16,14 @@
  */
 
 import { Modal, Notice } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { loadInspector, openInspectorEvidence } from "../continuity/vault";
 import type { Evidence } from "../continuity/model";
 
 export class ContinuityInspectorModal extends Modal {
   private generation = 0;
   private guards: ReadonlyMap<string, string> = new Map();
-  constructor(private plugin: ScribidianPlugin) {
+  constructor(private plugin: BrassPlugin) {
     super(plugin.app);
   }
   onOpen(): void {
@@ -102,7 +102,7 @@ export class ContinuityInspectorModal extends Modal {
   }
   private link(evidence: Evidence, label = evidence.text): void {
     const button = this.contentEl.createEl("button", {
-      cls: "scribidian-inspector-evidence",
+      cls: "brass-inspector-evidence",
       text: `${label} · ${evidence.path}:${evidence.line + 1}`,
     });
     button.addEventListener("click", () => {

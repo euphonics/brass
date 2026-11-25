@@ -149,8 +149,8 @@ export function screenplayFontOptions(
 }
 
 /** Body class while the screenplay font applies. */
-export const CUSTOM_FONT_CLASS = "scribidian-custom-screenplay-font";
-const FONT_VARIABLE = "--scribidian-screenplay-font";
+export const CUSTOM_FONT_CLASS = "brass-custom-screenplay-font";
+const FONT_VARIABLE = "--brass-screenplay-font";
 
 /** Apply the screenplay font for the app window, or clear it (`null`). */
 export function applyScreenplayFont(css: string | null): void {
@@ -169,13 +169,13 @@ export function applyScreenplayFont(css: string | null): void {
 export function applyThreadColor(color: string): void {
   const body = activeDocument.body;
   if (/^#[0-9a-f]{3,8}$/iu.test(color))
-    body.style.setProperty("--scribidian-thread-color", color);
-  else body.style.removeProperty("--scribidian-thread-color");
+    body.style.setProperty("--brass-thread-color", color);
+  else body.style.removeProperty("--brass-thread-color");
 }
 
 export function applyLineCommentColor(color: string): void {
   const body = activeDocument.body;
   if (/^#[0-9a-f]{3,8}$/iu.test(color))
-    body.style.setProperty("--scribidian-line-comment-color", color);
-  else body.style.removeProperty("--scribidian-line-comment-color");
+    body.style.setProperty("--brass-line-comment-color", color);
+  else body.style.removeProperty("--brass-line-comment-color");
 }

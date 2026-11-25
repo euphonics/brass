@@ -16,7 +16,7 @@
  */
 
 import { MarkdownView, TFile } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import {
   loadScreenplayContext,
   projectMembershipIssue,
@@ -41,9 +41,9 @@ export interface SceneWorkspace {
   activePath: string;
   activeLine: number;
 }
-const busy = new WeakSet<ScribidianPlugin>();
+const busy = new WeakSet<BrassPlugin>();
 
-function editors(plugin: ScribidianPlugin, path: string): MarkdownView[] {
+function editors(plugin: BrassPlugin, path: string): MarkdownView[] {
   return plugin.app.workspace
     .getLeavesOfType("markdown")
     .flatMap((leaf) =>
@@ -52,14 +52,14 @@ function editors(plugin: ScribidianPlugin, path: string): MarkdownView[] {
         : [],
     );
 }
-function fileFor(plugin: ScribidianPlugin, path: string): TFile {
+function fileFor(plugin: BrassPlugin, path: string): TFile {
   const file = plugin.app.vault.getAbstractFileByPath(path);
   if (!(file instanceof TFile))
     throw new Error(`The file is no longer available: ${path}`);
   return file;
 }
 async function sourceFor(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   path: string,
 ): Promise<string> {
   const open = editors(plugin, path);
@@ -71,7 +71,7 @@ async function sourceFor(
   return values[0] ?? plugin.app.vault.read(fileFor(plugin, path));
 }
 export async function loadSceneWorkspace(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
 ): Promise<SceneWorkspace> {
   const view = plugin.activeMarkdownView();
   if (
@@ -110,7 +110,7 @@ export async function loadSceneWorkspace(
   };
 }
 export async function jumpToScene(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   file: SceneFile,
   scene: Scene,
 ): Promise<void> {
@@ -132,10 +132,10 @@ export async function jumpToScene(
   }
 }
 
-function recoveryPath(plugin: ScribidianPlugin): string {
+function recoveryPath(plugin: BrassPlugin): string {
   return `${plugin.manifest.dir ?? `${plugin.app.vault.configDir}/plugins/${plugin.manifest.id}`}/scene-recovery.json`;
 }
-function diskPort(plugin: ScribidianPlugin): SceneWritePort {
+function diskPort(plugin: BrassPlugin): SceneWritePort {
   return {
     read: async (path) => {
       const source = await plugin.app.vault.read(fileFor(plugin, path));
@@ -176,7 +176,7 @@ function diskPort(plugin: ScribidianPlugin): SceneWritePort {
 }
 
 export async function readSceneRecovery(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
 ): Promise<SceneRecovery | null> {
   const path = recoveryPath(plugin);
   if (!(await plugin.app.vault.adapter.exists(path))) return null;
@@ -196,7 +196,7 @@ export async function readSceneRecovery(
 }
 
 async function exclusive(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   task: () => Promise<void>,
 ): Promise<void> {
   if (busy.has(plugin))
@@ -209,7 +209,7 @@ async function exclusive(
   }
 }
 export async function applySceneChanges(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   changes: SceneChange[],
 ): Promise<void> {
   await exclusive(plugin, async () => {
@@ -286,7 +286,7 @@ export async function applySceneChanges(
   });
 }
 export async function restoreLastSceneMove(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   record: SceneRecovery,
 ): Promise<void> {
   await exclusive(plugin, async () => {

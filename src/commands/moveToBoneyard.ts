@@ -21,7 +21,7 @@ import { Notice, moment } from "obsidian";
 const now = (): { format: (pattern: string) => string } =>
   (moment as unknown as () => { format: (pattern: string) => string })();
 import type { App, Editor, MarkdownView, TFile } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import {
   boneyardSection,
   findBoneyard,
@@ -75,7 +75,7 @@ function today(app: App): string {
  * "<script> Boneyard" next to it.
  */
 async function boneyardTarget(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   file: TFile,
   editor: Editor,
   source: BoneyardSource,
@@ -107,7 +107,7 @@ async function boneyardTarget(
 
 /** Add `blocks` to the boneyard note and take `edits` out of the script. */
 async function moveBlocks(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   file: TFile,
   editor: Editor,
   target: TFile,
@@ -136,7 +136,7 @@ async function moveBlocks(
 }
 
 export async function moveToBoneyard(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   view: MarkdownView,
   source: BoneyardSource = "script",
 ): Promise<void> {
@@ -163,7 +163,7 @@ export async function moveToBoneyard(
  * boneyard markers around it.
  */
 export async function moveSelectionToBoneyard(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   view: MarkdownView,
   source: BoneyardSource = "script",
 ): Promise<void> {

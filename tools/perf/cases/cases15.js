@@ -1,4 +1,4 @@
-const pl = app.plugins.plugins.scribidian;
+const pl = app.plugins.plugins.brass;
 window.__savedTriggers = [
   pl.settings.variablePrefix,
   pl.settings.characterMentionPrefix,

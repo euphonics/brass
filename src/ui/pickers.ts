@@ -73,7 +73,7 @@ export class TextInputModal extends Modal {
       .onChange((value) => {
         this.value = value;
       });
-    input.inputEl.addClass("scribidian-prompt-input");
+    input.inputEl.addClass("brass-prompt-input");
     input.inputEl.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.isComposing) {
         event.preventDefault();

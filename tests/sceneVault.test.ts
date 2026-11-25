@@ -16,7 +16,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type ScribidianPlugin from "../src/main";
+import type BrassPlugin from "../src/main";
 
 const context = vi.hoisted(() => ({
   issues: [] as string[],
@@ -120,7 +120,7 @@ function fixture() {
   open(one);
   const plugin = {
     settings: { pageSize: "us-letter", characterFolder: "Characters" },
-    manifest: { id: "scribidian", dir: ".obsidian/plugins/scribidian" },
+    manifest: { id: "brass", dir: ".obsidian/plugins/brass" },
     activeMarkdownView: () => active,
     isScreenplayFile: () => true,
     isProjectFile: () => false,
@@ -161,7 +161,7 @@ function fixture() {
         },
       },
     },
-  } as unknown as ScribidianPlugin;
+  } as unknown as BrassPlugin;
   return {
     plugin,
     one,
@@ -285,7 +285,7 @@ describe("Obsidian scene safety integration", () => {
     if (!scene) throw new Error("Fixture missing scene");
     await applySceneChanges(f.plugin, moveScene(one, scene, two, null));
     expect([...f.configuration.keys()]).toEqual([
-      ".obsidian/plugins/scribidian/scene-recovery.json",
+      ".obsidian/plugins/brass/scene-recovery.json",
     ]);
     const record = await readSceneRecovery(f.plugin);
     if (!record) throw new Error("Recovery missing");
@@ -325,7 +325,7 @@ describe("Obsidian scene safety integration", () => {
   it("preserves invalid recovery data without any writes", async () => {
     const f = fixture();
     f.configuration.set(
-      ".obsidian/plugins/scribidian/scene-recovery.json",
+      ".obsidian/plugins/brass/scene-recovery.json",
       '{"version":999}',
     );
     await expect(readSceneRecovery(f.plugin)).rejects.toThrow("invalid");
@@ -334,7 +334,7 @@ describe("Obsidian scene safety integration", () => {
   it("preserves unreadable recovery JSON without touching screenplay files", async () => {
     const f = fixture();
     const before = new Map(f.sources);
-    const path = ".obsidian/plugins/scribidian/scene-recovery.json";
+    const path = ".obsidian/plugins/brass/scene-recovery.json";
     f.configuration.set(path, "{broken");
     await expect(readSceneRecovery(f.plugin)).rejects.toThrow(
       "could not be read",
@@ -392,7 +392,7 @@ describe("Obsidian scene safety integration", () => {
     if (!record) throw new Error("Fixture missing recovery");
     const newer = { ...record, createdAt: "2026-10-02T12:00:00.000Z" };
     f.configuration.set(
-      ".obsidian/plugins/scribidian/scene-recovery.json",
+      ".obsidian/plugins/brass/scene-recovery.json",
       JSON.stringify(newer),
     );
     const before = new Map(f.sources);

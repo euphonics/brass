@@ -16,7 +16,7 @@
  */
 
 import type { Editor } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
 import { buildScreenplayIndex, rankUsages } from "../screenplay/indexer";
 import { parseFountain } from "../screenplay/parser";
@@ -30,14 +30,14 @@ interface CharacterChoice {
 }
 
 export function openCharacterPicker(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   editor: Editor,
 ): void {
   void openCharacterPickerForContext(plugin, editor);
 }
 
 async function openCharacterPickerForContext(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   editor: Editor,
 ): Promise<void> {
   const file = plugin.activeMarkdownView()?.file ?? null;

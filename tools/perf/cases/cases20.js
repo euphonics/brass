@@ -1,4 +1,4 @@
-const pl = app.plugins.plugins.scribidian;
+const pl = app.plugins.plugins.brass;
 const C = (on) => [
   {
     name: (on ? "on" : "off") + ": cue end, dialogue below",

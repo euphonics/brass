@@ -16,14 +16,14 @@
  */
 
 import type { MarkdownView } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
 import { ScreenplayPreviewModal } from "../ui/screenplayPreviewModal";
 import { printedScreenplay, sourceWithEmbeds } from "./exportFountain";
 import { exportPdf } from "./exportPdf";
 
 export async function previewScreenplay(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   view: MarkdownView,
 ): Promise<void> {
   const file = view.file;

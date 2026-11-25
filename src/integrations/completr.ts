@@ -19,10 +19,10 @@ import type { App, TFile } from "obsidian";
 
 /*
  * Completr (a word-completion plugin) opens its own suggestion popup while
- * you type. In a screenplay it competes with Scribidian's lists (typing
+ * you type. In a screenplay it competes with Brass's lists (typing
  * NIGHT after "INT. PLACE - "). With the setting on, Completr stays quiet
  * in screenplay notes and works as usual everywhere else (#271). Completr
- * has no switch for this, so its popup's onTrigger is wrapped; Scribidian
+ * has no switch for this, so its popup's onTrigger is wrapped; Brass
  * puts the original back when it unloads.
  */
 
@@ -34,7 +34,7 @@ type Trigger = (
 
 interface Popup {
   onTrigger: Trigger;
-  scribidianOriginalTrigger?: Trigger;
+  brassOriginalTrigger?: Trigger;
 }
 
 function completrPopup(app: App): Popup | null {
@@ -57,17 +57,17 @@ export function quietCompletr(
   quiet: (file: TFile | null) => boolean,
 ): () => void {
   const popup = completrPopup(app);
-  if (popup === null || popup.scribidianOriginalTrigger) return () => {};
+  if (popup === null || popup.brassOriginalTrigger) return () => {};
   const original = popup.onTrigger;
-  popup.scribidianOriginalTrigger = original;
+  popup.brassOriginalTrigger = original;
   popup.onTrigger = function (cursor, editor, file) {
     if (quiet(file)) return null;
     return original.call(this, cursor, editor, file);
   };
   return () => {
-    if (popup.scribidianOriginalTrigger === original) {
+    if (popup.brassOriginalTrigger === original) {
       popup.onTrigger = original;
-      delete popup.scribidianOriginalTrigger;
+      delete popup.brassOriginalTrigger;
     }
   };
 }

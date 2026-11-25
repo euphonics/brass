@@ -1,6 +1,6 @@
 # Privacy and security
 
-**In short:** Scribidian works entirely on your device. It never goes online,
+**In short:** Brass works entirely on your device. It never goes online,
 sends nothing anywhere, has no account and collects no data. Every change it
 makes to your notes is ordinary text that you can undo.
 
@@ -52,7 +52,7 @@ recover from Obsidian's file history.
 - **Turning a note into a screenplay** adds `screenplay: true`, and a `title`
   if the note has none.
 - **Opening a character page** creates the page, or, if a page with that name
-  already exists, adds the properties Scribidian needs (`scribidian`,
+  already exists, adds the properties Brass needs (`brass`,
   `character`, `aliases`, `screenplays`, `related`). The page's text is not
   changed.
 - **Exports** (Fountain, Final Draft, PDF) always create a new file. Your
@@ -62,14 +62,14 @@ recover from Obsidian's file history.
 
 Moving a scene from one file to another (in the scene workspace) first saves
 the full text of both files, before and after, in `scene-recovery.json` in
-Scribidian's plugin folder, normally `.obsidian/plugins/scribidian/`. Each new
+Brass's plugin folder, normally `.obsidian/plugins/brass/`. Each new
 move replaces it. It is plain text, not encrypted, and may end up in backups
 and sync. Delete it when you no longer need it. Moving a scene within one file
 doesn't create it.
 
 ## What you are trusting
 
-Like every Obsidian community plugin, Scribidian runs with the same access as
+Like every Obsidian community plugin, Brass runs with the same access as
 Obsidian itself: it can read and change any note in your vault and, on desktop,
 use your computer much as other apps can. Obsidian doesn't sandbox plugins.
 Installing it means trusting the code in this repository and the GitHub account
@@ -82,18 +82,18 @@ PDF export, plus the Courier Prime font. Their versions are pinned. Build
 and test tools run only on the developer's computer and are not part of the
 installed plugin.
 
-Scribidian is an independent project. Nothing from First Draft, the plugin it
+Brass is an independent project. Nothing from First Draft, the plugin it
 was forked from, reaches it automatically; changes arrive only when they are
 deliberately merged and reviewed here.
 
 Obsidian, other plugins, sync services and your operating system are outside
-Scribidian's control and have their own privacy rules.
+Brass's control and have their own privacy rules.
 
 ## Reporting a problem
 
 Report suspected security problems privately, not in a public issue:
 
-- **Problems in Scribidian**: follow [SECURITY.md](SECURITY.md).
+- **Problems in Brass**: follow [SECURITY.md](SECURITY.md).
 - **Problems that also affect First Draft**: report them to its author through
   [First Draft's security page](https://github.com/grobmeier/firstdraft/security).
 

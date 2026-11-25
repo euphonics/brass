@@ -1,16 +1,16 @@
 # CLAUDE.md
 
-Guidance for AI agents (Claude Code and others) working on Scribidian, an
+Guidance for AI agents (Claude Code and others) working on Brass, an
 Obsidian plugin for writing screenplays in Fountain.
 
 ## Design philosophy
 
-This is how I design and build Scribidian. It comes from working closely
+This is how I design and build Brass. It comes from working closely
 with its author, a screenwriter, and it decides the hard cases.
 
 ### 1. The writer's flow comes first
 
-Scribidian exists so a writer can type a scene without thinking about the
+Brass exists so a writer can type a scene without thinking about the
 tool. Every keystroke has to land where the writer expects: the cursor in
 the right column, the right list open, nothing jumping around. A
 half-second of surprise ("why is my cursor in the middle of the page?") is
@@ -19,7 +19,7 @@ by how it feels mid-scene, not by how clean the code is.
 
 ### 2. Valid Fountain by default, broken formatting by choice
 
-Scribidian never breaks the formatting on its own. Tab, Enter, the lists
+Brass never breaks the formatting on its own. Tab, Enter, the lists
 and the other keys that fill in or skip always leave valid Fountain, in
 every mode. With strict cursor placement on (the script mode default), the
 editor also guards against accidents: if a keystroke would leave something
@@ -48,7 +48,7 @@ The note's text is the screenplay. Layout, columns and styling only change
 how it looks. I don't rewrite the writer's text behind their back. Anything
 that changes how other apps read the file (marking capitals as action with
 `!`, cleaning Obsidian syntax) belongs in export options, off the page.
-Scribidian writes; finishing (PDF, production) happens in dedicated
+Brass writes; finishing (PDF, production) happens in dedicated
 screenwriting software, so I don't rebuild what those apps do better.
 
 ### 5. Good defaults, with the writer in charge
@@ -102,7 +102,7 @@ than screenshots when testing other apps.
   change in the Dev vault first (`npm run install-vault`). Once it passes
   there, do these together without asking: `npm run install-notes`, so the
   writer can check it in their Notes vault, then commit and push.
-  `install-notes` also resets Scribidian's settings in Notes to the
+  `install-notes` also resets Brass's settings in Notes to the
   defaults every time (the writer's rule, so they always check what a new
   user gets), except the writer's choice of commands in the command palette
   (#296), which it keeps: it backs up `data.json` to `settings-backups/` in
@@ -123,19 +123,19 @@ than screenshots when testing other apps.
   FDX), and never offer it as a suggestion (#125).
 - **PDF appearance changes:** after any change to how the exported PDF
   looks, export a fresh PDF of the Dev vault's EXFILTRATION note
-  (`2026.10.26 EXFILTRATION by Arun Croll SCRIBIDIAN.fountain`, at the
+  (`2026.10.26 EXFILTRATION by Arun Croll BRASS.fountain`, at the
   vault root), so a new PDF is waiting there for the writer to review. Its
   Fade In export (`2026.10.26 EXFILTRATION by Arun Croll.pdf`) is the
   reference.
-- **Fade In differences:** a behavior where Scribidian differs from Fade
+- **Fade In differences:** a behavior where Brass differs from Fade
   In gets a setting with ours as the default; its description says Off is
   Fade In's behavior, and it goes in `FADE_IN_DEFAULTS` (for the preset,
   #202).
 - **Write UI text in sentence case** (the Obsidian lint rule checks it) and
   in plain, short words.
 - **Live tests run only in the Dev vault** (`C:\Users\arunc\Code\Obsidian
-Dev Vault\Dev`, `obsidian vault=Dev ...`), in its `Scribidian Example`
-  folder (scratch note: `Scribidian Example/Test Bench.md`). Never test in
+Dev Vault\Dev`, `obsidian vault=Dev ...`), in its `Brass Example`
+  folder (scratch note: `Brass Example/Test Bench.md`). Never test in
   the Notes vault, and never open or write the writer's real scripts
   (TIGHTER above all). Bring the Dev window to the front first (editor
   commands need focus; Notes is usually open too). A test script checks

@@ -45,11 +45,11 @@ export class ScreenplayPreviewModal extends Modal {
 
   onOpen(): void {
     this.setTitle(`${this.screenplayTitle} - screenplay preview`);
-    this.modalEl.addClass("scribidian-preview-modal");
-    this.contentEl.addClass("scribidian-preview");
+    this.modalEl.addClass("brass-preview-modal");
+    this.contentEl.addClass("brass-preview");
 
     const toolbar = this.contentEl.createDiv({
-      cls: "scribidian-preview-toolbar",
+      cls: "brass-preview-toolbar",
     });
     const cjk =
       Object.values(this.screenplay.titlePage ?? {}).some(hasCjkText) ||
@@ -89,23 +89,23 @@ export class ScreenplayPreviewModal extends Modal {
     }
     const boldParts = normalizePdfBold(this.bold);
     const pages = this.contentEl.createDiv({
-      cls: "scribidian-preview-pages",
+      cls: "brass-preview-pages",
     });
     for (const [pageIndex, layoutPage] of layout.pages.entries()) {
-      const page = pages.createDiv({ cls: "scribidian-preview-page" });
+      const page = pages.createDiv({ cls: "brass-preview-page" });
       page.style.aspectRatio = `${layout.dimensions.width} / ${layout.dimensions.height}`;
       for (const block of layoutPage.blocks) {
         const element = page.createDiv({
-          cls: `scribidian-preview-block scribidian-preview-${block.type}`,
+          cls: `brass-preview-block brass-preview-${block.type}`,
         });
         // Emphasis (*italic*, **bold**, _underline_) as the PDF prints it.
         for (const [lineIndex, runs] of emphasisRuns(block.lines).entries()) {
           if (lineIndex > 0) element.appendText("\n");
           for (const run of runs) {
             const span = element.createSpan({ text: run.text });
-            span.toggleClass("scribidian-preview-bold", run.bold);
-            span.toggleClass("scribidian-preview-italic", run.italic);
-            span.toggleClass("scribidian-preview-underline", run.underline);
+            span.toggleClass("brass-preview-bold", run.bold);
+            span.toggleClass("brass-preview-italic", run.italic);
+            span.toggleClass("brass-preview-underline", run.underline);
           }
         }
         element.style.left = `${(block.left / layout.dimensions.width) * 100}%`;
@@ -123,7 +123,7 @@ export class ScreenplayPreviewModal extends Modal {
       );
       if (pageNumber !== null) {
         const number = page.createDiv({
-          cls: "scribidian-preview-page-number",
+          cls: "brass-preview-page-number",
           text: `${pageNumber}.`,
         });
         number.style.fontWeight = boldParts["page-number"] ? "700" : "400";

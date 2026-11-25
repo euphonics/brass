@@ -17,13 +17,13 @@
 
 import { Notice } from "obsidian";
 import type { MarkdownView } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { fdxExportPath, serializeFdx } from "../export/fdx";
 import { loadScreenplayContext } from "../projects/vault";
 import { printedScreenplay, sourceWithEmbeds } from "./exportFountain";
 
 export async function exportFdx(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   view: MarkdownView,
   clean = false,
 ): Promise<void> {
@@ -61,7 +61,7 @@ export async function exportFdx(
     await plugin.app.vault.create(path, content);
     new Notice(`Exported Final Draft FDX to ${path}`);
   } catch (error) {
-    console.error("Scribidian could not export Final Draft FDX", error);
-    new Notice("Scribidian could not export the Final Draft FDX file.");
+    console.error("Brass could not export Final Draft FDX", error);
+    new Notice("Brass could not export the Final Draft FDX file.");
   }
 }

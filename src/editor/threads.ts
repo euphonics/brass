@@ -69,19 +69,19 @@ export function threadElement(
   const spoolShown = !textShown || display !== "text";
   const el = createSpan({
     cls: textShown
-      ? `scribidian-thread scribidian-thread-with-text scribidian-thread-${display === "text" ? "text-only" : display}`
-      : "scribidian-thread",
+      ? `brass-thread brass-thread-with-text brass-thread-${display === "text" ? "text-only" : display}`
+      : "brass-thread",
   });
   const spool = (): void => {
-    el.createSpan({ cls: "scribidian-thread-spool", text: "🧵" });
+    el.createSpan({ cls: "brass-thread-spool", text: "🧵" });
   };
   if (spoolShown && (!textShown || display === "left")) spool();
   if (!textShown) {
     // Nothing but the spool.
   } else if (mark.alias !== undefined) {
-    el.createSpan({ cls: "scribidian-thread-alias", text: mark.alias });
+    el.createSpan({ cls: "brass-thread-alias", text: mark.alias });
   } else {
-    el.createSpan({ cls: "scribidian-thread-name", text: mark.name });
+    el.createSpan({ cls: "brass-thread-name", text: mark.name });
   }
   if (textShown && display === "right") spool();
   el.setAttribute("aria-label", `Thread: ${mark.name}`);
@@ -170,8 +170,8 @@ export function createThreadExtension(
   open: OpenThread,
   options: () => ThreadOptions,
 ): Extension {
-  const raw = Decoration.mark({ class: "scribidian-thread-text" });
-  const threadLine = Decoration.line({ class: "scribidian-thread-line" });
+  const raw = Decoration.mark({ class: "brass-thread-text" });
+  const threadLine = Decoration.line({ class: "brass-thread-line" });
   const build = (view: EditorView): DecorationSet => {
     const builder = new RangeSetBuilder<Decoration>();
     const { enabled, display } = options();

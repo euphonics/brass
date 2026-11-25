@@ -17,11 +17,11 @@
 
 import { Notice } from "obsidian";
 import type { TFile } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { activateScreenplay } from "../onboarding/activateScreenplay";
 
 export async function activateScreenplayNote(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   file: TFile,
 ): Promise<void> {
   try {
@@ -44,7 +44,7 @@ export async function activateScreenplayNote(
       plugin.refreshStatus();
     } else if (result === "disabled") {
       new Notice(
-        'In Scribidian settings, enable "use screenplay frontmatter" first.',
+        'In Brass settings, enable "use screenplay frontmatter" first.',
       );
     } else if (result === "unavailable") {
       new Notice("The note changed. Open an ordinary note and try again.");

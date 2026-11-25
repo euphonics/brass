@@ -1,6 +1,6 @@
 # PDF preview and export
 
-Scribidian shows a read-only page preview (**Screenplay: Preview**) and
+Brass shows a read-only page preview (**Screenplay: Preview**) and
 exports a PDF for a screenplay or a whole screenplay project:
 **Screenplay: Export clean PDF** (or the preview's **Export clean PDF**
 button) or **Screenplay: Export PDF**.
@@ -9,7 +9,7 @@ button) or **Screenplay: Export PDF**.
 
 **Export clean PDF** and the preview show the script as it would print:
 the Obsidian-only markup ticked in the PDF column of **Settings →
-Scribidian → Clean export** (tasks, callouts, comments, embeds and so on)
+Brass → Clean export** (tasks, callouts, comments, embeds and so on)
 is left out, and links keep their words by default. Each format (Fountain,
 PDF, Final Draft) has its own column, so the PDF can keep something the
 Fountain export removes. **Export PDF** keeps that markup as text. Threads
@@ -18,14 +18,14 @@ left out of both; boneyard (`/* ... */`) is left out of the clean PDF.
 
 - Sluglines, action, character cues and extensions, wrylies, dialogue,
   transitions, centered text and lyrics.
-- US Letter or A4, from **Settings → Scribidian → Page size**.
+- US Letter or A4, from **Settings → Brass → Page size**.
 - 12-point Courier Prime with the margins Final Draft and Fade In use:
   action at 1.5", dialogue at 2.5", wrylies at 2.9", character names at
   3.5", and a 1" margin at the top, right and bottom. A scene heading is
   never left alone at the bottom of a page.
 - Page numbers at the top right (`2.`), starting on the second page of the
   script.
-- Bold where you want it: **Settings → Scribidian → PDF export** has a
+- Bold where you want it: **Settings → Brass → PDF export** has a
   toggle for each part (sluglines, action, character names, dialogue,
   wrylies, transitions, centered text, lyrics, the title, the title page
   details and page numbers). Only sluglines are bold by default. The preview
@@ -37,7 +37,7 @@ italic***` and `_underline_`, without the marks. A mark with no partner
   [Title pages](../README.md#title-pages).
 - A project's parts in the order of the project note's `parts` list.
 - A new file every time. The PDF is named after the note (or project) and
-  saved beside it; when that name is taken, a number is added. Scribidian
+  saved beside it; when that name is taken, a number is added. Brass
   never overwrites a PDF.
 
 Everything happens on your device. Nothing is uploaded, and your script is

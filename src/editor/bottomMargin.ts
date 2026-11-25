@@ -18,11 +18,11 @@
 import type { Extension } from "@codemirror/state";
 import { EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 
-const BOTTOM_MARGIN_CLASS = "scribidian-bottom-margin";
+const BOTTOM_MARGIN_CLASS = "brass-bottom-margin";
 /** Class on the editor root of every screenplay note (font setting). */
-const SCREENPLAY_EDITOR_CLASS = "scribidian-screenplay-editor";
+const SCREENPLAY_EDITOR_CLASS = "brass-screenplay-editor";
 
 /**
  * Marks screenplay editors, and in them ends the scrolling area `bottomTypingMargin`
@@ -30,7 +30,7 @@ const SCREENPLAY_EDITOR_CLASS = "scribidian-screenplay-editor";
  * page estimate) never covers text. Display only: the note is not changed.
  */
 export function createBottomMarginExtension(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
 ): Extension {
   return ViewPlugin.fromClass(
     class {
@@ -66,7 +66,7 @@ export function createBottomMarginExtension(
             return margin > 0
               ? {
                   class: `${SCREENPLAY_EDITOR_CLASS} ${BOTTOM_MARGIN_CLASS}`,
-                  style: `--scribidian-bottom-margin: ${margin}px`,
+                  style: `--brass-bottom-margin: ${margin}px`,
                 }
               : { class: SCREENPLAY_EDITOR_CLASS };
           },

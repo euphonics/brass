@@ -16,7 +16,7 @@
  */
 
 /*
- * Threads, a Scribidian addition to Fountain: `[&zosia red herring]` marks a
+ * Threads, a Brass addition to Fountain: `[&zosia red herring]` marks a
  * line as part of a named thread. Every `[&…]` with the same name, in any
  * note, belongs to the same thread; clicking one goes to the next. Threads
  * aren't script: the preview, page count and exports leave them out.

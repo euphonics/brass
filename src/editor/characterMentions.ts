@@ -18,7 +18,7 @@
 import { escapeForRegExp } from "./triggers";
 
 /*
- * "+" character mentions ("+" by default, a setting), a Scribidian addition: typing "+" in an action
+ * "+" character mentions ("+" by default, a setting), a Brass addition: typing "+" in an action
  * line lists the characters, and picking one writes the name in place of
  * "+" and what was typed. A faster way to type names in action.
  */

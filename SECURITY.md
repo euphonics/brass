@@ -9,10 +9,10 @@ release is available.
 ## Report a vulnerability
 
 Do not disclose a suspected vulnerability in a public issue. Use
-[GitHub private vulnerability reporting](https://github.com/euphonics/scribidian/security/advisories/new)
+[GitHub private vulnerability reporting](https://github.com/euphonics/brass/security/advisories/new)
 so the report and any proposed fix remain private until a coordinated release.
 
-Include the affected Scribidian and Obsidian versions, operating system,
+Include the affected Brass and Obsidian versions, operating system,
 reproduction steps, impact, and any suggested mitigation. Use a minimal test
 vault and never attach real screenplay content, credentials, or other personal
 data.

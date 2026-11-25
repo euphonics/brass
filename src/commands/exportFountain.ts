@@ -17,7 +17,7 @@
 
 import { Notice } from "obsidian";
 import type { MarkdownView } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { fountainExportPath } from "../export/fountain";
 import { exportedFountainText } from "../export/exportedText";
 import { loadScreenplayContext } from "../projects/vault";
@@ -35,7 +35,7 @@ import { TFile } from "obsidian";
  * The text an embed shows (#272): a note without its frontmatter, the
  * section under a heading, or a block. Null for images and missing notes.
  */
-export function embedResolver(plugin: ScribidianPlugin): EmbedResolver {
+export function embedResolver(plugin: BrassPlugin): EmbedResolver {
   const { app } = plugin;
   return async (link, fromPath) => {
     const hash = link.indexOf("#");
@@ -83,7 +83,7 @@ export function embedResolver(plugin: ScribidianPlugin): EmbedResolver {
  * text put in when that format's Embeds choice is "Include text" (#272).
  */
 export async function sourceWithEmbeds(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   source: string,
   fromPath: string,
   clean: boolean,
@@ -102,7 +102,7 @@ export async function sourceWithEmbeds(
  * counts pages from the clean version, so they match the export.
  */
 export function exportedFountainSource(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   source: string,
   clean: boolean,
   format: CleanExportFormat = "fountain",
@@ -121,7 +121,7 @@ export function exportedFountainSource(
  * format's Clean export column are left out.
  */
 export function printedScreenplay(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   source: string,
   titlePage: ScreenplayDocument["titlePage"],
   clean = true,
@@ -137,7 +137,7 @@ export function printedScreenplay(
 }
 
 export async function exportFountain(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   view: MarkdownView,
   clean = false,
 ): Promise<void> {
@@ -172,7 +172,7 @@ export async function exportFountain(
     new Notice(`Exported screenplay to ${path}`);
     await plugin.app.workspace.getLeaf(false).openFile(file);
   } catch (error) {
-    console.error("Scribidian could not export Fountain", error);
-    new Notice("Scribidian could not export the screenplay.");
+    console.error("Brass could not export Fountain", error);
+    new Notice("Brass could not export the screenplay.");
   }
 }

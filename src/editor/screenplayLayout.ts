@@ -44,7 +44,7 @@ import {
   type ViewUpdate,
 } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { docLineKinds, docLines } from "./docLines";
 import {
   centeredMarkers,
@@ -56,7 +56,7 @@ import {
 } from "./layoutClassifier";
 
 /** Class on the editor root while the screenplay layout is shown. */
-export const SCREENPLAY_LAYOUT_CLASS = "scribidian-screenplay-layout";
+export const SCREENPLAY_LAYOUT_CLASS = "brass-screenplay-layout";
 
 const LINE_DECORATIONS = new Map<LayoutLineKind, Decoration>(
   (
@@ -74,7 +74,7 @@ const LINE_DECORATIONS = new Map<LayoutLineKind, Decoration>(
     ] as const
   ).map((kind) => [
     kind,
-    Decoration.line({ attributes: { class: `scribidian-sp-${kind}` } }),
+    Decoration.line({ attributes: { class: `brass-sp-${kind}` } }),
   ]),
 );
 
@@ -122,7 +122,7 @@ function openMenuKind(state: EditorState): LayoutLineKind | null {
  * changed. Off when the "Editor layout" setting is "Plain Fountain text".
  */
 export function createScreenplayLayoutExtension(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
 ): Extension {
   const layoutPlugin = ViewPlugin.fromClass(
     class {

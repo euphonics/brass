@@ -32,7 +32,7 @@ describe("character catalogue", () => {
   it("parses portable character frontmatter", () => {
     expect(
       characterPageFromFrontmatter("Characters/Jane.md", {
-        scribidian: "character",
+        brass: "character",
         character: "Jane",
         aliases: ["Dr. Jane Morrow"],
         screenplays: ["[[Milestone 4]]"],
@@ -58,7 +58,7 @@ describe("character catalogue", () => {
 
   it("matches canonical cues and aliases without changing screenplay text", () => {
     const page = characterPageFromFrontmatter("Characters/Jane.md", {
-      scribidian: "character",
+      brass: "character",
       character: "JANE",
       aliases: ["DR. JANE MORROW"],
     });

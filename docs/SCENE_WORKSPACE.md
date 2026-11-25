@@ -58,7 +58,7 @@ Refresh a stale workspace before retrying.
 
 ## Desktop acceptance checklist
 
-Use only the isolated **Scribidian Test Vault**. Reload the plugin after installing
+Use only the isolated **Brass Test Vault**. Reload the plugin after installing
 a new build. Open `Scene Workspace Demo/Project`, then open the Scenes panel.
 
 1. Confirm four scenes in part order. Click each heading; check its original

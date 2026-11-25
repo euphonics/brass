@@ -27,7 +27,7 @@ export interface ExportedTextOptions {
   clean: boolean;
   /** The Clean export settings, as saved. */
   cleanExport: unknown;
-  /** Put "!" in front of capitals Scribidian reads as action. */
+  /** Put "!" in front of capitals Brass reads as action. */
   markCapitalsAsAction: boolean;
 }
 
@@ -48,7 +48,7 @@ export function exportedFountainText(
         ),
       )
     : source;
-  // Threads ("[&name]") are Scribidian's own: no export keeps them.
+  // Threads ("[&name]") are Brass's own: no export keeps them.
   const withoutThreads = stripThreadsFromSource(exported);
   return options.markCapitalsAsAction
     ? markCapitalsAsAction(withoutThreads)

@@ -40,7 +40,7 @@ await esbuild.build({
   treeShaking: true,
   minify: false,
   keepNames: true,
-  outfile: path.join(vault, ".obsidian", "plugins", "scribidian", "main.js"),
+  outfile: path.join(vault, ".obsidian", "plugins", "brass", "main.js"),
 });
 console.log(
   "Unminified build installed in " +

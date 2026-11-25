@@ -17,7 +17,7 @@
 
 import { normalizePath, Notice } from "obsidian";
 import type { TFile } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { isPathTaken } from "../vaultPaths";
 import {
   availableExampleFolderName,
@@ -25,7 +25,7 @@ import {
 } from "../onboarding/exampleProject";
 
 export async function createExampleScreenplay(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
 ): Promise<void> {
   const folder = availableExampleFolderName((candidate) =>
     isPathTaken(plugin.app, candidate),

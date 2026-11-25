@@ -1,5 +1,5 @@
 (async () => {
-  const DIR = require("os").tmpdir().replace(/\\/g, "/") + "/scribidian-perf";
+  const DIR = require("os").tmpdir().replace(/\\/g, "/") + "/brass-perf";
   require("fs").mkdirSync(DIR, { recursive: true });
   const fs = require("fs");
   const cfg = window.__ent;
@@ -15,8 +15,8 @@
       w.focus();
     }
   }
-  const path = `Scribidian Example/Perf ${cfg.size}x.md`;
-  const pl = app.plugins.plugins.scribidian;
+  const path = `Brass Example/Perf ${cfg.size}x.md`;
+  const pl = app.plugins.plugins.brass;
   pl.settings.editorLayout = "screenplay";
   app.workspace.updateOptions();
   let leaf = app.workspace

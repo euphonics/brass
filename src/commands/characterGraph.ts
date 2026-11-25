@@ -16,10 +16,10 @@
  */
 
 import type { TFile } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 
 export async function openCharacterGraph(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   characterFile: TFile,
 ): Promise<void> {
   const existing = plugin.app.workspace.getLeavesOfType("localgraph")[0];

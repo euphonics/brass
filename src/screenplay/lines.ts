@@ -55,7 +55,7 @@ const STAR = 42; // "*"
 /**
  * Where a line comment starts: "//" at the start of the line or after a
  * space ("Dialogue. // note"), outside a boneyard ("/* ... *\/"). A
- * Scribidian addition to Fountain: the comment is shown faded and isn't
+ * Brass addition to Fountain: the comment is shown faded and isn't
  * part of the script. "https://" isn't a comment (no space before "//").
  * `inBoneyard` says whether the line starts inside a boneyard; the result
  * says whether it ends inside one.

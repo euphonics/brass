@@ -31,7 +31,7 @@ for (const [id, us] of counts) {
       ? stack[0].callFrame.functionName
       : "obsidian/codemirror");
   byPlugin.set(key, (byPlugin.get(key) || 0) + us);
-  const s = stack.filter((n) => plug(n.callFrame.url) === "scribidian");
+  const s = stack.filter((n) => plug(n.callFrame.url) === "brass");
   if (s.length) {
     const top = s[s.length - 1];
     const l =
@@ -46,7 +46,7 @@ console.log("By plugin (outermost frame), ms:");
   .sort((a, b) => b[1] - a[1])
   .slice(0, 14)
   .forEach(([k, v]) => console.log((v / 1000).toFixed(0).padStart(6), k));
-console.log("Scribidian entry points, ms:");
+console.log("Brass entry points, ms:");
 [...scrib]
   .sort((a, b) => b[1] - a[1])
   .slice(0, 15)

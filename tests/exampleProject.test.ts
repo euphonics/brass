@@ -23,14 +23,14 @@ import {
 
 describe("example screenplay project", () => {
   it("chooses a conflict-safe numbered folder", () => {
-    const existing = new Set(["Scribidian Example", "Scribidian Example 2"]);
+    const existing = new Set(["Brass Example", "Brass Example 2"]);
     expect(availableExampleFolderName((name) => existing.has(name))).toBe(
-      "Scribidian Example 3",
+      "Brass Example 3",
     );
   });
 
   it("provides a complete portable project", () => {
-    const files = exampleProjectFiles("Scribidian Example 2");
+    const files = exampleProjectFiles("Brass Example 2");
     expect(files.map((file) => file.path)).toEqual([
       "Start Here.md",
       "Screenplay Project.md",
@@ -44,11 +44,11 @@ describe("example screenplay project", () => {
     ).toContain('  - "[[Parts/01 - Arrival]]"');
     expect(
       files.find((file) => file.path === "Characters/Mara.md")?.content,
-    ).toContain('"[[Scribidian Example 2/Screenplay Project]]"');
+    ).toContain('"[[Brass Example 2/Screenplay Project]]"');
     expect(
       files.find((file) => file.path === "Parts/01 - Arrival.md")?.content,
     ).toContain(
-      'screenplay-project: "[[Scribidian Example 2/Screenplay Project]]"',
+      'screenplay-project: "[[Brass Example 2/Screenplay Project]]"',
     );
     expect(
       files.find((file) => file.path === "Parts/01 - Arrival.md")?.content,

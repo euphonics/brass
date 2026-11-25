@@ -11,10 +11,10 @@
 # Takes about 2 minutes. Don't type in Obsidian meanwhile.
 #
 # Runs, at about 120 and 500 pages (Perf 2x / Perf 8x):
-#   - typing in an action line with Scribidian off ("vanilla" Obsidian),
+#   - typing in an action line with Brass off ("vanilla" Obsidian),
 #     in script mode and in plain (Fountain) mode;
 #   - Enter and Tab presses in script mode at 500 pages.
-# Scribidian's own cost is script/plain minus vanilla, measured in the same
+# Brass's own cost is script/plain minus vanilla, measured in the same
 # run, so a slower or busier machine doesn't count as a regression.
 # Exit code 0 = pass, 1 = slower than the baseline, 2 = a run failed.
 param(
@@ -25,11 +25,11 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-# Default: only Scribidian runs (other plugins off for the session, not
-# saved), so the numbers measure Scribidian and stay steady between runs.
+# Default: only Brass runs (other plugins off for the session, not
+# saved), so the numbers measure Brass and stay steady between runs.
 $Solo = -not $WithPlugins
 $tools = ($PSScriptRoot -replace '\\', '/')
-$out = "$env:TEMP/scribidian-perf"
+$out = "$env:TEMP/brass-perf"
 New-Item -ItemType Directory -Force $out | Out-Null
 
 function Invoke-Dev([string]$code) {
@@ -118,7 +118,7 @@ if (-not (Test-Path $Baseline)) { "No baseline yet: run with -SaveBaseline."; ex
 $base = Get-Content $Baseline -Raw | ConvertFrom-Json
 if ($base.solo -ne [bool]$Solo) { Write-Warning "Baseline solo=$($base.solo), this run solo=${Solo}: not comparable." }
 
-# Limits: Scribidian's own cost may grow by 3 ms (medians wobble about
+# Limits: Brass's own cost may grow by 3 ms (medians wobble about
 # 1.5 ms between runs; the slowdowns fixed in #267 were 10-40 ms); the 95th
 # percentile by 50% and 15 ms (and 15 ms over vanilla's in the same run);
 # no new long tasks over 50 ms in script mode;
@@ -133,7 +133,7 @@ foreach ($size in "2", "8") {
     if (-not $ok) { $fails += $name }
     $table += [pscustomobject]@{ check = $name; baseline = $w; now = $n; ok = $ok }
   }
-  # A stray slow frame (the system, not Scribidian) hits vanilla too, so
+  # A stray slow frame (the system, not Brass) hits vanilla too, so
   # p95 only fails when it is also well above vanilla's in this run.
   $n = $now.screenplay.p95; $w = $was.screenplay.p95; $v = $now.off.p95
   $ok = -not ($n -gt $w * 1.5 -and $n -gt $w + 15 -and $n -gt $v + 15)

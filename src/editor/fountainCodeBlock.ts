@@ -16,11 +16,11 @@
  */
 
 import { MarkdownPreviewRenderer } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { classifyLayoutLines } from "./layoutClassifier";
 
 /** CSS class on the container of a rendered Fountain code block. */
-const BLOCK_CLASS = "scribidian-fountain-codeblock";
+const BLOCK_CLASS = "brass-fountain-codeblock";
 
 /**
  * Register a markdown code block post-processor for `fountain` fenced code
@@ -33,9 +33,9 @@ const BLOCK_CLASS = "scribidian-fountain-codeblock";
  * This applies to every note in the vault, not only to screenplay-mode notes.
  */
 export function registerFountainCodeBlockProcessor(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
 ): void {
-  // A processor an earlier load of Scribidian never removed (two reloads at
+  // A processor an earlier load of Brass never removed (two reloads at
   // once): drop it, or registering again fails and stops the plugin
   // loading halfway. One from another plugin is left alone.
   const marker = window as unknown as Record<symbol, boolean | undefined>;
@@ -59,10 +59,10 @@ export function registerFountainCodeBlockProcessor(
   });
 }
 
-/** Set while a Scribidian load has the "fountain" processor registered. */
-const OWN_PROCESSOR = Symbol.for("scribidian.fountainCodeBlock");
+/** Set while a Brass load has the "fountain" processor registered. */
+const OWN_PROCESSOR = Symbol.for("brass.fountainCodeBlock");
 
-function registerProcessor(plugin: ScribidianPlugin): void {
+function registerProcessor(plugin: BrassPlugin): void {
   plugin.registerMarkdownCodeBlockProcessor("fountain", (source, el) => {
     if (!plugin.settings.renderFountainCodeBlocks) {
       // Recreate the default code block appearance.
@@ -81,13 +81,13 @@ function registerProcessor(plugin: ScribidianPlugin): void {
       const line = lines[i] ?? "";
       const kind = kinds[i];
       const div = el.createDiv({
-        cls: kind ? `scribidian-sp-${kind}` : undefined,
+        cls: kind ? `brass-sp-${kind}` : undefined,
       });
       if (line) {
         div.setText(line);
       } else {
         // Preserve blank-line height with a non-breaking space.
-        div.addClass("scribidian-codeblock-blank");
+        div.addClass("brass-codeblock-blank");
         div.setText("\u00A0");
       }
     }

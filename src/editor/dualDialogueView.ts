@@ -29,7 +29,7 @@ import {
   type DecorationSet,
 } from "@codemirror/view";
 import { editorInfoField } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import {
   findDualDialogue,
   type DualDialogue,
@@ -48,7 +48,7 @@ class DualDialogueWidget extends WidgetType {
   }
 
   toDOM(view: EditorView): HTMLElement {
-    const root = createDiv({ cls: "scribidian-dual" });
+    const root = createDiv({ cls: "brass-dual" });
     for (const speech of [this.pair.left, this.pair.right]) {
       this.column(root, speech);
     }
@@ -63,14 +63,14 @@ class DualDialogueWidget extends WidgetType {
   }
 
   private column(parent: HTMLElement, speech: DualSide): void {
-    const column = parent.createDiv({ cls: "scribidian-dual-column" });
-    column.createDiv({ cls: "scribidian-dual-cue", text: speech.cue });
+    const column = parent.createDiv({ cls: "brass-dual-column" });
+    column.createDiv({ cls: "brass-dual-cue", text: speech.cue });
     for (const line of speech.lines) {
       column.createDiv({
         cls:
           line.kind === "parenthetical"
-            ? "scribidian-dual-parenthetical"
-            : "scribidian-dual-dialogue",
+            ? "brass-dual-parenthetical"
+            : "brass-dual-dialogue",
         text: line.text,
       });
     }
@@ -141,7 +141,7 @@ function mapPairs(tr: Transaction, pairs: DualDialogue[]): DualDialogue[] {
  * written (with "^") while the cursor is inside it. Display only.
  */
 export function createDualDialogueExtension(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
 ): Extension {
   const isActive = (state: EditorState): boolean => {
     if (!plugin.isScriptMode()) return false;

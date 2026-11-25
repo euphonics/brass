@@ -16,7 +16,7 @@
  */
 
 import type { Editor } from "obsidian";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { COMMON_PARENTHETICALS } from "../screenplay/fountain";
 import { buildScreenplayIndex, rankUsages } from "../screenplay/indexer";
 import {
@@ -42,7 +42,7 @@ function unique(values: readonly string[]): string[] {
 }
 
 export function openParenthetical(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   editor: Editor,
 ): void {
   const index = buildScreenplayIndex(parseFountain(editor.getValue()));

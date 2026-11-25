@@ -18,13 +18,13 @@
 import type { Editor, TFile } from "obsidian";
 import { verifiableCharacterPages } from "../characters/vault";
 import { verifyCharacterPages } from "../characters/verification";
-import type ScribidianPlugin from "../main";
+import type BrassPlugin from "../main";
 import { loadScreenplayContext } from "../projects/vault";
 import { buildScreenplayIndex } from "../screenplay/indexer";
 import { CharacterCheckModal } from "../ui/characterCheckModal";
 
 export function checkCharacters(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   editor: Editor,
   screenplay: TFile,
 ): void {
@@ -32,7 +32,7 @@ export function checkCharacters(
 }
 
 async function checkCharacterContext(
-  plugin: ScribidianPlugin,
+  plugin: BrassPlugin,
   editor: Editor,
   screenplay: TFile,
 ): Promise<void> {
