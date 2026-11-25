@@ -157,14 +157,17 @@ export function variableSuggestions(
     .map(([name]) => name);
 }
 
-/** Color "$" variables in screenplay notes, per the mode's setting. */
+/**
+ * Color "$" variables in screenplay notes and the notes of their project
+ * (#321), per the mode's setting.
+ */
 export function createVariableHighlightExtension(
   plugin: ScribidianPlugin,
 ): Extension {
   const mark = Decoration.mark({ class: "scribidian-variable" });
   const build = (view: EditorView): DecorationSet => {
     const file = view.state.field(editorInfoField, false)?.file ?? null;
-    if (file === null || !plugin.isScreenplayFile(file)) return Decoration.none;
+    if (file === null || !plugin.isProjectNote(file)) return Decoration.none;
     if (!plugin.typingChangeEnabled("highlightVariables")) {
       return Decoration.none;
     }

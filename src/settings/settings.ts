@@ -707,7 +707,7 @@ export const TYPING_CHANGE_ROWS: {
   },
   {
     name: "Highlight $ variables",
-    desc: "Text after a $ sign, like $my_variable or $ABC123, shows in the accent color. Dollar amounts like $123, $123.12 or $1,123.12 don't.",
+    desc: "Text after a $ sign, like $my_variable or $ABC123, shows in the accent color, in the script and its project's notes. Dollar amounts like $123, $123.12 or $1,123.12 don't.",
     plain: "highlightVariablesPlain",
     script: "highlightVariablesScript",
   },
@@ -2217,7 +2217,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Type && to start a thread",
-        desc: "In a screenplay, typing && turns into [& and opens the thread list, so you don't have to reach for the bracket. Not after [ or a third &.",
+        desc: "In a screenplay and its project's notes (its outline, notes in its folder), typing && turns into [& and opens the thread list, so you don't have to reach for the bracket. Not after [ or a third &.",
         control: {
           type: "toggle",
           key: "threadAmpersands",

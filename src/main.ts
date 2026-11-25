@@ -38,7 +38,7 @@ import {
   type WorkspaceLeaf,
 } from "obsidian";
 import type { Command, TFile } from "obsidian";
-import { scriptByOutline } from "./projects/relatedNotes";
+import { scriptByOutline, scriptForRelatedNote } from "./projects/relatedNotes";
 import { openCharacterPicker } from "./commands/character";
 import { copyConfiguration } from "./commands/copyConfiguration";
 import { toggleDualDialogueInEditor } from "./commands/dualDialogue";
@@ -753,6 +753,8 @@ export default class ScribidianPlugin extends Plugin {
     );
     this.registerEvent(
       this.app.metadataCache.on("changed", (file) => {
+        // A note's properties can make it a script or change its outline.
+        this.scriptForNoteCache.clear();
         if (this.scenesOpen() || file === this.activeFile())
           this.scheduleRefresh();
       }),
@@ -760,10 +762,15 @@ export default class ScribidianPlugin extends Plugin {
     const onVaultChange = () => {
       if (this.scenesOpen() || this.threadsOpen()) this.scheduleRefresh();
     };
+    // Notes coming, going or moving change which script a note belongs with.
+    const onFolderChange = () => {
+      this.scriptForNoteCache.clear();
+      onVaultChange();
+    };
     this.registerEvent(this.app.vault.on("modify", onVaultChange));
-    this.registerEvent(this.app.vault.on("rename", onVaultChange));
-    this.registerEvent(this.app.vault.on("delete", onVaultChange));
-    this.registerEvent(this.app.vault.on("create", onVaultChange));
+    this.registerEvent(this.app.vault.on("rename", onFolderChange));
+    this.registerEvent(this.app.vault.on("delete", onFolderChange));
+    this.registerEvent(this.app.vault.on("create", onFolderChange));
     this.registerDomEvent(activeDocument, "selectionchange", () => {
       const activeElement = activeDocument.activeElement;
       if (
@@ -1029,6 +1036,39 @@ export default class ScribidianPlugin extends Plugin {
     new Notice(
       `Scribidian: strict cursor placement ${this.settings[key] ? "on" : "off"} (${mode} mode)`,
     );
+  }
+
+  /**
+   * Which script a non-screenplay note belongs with (#290, #321): the
+   * script naming it as its outline, or the script or project in its
+   * folder. Kept per note until a note's properties change or notes are
+   * added, removed or moved, so editor code can ask on every keystroke.
+   */
+  private readonly scriptForNoteCache = new Map<string, TFile | null>();
+
+  scriptForNote(file: TFile): TFile | null {
+    if (this.scriptForNoteCache.has(file.path)) {
+      return this.scriptForNoteCache.get(file.path) ?? null;
+    }
+    const script = this.isProjectFile(file)
+      ? null
+      : scriptForRelatedNote(
+          this.app,
+          file,
+          (candidate) => this.isProjectFile(candidate),
+          (candidate) => this.isScreenplayFile(candidate),
+        );
+    this.scriptForNoteCache.set(file.path, script);
+    return script;
+  }
+
+  /**
+   * A screenplay or a note of its project (#321): where the writing
+   * helpers that aren't about the page work ("&&" threads, "$" colors).
+   */
+  isProjectNote(file: TFile | null): boolean {
+    if (file === null) return false;
+    return this.isScreenplayFile(file) || this.scriptForNote(file) !== null;
   }
 
   isScreenplayFile(file: TFile | null): boolean {

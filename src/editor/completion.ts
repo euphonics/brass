@@ -72,7 +72,6 @@ import {
 import { EditorView, keymap, tooltips } from "@codemirror/view";
 import { editorInfoField, type TFile } from "obsidian";
 import type { ScreenplayIndex } from "../screenplay/model";
-import { scriptForRelatedNote } from "../projects/relatedNotes";
 import type ScribidianPlugin from "../main";
 import {
   charactersListedIn,
@@ -498,13 +497,7 @@ export function createScreenplayCompletionExtension(
     context: CompletionContext,
     file: TFile,
   ): Promise<CompletionResult | null> => {
-    if (plugin.isProjectFile(file)) return null;
-    const script = scriptForRelatedNote(
-      plugin.app,
-      file,
-      (candidate) => plugin.isProjectFile(candidate),
-      (candidate) => plugin.isScreenplayFile(candidate),
-    );
+    const script = plugin.scriptForNote(file);
     if (script === null) return null;
     const variables = await variableOptions(context, script);
     if (variables !== null) return variables;
@@ -2144,8 +2137,9 @@ export function createScreenplayCompletionExtension(
       view.dispatch({ selection: { anchor: from + 1 }, userEvent: "select" });
       return true;
     }),
-    // Typing "&&" in a screenplay starts a thread: it becomes "[&", and the
-    // thread list opens (#299). Faster than reaching for "[".
+    // Typing "&&" in a screenplay or a note of its project (#321) starts a
+    // thread: it becomes "[&", and the thread list opens (#299). Faster
+    // than reaching for "[".
     EditorView.inputHandler.of((view, from, to, text) => {
       if (text !== "&" || from !== to) return false;
       const { settings } = plugin;
@@ -2159,7 +2153,7 @@ export function createScreenplayCompletionExtension(
       const before = state.doc.sliceString(Math.max(0, from - 2), from - 1);
       if (before === "[" || before === "&") return false;
       const file = state.field(editorInfoField, false)?.file ?? null;
-      if (file === null || !plugin.isScreenplayFile(file)) return false;
+      if (file === null || !plugin.isProjectNote(file)) return false;
       view.dispatch({
         changes: { from: from - 1, to, insert: "[&" },
         selection: { anchor: from + 1 },

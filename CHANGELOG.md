@@ -9,6 +9,9 @@ project follows
 
 ### Added
 
+- **Project notes get `&&` and `$` colors**: typing `&&` to start a
+  thread, and the color on `$variables`, now work in a screenplay's
+  outline and the notes in its folder, not only in the script.
 - **Settings in folding sections**, ordered from what every writer needs
   to the niche: Getting started, Look of the page, Typing helpers,
   Suggestions, Character names in action, Status bar, Export, then
