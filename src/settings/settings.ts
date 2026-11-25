@@ -145,6 +145,8 @@ export interface BrassSettings {
   screenplayFont: string;
   screenplayFontCustom: string;
   renderFountainCodeBlocks: boolean;
+  /** Phones and tablets: a row of element buttons under scripts. */
+  phoneButtons: boolean;
   sceneTypeMinimumLetters: number;
   sceneTypeMatchCase: boolean;
   characterMatchCase: boolean;
@@ -434,6 +436,7 @@ export const DEFAULT_SETTINGS: BrassSettings = {
   screenplayFont: "Courier Prime",
   screenplayFontCustom: "",
   renderFountainCodeBlocks: false,
+  phoneButtons: true,
   sceneTypeMinimumLetters: 2,
   sceneTypeMatchCase: false,
   characterMatchCase: true,
@@ -783,6 +786,7 @@ export const SETTING_SECTIONS: {
     keys: [
       "smartTabEnabled",
       "smartEnterEnabled",
+      "phoneButtons",
       "tabAtDialogueStartAddsWryly",
       "backspaceEmptyCueToAction",
       "enterAfterCueMovesDown",
@@ -1247,12 +1251,8 @@ export class BrassSettingTab extends PluginSettingTab {
       const off = spec.master !== undefined && settings[spec.master] === false;
       group.toggleClass("brass-master-off", off);
       const heading = group.querySelector(":scope > .setting-item-heading");
-      heading
-        ?.querySelector(".brass-badge-off")
-        ?.setText(off ? "Off" : "");
-      heading
-        ?.querySelector(".brass-badge-changed")
-        ?.setText(label(changed));
+      heading?.querySelector(".brass-badge-off")?.setText(off ? "Off" : "");
+      heading?.querySelector(".brass-badge-changed")?.setText(label(changed));
       heading
         ?.querySelector(".brass-section-reset")
         ?.toggleClass("brass-hidden", changed === 0);
@@ -2344,6 +2344,15 @@ export class BrassSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Element buttons on phones",
+        desc: "On phones and tablets, a row of buttons under a script: Scene, Character, Action, Wryly, Transition, and Tab forward and back. Each does what the Brass command of the same name does, even when that command is hidden. Never shown on a computer.",
+        control: {
+          type: "toggle",
+          key: "phoneButtons",
+          defaultValue: DEFAULT_SETTINGS.phoneButtons,
+        },
+      },
+      {
         name: "Tab at the start of dialogue adds a wryly",
         desc: "Script mode. On: Tab with the cursor at the start of a line of dialogue puts an empty () above it, ready for a wryly. Off: Tab does nothing there, as in Fade In (a wryly then only goes on an empty dialogue line).",
         control: {
@@ -2599,7 +2608,8 @@ export class BrassSettingTab extends PluginSettingTab {
       key === "bottomTypingMargin" ||
       key === "highlightVariablesScript" ||
       key === "highlightVariablesPlain" ||
-      key === "variablePrefix"
+      key === "variablePrefix" ||
+      key === "phoneButtons"
     ) {
       this.app.workspace.updateOptions();
     }
@@ -2620,10 +2630,7 @@ export class BrassSettingTab extends PluginSettingTab {
     }
   }
 
-  private setBooleanSetting(
-    key: keyof BrassSettings,
-    value: boolean,
-  ): void {
+  private setBooleanSetting(key: keyof BrassSettings, value: boolean): void {
     switch (key) {
       case "activateFountainFiles":
       case "activateFrontmatter":
@@ -2668,6 +2675,7 @@ export class BrassSettingTab extends PluginSettingTab {
       case "pdfContinued":
       case "customExtensionsFirst":
       case "tabAtDialogueStartAddsWryly":
+      case "phoneButtons":
         this.plugin.settings[key] = value;
     }
   }

@@ -1004,3 +1004,24 @@ body {
 .markdown-source-view.mod-cm6 .cm-line.HyperMD-footnote.brass-thread-line {
   font-size: inherit;
 }
+
+/* Phones and tablets: element buttons under a script (src/editor/phoneBar.ts). */
+.brass-phone-bar {
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--background-primary);
+  border-top: 1px solid var(--background-modifier-border);
+}
+.brass-phone-bar::-webkit-scrollbar {
+  display: none;
+}
+.brass-phone-bar button {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 12px;
+  white-space: nowrap;
+  font-size: var(--font-ui-small);
+}

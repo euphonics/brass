@@ -32,10 +32,18 @@ copy them into `<vault>/.obsidian/plugins/brass/` on the phone (USB or
 your sync app). Restart Obsidian and enable Brass. On iPhone this is
 impractical; use BRAT.
 
+## Element buttons
+
+In a script, Brass shows its own row of buttons above the keyboard toolbar:
+Scene, Character, Action, Wryly, Transition, Tab ⇥ and ⇤ Tab (setting
+**Element buttons on phones**, under Typing helpers). Test that each button
+works, that the keyboard stays up when tapping, that the row scrolls sideways
+on a narrow phone, and that it never shows in a plain note.
+
 ## Put Smart Tab on the toolbar
 
-Phone keyboards have no Tab key. To use Smart Tab (move from action to
-character to dialogue), add its commands to the toolbar above the keyboard:
+Phone keyboards have no Tab key. The element buttons above include Tab. To
+also have Smart Tab on Obsidian's own toolbar, add its commands there:
 
 1. In **Settings → Brass**, turn on **Show all commands in the command
    palette**. Smart Tab is hidden from the command list until you do.

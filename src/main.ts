@@ -39,6 +39,7 @@ import { createScreenplayLayoutExtension } from "./editor/screenplayLayout";
 import {
   MarkdownView,
   Notice,
+  Platform,
   Plugin,
   getFrontMatterInfo,
   parseYaml,
@@ -50,6 +51,7 @@ import { renderThreads } from "./threads/threadRender";
 import { openCharacterPicker } from "./commands/character";
 import { BRASS_ICON, registerBrassIcon } from "./ui/brassIcon";
 import { registerBundledFont } from "./editor/bundledFont";
+import { createPhoneBarExtension } from "./editor/phoneBar";
 import { copyConfiguration } from "./commands/copyConfiguration";
 import { toggleDualDialogueInEditor } from "./commands/dualDialogue";
 import {
@@ -229,6 +231,30 @@ export default class BrassPlugin extends Plugin {
       createBlankLineLockExtension(this),
       createBoneyardMarkerExtension(this),
       createLineCommentExtension(this),
+      // Phones and tablets only: buttons for screenplay elements.
+      ...(Platform.isMobile
+        ? [
+            createPhoneBarExtension({
+              enabled: () => this.settings.phoneButtons,
+              isScreenplayFile: (file) => this.isScreenplayFile(file),
+              buttons: [
+                { label: "Scene", run: (_, ed) => openNewScene(this, ed) },
+                {
+                  label: "Character",
+                  run: (_, ed) => openCharacterPicker(this, ed),
+                },
+                { label: "Action", run: (cm) => forceElement(cm, "action") },
+                { label: "Wryly", run: (_, ed) => openParenthetical(this, ed) },
+                {
+                  label: "Transition",
+                  run: (_, ed) => openTransition(this, ed),
+                },
+                { label: "Tab ⇥", run: (cm) => pressTab(cm, false) },
+                { label: "⇤ Tab", run: (cm) => pressTab(cm, true) },
+              ],
+            }),
+          ]
+        : []),
       createVariableHighlightExtension(this),
       createThreadExtension(
         (view, mark, step, panel, across) => {

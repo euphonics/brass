@@ -18,6 +18,8 @@ project follows
 
 ### Added
 
+- **Element buttons on phones.** On phones and tablets, a script gets a row of buttons above the keyboard toolbar: Scene, Character, Action, Wryly, Transition and Tab forward and back. Only in screenplay notes, never on a computer; turn it off under Typing helpers.
+
 - **Courier Prime on every device.** Brass brings its own Courier Prime, so scripts use it on phones and tablets too, without installing the font.
 
 - **Project notes get `&&`, `$` colors and name suggestions**: typing
