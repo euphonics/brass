@@ -2345,7 +2345,7 @@ export class BrassSettingTab extends PluginSettingTab {
       },
       {
         name: "Element buttons on phones",
-        desc: "On phones and tablets, a row of buttons under a script: Scene, Character, Action, Wryly, Transition, and Tab forward and back. Each does what the Brass command of the same name does, even when that command is hidden. Never shown on a computer.",
+        desc: "On phones and tablets, a row of buttons under a script: <--Tab and Tab--> (Smart Tab back and forward), Slug (new scene or mini slug), Actn (set line to action) and Char (character, with an extension if you like). They work even when those commands are hidden. Never shown on a computer.",
         control: {
           type: "toggle",
           key: "phoneButtons",

@@ -238,19 +238,14 @@ export default class BrassPlugin extends Plugin {
               enabled: () => this.settings.phoneButtons,
               isScreenplayFile: (file) => this.isScreenplayFile(file),
               buttons: [
-                { label: "Scene", run: (_, ed) => openNewScene(this, ed) },
+                { label: "<--Tab", run: (cm) => pressTab(cm, true) },
+                { label: "Slug", run: (_, ed) => openNewScene(this, ed) },
+                { label: "Actn", run: (cm) => forceElement(cm, "action") },
                 {
-                  label: "Character",
+                  label: "Char",
                   run: (_, ed) => openCharacterPicker(this, ed),
                 },
-                { label: "Action", run: (cm) => forceElement(cm, "action") },
-                { label: "Wryly", run: (_, ed) => openParenthetical(this, ed) },
-                {
-                  label: "Transition",
-                  run: (_, ed) => openTransition(this, ed),
-                },
-                { label: "Tab ⇥", run: (cm) => pressTab(cm, false) },
-                { label: "⇤ Tab", run: (cm) => pressTab(cm, true) },
+                { label: "Tab-->", run: (cm) => pressTab(cm, false) },
               ],
             }),
           ]

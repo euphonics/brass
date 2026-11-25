@@ -35,7 +35,7 @@ impractical; use BRAT.
 ## Element buttons
 
 In a script, Brass shows its own row of buttons above the keyboard toolbar:
-Scene, Character, Action, Wryly, Transition, Tab ⇥ and ⇤ Tab (setting
+<--Tab, Slug, Actn, Char and Tab--> (setting
 **Element buttons on phones**, under Typing helpers). Test that each button
 works, that the keyboard stays up when tapping, that the row scrolls sideways
 on a narrow phone, and that it never shows in a plain note.

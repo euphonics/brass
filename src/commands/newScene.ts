@@ -73,10 +73,56 @@ async function openNewSceneForContext(
   const index = await projectIndex(plugin, editor);
   new PickerModal(plugin.app, {
     title: "New Scene — Scene type",
-    placeholder: "Choose INT., EXT., or another scene type",
-    items: plugin.settings.preferredSceneTypes,
+    placeholder: "Choose INT., EXT., another scene type or a mini slug",
+    items: [...plugin.settings.preferredSceneTypes, MINI_SLUG],
     itemText: (item) => item,
-    onChoose: (sceneType) => chooseLocation(plugin, editor, index, sceneType),
+    onChoose: (sceneType) =>
+      sceneType === MINI_SLUG
+        ? chooseMiniSlug(plugin, editor, index)
+        : chooseLocation(plugin, editor, index, sceneType),
+  }).open();
+}
+
+/** Last choice in the scene type list: a mini slug (".KITCHEN"). */
+export const MINI_SLUG = "Mini slug (.)";
+
+/** The forced scene heading for a mini slug: ".KITCHEN". */
+export function miniSlug(location: string): string {
+  return `.${location.trim().replace(/^\./u, "").trim().toLocaleUpperCase()}`;
+}
+
+/** A mini slug: a known or new location, written as ".LOCATION". */
+function chooseMiniSlug(
+  plugin: BrassPlugin,
+  editor: Editor,
+  index: ReturnType<typeof buildScreenplayIndex>,
+): void {
+  const locations = rankUsages(
+    index.locations,
+    "",
+    plugin.settings.recentItemsWeighting,
+    plugin.settings.maximumSuggestions,
+  ).map((usage) => usage.value);
+  const insert = (location: string): void => {
+    if (location.trim()) insertBlock(editor, miniSlug(location), 2);
+  };
+  new PickerModal(plugin.app, {
+    title: "New Scene — Mini slug",
+    placeholder: "Choose a known location or create one",
+    items: choices(locations, "New location…"),
+    itemText: (item) => item.label,
+    onChoose: (choice) => {
+      if (choice.kind === "custom") {
+        new TextInputModal(
+          plugin.app,
+          "New Scene — Mini slug",
+          "Location",
+          insert,
+        ).open();
+      } else if (choice.value) {
+        insert(choice.value);
+      }
+    },
   }).open();
 }
 

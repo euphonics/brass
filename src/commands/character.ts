@@ -23,16 +23,14 @@ import { parseFountain } from "../screenplay/parser";
 import { withListedCharacters } from "../screenplay/listedCharacters";
 import { PickerModal, TextInputModal } from "../ui/pickers";
 import { insertBlock } from "./editorText";
+import { characterExtensionChoices } from "../editor/completionEngine";
 
 interface CharacterChoice {
-  kind: "character" | "new";
+  kind: "character" | "new" | "extension";
   label: string;
 }
 
-export function openCharacterPicker(
-  plugin: BrassPlugin,
-  editor: Editor,
-): void {
+export function openCharacterPicker(plugin: BrassPlugin, editor: Editor): void {
   void openCharacterPickerForContext(plugin, editor);
 }
 
@@ -60,26 +58,60 @@ async function openCharacterPickerForContext(
     plugin.settings.maximumSuggestions,
   ).map((usage) => ({ kind: "character", label: usage.value }));
   characters.push({ kind: "new", label: "New character…" });
+  chooseCharacter(plugin, editor, characters, "");
+}
 
+/**
+ * The character list. With an `extension` ("(V.O.)"), the chosen name gets
+ * it; without, the list also offers "With extension…", which asks for the
+ * extension first and then shows the list again.
+ */
+function chooseCharacter(
+  plugin: BrassPlugin,
+  editor: Editor,
+  characters: CharacterChoice[],
+  extension: string,
+): void {
+  const insert = (name: string): void => {
+    if (name.trim())
+      insertCharacter(editor, extension ? `${name.trim()} ${extension}` : name);
+  };
   new PickerModal(plugin.app, {
-    title: "Character",
+    title: extension ? `Character ${extension}` : "Character",
     placeholder: "Choose a character or create one",
-    items: characters,
+    items: extension
+      ? characters
+      : [...characters, { kind: "extension", label: WITH_EXTENSION }],
     itemText: (item) => item.label,
     onChoose: (choice) => {
-      if (choice.kind === "new") {
+      if (choice.kind === "extension") {
+        new PickerModal(plugin.app, {
+          title: "Character — Extension",
+          placeholder: "Choose an extension",
+          items: characterExtensionChoices(
+            editor.getValue(),
+            plugin.settings.customExtensionsFirst,
+          ),
+          itemText: (item) => item,
+          onChoose: (chosen) =>
+            chooseCharacter(plugin, editor, characters, chosen),
+        }).open();
+      } else if (choice.kind === "new") {
         new TextInputModal(
           plugin.app,
-          "New character",
+          extension ? `New character ${extension}` : "New character",
           "Character name",
-          (name) => insertCharacter(editor, name),
+          insert,
         ).open();
       } else {
-        insertCharacter(editor, choice.label);
+        insert(choice.label);
       }
     },
   }).open();
 }
+
+/** Last choice in the character list: add an extension like (V.O.). */
+export const WITH_EXTENSION = "With extension (V.O.)…";
 
 export function insertCharacter(editor: Editor, name: string): void {
   insertBlock(editor, name.trim().toLocaleUpperCase(), 1);
