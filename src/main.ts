@@ -45,13 +45,18 @@ import {
   parseYaml,
   type WorkspaceLeaf,
 } from "obsidian";
-import type { Command, TFile } from "obsidian";
+import type { Command, Editor, TFile } from "obsidian";
 import { scriptByOutline, scriptForRelatedNote } from "./projects/relatedNotes";
 import { renderThreads } from "./threads/threadRender";
 import { openCharacterPicker } from "./commands/character";
 import { BRASS_ICON, registerBrassIcon } from "./ui/brassIcon";
 import { registerBundledFont } from "./editor/bundledFont";
-import { createPhoneBarExtension } from "./editor/phoneBar";
+import { createPhoneBarExtension, type PhoneButton } from "./editor/phoneBar";
+import {
+  normalizePhoneButtons,
+  phoneActionInfo,
+  type PhoneAction,
+} from "./editor/phoneActions";
 import { copyConfiguration } from "./commands/copyConfiguration";
 import { toggleDualDialogueInEditor } from "./commands/dualDialogue";
 import {
@@ -81,7 +86,7 @@ import { openCharacterGraph } from "./commands/characterGraph";
 import { checkCharacters } from "./commands/checkCharacters";
 import { createExampleScreenplay } from "./commands/createExample";
 import { activateScreenplayNote } from "./commands/activateScreenplay";
-import { openNewScene } from "./commands/newScene";
+import { openMiniSlug, openNewScene } from "./commands/newScene";
 import { openParenthetical } from "./commands/parenthetical";
 import { openTransition } from "./commands/transition";
 import { previewScreenplay } from "./commands/previewScreenplay";
@@ -237,16 +242,8 @@ export default class BrassPlugin extends Plugin {
             createPhoneBarExtension({
               enabled: () => this.settings.phoneButtons,
               isScreenplayFile: (file) => this.isScreenplayFile(file),
-              buttons: [
-                { label: "<--Tab", run: (cm) => pressTab(cm, true) },
-                { label: "Slug", run: (_, ed) => openNewScene(this, ed) },
-                { label: "Actn", run: (cm) => forceElement(cm, "action") },
-                {
-                  label: "Char",
-                  run: (_, ed) => openCharacterPicker(this, ed),
-                },
-                { label: "Tab-->", run: (cm) => pressTab(cm, false) },
-              ],
+              buttons: () => this.phoneButtons(),
+              version: () => this.phoneToolbarVersion,
             }),
           ]
         : []),
@@ -965,6 +962,86 @@ export default class BrassPlugin extends Plugin {
         this.removeCommand(id);
         this.shownCommands.delete(id);
       }
+    }
+  }
+
+  /** Goes up when the phone toolbar settings change (see phoneBar). */
+  phoneToolbarVersion = 0;
+
+  /** Redraw phone toolbars after their settings changed. */
+  phoneToolbarChanged(): void {
+    this.phoneToolbarVersion += 1;
+    this.app.workspace.updateOptions();
+  }
+
+  /** The phone toolbar's buttons, from settings, in order. */
+  private phoneButtons(): PhoneButton[] {
+    const emoji = this.settings.phoneButtonLabels === "emoji";
+    return normalizePhoneButtons(this.settings.phoneButtonItems)
+      .filter((item) => item.shown)
+      .flatMap(({ action }) => {
+        const info = phoneActionInfo(action);
+        if (!info) return [];
+        return [
+          {
+            label: emoji ? info.emoji : info.words,
+            name: info.name,
+            run: (cm: EditorView, editor: Editor) =>
+              this.runPhoneAction(action, cm, editor),
+          },
+        ];
+      });
+  }
+
+  /**
+   * What a phone toolbar button does. With "Convert the current line" on,
+   * an element button on a line with text turns that line into the element
+   * (like the "Set line to" commands) instead of starting a new one.
+   */
+  private runPhoneAction(
+    action: PhoneAction,
+    cm: EditorView,
+    editor: Editor,
+  ): void {
+    const convert = (element: ForcedElement): boolean => {
+      if (!this.settings.phoneButtonsConvert) return false;
+      if (editor.getLine(editor.getCursor().line).trim() === "") return false;
+      forceElement(cm, element);
+      return true;
+    };
+    switch (action) {
+      case "tab-back":
+        pressTab(cm, true);
+        return;
+      case "tab":
+        pressTab(cm, false);
+        return;
+      case "slug":
+        if (!convert("scene-heading")) openNewScene(this, editor);
+        return;
+      case "mini-slug":
+        if (!convert("scene-heading")) openMiniSlug(this, editor);
+        return;
+      case "action":
+        return forceElement(cm, "action");
+      case "character":
+        if (!convert("character")) openCharacterPicker(this, editor);
+        return;
+      case "extension":
+        if (isLikelyCharacterCue(editor.getLine(editor.getCursor().line)))
+          openCharacterExtension(this, editor);
+        else new Notice("Put the cursor on a character name first.");
+        return;
+      case "wryly":
+        if (!convert("parenthetical")) openParenthetical(this, editor);
+        return;
+      case "transition":
+        if (!convert("transition")) openTransition(this, editor);
+        return;
+      case "centered":
+        return forceElement(cm, "centered");
+      case "dual-dialogue":
+        return toggleDualDialogueInEditor(editor);
     }
   }
 

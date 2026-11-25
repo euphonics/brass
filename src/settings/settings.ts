@@ -68,6 +68,13 @@ import {
 } from "../export/pdfStyle";
 import type { PdfBoldOptions, PdfBoldPart } from "../export/pdfStyle";
 import {
+  DEFAULT_PHONE_BUTTONS,
+  movePhoneButton,
+  normalizePhoneButtons,
+  phoneActionInfo,
+  type PhoneButtonItem,
+} from "../editor/phoneActions";
+import {
   DEFAULT_SLUG_MODIFIERS,
   DEFAULT_SCENE_TYPES,
   DEFAULT_TIMES_OF_DAY,
@@ -147,6 +154,12 @@ export interface BrassSettings {
   renderFountainCodeBlocks: boolean;
   /** Phones and tablets: a row of element buttons under scripts. */
   phoneButtons: boolean;
+  /** Every phone toolbar action, in order, and whether it is shown. */
+  phoneButtonItems: PhoneButtonItem[];
+  /** Phone toolbar labels: short words or emoji. */
+  phoneButtonLabels: "words" | "emoji";
+  /** Phone toolbar: on a line with text, convert it instead of adding a line. */
+  phoneButtonsConvert: boolean;
   sceneTypeMinimumLetters: number;
   sceneTypeMatchCase: boolean;
   characterMatchCase: boolean;
@@ -437,6 +450,9 @@ export const DEFAULT_SETTINGS: BrassSettings = {
   screenplayFontCustom: "",
   renderFountainCodeBlocks: false,
   phoneButtons: true,
+  phoneButtonItems: DEFAULT_PHONE_BUTTONS.map((item) => ({ ...item })),
+  phoneButtonLabels: "words",
+  phoneButtonsConvert: false,
   sceneTypeMinimumLetters: 2,
   sceneTypeMatchCase: false,
   characterMatchCase: true,
@@ -547,6 +563,9 @@ export function migrateSettings(
   };
   settings.enterTargets = normalizeEnterTargets(rest.enterTargets);
   settings.pdfBold = normalizePdfBold(rest.pdfBold);
+  settings.phoneButtonItems = normalizePhoneButtons(rest.phoneButtonItems);
+  if (settings.phoneButtonLabels !== "emoji")
+    settings.phoneButtonLabels = "words";
   // Clean export had one set of options for every format; each format
   // starts from it (#277).
   settings.cleanExport = normalizeCleanExportOptions(
@@ -735,6 +754,8 @@ const COMMANDS_NAME = "Commands in the command palette";
 const COMMANDS_KEY = "commandPaletteList";
 const SLUG_FILL_NAME = "Picking a location fills in";
 const SLUG_FILL_KEY = "slugFillChecks";
+const PHONE_BUTTONS_NAME = "Buttons";
+const PHONE_BUTTONS_KEY = "phoneButtonList";
 /** Items without a control, placed in their section by name. */
 const NAMED_ITEM_KEYS: Record<string, string> = {
   [TYPING_CHANGES_NAME]: TYPING_CHANGES_KEY,
@@ -743,6 +764,7 @@ const NAMED_ITEM_KEYS: Record<string, string> = {
   [SLUG_ORDER_NAME]: SLUG_ORDER_KEY,
   [SLUG_FILL_NAME]: SLUG_FILL_KEY,
   [COMMANDS_NAME]: COMMANDS_KEY,
+  [PHONE_BUTTONS_NAME]: PHONE_BUTTONS_KEY,
   [CLEAN_EXPORT_NAME]: CLEAN_EXPORT_KEY,
 };
 
@@ -786,7 +808,6 @@ export const SETTING_SECTIONS: {
     keys: [
       "smartTabEnabled",
       "smartEnterEnabled",
-      "phoneButtons",
       "tabAtDialogueStartAddsWryly",
       "backspaceEmptyCueToAction",
       "enterAfterCueMovesDown",
@@ -873,6 +894,16 @@ export const SETTING_SECTIONS: {
     keys: ["quietCompletrInScripts"],
   },
   {
+    heading: "Phone toolbar",
+    master: "phoneButtons",
+    keys: [
+      "phoneButtons",
+      PHONE_BUTTONS_KEY,
+      "phoneButtonLabels",
+      "phoneButtonsConvert",
+    ],
+  },
+  {
     heading: "Advanced",
     keys: ["renderFountainCodeBlocks"],
   },
@@ -904,6 +935,7 @@ export function storedKeys(key: string): (keyof BrassSettings)[] {
   }
   if (key === SLUG_FILL_KEY) return ["slugFillTime", "slugFillModifier"];
   if (key === SLUG_ORDER_KEY) return ["slugSuggestionOrder"];
+  if (key === PHONE_BUTTONS_KEY) return ["phoneButtonItems"];
   if (key === CLEAN_EXPORT_KEY) return Object.values(CLEAN_EXPORT_KEYS);
   if (key === COMMANDS_KEY) return ["commandVisibility", "showAllCommands"];
   if (key.startsWith(PDF_BOLD_PREFIX)) return ["pdfBold"];
@@ -1647,6 +1679,65 @@ export class BrassSettingTab extends PluginSettingTab {
     }
   }
 
+  /**
+   * The phone toolbar's buttons: every action with a checkbox (shown or
+   * not) and Up/Down buttons for the order, since dragging is unreliable on
+   * a phone, where this is most often set.
+   */
+  private renderPhoneButtons(setting: Setting): void {
+    setting.setName(PHONE_BUTTONS_NAME);
+    setting.setDesc(
+      "Check the buttons to show, left to right in this order. Move a button up to bring it closer to the front.",
+    );
+    const list = setting.settingEl.createDiv({
+      cls: "brass-order-list brass-phone-button-list",
+    });
+    const save = async (items: PhoneButtonItem[]): Promise<void> => {
+      this.plugin.settings.phoneButtonItems = items;
+      await this.plugin.saveSettings();
+      this.plugin.phoneToolbarChanged();
+      draw();
+    };
+    const draw = (): void => {
+      list.empty();
+      const items = normalizePhoneButtons(
+        this.plugin.settings.phoneButtonItems,
+      );
+      items.forEach((item, at) => {
+        const info = phoneActionInfo(item.action);
+        if (!info) return;
+        const row = list.createDiv({ cls: "brass-order-item" });
+        const label = row.createEl("label", { cls: "brass-phone-button-name" });
+        const box = label.createEl("input", { type: "checkbox" });
+        box.checked = item.shown;
+        label.createSpan({
+          text: `${info.emoji} ${info.words} · ${info.name}`,
+        });
+        box.addEventListener("change", () => {
+          const next = items.map((entry) => ({ ...entry }));
+          const target = next[at];
+          if (target) target.shown = box.checked;
+          void save(next);
+        });
+        for (const [text, step] of [
+          ["Up", -1],
+          ["Down", 1],
+        ] as const) {
+          const button = row.createEl("button", {
+            text,
+            attr: { "aria-label": `Move ${info.name} ${text.toLowerCase()}` },
+          });
+          button.disabled = step < 0 ? at === 0 : at === items.length - 1;
+          button.addEventListener(
+            "click",
+            () => void save(movePhoneButton(items, at, step)),
+          );
+        }
+      });
+    };
+    draw();
+  }
+
   private async saveSlugOrder(order: SlugSuggestionKind[]): Promise<void> {
     this.plugin.settings.slugSuggestionOrder = slugOrder(order);
     await this.plugin.saveSettings();
@@ -2111,6 +2202,38 @@ export class BrassSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Show the phone toolbar",
+        desc: "On phones and tablets, a row of buttons above the keyboard toolbar in a script, for the elements a phone keyboard makes slow to type. Never shown on a computer, and never in a plain note.",
+        control: {
+          type: "toggle",
+          key: "phoneButtons",
+          defaultValue: DEFAULT_SETTINGS.phoneButtons,
+        },
+      },
+      {
+        name: PHONE_BUTTONS_NAME,
+        render: (setting) => this.renderPhoneButtons(setting),
+      },
+      {
+        name: "Button labels",
+        desc: "Short words (Slug, Char) or emoji (🎬, 🗣️). The list above shows both.",
+        control: {
+          type: "dropdown",
+          key: "phoneButtonLabels",
+          options: { words: "Words", emoji: "Emoji" },
+          defaultValue: DEFAULT_SETTINGS.phoneButtonLabels,
+        },
+      },
+      {
+        name: "Convert the current line",
+        desc: "On: a button pressed on a line with text turns that line into the element (Char makes it a character, Slug a slugline) instead of starting a new line. On an empty line the buttons work as usual.",
+        control: {
+          type: "toggle",
+          key: "phoneButtonsConvert",
+          defaultValue: DEFAULT_SETTINGS.phoneButtonsConvert,
+        },
+      },
+      {
         name: "Show fountain code blocks as a script",
         desc: "In any note, a code block marked fountain shows with screenplay formatting. When off, it shows as plain code. Reopen notes after changing this.",
         control: {
@@ -2344,15 +2467,6 @@ export class BrassSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Element buttons on phones",
-        desc: "On phones and tablets, a row of buttons under a script: <--Tab and Tab--> (Smart Tab back and forward), Slug (new scene or mini slug), Actn (set line to action) and Char (character, with an extension if you like). They work even when those commands are hidden. Never shown on a computer.",
-        control: {
-          type: "toggle",
-          key: "phoneButtons",
-          defaultValue: DEFAULT_SETTINGS.phoneButtons,
-        },
-      },
-      {
         name: "Tab at the start of dialogue adds a wryly",
         desc: "Script mode. On: Tab with the cursor at the start of a line of dialogue puts an empty () above it, ready for a wryly. Off: Tab does nothing there, as in Fade In (a wryly then only goes on an empty dialogue line).",
         control: {
@@ -2506,7 +2620,12 @@ export class BrassSettingTab extends PluginSettingTab {
     }
     if (!isSettingKey(key)) return undefined;
     const value = this.plugin.settings[key];
-    return Array.isArray(value) ? value.join(", ") : value;
+    // Lists of words show as "a, b"; other lists (phone buttons) have
+    // their own control.
+    return Array.isArray(value) &&
+      value.every((item) => typeof item === "string")
+      ? value.join(", ")
+      : value;
   }
 
   async setControlValue(key: string, value: unknown): Promise<void> {
@@ -2577,6 +2696,9 @@ export class BrassSettingTab extends PluginSettingTab {
     ) {
       if (value !== "previous-part" && value !== "nothing") return;
       this.plugin.settings[key] = value;
+    } else if (key === "phoneButtonLabels") {
+      if (value !== "words" && value !== "emoji") return;
+      this.plugin.settings.phoneButtonLabels = value;
     } else if (key === "pageSize") {
       if (value !== "us-letter" && value !== "a4") return;
       this.plugin.settings.pageSize = value;
@@ -2608,10 +2730,16 @@ export class BrassSettingTab extends PluginSettingTab {
       key === "bottomTypingMargin" ||
       key === "highlightVariablesScript" ||
       key === "highlightVariablesPlain" ||
-      key === "variablePrefix" ||
-      key === "phoneButtons"
+      key === "variablePrefix"
     ) {
       this.app.workspace.updateOptions();
+    }
+    if (
+      key === "phoneButtons" ||
+      key === "phoneButtonLabels" ||
+      key === "phoneButtonsConvert"
+    ) {
+      this.plugin.phoneToolbarChanged();
     }
     if (
       key === "activateFountainFiles" ||
@@ -2676,6 +2804,7 @@ export class BrassSettingTab extends PluginSettingTab {
       case "customExtensionsFirst":
       case "tabAtDialogueStartAddsWryly":
       case "phoneButtons":
+      case "phoneButtonsConvert":
         this.plugin.settings[key] = value;
     }
   }

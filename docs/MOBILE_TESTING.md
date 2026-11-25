@@ -35,8 +35,9 @@ impractical; use BRAT.
 ## Element buttons
 
 In a script, Brass shows its own row of buttons above the keyboard toolbar:
-<--Tab, Slug, Actn, Char and Tab--> (setting
-**Element buttons on phones**, under Typing helpers). Test that each button
+<--Tab, Slug, Actn, Char and Tab--> (settings
+section **Phone toolbar**: pick and order the buttons, emoji labels, convert
+the current line). Test that each button
 works, that the keyboard stays up when tapping, that the row scrolls sideways
 on a narrow phone, and that it never shows in a plain note.
 

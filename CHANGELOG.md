@@ -20,7 +20,7 @@ project follows
 
 - **Mini slugs and character extensions from the pickers.** New scene offers **Mini slug (.)** after the scene types (`.KITCHEN`). Character offers **With extension (V.O.)…**, which adds the extension to the name you pick.
 
-- **Element buttons on phones.** On phones and tablets, a script gets a row of buttons above the keyboard toolbar: <--Tab, Slug, Actn, Char and Tab-->. Only in screenplay notes, never on a computer; turn it off under Typing helpers.
+- **Element buttons on phones.** On phones and tablets, a script gets a row of buttons above the keyboard toolbar: <--Tab, Slug, Actn, Char and Tab-->. Only in screenplay notes, never on a computer. Its own settings section, **Phone toolbar**, turns it off, picks and orders the buttons (Transition, Wryly, Mini slug, Extension, Centered and Dual dialogue are there too), switches the labels to emoji (🎬 🗣️ ➡️) and can make a button convert the line you are on instead of starting a new one.
 
 - **Courier Prime on every device.** Brass brings its own Courier Prime, so scripts use it on phones and tablets too, without installing the font.
 

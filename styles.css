@@ -930,6 +930,14 @@ body {
   color: var(--text-faint);
 }
 
+/* Settings: the phone toolbar's buttons (checkbox, name, Up, Down). */
+.brass-phone-button-name {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Settings: "Picking a location fills in" checkboxes. */
 .brass-slug-fill-option {
   display: inline-flex;

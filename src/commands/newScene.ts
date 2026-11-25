@@ -91,6 +91,13 @@ export function miniSlug(location: string): string {
   return `.${location.trim().replace(/^\./u, "").trim().toLocaleUpperCase()}`;
 }
 
+/** Open the mini slug list straight away (the phone toolbar's Mini). */
+export function openMiniSlug(plugin: BrassPlugin, editor: Editor): void {
+  void projectIndex(plugin, editor).then((index) =>
+    chooseMiniSlug(plugin, editor, index),
+  );
+}
+
 /** A mini slug: a known or new location, written as ".LOCATION". */
 function chooseMiniSlug(
   plugin: BrassPlugin,
