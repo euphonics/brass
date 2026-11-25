@@ -451,7 +451,7 @@ export const DEFAULT_SETTINGS: BrassSettings = {
   renderFountainCodeBlocks: false,
   phoneButtons: true,
   phoneButtonItems: DEFAULT_PHONE_BUTTONS.map((item) => ({ ...item })),
-  phoneButtonLabels: "words",
+  phoneButtonLabels: "emoji",
   phoneButtonsConvert: false,
   sceneTypeMinimumLetters: 2,
   sceneTypeMatchCase: false,
@@ -564,8 +564,8 @@ export function migrateSettings(
   settings.enterTargets = normalizeEnterTargets(rest.enterTargets);
   settings.pdfBold = normalizePdfBold(rest.pdfBold);
   settings.phoneButtonItems = normalizePhoneButtons(rest.phoneButtonItems);
-  if (settings.phoneButtonLabels !== "emoji")
-    settings.phoneButtonLabels = "words";
+  if (settings.phoneButtonLabels !== "words")
+    settings.phoneButtonLabels = "emoji";
   // Clean export had one set of options for every format; each format
   // starts from it (#277).
   settings.cleanExport = normalizeCleanExportOptions(
@@ -2216,11 +2216,11 @@ export class BrassSettingTab extends PluginSettingTab {
       },
       {
         name: "Button labels",
-        desc: "Short words (Slug, Char) or emoji (🎬, 🗣️). The list above shows both.",
+        desc: "Emoji (🎬, 🗣️) or short words (Slug, Char). The list above shows both.",
         control: {
           type: "dropdown",
           key: "phoneButtonLabels",
-          options: { words: "Words", emoji: "Emoji" },
+          options: { emoji: "Emoji", words: "Words" },
           defaultValue: DEFAULT_SETTINGS.phoneButtonLabels,
         },
       },
