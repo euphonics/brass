@@ -48,6 +48,7 @@ import type { Command, TFile } from "obsidian";
 import { scriptByOutline, scriptForRelatedNote } from "./projects/relatedNotes";
 import { renderThreads } from "./threads/threadRender";
 import { openCharacterPicker } from "./commands/character";
+import { BRASS_ICON, registerBrassIcon } from "./ui/brassIcon";
 import { copyConfiguration } from "./commands/copyConfiguration";
 import { toggleDualDialogueInEditor } from "./commands/dualDialogue";
 import {
@@ -281,6 +282,7 @@ export default class BrassPlugin extends Plugin {
     this.register(() => this.restoreCompletr());
     this.app.workspace.onLayoutReady(() => this.followLinkOnThreads());
     registerFountainCodeBlockProcessor(this);
+    registerBrassIcon();
     this.registerOwnView(
       SCENES_VIEW_TYPE,
       (leaf) => new ScenesView(leaf, this),
@@ -289,7 +291,7 @@ export default class BrassPlugin extends Plugin {
       THREADS_VIEW_TYPE,
       (leaf) => new ThreadsView(leaf, this),
     );
-    this.addRibbonIcon("clapperboard", "Open scenes", () => {
+    this.addRibbonIcon(BRASS_ICON, "Open scenes", () => {
       void this.openScenes();
     });
 

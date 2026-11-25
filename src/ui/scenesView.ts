@@ -18,6 +18,7 @@
 import { ItemView } from "obsidian";
 import type { IconName, WorkspaceLeaf } from "obsidian";
 import type BrassPlugin from "../main";
+import { BRASS_ICON } from "./brassIcon";
 import { renderSceneWorkspace } from "./sceneWorkspace";
 import { EMPTY_SCENE_FILTERS } from "../scenes/model";
 
@@ -45,7 +46,7 @@ export class ScenesView extends ItemView {
   }
 
   getIcon(): IconName {
-    return "clapperboard";
+    return BRASS_ICON;
   }
 
   async onOpen(): Promise<void> {
