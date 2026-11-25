@@ -741,6 +741,35 @@ function namePlan(
       };
 }
 
+/**
+ * A character's name typed in capitals in a project note, such as the
+ * outline (#322): "JE" in "Then JE" lists the script's characters starting
+ * with it. Notes have no cues or speeches, so only headings and code
+ * don't get it. Returns the names and where the capitals start.
+ */
+export function noteNameCandidates(
+  before: string,
+  characters: ReturnType<typeof buildScreenplayIndex>["characters"],
+  preferences: CompletionPreferences,
+): { from: number; names: string[] } | null {
+  if (preferences.namesInAction !== true) return null;
+  if (/^\s*(#|```|~~~)/u.test(before)) return null;
+  const match = NAME_AT_END.exec(before);
+  const word = match?.[2] ?? "";
+  if (word.length < 2) return null;
+  const names = rankUsages(
+    characters,
+    word,
+    preferences.recentItemsWeighting,
+    preferences.maximumSuggestions,
+  )
+    .map((usage) => usage.value)
+    .filter((name) => name.toLocaleUpperCase() !== word);
+  return names.length === 0
+    ? null
+    : { from: before.length - word.length, names };
+}
+
 export function getScreenplayCompletionPlan(
   source: string,
   cursorOffset: number,

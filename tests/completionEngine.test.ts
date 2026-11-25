@@ -19,9 +19,11 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_COMPLETION_PREFERENCES,
   getScreenplayCompletionPlan,
+  noteNameCandidates,
   slugOrder,
 } from "../src/editor/completionEngine";
 import { parseFountain } from "../src/screenplay/parser";
+import { buildScreenplayIndex } from "../src/screenplay/indexer";
 
 const screenplay = `INT. MILITARY BASE - THERAPY ROOM - DAY
 
@@ -641,5 +643,28 @@ describe("character names in action", () => {
     expect(plan(`${script}She sees JENNY`)).toBeNull();
     expect(plan(`${script}She sees J`)).toBeNull();
     expect(plan(`${script}She sees je`)).toBeNull();
+  });
+});
+
+describe("character names in capitals in project notes (#322)", () => {
+  const characters = buildScreenplayIndex(
+    parseFountain("JENNY\nHi.\n\nTHEO\nYo.\n"),
+  ).characters;
+  const find = (before: string, namesInAction = true) =>
+    noteNameCandidates(before, characters, {
+      ...DEFAULT_COMPLETION_PREFERENCES,
+      namesInAction,
+    });
+
+  it("lists the script's characters for capitals in a note", () => {
+    expect(find("Then JE")).toEqual({ from: 5, names: ["JENNY"] });
+    expect(find("TH")).toEqual({ from: 0, names: ["THEO"] });
+  });
+
+  it("stays quiet in headings, for one letter, or with the setting off", () => {
+    expect(find("# Act JE")).toBeNull();
+    expect(find("Then J")).toBeNull();
+    expect(find("Then JE", false)).toBeNull();
+    expect(find("Then THEO")).toBeNull();
   });
 });

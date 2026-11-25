@@ -2236,7 +2236,7 @@ export class ScribidianSettingTab extends PluginSettingTab {
       },
       {
         name: "Suggest character names in action",
-        desc: "Typing a name in capitals inside an action line (JE in \"She sees JE\") lists the script's characters that start with it, like Final Draft's SmartType for a character's first appearance. Enter picks the name, which stays in the action line. On by default. Enter after capitals that start a name (THE for THEO) picks the name, so press Escape first, or turn this off to keep action typing quiet.",
+        desc: "Typing a name in capitals inside an action line (JE in \"She sees JE\") lists the script's characters that start with it, like Final Draft's SmartType for a character's first appearance. Works in the script's project notes too (its outline, notes in its folder). Enter picks the name, which stays in the action line. On by default. Enter after capitals that start a name (THE for THEO) picks the name, so press Escape first, or turn this off to keep action typing quiet.",
         control: {
           type: "toggle",
           key: "namesInAction",

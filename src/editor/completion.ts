@@ -93,6 +93,7 @@ import {
 import {
   characterExtensionChoices,
   getScreenplayCompletionPlan,
+  noteNameCandidates,
   type CompletionCandidate,
 } from "./completionEngine";
 
@@ -502,11 +503,15 @@ export function createScreenplayCompletionExtension(
     const variables = await variableOptions(context, script);
     if (variables !== null) return variables;
     const line = context.state.doc.lineAt(context.pos);
+    const before = line.text.slice(0, context.pos - line.from);
     const mention = mentionAtEnd(
-      line.text.slice(0, context.pos - line.from),
+      before,
       plugin.settings.characterMentionPrefix,
     );
-    if (mention === null) return null;
+    // A name typed in capitals ("Then JE"), as in the script's action
+    // lines (#322).
+    const capitals = mention === null && /\p{Lu}{2}/u.test(before.slice(-2));
+    if (mention === null && !capitals) return null;
     let cached = relatedIndexes.get(script.path);
     if (cached === undefined || cached.mtime !== script.stat.mtime) {
       const screenplay = await loadScreenplayContext(
@@ -522,6 +527,24 @@ export function createScreenplayCompletionExtension(
         ),
       };
       relatedIndexes.set(script.path, cached);
+    }
+    if (mention === null) {
+      const found = noteNameCandidates(
+        before,
+        cached.index.characters,
+        plugin.settings,
+      );
+      if (found === null) return null;
+      return {
+        from: line.from + found.from,
+        to: context.pos,
+        filter: false,
+        options: found.names.map((name) => ({
+          label: name,
+          detail: "Character",
+          apply: name,
+        })),
+      };
     }
     return mentionResult(
       context,
