@@ -337,7 +337,9 @@ export async function renderSceneWorkspace(
               "synopsis",
               refresh,
             ).open(),
-          disabled,
+          // An unclosed boneyard or note doesn't affect the lines under a
+          // heading (see editSynopsis), so only project problems turn it off.
+          writeIssue ?? false,
         );
         const shift = (offset: -1 | 1) =>
           void report(async () => {

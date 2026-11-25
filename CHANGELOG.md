@@ -9,7 +9,7 @@ project follows
 
 ### Fixed
 
-- **Scene buttons work in scripts with a boneyard.** A boneyard (`/* */`) or multi-line note used to turn off Synopsis, Up, Down and Move for the whole script; now only one that never closes does, and a boneyard moves with its scene. A grayed-out scene button now says why when tapped, so the reason shows on a phone too.
+- **Scene buttons work in scripts with a boneyard.** A boneyard (`/* */`) or multi-line note used to turn off Synopsis, Up, Down and Move for the whole script; now only one that never closes turns off moving scenes, Synopsis always works, and a boneyard moves with its scene. A grayed-out scene button now says why when tapped, so the reason shows on a phone too.
 
 ### Changed
 

@@ -145,7 +145,7 @@ export function sceneFile(
   // Only a boneyard or note that never closes hides where scenes end.
   if (comment || note)
     issue =
-      "A boneyard (/*) or note ([[) is never closed; scene changes are disabled until it is.";
+      "A boneyard (/*) or note ([[) is never closed; moving and adding scenes is off until it is.";
   let page = pageOffset + 1;
   const scenes = starts.map((item, index): Scene => {
     const next = starts[index + 1]?.start ?? source.length;
@@ -249,8 +249,17 @@ export function filterScenes(
   );
 }
 
-export function assertScene(file: SceneFile, scene: Scene): void {
-  if (file.issue) throw new Error(file.issue);
+/**
+ * Throw unless `scene` is still exactly where `file` says. `ignoreIssue`
+ * skips the file's issue (an unclosed boneyard or note), for edits that
+ * only touch the lines right under a heading Brass found.
+ */
+export function assertScene(
+  file: SceneFile,
+  scene: Scene,
+  ignoreIssue = false,
+): void {
+  if (file.issue && !ignoreIssue) throw new Error(file.issue);
   if (
     file.path !== scene.path ||
     file.source.slice(scene.start, scene.end) !== scene.text ||
@@ -375,7 +384,14 @@ export function editSynopsis(
   scene: Scene,
   synopsis: string,
 ): SceneChange {
-  assertScene(file, scene);
+  // A synopsis goes right under the heading, and a heading Brass found is
+  // never inside a boneyard or note, so an unclosed one elsewhere doesn't
+  // matter. Only a heading line that itself opens one would hide it.
+  assertScene(file, scene, true);
+  if (Object.values(scanMarkers(scene.heading, false, false)).some(Boolean))
+    throw new Error(
+      "This heading opens a boneyard or note, so a synopsis under it would be hidden.",
+    );
   const eol = scene.text.includes("\r\n") ? "\r\n" : "\n";
   const lines = scene.text.split("\n");
   let end = 1;

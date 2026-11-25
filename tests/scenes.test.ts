@@ -295,6 +295,29 @@ describe("source scene workspace", () => {
       "EXT. STREET - NIGHT\n= Leaving.\n",
     );
   });
+  it("edits a synopsis even when a boneyard never closes", () => {
+    const file = sceneFile(
+      "Film.md",
+      "INT. ROOM - DAY\n\nShe waits.\n\n/*\nnever closed\n",
+    );
+    expect(file.issue).toContain("never closed");
+    const [room] = file.scenes;
+    if (!room) throw new Error("missing scene");
+    expect(editSynopsis(file, room, "Waiting.").after).toBe(
+      "INT. ROOM - DAY\n= Waiting.\n\nShe waits.\n\n/*\nnever closed\n",
+    );
+  });
+  it("refuses a synopsis under a heading that opens a boneyard", () => {
+    const file = sceneFile(
+      "Film.md",
+      "INT. ROOM - DAY /* cut?\nmaybe */\n\nEXT. ROAD - DAY\n",
+    );
+    const [room] = file.scenes;
+    if (!room) throw new Error("missing scene");
+    expect(() => editSynopsis(file, room, "Hidden.")).toThrow(
+      "opens a boneyard",
+    );
+  });
   it("still finds a heading with a boneyard or note on its line", () => {
     const file = sceneFile(
       "Film.md",
