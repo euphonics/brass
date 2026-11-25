@@ -49,6 +49,10 @@ project follows
 
 ### Fixed
 
+- **Threads in callouts**: a thread inside a callout showed as raw
+  `[&name]` text while the cursor was outside the callout. Callouts and
+  the reading view now show the 🧵 and the thread's text too, and clicking
+  goes along the thread.
 - A line starting with a thread and a colon (`[&reveal]: ...`) no longer
   shows in small text.
 

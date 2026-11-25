@@ -245,13 +245,15 @@
 body {
   --scribidian-thread-color: var(--color-orange);
 }
-.markdown-source-view.mod-cm6 .scribidian-thread {
+.markdown-source-view.mod-cm6 .scribidian-thread,
+.markdown-rendered .scribidian-thread {
   cursor: pointer;
   font-size: 0.85em;
   opacity: 0.8;
   padding-inline: 1px;
 }
-.markdown-source-view.mod-cm6 .scribidian-thread:hover {
+.markdown-source-view.mod-cm6 .scribidian-thread:hover,
+.markdown-rendered .scribidian-thread:hover {
   opacity: 1;
 }
 .markdown-source-view.mod-cm6 .scribidian-thread-text,
@@ -944,7 +946,8 @@ body {
 
 /* A thread with text, "[&gun|the pistol]": the spool, then its text at
    the script's size. */
-.markdown-source-view.mod-cm6 .scribidian-thread.scribidian-thread-with-text {
+.markdown-source-view.mod-cm6 .scribidian-thread.scribidian-thread-with-text,
+.markdown-rendered .scribidian-thread.scribidian-thread-with-text {
   font-size: inherit;
   opacity: 1;
 }

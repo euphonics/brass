@@ -51,6 +51,47 @@ export type OpenThread = (
   across: boolean,
 ) => void;
 
+/**
+ * A thread drawn as the 🧵 and its text, per the Thread text setting: in
+ * the editor and in rendered Markdown (callouts, reading view, #323).
+ */
+export function threadElement(
+  mark: Pick<ThreadMark, "name" | "alias" | "hidden">,
+  display: ThreadDisplay,
+): HTMLElement {
+  // The spool, then the thread's text: "[&gun|the pistol]" shows its
+  // alias (part of the script, #289); "[&gun]" shows its name in the
+  // thread color (#293); "[&gun|]" shows the spool only (#295). The
+  // Thread text setting puts the text after or before the spool, or
+  // hides it (#298).
+  const textShown = !mark.hidden && display !== "icon";
+  // Text only (#301): no spool, unless there's no text to show.
+  const spoolShown = !textShown || display !== "text";
+  const el = createSpan({
+    cls: textShown
+      ? `scribidian-thread scribidian-thread-with-text scribidian-thread-${display === "text" ? "text-only" : display}`
+      : "scribidian-thread",
+  });
+  const spool = (): void => {
+    el.createSpan({ cls: "scribidian-thread-spool", text: "🧵" });
+  };
+  if (spoolShown && (!textShown || display === "left")) spool();
+  if (!textShown) {
+    // Nothing but the spool.
+  } else if (mark.alias !== undefined) {
+    el.createSpan({ cls: "scribidian-thread-alias", text: mark.alias });
+  } else {
+    el.createSpan({ cls: "scribidian-thread-name", text: mark.name });
+  }
+  if (textShown && display === "right") spool();
+  el.setAttribute("aria-label", `Thread: ${mark.name}`);
+  el.setAttribute(
+    "title",
+    `${mark.name} (click: next in this note, Shift+click: previous, Alt+click: next in the project and linked notes, Ctrl/Cmd+click: Threads panel)`,
+  );
+  return el;
+}
+
 class ThreadWidget extends WidgetType {
   constructor(
     private readonly mark: ThreadMark,
@@ -72,36 +113,7 @@ class ThreadWidget extends WidgetType {
   }
 
   toDOM(view: EditorView): HTMLElement {
-    // The spool, then the thread's text: "[&gun|the pistol]" shows its
-    // alias (part of the script, #289); "[&gun]" shows its name in the
-    // thread color (#293); "[&gun|]" shows the spool only (#295). The
-    // Thread text setting puts the text after or before the spool, or
-    // hides it (#298).
-    const textShown = !this.mark.hidden && this.display !== "icon";
-    // Text only (#301): no spool, unless there's no text to show.
-    const spoolShown = !textShown || this.display !== "text";
-    const el = createSpan({
-      cls: textShown
-        ? `scribidian-thread scribidian-thread-with-text scribidian-thread-${this.display === "text" ? "text-only" : this.display}`
-        : "scribidian-thread",
-    });
-    const spool = (): void => {
-      el.createSpan({ cls: "scribidian-thread-spool", text: "🧵" });
-    };
-    if (spoolShown && (!textShown || this.display === "left")) spool();
-    if (!textShown) {
-      // Nothing but the spool.
-    } else if (this.mark.alias !== undefined) {
-      el.createSpan({ cls: "scribidian-thread-alias", text: this.mark.alias });
-    } else {
-      el.createSpan({ cls: "scribidian-thread-name", text: this.mark.name });
-    }
-    if (textShown && this.display === "right") spool();
-    el.setAttribute("aria-label", `Thread: ${this.mark.name}`);
-    el.setAttribute(
-      "title",
-      `${this.mark.name} (click: next in this note, Shift+click: previous, Alt+click: next in the project and linked notes, Ctrl/Cmd+click: Threads panel)`,
-    );
+    const el = threadElement(this.mark, this.display);
     el.addEventListener("mousedown", (event) => {
       if (event.button !== 0) return;
       event.preventDefault();

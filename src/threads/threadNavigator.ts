@@ -228,6 +228,59 @@ export class ThreadNavigator {
   }
 
   /**
+   * From a thread in rendered Markdown (#323): the `nth` thread named
+   * `key` at or after line `line` of the note at `path`, then the next
+   * place along its thread (Shift: the previous; across: other notes).
+   */
+  async openRendered(
+    path: string,
+    line: number,
+    key: string,
+    nth: number,
+    step: 1 | -1,
+    across: boolean,
+  ): Promise<void> {
+    const { vault, workspace } = this.plugin.app;
+    const file = vault.getAbstractFileByPath(path);
+    if (!(file instanceof TFile)) return;
+    const open = workspace
+      .getLeavesOfType("markdown")
+      .map((leaf) => leaf.view)
+      .find(
+        (view): view is MarkdownView =>
+          view instanceof MarkdownView && view.file?.path === path,
+      );
+    const text = open?.editor.getValue() ?? (await vault.cachedRead(file));
+    let start = 0;
+    for (let index = 0; index < line; index += 1) {
+      const next = text.indexOf("\n", start);
+      if (next === -1) break;
+      start = next + 1;
+    }
+    const all = findThreads(text).filter((mark) => mark.key === key);
+    const after = all.filter((mark) => mark.from >= start);
+    const mark = after[nth] ?? after[0] ?? all[0];
+    if (mark === undefined) return;
+    const { places, firstPaths } = across
+      ? await this.index.places(file, text)
+      : { places: new Map([[file.path, all]]), firstPaths: [file.path] };
+    const target = stepPlace(
+      orderedPlaces(places, key, firstPaths),
+      { path: file.path, from: mark.from },
+      step,
+    );
+    if (target === null) {
+      new Notice(
+        across
+          ? `🧵 ${mark.name}: this is the only place in this thread.`
+          : `🧵 ${mark.name}: the only place in this note. Alt+click to look in the project and linked notes.`,
+      );
+      return;
+    }
+    await this.goTo(target.path, target.to);
+  }
+
+  /**
    * Open `path` (in the note's open tab if it has one, else this tab or a
    * new one) with the cursor at `offset`, scrolled into view.
    */

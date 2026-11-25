@@ -39,6 +39,7 @@ import {
 } from "obsidian";
 import type { Command, TFile } from "obsidian";
 import { scriptByOutline, scriptForRelatedNote } from "./projects/relatedNotes";
+import { renderThreads } from "./threads/threadRender";
 import { openCharacterPicker } from "./commands/character";
 import { copyConfiguration } from "./commands/copyConfiguration";
 import { toggleDualDialogueInEditor } from "./commands/dualDialogue";
@@ -226,6 +227,25 @@ export default class ScribidianPlugin extends Plugin {
       }),
     ];
     this.registerOwnEditorExtensions(editorExtensions);
+    // Threads in rendered Markdown: callouts in Live Preview and the
+    // reading view (#323).
+    this.registerMarkdownPostProcessor((el, context) => {
+      if (!this.settings.threadsEnabled) return;
+      renderThreads(el, this.settings.threadDisplay, (mark, nth, event) => {
+        if (event.ctrlKey || event.metaKey) {
+          void this.openThreads(mark.key);
+          return;
+        }
+        void this.threads.openRendered(
+          context.sourcePath,
+          context.getSectionInfo(el)?.lineStart ?? 0,
+          mark.key,
+          nth,
+          event.shiftKey ? -1 : 1,
+          event.altKey,
+        );
+      });
+    });
     const threadSuggest = new ThreadSuggest(this.threads);
     this.registerEditorSuggest(threadSuggest);
     // First in line, so other plugins' popups don't close it (#283); again
@@ -1519,6 +1539,12 @@ export default class ScribidianPlugin extends Plugin {
    */
   applyThreadSettings(): void {
     this.app.workspace.updateOptions();
+    // Rendered Markdown draws threads once (#323): draw it again.
+    for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
+      if (leaf.view instanceof MarkdownView) {
+        leaf.view.previewMode.rerender(true);
+      }
+    }
     if (!this.settings.threadsEnabled) {
       for (const leaf of this.app.workspace.getLeavesOfType(
         THREADS_VIEW_TYPE,
