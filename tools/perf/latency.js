@@ -31,8 +31,7 @@
     );
   }
   if (cfg.mode === "off") {
-    if (app.plugins.plugins.brass)
-      await app.plugins.disablePlugin("brass");
+    if (app.plugins.plugins.brass) await app.plugins.disablePlugin("brass");
   } else if (!app.plugins.plugins.brass)
     await app.plugins.enablePlugin("brass");
   await wait(800);

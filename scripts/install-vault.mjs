@@ -124,11 +124,7 @@ if (resetSettings && process.platform === "win32") {
   await new Promise((resolve) => {
     execFile(
       "powershell.exe",
-      [
-        "-NoProfile",
-        "-Command",
-        "obsidian vault=Notes plugin:reload id=brass",
-      ],
+      ["-NoProfile", "-Command", "obsidian vault=Notes plugin:reload id=brass"],
       { timeout: 30000 },
       (error, stdout) => {
         console.log(

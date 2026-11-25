@@ -41,10 +41,7 @@ function unique(values: readonly string[]): string[] {
   });
 }
 
-export function openParenthetical(
-  plugin: BrassPlugin,
-  editor: Editor,
-): void {
+export function openParenthetical(plugin: BrassPlugin, editor: Editor): void {
   const index = buildScreenplayIndex(parseFountain(editor.getValue()));
   const recent = rankUsages(
     index.parentheticals,

@@ -214,9 +214,7 @@ export function joinsDifferentElements(
  * above instead, and Delete does nothing; Shift+Backspace joins them
  * anyway. Two action blocks join into one paragraph. Other edits and selections are left alone.
  */
-export function createBlankLineLockExtension(
-  plugin: BrassPlugin,
-): Extension {
+export function createBlankLineLockExtension(plugin: BrassPlugin): Extension {
   const shiftBackspace = Prec.high(
     keymap.of([
       {

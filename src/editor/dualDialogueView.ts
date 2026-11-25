@@ -140,9 +140,7 @@ function mapPairs(tr: Transaction, pairs: DualDialogue[]): DualDialogue[] {
  * Dual dialogue side by side in the screenplay layout. The pair shows as
  * written (with "^") while the cursor is inside it. Display only.
  */
-export function createDualDialogueExtension(
-  plugin: BrassPlugin,
-): Extension {
+export function createDualDialogueExtension(plugin: BrassPlugin): Extension {
   const isActive = (state: EditorState): boolean => {
     if (!plugin.isScriptMode()) return false;
     const file = state.field(editorInfoField, false)?.file ?? null;

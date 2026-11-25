@@ -32,9 +32,7 @@ const BLOCK_CLASS = "brass-fountain-codeblock";
  *
  * This applies to every note in the vault, not only to screenplay-mode notes.
  */
-export function registerFountainCodeBlockProcessor(
-  plugin: BrassPlugin,
-): void {
+export function registerFountainCodeBlockProcessor(plugin: BrassPlugin): void {
   // A processor an earlier load of Brass never removed (two reloads at
   // once): drop it, or registering again fails and stops the plugin
   // loading halfway. One from another plugin is left alone.

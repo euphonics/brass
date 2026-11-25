@@ -90,9 +90,7 @@
     const el = (ln.nodeType === 3 ? ln.parentElement : ln)?.closest?.(
       ".cm-line",
     );
-    return el
-      ? (el.className.match(/brass-sp-([a-z-]+)/) || [])[1] || ""
-      : "?";
+    return el ? (el.className.match(/brass-sp-([a-z-]+)/) || [])[1] || "" : "?";
   };
   const snap = (label) => out.push([label, show(), kind(), list()]);
   const out = [];

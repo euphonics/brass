@@ -44,9 +44,7 @@ const source = `INT. HALL - NIGHT
 Jen sees the clue.
 `;
 
-function pluginWith(
-  changes: Partial<typeof DEFAULT_SETTINGS>,
-): BrassPlugin {
+function pluginWith(changes: Partial<typeof DEFAULT_SETTINGS>): BrassPlugin {
   return {
     settings: { ...DEFAULT_SETTINGS, ...changes },
   } as unknown as BrassPlugin;

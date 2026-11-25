@@ -58,10 +58,7 @@ function fileFor(plugin: BrassPlugin, path: string): TFile {
     throw new Error(`The file is no longer available: ${path}`);
   return file;
 }
-async function sourceFor(
-  plugin: BrassPlugin,
-  path: string,
-): Promise<string> {
+async function sourceFor(plugin: BrassPlugin, path: string): Promise<string> {
   const open = editors(plugin, path);
   const values = open.map((view) => view.editor.getValue());
   if (values.some((value) => value !== values[0]))

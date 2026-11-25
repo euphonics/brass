@@ -135,9 +135,7 @@ export function buildConfigurationReport(plugin: BrassPlugin): string {
 }
 
 /** "Copy configuration to clipboard": paste it into a bug report. */
-export async function copyConfiguration(
-  plugin: BrassPlugin,
-): Promise<void> {
+export async function copyConfiguration(plugin: BrassPlugin): Promise<void> {
   try {
     await navigator.clipboard.writeText(buildConfigurationReport(plugin));
     new Notice("Brass: configuration copied to the clipboard");

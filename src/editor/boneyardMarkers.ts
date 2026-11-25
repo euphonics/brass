@@ -112,9 +112,7 @@ export function boneyardStars(text: string): number[] {
   return stars;
 }
 
-export function createBoneyardMarkerExtension(
-  plugin: BrassPlugin,
-): Extension {
+export function createBoneyardMarkerExtension(plugin: BrassPlugin): Extension {
   const build = (view: EditorView): DecorationSet => {
     const file = view.state.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return Decoration.none;
@@ -195,9 +193,7 @@ export function lineCommentRanges(
 }
 
 /** Line comments shown faded in screenplay notes. */
-export function createLineCommentExtension(
-  plugin: BrassPlugin,
-): Extension {
+export function createLineCommentExtension(plugin: BrassPlugin): Extension {
   const faded = Decoration.mark({ class: "brass-line-comment" });
   const build = (view: EditorView): DecorationSet => {
     const file = view.state.field(editorInfoField, false)?.file ?? null;

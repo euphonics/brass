@@ -29,9 +29,7 @@ const SCREENPLAY_EDITOR_CLASS = "brass-screenplay-editor";
  * pixels above the bottom of the pane, so a floating status bar (word count,
  * page estimate) never covers text. Display only: the note is not changed.
  */
-export function createBottomMarginExtension(
-  plugin: BrassPlugin,
-): Extension {
+export function createBottomMarginExtension(plugin: BrassPlugin): Extension {
   return ViewPlugin.fromClass(
     class {
       active = false;

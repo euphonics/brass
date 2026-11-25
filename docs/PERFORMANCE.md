@@ -25,19 +25,19 @@ lets background work start between bursts.
 With all of the writer's plugins on:
 
 | Script                 | Before | After round 1 | Brass off |
-| ---------------------- | ------ | ------------- | -------------- |
-| 120 pages, script mode | 38     | 22            | 18             |
-| 500 pages, script mode | 112    | 48            | 43             |
-| 500 pages, plain mode  | 67     | 48            | 43             |
+| ---------------------- | ------ | ------------- | --------- |
+| 120 pages, script mode | 38     | 22            | 18        |
+| 500 pages, script mode | 112    | 48            | 43        |
+| 500 pages, plain mode  | 67     | 48            | 43        |
 
 With every other plugin off (Brass alone), after round 2:
 
 | Script                              | Median    | 95th percentile | Brass off |
-| ----------------------------------- | --------- | --------------- | -------------- |
-| 500 pages, script mode              | 11.7–13.3 | 16              | 9.8–11.8       |
-| 500 pages, plain mode               | 10.2–12.4 | 16              | 9.8–11.8       |
-| 500 pages, script mode, with pauses | 13.4      | 19 (was 147)    | 11.8           |
-| 120 pages, script mode              | 11.5      | 15              | 10.2           |
+| ----------------------------------- | --------- | --------------- | --------- |
+| 500 pages, script mode              | 11.7–13.3 | 16              | 9.8–11.8  |
+| 500 pages, plain mode               | 10.2–12.4 | 16              | 9.8–11.8  |
+| 500 pages, script mode, with pauses | 13.4      | 19 (was 147)    | 11.8      |
+| 120 pages, script mode              | 11.5      | 15              | 10.2      |
 
 Before the fixes, script mode at 500 pages had a 70–220 ms long task on
 every keystroke. Now typing produces none, at either size.

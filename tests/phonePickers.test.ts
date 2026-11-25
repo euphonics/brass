@@ -99,7 +99,7 @@ const plugin = {
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 function choose(label: string) {
-  const options = opened[opened.length - 1]!;
+  const options = opened[opened.length - 1];
   const item = options.items.find((entry) => options.itemText(entry) === label);
   if (item === undefined) throw new Error(`no choice ${label}`);
   options.onChoose(item);
@@ -118,7 +118,7 @@ describe("mini slug", () => {
     const editor = fakeEditor(script);
     openNewScene(plugin as never, editor as never);
     await settle();
-    expect(opened[opened.length - 1]!.items.slice(-1)[0]).toBe(MINI_SLUG);
+    expect(opened[opened.length - 1].items.slice(-1)[0]).toBe(MINI_SLUG);
     choose(MINI_SLUG);
     choose("KITCHEN");
     expect(editor.getValue()).toBe(`${script}.KITCHEN\n\n`);
@@ -131,10 +131,10 @@ describe("character with an extension", () => {
     openCharacterPicker(plugin as never, editor as never);
     await settle();
     choose(WITH_EXTENSION);
-    expect(opened[opened.length - 1]!.items).toContain("(V.O.)");
-    expect(opened[opened.length - 1]!.items).not.toContain("(CONT'D)");
+    expect(opened[opened.length - 1].items).toContain("(V.O.)");
+    expect(opened[opened.length - 1].items).not.toContain("(CONT'D)");
     choose("(V.O.)");
-    expect(opened[opened.length - 1]!.title).toBe("Character (V.O.)");
+    expect(opened[opened.length - 1].title).toBe("Character (V.O.)");
     choose("JEN");
     expect(editor.getValue()).toBe(`${script}JEN (V.O.)\n`);
   });
@@ -146,7 +146,7 @@ describe("character with an extension", () => {
     choose(WITH_EXTENSION);
     choose("(O.S.)");
     choose("New character…");
-    typed[typed.length - 1]!("mo");
+    typed[typed.length - 1]("mo");
     expect(editor.getValue()).toBe(`${script}MO (O.S.)\n`);
   });
 
