@@ -56,6 +56,39 @@ export const EMPTY_SCENE_FILTERS: SceneFilters = {
   time: "",
 };
 
+/**
+ * Whether a boneyard (`/* … *\/`) or note (`[[ … ]]`) is still open after
+ * `line`, given whether one was open before it. Markers are read left to
+ * right; inside a boneyard only its end counts, and likewise for a note.
+ */
+export function scanMarkers(
+  line: string,
+  comment: boolean,
+  note: boolean,
+): { comment: boolean; note: boolean } {
+  let at = 0;
+  while (at < line.length) {
+    if (comment || note) {
+      const end = line.indexOf(comment ? "*/" : "]]", at);
+      if (end < 0) break;
+      comment = note = false;
+      at = end + 2;
+      continue;
+    }
+    const open = line.indexOf("/*", at);
+    const link = line.indexOf("[[", at);
+    if (open < 0 && link < 0) break;
+    if (link < 0 || (open >= 0 && open < link)) {
+      comment = true;
+      at = open + 2;
+    } else {
+      note = true;
+      at = link + 2;
+    }
+  }
+  return { comment, note };
+}
+
 export function sceneFile(
   path: string,
   source: string,
@@ -96,29 +129,23 @@ export function sceneFile(
   for (const [index, line] of raw.entries()) {
     const text = (body[index - bodyStart] ?? "").trim();
     if (index >= bodyStart) {
-      if (
-        text.includes("/*") ||
-        text.includes("*/") ||
-        (text.includes("[[") && !text.includes("]]")) ||
-        note
-      ) {
-        issue =
-          "Multiline notes or boneyards are present; scene changes are disabled to preserve their boundaries.";
-      }
-      if (text.includes("/*")) comment = true;
-      if (text.includes("[[") && !text.includes("]]")) note = true;
-      // Headings inside a fence are ignored, so a fence always sits inside
-      // one scene and moves with it.
-      if (/^(?:```|~~~)/u.test(text)) fence = !fence;
-      if (!comment && !note && !fence && isSceneHeading(text))
+      // A line is a heading or section only when it starts outside any
+      // boneyard, note or fence. Headings inside them are ignored, so a
+      // closed boneyard, note or fence always sits inside one scene and
+      // moves with it.
+      const outside = !comment && !note;
+      if (outside && /^(?:```|~~~)/u.test(text)) fence = !fence;
+      else if (outside && !fence && isSceneHeading(text))
         starts.push({ start: offset, line: index, heading: text });
-      else if (!comment && !note && !fence && /^#/u.test(text))
-        sections.push(offset);
-      if (text.includes("*/")) comment = false;
-      if (text.includes("]]")) note = false;
+      else if (outside && !fence && /^#/u.test(text)) sections.push(offset);
+      if (!fence) ({ comment, note } = scanMarkers(text, comment, note));
     }
     offset += line.length + (index < raw.length - 1 ? 1 : 0);
   }
+  // Only a boneyard or note that never closes hides where scenes end.
+  if (comment || note)
+    issue =
+      "A boneyard (/*) or note ([[) is never closed; scene changes are disabled until it is.";
   let page = pageOffset + 1;
   const scenes = starts.map((item, index): Scene => {
     const next = starts[index + 1]?.start ?? source.length;

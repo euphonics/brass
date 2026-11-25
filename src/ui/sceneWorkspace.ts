@@ -57,8 +57,9 @@ async function report(
   }
 }
 /**
- * A button. `disabled` is false, or why the button is off: true, or a reason
- * shown on hover (a native tooltip, which still shows on a disabled button).
+ * A button. `disabled` is false, or why the button is off: true, or a reason.
+ * A button with a reason stays tappable and shows the reason in a notice
+ * (hover tooltips never show on a phone), and also as a tooltip on hover.
  */
 function action(
   container: HTMLElement,
@@ -67,8 +68,14 @@ function action(
   disabled: boolean | string = false,
 ): HTMLButtonElement {
   const button = container.createEl("button", { text: label });
-  button.disabled = disabled !== false;
-  if (typeof disabled === "string") button.title = disabled;
+  if (typeof disabled === "string") {
+    button.title = disabled;
+    button.setAttribute("aria-disabled", "true");
+    button.addClass("brass-button-off");
+    button.addEventListener("click", () => new Notice(disabled));
+    return button;
+  }
+  button.disabled = disabled;
   button.addEventListener("click", run);
   return button;
 }

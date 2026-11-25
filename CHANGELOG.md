@@ -1,11 +1,15 @@
 # Changelog
 
-All notable changes to Scribidian are documented here. Entries from 0.13.1
-and earlier are from First Draft, the plugin Scribidian is forked from. This
+All notable changes to Brass (formerly Scribidian) are documented here. Entries
+from 0.13.1 and earlier are from First Draft, the plugin Brass is forked from. This
 project follows
 [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+### Fixed
+
+- **Scene buttons work in scripts with a boneyard.** A boneyard (`/* */`) or multi-line note used to turn off Synopsis, Up, Down and Move for the whole script; now only one that never closes does, and a boneyard moves with its scene. A grayed-out scene button now says why when tapped, so the reason shows on a phone too.
 
 ### Changed
 

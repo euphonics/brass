@@ -184,6 +184,11 @@
   min-height: 28px;
   white-space: normal;
 }
+/* Off, but still tappable so it can say why (see action() in sceneWorkspace). */
+.brass-scene-actions button.brass-button-off {
+  opacity: 0.5;
+  cursor: help;
+}
 .brass-scene-filters {
   display: grid;
   gap: 8px;
@@ -430,15 +435,11 @@ body {
   );
 }
 
-.markdown-source-view.mod-cm6
-  .cm-editor.brass-screenplay-layout
-  .cm-scroller {
+.markdown-source-view.mod-cm6 .cm-editor.brass-screenplay-layout .cm-scroller {
   font-family: var(--brass-layout-font) !important;
 }
 
-.markdown-source-view.mod-cm6
-  .cm-editor.brass-screenplay-layout
-  .cm-sizer {
+.markdown-source-view.mod-cm6 .cm-editor.brass-screenplay-layout .cm-sizer {
   /* 60 characters, plus a little room so a full line is not wrapped early.
      On a narrow screen, keep the theme's side margins (Minimal makes them
      with --max-width: 88% on each line, which the rule below undoes). */
@@ -690,10 +691,7 @@ body {
 /* "> THE END <" and "> CUT TO:" are Fountain, not quotes: no quote bar. */
 .markdown-source-view.mod-cm6
   .cm-editor.brass-screenplay-layout
-  .cm-line.HyperMD-quote:is(
-    .brass-sp-centered,
-    .brass-sp-transition
-  )::before {
+  .cm-line.HyperMD-quote:is(.brass-sp-centered, .brass-sp-transition)::before {
   display: none;
 }
 
@@ -735,16 +733,13 @@ body {
   height: var(--icon-s);
 }
 
-.brass-section:not(.brass-collapsed)
-  > .brass-foldable
-  .brass-fold-chevron,
+.brass-section:not(.brass-collapsed) > .brass-foldable .brass-fold-chevron,
 .brass-sub-open .brass-fold-chevron,
 .brass-searching .brass-fold-chevron {
   transform: rotate(90deg);
 }
 
-.brass-section.brass-collapsed:not(.brass-searching)
-  > .setting-items {
+.brass-section.brass-collapsed:not(.brass-searching) > .setting-items {
   display: none;
 }
 

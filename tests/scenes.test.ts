@@ -23,6 +23,7 @@ import {
   createScene,
   moveScene,
   editSynopsis,
+  scanMarkers,
 } from "../src/scenes/model";
 import { parseFountain } from "../src/screenplay/parser";
 import { calculateStatistics } from "../src/screenplay/statistics";
@@ -259,15 +260,52 @@ describe("source scene workspace", () => {
   it.each([
     "/*\nINT. FAKE - DAY\n*/\nINT. REAL - DAY",
     "[[\nINT. FAKE - DAY\n]]\nINT. REAL - DAY",
-  ])("disables writes for unsupported boundaries: %s", (text) => {
+  ])("ignores headings inside a closed boneyard or note: %s", (text) => {
     const file = sceneFile("Film.md", text);
-    expect(file.issue).toBeTruthy();
-    expect(file.scenes.some((scene) => scene.heading.includes("FAKE"))).toBe(
-      false,
-    );
+    expect(file.issue).toBeNull();
+    expect(file.scenes.map((scene) => scene.heading)).toEqual([
+      "INT. REAL - DAY",
+    ]);
+  });
+  it.each([
+    "INT. ROOM - DAY\n\n/*\nINT. FAKE - DAY\n",
+    "INT. ROOM - DAY\n\n[[ a note\nthat never ends\n",
+  ])("disables writes when a boneyard or note never closes: %s", (text) => {
+    const file = sceneFile("Film.md", text);
+    expect(file.issue).toContain("never closed");
     expect(() =>
-      createScene(file, "INT. ROOM - NIGHT", "", null, "after"),
+      createScene(file, "INT. HALL - NIGHT", "", null, "after"),
     ).toThrow();
+  });
+  it("moves a boneyard with its scene and edits synopses beside one", () => {
+    const text =
+      "INT. ROOM - DAY\n\nShe waits.\n\n/*\nINT. CUT - DAY\n\nOld version.\n*/\n\nEXT. STREET - NIGHT\n\n(glance /* history */)\nRain.\n";
+    const file = sceneFile("Film.md", text);
+    expect(file.issue).toBeNull();
+    const [room, street] = file.scenes;
+    if (!room || !street) throw new Error("missing scenes");
+    expect(room.text).toContain("/*\nINT. CUT - DAY\n\nOld version.\n*/");
+    const [moved] = moveScene(file, street, file, room, "before");
+    expect(moved?.after).toContain("(glance /* history */)\nRain.\n");
+    expect(moved?.after.indexOf("EXT. STREET")).toBe(0);
+    expect(moved?.after).toContain(
+      "INT. ROOM - DAY\n\nShe waits.\n\n/*\nINT. CUT - DAY\n\nOld version.\n*/",
+    );
+    expect(editSynopsis(file, street, "Leaving.").after).toContain(
+      "EXT. STREET - NIGHT\n= Leaving.\n",
+    );
+  });
+  it("still finds a heading with a boneyard or note on its line", () => {
+    const file = sceneFile(
+      "Film.md",
+      "INT. ROOM - DAY /* cut?\nmaybe */\n\nEXT. ROAD - DAY\n= [[Outline#Road]]\n\nINT. CAR - NIGHT\n",
+    );
+    expect(file.issue).toBeNull();
+    expect(file.scenes.map((scene) => scene.heading)).toEqual([
+      "INT. ROOM - DAY /* cut?",
+      "EXT. ROAD - DAY",
+      "INT. CAR - NIGHT",
+    ]);
   });
   it("keeps a fenced block inside its scene", () => {
     const text =
@@ -305,6 +343,25 @@ describe("source scene workspace", () => {
     expect(
       sceneFile("Film.md", "---\ntitle: Night\nINT. ROOM - DAY").issue,
     ).toBeTruthy());
+});
+
+describe("scanMarkers", () => {
+  it.each([
+    ["plain text", false, false, false, false],
+    ["a /* b", false, false, true, false],
+    ["a /* b */ c", false, false, false, false],
+    ["end */ then [[ open", true, false, false, true],
+    ["= [[Outline#Scene]]", false, false, false, false],
+    ["[[ note with /* inside", false, false, false, true],
+    ["/* boneyard with [[ inside", false, false, true, false],
+    ["still inside", true, false, true, false],
+    ["]] closed", false, true, false, false],
+  ])("%s", (line, comment, note, afterComment, afterNote) => {
+    expect(scanMarkers(line, comment, note)).toEqual({
+      comment: afterComment,
+      note: afterNote,
+    });
+  });
 });
 
 describe("cachedSceneFile", () => {

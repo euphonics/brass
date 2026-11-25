@@ -144,7 +144,7 @@ describe("read-only continuity inspector", () => {
     const files = [
       sceneFile(
         "One.md",
-        "/*\nINT. FAKE - DAY\n*/\nINT. ROOM - DAY\n\n!Action.",
+        "INT. ROOM - DAY\n\n!Action.\n\n/*\nINT. FAKE - DAY\n",
       ),
     ];
     const result = inspectContinuity(
