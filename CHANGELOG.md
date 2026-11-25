@@ -9,6 +9,7 @@ project follows
 
 ### Fixed
 
+- **Link scene headings asks nothing per scene.** It links every scene that has an outline heading of the same name, both ways, and names the scenes it couldn't match in a notice. With no outline set yet, it uses "<script> Outline" from the script's folder and asks only when there is none.
 - **Emphasis in thread text.** `[&poison|*Savvy viewers suspect her.*]` shows its text in italics with the stars hidden; `**bold**` and `_underline_` work too.
 
 ## [0.2.0] - 2026-11-25
