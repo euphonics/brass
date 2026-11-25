@@ -7,6 +7,8 @@ project follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-25
+
 ### Fixed
 
 - **Time and modifier suggestions in their usual order.** The built-in times came out backwards (MOMENTS LATER above DAY) in a script that uses few of them; DAY, NIGHT, MORNING… now come first, unless the script uses another time more.
