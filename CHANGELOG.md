@@ -21,6 +21,8 @@ project follows
   when that feature is off, and a button to reset just that section.
   Big tables and lists sit in their own folding sub-sections. Search
   opens whatever matches; Expand all and Collapse all are next to it.
+  The command palette list is its own section at the bottom, in
+  alphabetical order, under its buttons.
 - **Fuzzy group matching** (Settings → Character names in action, on by
   default): turn it off so `+` groups are offered only when they start
   with exactly what you typed. The `+` and "Suggest character names in

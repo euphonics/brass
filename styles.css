@@ -977,6 +977,12 @@ body {
 }
 
 /* Settings: Commands in the command palette (#296). */
+.scribidian-command-setting {
+  flex-wrap: wrap;
+}
+.scribidian-command-setting .scribidian-command-list {
+  flex-basis: 100%;
+}
 .scribidian-command-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(18em, 1fr));

@@ -764,13 +764,7 @@ export const SETTING_SECTIONS: {
   {
     heading: "Getting started",
     open: true,
-    keys: [
-      "activateFountainFiles",
-      "activateFrontmatter",
-      HOTKEYS_KEY,
-      { subsection: "Command palette" },
-      COMMANDS_KEY,
-    ],
+    keys: ["activateFountainFiles", "activateFrontmatter", HOTKEYS_KEY],
   },
   {
     heading: "Look of the page",
@@ -877,6 +871,10 @@ export const SETTING_SECTIONS: {
   {
     heading: "Advanced",
     keys: ["renderFountainCodeBlocks"],
+  },
+  {
+    heading: "Command palette",
+    keys: [COMMANDS_KEY],
   },
 ];
 
@@ -1520,6 +1518,8 @@ export class ScribidianSettingTab extends PluginSettingTab {
    */
   private renderCommandList(setting: Setting): void {
     setting.setName(COMMANDS_NAME);
+    // The list goes on its own row under the name and buttons.
+    setting.settingEl.addClass("scribidian-command-setting");
     setting.setDesc(
       "Uncheck a command to hide it from the command palette and make the list shorter. A hidden command can't be run with a hotkey either: keep it checked to give it one, or to put Smart Tab on the phone toolbar.",
     );
@@ -1530,7 +1530,10 @@ export class ScribidianSettingTab extends PluginSettingTab {
     });
     const draw = (): void => {
       list.empty();
-      for (const command of this.plugin.listCommands()) {
+      const commands = [...this.plugin.listCommands()].sort((a, b) =>
+        a.name.localeCompare(b.name),
+      );
+      for (const command of commands) {
         const row = list.createEl("label", { cls: "scribidian-command-row" });
         const box = row.createEl("input", { type: "checkbox" });
         box.checked = command.shown;
