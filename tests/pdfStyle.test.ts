@@ -24,6 +24,8 @@ vi.mock("obsidian", () => ({
   PluginSettingTab: class {},
   Setting: class {},
   SettingGroup: class {},
+  Modal: class {},
+  setIcon: () => undefined,
   normalizePath: (path: string) => path,
   TFile: class {},
   TFolder: class {},

@@ -709,20 +709,77 @@ body {
   width: 100%;
 }
 
-/* Settings: rows after a "show more" row stay hidden until it is opened (or a search). */
-.setting-group:not(.scribidian-more-open):not(.scribidian-searching)
-  .scribidian-more-toggle
-  ~ .setting-item {
+/* Settings sections that fold (#306); a search shows everything open. */
+.scribidian-foldable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.scribidian-foldable:focus-visible {
+  box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
+  border-radius: var(--radius-s);
+}
+
+.scribidian-fold-chevron {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-inline-end: var(--size-4-1);
+  color: var(--text-muted);
+  transition: transform 120ms ease;
+}
+
+.scribidian-fold-chevron svg {
+  width: var(--icon-s);
+  height: var(--icon-s);
+}
+
+.scribidian-section:not(.scribidian-collapsed)
+  > .scribidian-foldable
+  .scribidian-fold-chevron,
+.scribidian-sub-open .scribidian-fold-chevron,
+.scribidian-searching .scribidian-fold-chevron {
+  transform: rotate(90deg);
+}
+
+.scribidian-section.scribidian-collapsed:not(.scribidian-searching)
+  > .setting-items {
   display: none;
 }
 
-.scribidian-searching .scribidian-more-toggle {
+.scribidian-section:not(.scribidian-searching) .scribidian-sub-hidden {
   display: none;
 }
 
-.scribidian-more-toggle-plain .setting-item-control,
-.scribidian-more-toggle-plain .setting-item-name {
+.scribidian-sub-toggle .setting-item-name {
+  font-weight: var(--font-semibold);
+}
+
+.scribidian-section-reset {
+  margin-block: calc(-1 * var(--size-4-2));
+}
+
+.scribidian-badge:empty {
   display: none;
+}
+
+.scribidian-badge {
+  margin-inline-start: var(--size-4-2);
+  font-size: var(--font-ui-smaller);
+  font-weight: var(--font-normal);
+  color: var(--text-accent);
+}
+
+.scribidian-badge-off {
+  padding: 0 var(--size-4-1);
+  border-radius: var(--radius-s);
+  background-color: var(--background-modifier-hover);
+  color: var(--text-muted);
+}
+
+/* A section's on/off setting is off: the rest of it is dimmed. */
+.scribidian-master-off > .setting-items > .setting-item:not(:first-child) {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 /* Settings tables: "Typing in each mode" and "Tab and Enter keys". */

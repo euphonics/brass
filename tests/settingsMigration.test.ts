@@ -23,6 +23,8 @@ vi.mock("obsidian", () => ({
   PluginSettingTab: class {},
   Setting: class {},
   SettingGroup: class {},
+  Modal: class {},
+  setIcon: () => undefined,
   normalizePath: (path: string) => path,
   TFile: class {},
   TFolder: class {},
@@ -98,5 +100,40 @@ describe("settings migration", () => {
     expect(settings.enterTargets.action).toBe("character");
     expect(settings.enterTargets.dialogue).toBe("character");
     expect(settings.enterTargets.transition).toBe("scene-heading");
+  });
+});
+
+const { SETTING_SECTIONS, storedKeys, isChanged } =
+  await import("../src/settings/settings");
+
+describe("settings sections (#306)", () => {
+  it("starts with no setting counted as changed", () => {
+    const settings = migrateSettings(null);
+    const keys = SETTING_SECTIONS.flatMap(({ keys }) =>
+      keys.flatMap((key) => (typeof key === "string" ? storedKeys(key) : [])),
+    );
+    expect(keys.length).toBeGreaterThan(40);
+    expect(keys.filter((key) => isChanged(settings, key))).toEqual([]);
+  });
+
+  it("lists each control in one section only", () => {
+    const keys = SETTING_SECTIONS.flatMap(({ keys }) =>
+      keys.filter((key): key is string => typeof key === "string"),
+    );
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it("counts a table's settings as changed", () => {
+    const settings = migrateSettings(null);
+    settings.capitalizeSentencesPlain = !settings.capitalizeSentencesPlain;
+    const typing = SETTING_SECTIONS.find(
+      (section) => section.heading === "Typing helpers",
+    );
+    const keys = (typing?.keys ?? []).flatMap((key) =>
+      typeof key === "string" ? storedKeys(key) : [],
+    );
+    expect(keys.filter((key) => isChanged(settings, key))).toEqual([
+      "capitalizeSentencesPlain",
+    ]);
   });
 });

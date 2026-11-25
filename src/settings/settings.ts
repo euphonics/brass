@@ -21,19 +21,14 @@ import {
   installedFonts,
   screenplayFontOptions,
 } from "../editor/screenplayFont";
-import { Notice, PluginSettingTab } from "obsidian";
+import { Modal, Notice, PluginSettingTab, Setting, setIcon } from "obsidian";
 import { triggerProblem } from "../editor/triggers";
 import {
   DEFAULT_SLUG_SUGGESTION_ORDER,
   slugOrder,
   type SlugSuggestionKind,
 } from "../editor/completionEngine";
-import type {
-  App,
-  Setting,
-  SettingDefinitionItem,
-  SettingGroupItem,
-} from "obsidian";
+import type { App, SettingDefinitionItem, SettingGroupItem } from "obsidian";
 import type ScribidianPlugin from "../main";
 import {
   DEFAULT_ENTER_TARGETS,
@@ -90,6 +85,11 @@ export interface ScribidianSettings {
   showAllCommands: boolean;
   /** Commands the writer showed or hid in the palette, by id (#296). */
   commandVisibility: Record<string, boolean>;
+  /**
+   * Settings sections and sub-sections left open ("Section" or
+   * "Section/Sub"), or null before the writer opens or closes any (#306).
+   */
+  openSettingSections: string[] | null;
   indentActionWithSpaces: boolean;
   /** Typing settings, set separately for script and plain mode. */
   capitalizeLineStartsScript: boolean;
@@ -401,6 +401,7 @@ export const DEFAULT_SETTINGS: ScribidianSettings = {
   smartEnterEnabled: true,
   showAllCommands: false,
   commandVisibility: {},
+  openSettingSections: null,
   tabWithListScript: "pick",
   backspaceEmptyCueToAction: true,
   enterAfterCueMovesDown: true,
@@ -597,6 +598,12 @@ export function migrateSettings(
   ) {
     settings.commandVisibility = {};
   }
+  if (
+    !Array.isArray(rest.openSettingSections) ||
+    !rest.openSettingSections.every((item) => typeof item === "string")
+  ) {
+    settings.openSettingSections = null;
+  }
   if (!isTabWithList(rest.tabWithListScript)) {
     settings.tabWithListScript = "pick";
   }
@@ -719,10 +726,6 @@ const TYPING_CHANGES_KEY = "typingChangesTable";
 const ENTER_TARGETS_KEY = "enterTargetsTable";
 const HOTKEYS_NAME = "Keyboard shortcuts";
 const HOTKEYS_KEY = "hotkeysAction";
-const ADVANCED_NAME = "Advanced settings";
-const ADVANCED_KEY = "advancedToggle";
-const MORE_SUGGESTIONS_NAME = "More suggestion settings";
-const MORE_SUGGESTIONS_KEY = "moreSuggestionsToggle";
 const SLUG_ORDER_NAME = "Order of slug suggestions";
 const SLUG_ORDER_KEY = "slugOrderList";
 const COMMANDS_NAME = "Commands in the command palette";
@@ -734,81 +737,89 @@ const NAMED_ITEM_KEYS: Record<string, string> = {
   [TYPING_CHANGES_NAME]: TYPING_CHANGES_KEY,
   [ENTER_TARGETS_NAME]: ENTER_TARGETS_KEY,
   [HOTKEYS_NAME]: HOTKEYS_KEY,
-  [ADVANCED_NAME]: ADVANCED_KEY,
-  [MORE_SUGGESTIONS_NAME]: MORE_SUGGESTIONS_KEY,
   [SLUG_ORDER_NAME]: SLUG_ORDER_KEY,
   [SLUG_FILL_NAME]: SLUG_FILL_KEY,
   [COMMANDS_NAME]: COMMANDS_KEY,
   [CLEAN_EXPORT_NAME]: CLEAN_EXPORT_KEY,
 };
 
+/** A sub-section heading inside a settings section (collapsible). */
+interface SubSection {
+  subsection: string;
+}
+
 /**
- * Settings sections, in order, by control key. Sections marked `last` go
- * after built-in groups such as Clean export.
+ * Settings sections, top to bottom from what every writer needs to the
+ * niche (#306). Each section folds; `{ subsection }` starts a folding sub-section
+ * that runs to the next one or the end. `master`: the section's on/off
+ * setting; off dims the rest and puts "Off" on the header.
  */
-const SETTING_GROUPS: {
+export const SETTING_SECTIONS: {
   heading: string;
-  keys: string[];
-  cls?: string;
-  last?: boolean;
+  keys: (string | SubSection)[];
+  master?: keyof ScribidianSettings;
+  /** Open the first time the tab is shown. */
+  open?: boolean;
 }[] = [
   {
     heading: "Getting started",
+    open: true,
     keys: [
       "activateFountainFiles",
       "activateFrontmatter",
       HOTKEYS_KEY,
+      { subsection: "Command palette" },
       COMMANDS_KEY,
     ],
   },
   {
-    heading: "Writing",
+    heading: "Look of the page",
+    open: true,
     keys: [
       "editorLayout",
       "screenplayFont",
       "screenplayFontCustom",
-      "lineCommentColor",
-      "smartTabEnabled",
-      "smartEnterEnabled",
-      "indentActionWithSpaces",
       "bottomTypingMargin",
+      "lineCommentColor",
+      "threadColor",
     ],
   },
   {
-    heading: "Typing in each mode",
-    keys: [TYPING_CHANGES_KEY],
-  },
-  {
-    heading: "Tab and Enter keys",
+    heading: "Typing helpers",
     keys: [
-      ENTER_TARGETS_KEY,
+      "smartTabEnabled",
+      "smartEnterEnabled",
       "tabAtDialogueStartAddsWryly",
       "backspaceEmptyCueToAction",
       "enterAfterCueMovesDown",
       "shiftTabInsideScript",
       "shiftTabInsidePlain",
+      "indentActionWithSpaces",
+      { subsection: "Tab and Enter, element by element" },
+      ENTER_TARGETS_KEY,
+      { subsection: "Automatic capitals and highlighting, per mode" },
+      TYPING_CHANGES_KEY,
     ],
   },
   {
     heading: "Suggestions",
+    master: "autocompleteEnabled",
     keys: [
       "autocompleteEnabled",
       "maximumSuggestions",
+      "recentItemsWeighting",
+      { subsection: "Sluglines" },
       "preferredSceneTypes",
       "preferredTimesOfDay",
       "preferredSlugModifiers",
-      SLUG_FILL_KEY,
-      "offerFullSlugs",
-      SLUG_ORDER_KEY,
-      MORE_SUGGESTIONS_KEY,
-      "recentItemsWeighting",
       "sceneTypeMinimumLetters",
       "sceneTypeMatchCase",
+      "offerFullSlugs",
+      SLUG_ORDER_KEY,
+      SLUG_FILL_KEY,
+      { subsection: "Characters" },
       "characterMatchCase",
-      "quietCompletrInScripts",
-      "outlineLinkPlacement",
       "customExtensionsFirst",
-      "variablePrefix",
     ],
   },
   {
@@ -816,16 +827,8 @@ const SETTING_GROUPS: {
     keys: ["namesInAction", "characterMentionPrefix", "fuzzyCharacterGroups"],
   },
   {
-    heading: "Threads",
-    keys: [
-      "threadsEnabled",
-      "threadDisplay",
-      "threadColor",
-      "threadAmpersands",
-    ],
-  },
-  {
-    heading: "Page count and status bar",
+    heading: "Status bar",
+    master: "statusBarEnabled",
     keys: [
       "statusBarEnabled",
       "showEstimatedPages",
@@ -839,15 +842,92 @@ const SETTING_GROUPS: {
     ],
   },
   {
+    heading: "Export",
+    keys: [
+      { subsection: "PDF" },
+      "pdfContinued",
+      ...PDF_BOLD_SETTINGS.map(({ part }) => `${PDF_BOLD_PREFIX}${part}`),
+      { subsection: "Fountain" },
+      "markCapitalsAsAction",
+      { subsection: "Clean export" },
+      CLEAN_EXPORT_KEY,
+    ],
+  },
+  {
+    heading: "Outline",
+    keys: ["outlineLinkPlacement"],
+  },
+  {
+    heading: "Threads",
+    master: "threadsEnabled",
+    keys: ["threadsEnabled", "threadDisplay", "threadAmpersands"],
+  },
+  {
+    heading: "Variables",
+    keys: ["variablePrefix"],
+  },
+  {
     heading: "Character pages",
     keys: ["characterFolder", "characterTemplate"],
   },
   {
+    heading: "Other plugins",
+    keys: ["quietCompletrInScripts"],
+  },
+  {
     heading: "Advanced",
-    last: true,
-    keys: [ADVANCED_KEY, "renderFountainCodeBlocks"],
+    keys: ["renderFountainCodeBlocks"],
   },
 ];
+
+/**
+ * The stored settings behind one control key: a table or list control
+ * covers several, a PDF bold toggle is part of `pdfBold`. Used to count
+ * and reset a section's changes.
+ */
+export function storedKeys(key: string): (keyof ScribidianSettings)[] {
+  if (key === TYPING_CHANGES_KEY) {
+    return TYPING_CHANGE_ROWS.flatMap((row) => [row.script, row.plain]);
+  }
+  if (key === ENTER_TARGETS_KEY) {
+    return [
+      "tabTargets",
+      "enterTargets",
+      "tabWithListScript",
+      "tabInsideScript",
+      "tabInsidePlain",
+      "enterInsideScript",
+      "enterInsidePlain",
+    ];
+  }
+  if (key === SLUG_FILL_KEY) return ["slugFillTime", "slugFillModifier"];
+  if (key === SLUG_ORDER_KEY) return ["slugSuggestionOrder"];
+  if (key === CLEAN_EXPORT_KEY) return Object.values(CLEAN_EXPORT_KEYS);
+  if (key === COMMANDS_KEY) return ["commandVisibility", "showAllCommands"];
+  if (key.startsWith(PDF_BOLD_PREFIX)) return ["pdfBold"];
+  return isSettingKey(key) ? [key] : [];
+}
+
+/** Stored settings of a section (or one sub-section), without repeats. */
+function sectionStoredKeys(
+  keys: readonly (string | SubSection)[],
+): (keyof ScribidianSettings)[] {
+  return [
+    ...new Set(
+      keys.flatMap((key) => (typeof key === "string" ? storedKeys(key) : [])),
+    ),
+  ];
+}
+
+/** True when a stored setting differs from its default. */
+export function isChanged(
+  settings: ScribidianSettings,
+  key: keyof ScribidianSettings,
+): boolean {
+  return (
+    JSON.stringify(settings[key]) !== JSON.stringify(DEFAULT_SETTINGS[key])
+  );
+}
 
 function definitionKey(item: SettingDefinitionItem): string | undefined {
   const control = (item as { control?: { key?: string } }).control;
@@ -857,9 +937,10 @@ function definitionKey(item: SettingDefinitionItem): string | undefined {
 }
 
 /**
- * Sort flat setting definitions into headed groups. Existing groups (such
- * as Clean export) are kept as they are, and anything not listed in
- * SETTING_GROUPS lands in an "Other" group so no setting is lost.
+ * Sort flat setting definitions into the sections of SETTING_SECTIONS.
+ * Existing groups are kept after them, and anything not listed lands in an
+ * "Other" section so no setting is lost. A sub-section heading becomes a
+ * row of its own, marked for the tab to fold.
  */
 export function groupSettings(
   items: SettingDefinitionItem[],
@@ -877,28 +958,95 @@ export function groupSettings(
       other.push(item);
     }
   }
-  const grouped = SETTING_GROUPS.map(({ heading, keys, cls, last }) => ({
-    group: {
-      type: "group" as const,
-      heading,
-      ...(cls ? { cls } : {}),
-      items: keys.flatMap((key) => {
-        const item = byKey.get(key);
-        byKey.delete(key);
-        return item ? [item as SettingGroupItem] : [];
-      }),
-    },
-    last: last === true,
-  })).filter(({ group }) => group.items.length > 0);
+  const subRows = new WeakSet<SettingGroupItem>();
+  const grouped = SETTING_SECTIONS.map(({ heading, keys }) => ({
+    type: "group" as const,
+    heading,
+    cls: "scribidian-section",
+    items: keys.flatMap((key): SettingGroupItem[] => {
+      if (typeof key !== "string") {
+        const row: SettingGroupItem = {
+          name: key.subsection,
+          searchable: false,
+          render: (setting: Setting) => {
+            setting.settingEl.addClass("scribidian-sub-toggle");
+            setting.settingEl.dataset.sub = key.subsection;
+            setting.setName(key.subsection);
+          },
+        };
+        subRows.add(row);
+        return [row];
+      }
+      const item = byKey.get(key);
+      byKey.delete(key);
+      return item ? [item as SettingGroupItem] : [];
+    }),
+  })).filter((group) => group.items.some((item) => !subRows.has(item)));
   const rest = [...byKey.values(), ...other] as SettingGroupItem[];
   return [
-    ...grouped.filter(({ last }) => !last).map(({ group }) => group),
+    ...grouped,
     ...groups,
-    ...grouped.filter(({ last }) => last).map(({ group }) => group),
     ...(rest.length > 0
-      ? [{ type: "group" as const, heading: "Other", items: rest }]
+      ? [
+          {
+            type: "group" as const,
+            heading: "Other",
+            cls: "scribidian-section",
+            items: rest,
+          },
+        ]
       : []),
   ];
+}
+
+/** The control keys of one sub-section of a section (#306). */
+function subSectionKeys(
+  keys: readonly (string | SubSection)[],
+  sub: string,
+): string[] {
+  const start = keys.findIndex(
+    (key) => typeof key !== "string" && key.subsection === sub,
+  );
+  if (start === -1) return [];
+  const out: string[] = [];
+  for (const key of keys.slice(start + 1)) {
+    if (typeof key !== "string") break;
+    out.push(key);
+  }
+  return out;
+}
+
+/** Asks before a section's settings go back to their defaults. */
+class ConfirmResetModal extends Modal {
+  constructor(
+    app: App,
+    private readonly message: string,
+    private readonly onConfirm: () => void,
+  ) {
+    super(app);
+  }
+
+  onOpen(): void {
+    this.setTitle("Reset settings");
+    this.contentEl.createEl("p", { text: this.message });
+    new Setting(this.contentEl)
+      .addButton((button) =>
+        button.setButtonText("Cancel").onClick(() => this.close()),
+      )
+      .addButton((button) =>
+        button
+          .setButtonText("Reset")
+          .setDestructive()
+          .onClick(() => {
+            this.close();
+            this.onConfirm();
+          }),
+      );
+  }
+
+  onClose(): void {
+    this.contentEl.empty();
+  }
 }
 
 export class ScribidianSettingTab extends PluginSettingTab {
@@ -907,6 +1055,254 @@ export class ScribidianSettingTab extends PluginSettingTab {
     private readonly plugin: ScribidianPlugin,
   ) {
     super(app, plugin);
+    // Keep the "changed" counts current after any control changes.
+    const refresh = (): void => {
+      window.setTimeout(() => this.refreshBadges(), 50);
+    };
+    this.containerEl.addEventListener("change", refresh);
+    this.containerEl.addEventListener("click", refresh);
+  }
+
+  /** Sections and sub-sections open now ("Section", "Section/Sub"). */
+  private openSections(): Set<string> {
+    return new Set(
+      this.plugin.settings.openSettingSections ??
+        SETTING_SECTIONS.filter((section) => section.open).map(
+          (section) => section.heading,
+        ),
+    );
+  }
+
+  private saveOpenSections(open: Set<string>): void {
+    this.plugin.settings.openSettingSections = [...open];
+    void this.plugin.saveSettings();
+  }
+
+  /** Every section and sub-section, for Expand all. */
+  private allSectionKeys(): string[] {
+    return SETTING_SECTIONS.flatMap(({ heading, keys }) => [
+      heading,
+      ...keys.flatMap((key) =>
+        typeof key === "string" ? [] : [`${heading}/${key.subsection}`],
+      ),
+    ]);
+  }
+
+  private sectionGroups(): HTMLElement[] {
+    return Array.from(
+      this.containerEl.querySelectorAll<HTMLElement>(
+        ".setting-group.scribidian-section",
+      ),
+    );
+  }
+
+  /**
+   * Make each section's heading and each sub-section row fold (#306):
+   * a chevron, a click or Enter/Space to open or close, and badges.
+   * Runs after every render; the open ones are remembered in settings.
+   */
+  private decorateSections(): void {
+    for (const group of this.sectionGroups()) {
+      const heading = group.querySelector<HTMLElement>(
+        ":scope > .setting-item-heading",
+      );
+      if (heading === null) continue;
+      const nameEl = heading.querySelector<HTMLElement>(".setting-item-name");
+      // The heading's own text, without the chevron and badges added here.
+      const title = Array.from(nameEl?.childNodes ?? [])
+        .filter((node) => node.nodeType === Node.TEXT_NODE)
+        .map((node) => node.textContent ?? "")
+        .join("")
+        .trim();
+      group.dataset.section = title;
+      heading.addClass("scribidian-section-heading");
+      this.makeFoldable(heading, nameEl, title);
+      if (heading.querySelector(".scribidian-section-badges") === null) {
+        const badges = (nameEl ?? heading).createSpan({
+          cls: "scribidian-section-badges",
+        });
+        badges.createSpan({ cls: "scribidian-badge scribidian-badge-off" });
+        badges.createSpan({
+          cls: "scribidian-badge scribidian-badge-changed",
+        });
+      }
+      const spec = SETTING_SECTIONS.find(
+        (section) => section.heading === title,
+      );
+      if (
+        spec !== undefined &&
+        heading.querySelector(".scribidian-section-reset") === null
+      ) {
+        const control =
+          heading.querySelector<HTMLElement>(".setting-item-control") ??
+          heading.createDiv({ cls: "setting-item-control" });
+        const reset = control.createEl("button", {
+          cls: "clickable-icon scribidian-section-reset",
+          attr: { "aria-label": `Reset ${title} settings to their defaults` },
+        });
+        setIcon(reset, "rotate-ccw");
+        reset.addEventListener("click", (event) => {
+          event.stopPropagation();
+          this.confirmReset(title, sectionStoredKeys(spec.keys));
+        });
+      }
+      for (const row of Array.from(
+        group.querySelectorAll<HTMLElement>(".scribidian-sub-toggle"),
+      )) {
+        const sub = row.dataset.sub ?? "";
+        const subName = row.querySelector<HTMLElement>(".setting-item-name");
+        this.makeFoldable(row, subName, `${title}/${sub}`);
+        if (row.querySelector(".scribidian-badge-changed") === null) {
+          (subName ?? row).createSpan({
+            cls: "scribidian-badge scribidian-badge-changed",
+          });
+        }
+      }
+    }
+    this.applyOpenState();
+    this.refreshBadges();
+  }
+
+  /** Rows that already open and close on a click. */
+  private readonly foldRows = new WeakSet<HTMLElement>();
+
+  /**
+   * A heading or sub row that opens and closes `key` when clicked. Safe to
+   * call again after a re-render: listeners are added once per row, the
+   * chevron whenever it is missing.
+   */
+  private makeFoldable(
+    row: HTMLElement,
+    nameEl: HTMLElement | null,
+    key: string,
+  ): void {
+    row.addClass("scribidian-foldable");
+    row.dataset.foldKey = key;
+    row.setAttr("role", "button");
+    row.setAttr("tabindex", "0");
+    if (row.querySelector(".scribidian-fold-chevron") === null) {
+      const chevron = createSpan({ cls: "scribidian-fold-chevron" });
+      setIcon(chevron, "chevron-right");
+      (nameEl ?? row).prepend(chevron);
+    }
+    if (this.foldRows.has(row)) return;
+    this.foldRows.add(row);
+    const toggle = (): void => {
+      const target = row.dataset.foldKey ?? key;
+      const open = this.openSections();
+      if (!open.delete(target)) open.add(target);
+      this.saveOpenSections(open);
+      this.applyOpenState();
+    };
+    row.addEventListener("click", (event) => {
+      if ((event.target as HTMLElement).closest("button, input, select")) {
+        return;
+      }
+      toggle();
+    });
+    row.addEventListener("keydown", (event) => {
+      if (event.target !== row) return;
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      toggle();
+    });
+  }
+
+  /** Show sections and sub-sections open or closed, as remembered. */
+  private applyOpenState(): void {
+    const open = this.openSections();
+    for (const group of this.sectionGroups()) {
+      const title = group.dataset.section ?? "";
+      const isOpen = open.has(title);
+      group.toggleClass("scribidian-collapsed", !isOpen);
+      group
+        .querySelector(":scope > .scribidian-foldable")
+        ?.setAttr("aria-expanded", String(isOpen));
+      let subOpen = true;
+      for (const item of Array.from(
+        group.querySelectorAll<HTMLElement>(".setting-items > .setting-item"),
+      )) {
+        if (item.hasClass("scribidian-sub-toggle")) {
+          subOpen = open.has(`${title}/${item.dataset.sub ?? ""}`);
+          item.setAttr("aria-expanded", String(subOpen));
+          item.toggleClass("scribidian-sub-open", subOpen);
+          continue;
+        }
+        item.toggleClass("scribidian-sub-hidden", !subOpen);
+      }
+    }
+  }
+
+  /** "Off" and "N changed" on each header, and the reset button. */
+  private refreshBadges(): void {
+    const settings = this.plugin.settings;
+    const label = (count: number): string =>
+      count > 0 ? `● ${count} changed` : "";
+    for (const group of this.sectionGroups()) {
+      const spec = SETTING_SECTIONS.find(
+        (section) => section.heading === group.dataset.section,
+      );
+      if (spec === undefined) continue;
+      const changed = sectionStoredKeys(spec.keys).filter((key) =>
+        isChanged(settings, key),
+      ).length;
+      const off = spec.master !== undefined && settings[spec.master] === false;
+      group.toggleClass("scribidian-master-off", off);
+      const heading = group.querySelector(":scope > .setting-item-heading");
+      heading
+        ?.querySelector(".scribidian-badge-off")
+        ?.setText(off ? "Off" : "");
+      heading
+        ?.querySelector(".scribidian-badge-changed")
+        ?.setText(label(changed));
+      heading
+        ?.querySelector(".scribidian-section-reset")
+        ?.toggleClass("scribidian-hidden", changed === 0);
+      for (const row of Array.from(
+        group.querySelectorAll<HTMLElement>(".scribidian-sub-toggle"),
+      )) {
+        const count = sectionStoredKeys(
+          subSectionKeys(spec.keys, row.dataset.sub ?? ""),
+        ).filter((key) => isChanged(settings, key)).length;
+        row.querySelector(".scribidian-badge-changed")?.setText(label(count));
+      }
+    }
+  }
+
+  /** Ask, then put a section's settings back to their defaults. */
+  private confirmReset(
+    title: string,
+    keys: readonly (keyof ScribidianSettings)[],
+  ): void {
+    const changed = keys.filter((key) => isChanged(this.plugin.settings, key));
+    if (changed.length === 0) return;
+    new ConfirmResetModal(
+      this.app,
+      `Put the ${title} settings back to their defaults? ${changed.length} ${
+        changed.length === 1 ? "setting is" : "settings are"
+      } changed now.`,
+      () => void this.resetSettings(changed),
+    ).open();
+  }
+
+  private async resetSettings(
+    keys: readonly (keyof ScribidianSettings)[],
+  ): Promise<void> {
+    const settings = this.plugin.settings as unknown as Record<string, unknown>;
+    for (const key of keys) {
+      settings[key] = structuredClone(DEFAULT_SETTINGS[key]);
+    }
+    await this.plugin.saveSettings();
+    this.plugin.applyScreenplayFont();
+    this.plugin.applyThreadSettings();
+    this.plugin.applyCommandVisibility();
+    this.plugin.refreshStatus();
+    this.app.workspace.updateOptions();
+    this.update();
+    window.setTimeout(() => {
+      this.decorateSections();
+      this.filterSettings();
+    }, 0);
   }
 
   getSettingDefinitions(): SettingDefinitionItem[] {
@@ -931,7 +1327,24 @@ export class ScribidianSettingTab extends PluginSettingTab {
                 search.inputEl.addClass("scribidian-settings-search-input");
               });
               // Reapply the search after each re-render of the tab.
-              window.setTimeout(() => this.filterSettings(), 0);
+              const expand = setting.controlEl.createEl("button", {
+                text: "Expand all",
+              });
+              expand.addEventListener("click", () => {
+                this.saveOpenSections(new Set(this.allSectionKeys()));
+                this.applyOpenState();
+              });
+              const collapse = setting.controlEl.createEl("button", {
+                text: "Collapse all",
+              });
+              collapse.addEventListener("click", () => {
+                this.saveOpenSections(new Set());
+                this.applyOpenState();
+              });
+              window.setTimeout(() => {
+                this.decorateSections();
+                this.filterSettings();
+              }, 0);
             },
           },
         ],
@@ -1150,13 +1563,6 @@ export class ScribidianSettingTab extends PluginSettingTab {
     draw();
   }
 
-  /** Keys of the "show more" rows that are currently open. */
-  private readonly openMore = new Set<string>();
-
-  /**
-   * A row with a button that shows or hides the settings after it in the
-   * same section. Searching shows matching hidden settings anyway.
-   */
   /** A list to drag into order: which slug item comes first. */
   private renderSlugOrder(setting: Setting): void {
     setting.setName(SLUG_ORDER_NAME);
@@ -1241,39 +1647,6 @@ export class ScribidianSettingTab extends PluginSettingTab {
   private async saveSlugOrder(order: SlugSuggestionKind[]): Promise<void> {
     this.plugin.settings.slugSuggestionOrder = slugOrder(order);
     await this.plugin.saveSettings();
-  }
-
-  private renderMoreToggle(setting: Setting, key: string): void {
-    setting.settingEl.addClass("scribidian-more-toggle");
-    const advanced = key === ADVANCED_KEY;
-    if (advanced) {
-      setting.setName(ADVANCED_NAME);
-      setting.setDesc(
-        "Fine-tuning for code blocks. Most writers never need these.",
-      );
-    } else {
-      setting.settingEl.addClass("scribidian-more-toggle-plain");
-    }
-    const [closed, open] = advanced
-      ? ["Show", "Hide"]
-      : ["Show more", "Show less"];
-    const button = advanced
-      ? setting.controlEl.createEl("button")
-      : setting.infoEl.createEl("button", {
-          cls: "scribidian-settings-table-more",
-        });
-    const update = (): void => {
-      const isOpen = this.openMore.has(key);
-      button.setText(isOpen ? open : closed);
-      setting.settingEl
-        .closest(".setting-group")
-        ?.toggleClass("scribidian-more-open", isOpen);
-    };
-    button.addEventListener("click", () => {
-      if (!this.openMore.delete(key)) this.openMore.add(key);
-      update();
-    });
-    window.setTimeout(update, 0);
   }
 
   /** Whether the Tab and Enter table shows its less common rows. */
@@ -1505,7 +1878,11 @@ export class ScribidianSettingTab extends PluginSettingTab {
   /** Current text in the settings search box. */
   private query = "";
 
-  /** Hide settings (and whole groups) that do not match the search text. */
+  /**
+   * Hide settings (and whole sections) that do not match the search text.
+   * While searching, every section and sub-section shows open; a
+   * sub-section row shows when one of its settings matches.
+   */
   private filterSettings(): void {
     const words = this.query.toLocaleLowerCase().split(/\s+/u).filter(Boolean);
     for (const group of Array.from(
@@ -1513,19 +1890,34 @@ export class ScribidianSettingTab extends PluginSettingTab {
     )) {
       if (group.hasClass("scribidian-settings-search")) continue;
       group.toggleClass("scribidian-searching", words.length > 0);
+      const heading =
+        group.querySelector(":scope > .setting-item-heading")?.textContent ??
+        "";
       let shown = 0;
+      let subRow: HTMLElement | null = null;
+      let subShown = false;
+      const closeSub = (): void => {
+        subRow?.toggleClass("scribidian-hidden", !subShown);
+      };
       for (const item of Array.from(
         group.querySelectorAll<HTMLElement>(".setting-items > .setting-item"),
       )) {
-        const heading = group.querySelector(
-          ".setting-group-heading, .setting-item-heading",
-        );
+        if (item.hasClass("scribidian-sub-toggle")) {
+          closeSub();
+          subRow = item;
+          subShown = words.length === 0;
+          continue;
+        }
         const text =
-          `${heading?.textContent ?? ""} ${item.textContent ?? ""}`.toLocaleLowerCase();
+          `${heading} ${subRow?.textContent ?? ""} ${item.textContent ?? ""}`.toLocaleLowerCase();
         const match = words.every((word) => text.includes(word));
         item.toggleClass("scribidian-hidden", !match);
-        if (match) shown += 1;
+        if (match) {
+          shown += 1;
+          subShown = true;
+        }
       }
+      closeSub();
       group.toggleClass("scribidian-hidden", shown === 0);
     }
   }
@@ -1913,11 +2305,6 @@ export class ScribidianSettingTab extends PluginSettingTab {
         render: (setting) => this.renderCommandList(setting),
       },
       {
-        name: ADVANCED_NAME,
-        searchable: false,
-        render: (setting) => this.renderMoreToggle(setting, ADVANCED_KEY),
-      },
-      {
         name: "Offer full slugs",
         desc: "The slugline list also offers each location's last whole slug, such as KITCHEN - NIGHT (FLASHBACK); picking it fills in the whole slug. Off: each location shows once, with the time it had last (KITCHEN - NIGHT), and picking it opens the times with that time first.",
         control: {
@@ -1933,12 +2320,6 @@ export class ScribidianSettingTab extends PluginSettingTab {
       {
         name: SLUG_FILL_NAME,
         render: (setting) => this.renderSlugFill(setting),
-      },
-      {
-        name: MORE_SUGGESTIONS_NAME,
-        searchable: false,
-        render: (setting) =>
-          this.renderMoreToggle(setting, MORE_SUGGESTIONS_KEY),
       },
       {
         name: TYPING_CHANGES_NAME,
@@ -2032,54 +2413,36 @@ export class ScribidianSettingTab extends PluginSettingTab {
         },
       },
       {
-        type: "group",
-        heading: "PDF export",
-        items: [
-          {
-            name: "Add (CONT'D) to continued dialogue",
-            desc: "In the PDF and the page preview only: when a character speaks again after action in the same scene, or a speech goes on to the next page, the cue gets (CONT'D), as Final Draft and Fade In print it. Your Fountain text is never changed.",
-            control: {
-              type: "toggle" as const,
-              key: "pdfContinued",
-              defaultValue: DEFAULT_SETTINGS.pdfContinued,
-            },
-          },
-          ...PDF_BOLD_SETTINGS.map(({ part, name, desc }) => ({
-            name,
-            desc,
-            control: {
-              type: "toggle" as const,
-              key: `${PDF_BOLD_PREFIX}${part}`,
-              defaultValue: DEFAULT_PDF_BOLD[part],
-            },
-          })),
-        ],
+        name: "Add (CONT'D) to continued dialogue",
+        desc: "In the PDF and the page preview only: when a character speaks again after action in the same scene, or a speech goes on to the next page, the cue gets (CONT'D), as Final Draft and Fade In print it. Your Fountain text is never changed.",
+        control: {
+          type: "toggle" as const,
+          key: "pdfContinued",
+          defaultValue: DEFAULT_SETTINGS.pdfContinued,
+        },
+      },
+      ...PDF_BOLD_SETTINGS.map(({ part, name, desc }) => ({
+        name,
+        desc,
+        control: {
+          type: "toggle" as const,
+          key: `${PDF_BOLD_PREFIX}${part}`,
+          defaultValue: DEFAULT_PDF_BOLD[part],
+        },
+      })),
+      {
+        name: "Mark capitals that are action",
+        desc: "Scribidian reads a line in capitals ending in punctuation (BANG!, SILENCE.) as action. Final Draft, Fade In and other Fountain apps read it as a character when text follows it. On: exports put ! in front of such lines (!BANG!) so those apps read them as action too. Your script is never changed.",
+        control: {
+          type: "toggle",
+          key: "markCapitalsAsAction",
+          defaultValue: DEFAULT_SETTINGS.markCapitalsAsAction,
+        },
       },
       {
-        type: "group",
-        heading: "Fountain export",
-        items: [
-          {
-            name: "Mark capitals that are action",
-            desc: "Scribidian reads a line in capitals ending in punctuation (BANG!, SILENCE.) as action. Final Draft, Fade In and other Fountain apps read it as a character when text follows it. On: exports put ! in front of such lines (!BANG!) so those apps read them as action too. Your script is never changed.",
-            control: {
-              type: "toggle",
-              key: "markCapitalsAsAction",
-              defaultValue: DEFAULT_SETTINGS.markCapitalsAsAction,
-            },
-          },
-        ],
-      },
-      {
-        type: "group",
-        heading: "Clean export",
-        items: [
-          {
-            name: CLEAN_EXPORT_NAME,
-            searchable: false,
-            render: (setting) => this.renderCleanExport(setting),
-          },
-        ],
+        name: CLEAN_EXPORT_NAME,
+        searchable: false,
+        render: (setting) => this.renderCleanExport(setting),
       },
       {
         name: "Scene types",
@@ -2222,9 +2585,12 @@ export class ScribidianSettingTab extends PluginSettingTab {
     if (key === "showAllCommands") this.plugin.applyCommandVisibility();
     if (key === "threadsEnabled" || key === "threadDisplay") {
       this.plugin.applyThreadSettings();
-      // The other thread settings turn on or off with threads.
-      if (key === "threadsEnabled") this.update();
     }
+    // A section's on/off setting dims the rest of it (#306).
+    if (SETTING_SECTIONS.some((section) => section.master === key)) {
+      this.update();
+    }
+    this.refreshBadges();
     if (
       key === "editorLayout" ||
       key === "bottomTypingMargin" ||
