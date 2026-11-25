@@ -1033,3 +1033,14 @@ body {
   white-space: nowrap;
   font-size: var(--font-ui-small);
 }
+
+/* Fountain emphasis inside a thread's text (#338). */
+.brass-thread-italic {
+  font-style: italic;
+}
+.brass-thread-bold {
+  font-weight: bold;
+}
+.brass-thread-underline {
+  text-decoration: underline;
+}

@@ -26,6 +26,7 @@ import {
 } from "@codemirror/view";
 import { findThreads, type ThreadMark } from "../screenplay/threads";
 import type { ThreadDisplay } from "../settings/settings";
+import { emphasisRuns, markEmphasis } from "../export/emphasis";
 
 /*
  * Threads in the editor: each `[&name]` shows as a small 🧵. Click: the next
@@ -50,6 +51,19 @@ export type OpenThread = (
   panel: boolean,
   across: boolean,
 ) => void;
+
+/**
+ * Fill `el` with `text`, showing Fountain emphasis (*italic*, **bold**,
+ * _underline_) as styles with the marks hidden, as the PDF does (#338).
+ */
+function emphasized(el: HTMLElement, text: string): void {
+  for (const run of emphasisRuns([markEmphasis(text)])[0] ?? []) {
+    const span = el.createSpan({ text: run.text });
+    span.toggleClass("brass-thread-italic", run.italic);
+    span.toggleClass("brass-thread-bold", run.bold);
+    span.toggleClass("brass-thread-underline", run.underline);
+  }
+}
 
 /**
  * A thread drawn as the 🧵 and its text, per the Thread text setting: in
@@ -79,9 +93,9 @@ export function threadElement(
   if (!textShown) {
     // Nothing but the spool.
   } else if (mark.alias !== undefined) {
-    el.createSpan({ cls: "brass-thread-alias", text: mark.alias });
+    emphasized(el.createSpan({ cls: "brass-thread-alias" }), mark.alias);
   } else {
-    el.createSpan({ cls: "brass-thread-name", text: mark.name });
+    emphasized(el.createSpan({ cls: "brass-thread-name" }), mark.name);
   }
   if (textShown && display === "right") spool();
   el.setAttribute("aria-label", `Thread: ${mark.name}`);

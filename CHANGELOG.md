@@ -7,6 +7,10 @@ project follows
 
 ## [Unreleased]
 
+### Fixed
+
+- **Emphasis in thread text.** `[&poison|*Savvy viewers suspect her.*]` shows its text in italics with the stars hidden; `**bold**` and `_underline_` work too.
+
 ## [0.2.0] - 2026-11-25
 
 ### Fixed
