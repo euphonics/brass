@@ -93,6 +93,7 @@ import { previewScreenplay } from "./commands/previewScreenplay";
 import {
   createScreenplayCompletionExtension,
   forceElement,
+  newCharacterLine,
 } from "./editor/completion";
 import type { ForcedElement } from "./editor/forceElement";
 import {
@@ -1025,7 +1026,8 @@ export default class BrassPlugin extends Plugin {
       case "action":
         return forceElement(cm, "action");
       case "character":
-        if (!convert("character")) openCharacterPicker(this, editor);
+        // A new line with the character list open, as Enter then Smart Tab.
+        if (!convert("character")) newCharacterLine(cm);
         return;
       case "extension":
         if (isLikelyCharacterCue(editor.getLine(editor.getCursor().line)))

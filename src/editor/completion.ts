@@ -266,6 +266,45 @@ export function forceElement(view: EditorView, element: ForcedElement): void {
 }
 
 /**
+ * What to insert so a new character cue can start: a line with text gets a
+ * blank line and a new line after it (two line breaks at its end); an
+ * empty line right under text gets a blank line above it (one line break at
+ * its start); an empty line with a blank line (or nothing) above needs
+ * nothing.
+ */
+export function characterLinePlan(
+  line: string,
+  above: string | null,
+): { insert: string; at: "end" | "start" } | null {
+  if (line.trim() !== "") return { insert: "\n\n", at: "end" };
+  if (above !== null && above.trim() !== "")
+    return { insert: "\n", at: "start" };
+  return null;
+}
+
+/**
+ * Start a character cue on a new line, as Enter and then Smart Tab would:
+ * the cue is laid out indented and Brass's character list opens in the
+ * editor (the phone toolbar's Char button).
+ */
+export function newCharacterLine(view: EditorView): void {
+  const { state } = view;
+  const line = state.doc.lineAt(state.selection.main.head);
+  const above = line.number > 1 ? state.doc.line(line.number - 1).text : null;
+  const plan = characterLinePlan(line.text, above);
+  if (plan) {
+    const at = plan.at === "end" ? line.to : line.from;
+    view.dispatch({
+      changes: { from: at, insert: plan.insert },
+      selection: { anchor: at + plan.insert.length },
+      scrollIntoView: true,
+      userEvent: "input",
+    });
+  }
+  forceElement(view, "character");
+}
+
+/**
  * The effects startCompletion would dispatch, read without dispatching, so
  * they can go in the caller's own transaction: in a long script each extra
  * transaction costs several ms (#221). Empty when there's no
