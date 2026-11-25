@@ -19,6 +19,8 @@ import { describe, expect, it } from "vitest";
 import {
   buildScreenplayIndex,
   parseSceneHeadingParts,
+  preferredAndRecent,
+  preferredAndRecentTimes,
   rankUsages,
 } from "../src/screenplay/indexer";
 import { parseFountain } from "../src/screenplay/parser";
@@ -148,5 +150,54 @@ Jen and Blake sit. Later, Jen, Blake, and George eat. Jen and Blake leave.`),
       ["Jen and Blake", 2],
       ["Jen, Blake, and George", 1],
     ]);
+  });
+});
+
+describe("preferred times and modifiers (#332)", () => {
+  const times = (source: string) =>
+    rankUsages(
+      preferredAndRecentTimes(buildScreenplayIndex(parseFountain(source))),
+      "",
+      0.5,
+      20,
+    ).map((usage) => usage.value);
+
+  it("keeps the preferred order when the script uses no times", () => {
+    expect(times("She waits.").slice(0, 6)).toEqual([
+      "DAY",
+      "NIGHT",
+      "MORNING",
+      "AFTERNOON",
+      "EVENING",
+      "DAWN",
+    ]);
+  });
+
+  it("keeps DAY above the rarer times after a few scenes", () => {
+    const list = times(
+      "INT. OFFICE - DAWN\n\nShe types.\n\nINT. HALL - DUSK\n\nHe waits.\n",
+    );
+    expect(list.indexOf("DAY")).toBeLessThan(list.indexOf("MOMENTS LATER"));
+    expect(list.indexOf("DAY")).toBeLessThan(list.indexOf("CONTINUOUS"));
+    expect(list.indexOf("NIGHT")).toBeLessThan(list.indexOf("LATER"));
+  });
+
+  it("still puts a time the script uses a lot first", () => {
+    const scenes = Array.from(
+      { length: 6 },
+      (_, n) => `INT. ROOM ${n} - DUSK\n\nAction.\n`,
+    ).join("\n");
+    expect(times(scenes)[0]).toBe("DUSK");
+  });
+
+  it("keeps the order of other preferred lists too", () => {
+    expect(
+      rankUsages(
+        preferredAndRecent([], ["FLASHBACK", "DREAM", "PRESENT"]),
+        "",
+        0.5,
+        10,
+      ).map((usage) => usage.value),
+    ).toEqual(["FLASHBACK", "DREAM", "PRESENT"]);
   });
 });

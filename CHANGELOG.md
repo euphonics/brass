@@ -9,6 +9,7 @@ project follows
 
 ### Fixed
 
+- **Time and modifier suggestions in their usual order.** The built-in times came out backwards (MOMENTS LATER above DAY) in a script that uses few of them; DAY, NIGHT, MORNING… now come first, unless the script uses another time more.
 - **Scene buttons work in scripts with a boneyard.** A boneyard (`/* */`) or multi-line note used to turn off Synopsis, Up, Down and Move for the whole script; now only one that never closes turns off moving scenes, Synopsis always works, and a boneyard moves with its scene. A grayed-out scene button now says why when tapped, so the reason shows on a phone too.
 
 ### Changed

@@ -257,7 +257,9 @@ export function preferredAndRecent(
   );
 
   for (const [offset, value] of preferred.entries()) {
-    addUsage(combined, value, maximumPosition - preferred.length + offset);
+    // The first preferred value counts as the most recent, so the list
+    // keeps its order (DAY before NIGHT) among values used no more (#332).
+    addUsage(combined, value, maximumPosition - 1 - offset);
   }
   for (const usage of used) {
     const existing = combined.get(usageKey(usage.value));
