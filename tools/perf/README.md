@@ -53,7 +53,7 @@ obsidian vault=Dev eval code="window.__lat={tag:'run1',size:8,mode:'screenplay',
 ```
 
 ```powershell
-obsidian vault=Dev eval code="eval(require('fs').readFileSync('C:/Users/arunc/Code/firstdraft/tools/perf/latency.js','utf8'))"
+obsidian vault=Dev eval code="eval(require('fs').readFileSync('C:/Users/arunc/Code/brass/tools/perf/latency.js','utf8'))"
 ```
 
 Then read `%TEMP%/brass-perf/lat-run1.json` after about 35 seconds.
