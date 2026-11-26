@@ -1017,16 +1017,20 @@ body {
 .brass-phone-bar {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 8px;
-  background: var(--background-primary);
-  border-top: 1px solid var(--background-modifier-border);
+  gap: 2px;
+  padding: 4px 8px;
+  background: transparent;
 }
 .brass-phone-bar-row,
 .brass-phone-bar-above {
   display: flex;
+  align-items: center;
   gap: 6px;
+  /* overflow-x alone would make the row scroll up and down too: lock it. */
   overflow-x: auto;
+  overflow-y: hidden;
+  touch-action: pan-x;
+  overscroll-behavior: contain;
   scrollbar-width: none;
 }
 .brass-phone-bar-row::-webkit-scrollbar,
@@ -1047,6 +1051,17 @@ body {
   line-height: 1;
   white-space: nowrap;
   font-size: var(--font-ui-medium);
+}
+/* Just the emoji (or words): no button shape, border or shadow. */
+.brass-phone-bar .brass-phone-bar-row > button,
+.brass-phone-bar .brass-phone-bar-above > button {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: var(--radius-m);
+}
+.brass-phone-bar button.brass-phone-emoji {
+  font-size: 1.5em;
 }
 .brass-phone-bar-row > :first-child,
 .brass-phone-bar-above > :first-child {
@@ -1098,8 +1113,8 @@ body {
 
 /* The phone toolbar's Convert button while pressed: the next element
    button changes the current line. */
-.brass-phone-bar button.brass-phone-modifier.is-active {
+.brass-phone-bar .brass-phone-bar-above > button.brass-phone-modifier.is-active,
+.brass-phone-bar .brass-phone-bar-row > button.brass-phone-modifier.is-active {
   background-color: var(--interactive-accent);
   color: var(--text-on-accent);
-  box-shadow: inset 0 0 0 2px var(--text-on-accent);
 }

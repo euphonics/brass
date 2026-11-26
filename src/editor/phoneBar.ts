@@ -111,6 +111,8 @@ export function createPhoneBarExtension(host: PhoneBarHost): Extension {
             text: label,
             attr: { "aria-label": name, title: name },
           });
+          // Emoji labels draw larger than words.
+          if (!/[A-Za-z]/u.test(label)) button.addClass("brass-phone-emoji");
           if (pressed) {
             button.addClass("brass-phone-modifier");
             modifiers.push([button, pressed]);
