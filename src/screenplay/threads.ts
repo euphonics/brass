@@ -154,3 +154,50 @@ export function stepPlace(
   const next = (at + step + ordered.length) % ordered.length;
   return ordered[next] ?? null;
 }
+
+/** What deleting a thread leaves behind (#342). */
+export type ThreadDeleteLeaves = "text" | "nothing";
+
+/**
+ * `source` with every `[&…]` of thread `key` taken out (#342). With
+ * `keepText`, a thread with its own text (`[&gun|the pistol]`) leaves the
+ * text; otherwise it goes too. The spaces before a removed thread go with
+ * it, and a line that held nothing else goes, with one blank line around it.
+ */
+export function removeThread(
+  source: string,
+  key: string,
+  keepText: boolean,
+): string {
+  if (!source.includes("[&")) return source;
+  const lines = source.split("\n");
+  const out: string[] = [];
+  let changed = false;
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index] ?? "";
+    const marks = findThreads(line).filter((mark) => mark.key === key);
+    if (marks.length === 0) {
+      out.push(line);
+      continue;
+    }
+    changed = true;
+    let next = "";
+    let at = 0;
+    for (const mark of marks) {
+      const kept = keepText ? (mark.alias ?? "") : "";
+      const before = line.slice(at, mark.from);
+      next += kept === "" ? before.replace(/[ \t]+$/u, "") : before + kept;
+      at = mark.to;
+    }
+    next += line.slice(at);
+    const lead = /^[ \t]*/u.exec(line)?.[0] ?? "";
+    next = lead + next.trimStart();
+    if (next.trim() === "") {
+      const blankBefore = out.length > 0 && out[out.length - 1]?.trim() === "";
+      if (blankBefore && (lines[index + 1] ?? "x").trim() === "") index += 1;
+      continue;
+    }
+    out.push(next);
+  }
+  return changed ? out.join("\n") : source;
+}

@@ -1044,3 +1044,23 @@ body {
 .brass-thread-underline {
   text-decoration: underline;
 }
+.brass-threads-delete {
+  flex: 0 0 auto;
+  opacity: 0.4;
+  padding: 0 var(--size-2-1);
+}
+.brass-threads-self:hover .brass-threads-delete,
+.brass-threads-delete:focus-visible {
+  opacity: 1;
+}
+.brass-threads-delete svg {
+  width: var(--icon-xs);
+  height: var(--icon-xs);
+}
+.brass-delete-thread-warning {
+  color: var(--text-error);
+  font-weight: var(--font-semibold);
+}
+.brass-delete-thread-input {
+  text-transform: uppercase;
+}

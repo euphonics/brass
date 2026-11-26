@@ -7,6 +7,10 @@ project follows
 
 ## [Unreleased]
 
+### Added
+
+- **Delete a thread everywhere.** Each thread in the Threads panel has a trash button. It says how many places in how many notes will change and that it can't be undone, and Delete only works after you type YES. The new setting **Deleting a thread leaves** decides what's left: its text (`[&gun|the pistol]` becomes `the pistol`, the default) or nothing.
+
 ### Fixed
 
 - **Link scene headings asks nothing per scene.** It links every scene that has an outline heading of the same name, both ways, and names the scenes it couldn't match in a notice. With no outline set yet, it uses "<script> Outline" from the script's folder and asks only when there is none.

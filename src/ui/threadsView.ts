@@ -15,14 +15,16 @@
  * limitations under the License.
  */
 
-import { ItemView, TFile, setIcon } from "obsidian";
+import { ItemView, MarkdownView, Notice, TFile, setIcon } from "obsidian";
 import type { IconName, WorkspaceLeaf } from "obsidian";
 import type BrassPlugin from "../main";
 import {
   orderedPlaces,
+  removeThread,
   stripThreads,
   type ThreadPlace,
 } from "../screenplay/threads";
+import { DeleteThreadModal } from "./deleteThreadModal";
 
 export const THREADS_VIEW_TYPE = "brass-threads";
 
@@ -213,6 +215,89 @@ export class ThreadsView extends ItemView {
     });
   }
 
+  /** Ask, then take thread `thread` out of every note it's in (#342). */
+  private askDelete(thread: ThreadSummary): void {
+    const paths = [...new Set(thread.places.map((place) => place.path))];
+    new DeleteThreadModal(
+      this.app,
+      thread.name,
+      thread.places.length,
+      paths.length,
+      this.plugin.settings.threadDeleteLeaves,
+      () => void this.deleteThread(thread.key, thread.name, paths),
+    ).open();
+  }
+
+  /**
+   * Take thread `key` out of each note in `paths`. A note open in an editor
+   * changes there, so unsaved typing isn't lost; the rest change on disk.
+   */
+  private async deleteThread(
+    key: string,
+    name: string,
+    paths: readonly string[],
+  ): Promise<void> {
+    const keepText = this.plugin.settings.threadDeleteLeaves === "text";
+    const open = new Map<string, MarkdownView>();
+    for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
+      const view = leaf.view;
+      if (view instanceof MarkdownView && view.file)
+        open.set(view.file.path, view);
+    }
+    let notes = 0;
+    let failed = 0;
+    for (const path of paths) {
+      const file = this.app.vault.getAbstractFileByPath(path);
+      if (!(file instanceof TFile)) continue;
+      try {
+        const view = open.get(path);
+        if (view) {
+          const editor = view.editor;
+          const before = editor.getValue();
+          const after = removeThread(before, key, keepText);
+          if (after === before) continue;
+          // Replace only the part that changed, so the cursor stays put.
+          let start = 0;
+          while (start < before.length && before[start] === after[start])
+            start += 1;
+          let end = 0;
+          while (
+            end < before.length - start &&
+            end < after.length - start &&
+            before[before.length - 1 - end] === after[after.length - 1 - end]
+          )
+            end += 1;
+          editor.replaceRange(
+            after.slice(start, after.length - end),
+            editor.offsetToPos(start),
+            editor.offsetToPos(before.length - end),
+          );
+        } else {
+          let changed = false;
+          await this.app.vault.process(file, (text) => {
+            const next = removeThread(text, key, keepText);
+            changed = next !== text;
+            return next;
+          });
+          if (!changed) continue;
+        }
+        notes += 1;
+      } catch (error) {
+        failed += 1;
+        console.error(`Brass: couldn't delete thread in ${path}`, error);
+      }
+    }
+    new Notice(
+      failed > 0
+        ? `Deleted the thread ${name} from ${notes} ${notes === 1 ? "note" : "notes"}; ${failed} couldn't be changed.`
+        : `Deleted the thread ${name} from ${notes} ${notes === 1 ? "note" : "notes"}.`,
+    );
+    if (this.selected === key) this.selected = null;
+    this.expanded.delete(key);
+    this.shown = "";
+    this.refresh();
+  }
+
   private renderTree(
     el: HTMLElement,
     threads: ThreadSummary[],
@@ -282,6 +367,24 @@ export class ThreadsView extends ItemView {
       row.createSpan({
         cls: "brass-threads-count",
         text: String(thread.places.length),
+      });
+      const remove = row.createDiv({
+        cls: "clickable-icon brass-threads-delete",
+        attr: {
+          "aria-label": `Delete the thread ${thread.name} everywhere`,
+          role: "button",
+          tabindex: "0",
+        },
+      });
+      setIcon(remove, "trash-2");
+      const askDelete = (event: Event): void => {
+        event.preventDefault();
+        event.stopPropagation();
+        this.askDelete(thread);
+      };
+      remove.addEventListener("click", askDelete);
+      remove.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") askDelete(event);
       });
       this.toggleRow(item, row, this.expanded.has(thread.key), (open) => {
         if (open) this.expanded.add(thread.key);

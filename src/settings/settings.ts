@@ -61,6 +61,7 @@ import {
 } from "../export/fountain";
 import { coreTemplatesFolder, isTemplateCandidate } from "../characters/vault";
 import type { PageSize } from "../screenplay/model";
+import type { ThreadDeleteLeaves } from "../screenplay/threads";
 import {
   DEFAULT_PDF_BOLD,
   normalizePdfBold,
@@ -174,6 +175,8 @@ export interface BrassSettings {
   threadAmpersands: boolean;
   /** Color of thread text and the raw mark; "" = the theme's orange. */
   threadColor: string;
+  /** What deleting a thread from the Threads panel leaves (#342). */
+  threadDeleteLeaves: ThreadDeleteLeaves;
   /** Completr's suggestion popup stays closed in screenplay notes (#271). */
   quietCompletrInScripts: boolean;
   /** Extensions the script uses come before (V.O.), (O.S.) and the rest. */
@@ -463,6 +466,7 @@ export const DEFAULT_SETTINGS: BrassSettings = {
   threadDisplay: "right",
   threadAmpersands: true,
   threadColor: "",
+  threadDeleteLeaves: "text",
   customExtensionsFirst: false,
   variablePrefix: "$",
   characterMentionPrefix: "+",
@@ -612,6 +616,12 @@ export function migrateSettings(
   }
   if (!isThreadDisplay(rest.threadDisplay)) {
     settings.threadDisplay = DEFAULT_SETTINGS.threadDisplay;
+  }
+  if (
+    rest.threadDeleteLeaves !== "text" &&
+    rest.threadDeleteLeaves !== "nothing"
+  ) {
+    settings.threadDeleteLeaves = DEFAULT_SETTINGS.threadDeleteLeaves;
   }
   if (
     typeof rest.commandVisibility !== "object" ||
@@ -879,7 +889,12 @@ export const SETTING_SECTIONS: {
   {
     heading: "Threads",
     master: "threadsEnabled",
-    keys: ["threadsEnabled", "threadDisplay", "threadAmpersands"],
+    keys: [
+      "threadsEnabled",
+      "threadDisplay",
+      "threadAmpersands",
+      "threadDeleteLeaves",
+    ],
   },
   {
     heading: "Variables",
@@ -2352,6 +2367,17 @@ export class BrassSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Deleting a thread leaves",
+        desc: "What the Threads panel's delete button leaves in your notes. Its text: [&gun|the pistol] becomes the pistol, and [&gun] goes. Nothing: both go, words and all.",
+        control: {
+          type: "dropdown",
+          key: "threadDeleteLeaves",
+          options: { text: "Its text", nothing: "Nothing" },
+          defaultValue: DEFAULT_SETTINGS.threadDeleteLeaves,
+          disabled: () => !this.plugin.settings.threadsEnabled,
+        },
+      },
+      {
         name: "Turn off Completr in screenplays",
         desc: "Completr (a word-completion plugin) opens its own list while you type, on top of Brass's. On: Completr stays quiet in screenplay notes and works as usual in every other note. Does nothing if Completr isn't installed.",
         control: {
@@ -2690,6 +2716,9 @@ export class BrassSettingTab extends PluginSettingTab {
     } else if (key === "threadDisplay") {
       if (!isThreadDisplay(value)) return;
       this.plugin.settings.threadDisplay = value;
+    } else if (key === "threadDeleteLeaves") {
+      if (value !== "text" && value !== "nothing") return;
+      this.plugin.settings.threadDeleteLeaves = value;
     } else if (
       key === "shiftTabInsideScript" ||
       key === "shiftTabInsidePlain"
