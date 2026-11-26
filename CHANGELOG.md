@@ -9,6 +9,7 @@ project follows
 
 ### Added
 
+- **Hide synopses.** Turn off **Show synopses** (Look of the page) and synopsis lines (`= ...`) are hidden until the cursor is on one; the slugline or heading above shows 📝, and clicking it shows the synopsis.
 - **Convert button on the phone toolbar.** Tap 🔄 and it stays lit; the next element button (Slug, Character, Wryly, Transition…) changes the current line into that element instead of starting a new one, then Convert releases. It sits above the other buttons at the right (the **Convert button** setting can put it in the row). It replaces the "Convert the current line" setting.
 - **`&&` closes the thread too.** Typing `&&` now gives `[&]` with the cursor inside, and typing `]` at the end steps over the bracket instead of adding another.
 - **Threads panel hint.** The "only place" thread notice says Ctrl+click (Cmd+click on a Mac) shows the Threads panel.

@@ -1118,3 +1118,9 @@ body {
   background-color: var(--interactive-accent);
   color: var(--text-on-accent);
 }
+
+/* The mark after a slugline or heading whose synopsis is hidden (#352). */
+.brass-synopsis-mark {
+  cursor: pointer;
+  user-select: none;
+}

@@ -51,6 +51,7 @@ import { renderThreads } from "./threads/threadRender";
 import { openCharacterPicker } from "./commands/character";
 import { BRASS_ICON, registerBrassIcon } from "./ui/brassIcon";
 import { registerBundledFont } from "./editor/bundledFont";
+import { createSynopsisHideExtension } from "./editor/synopsisHide";
 import { createPhoneBarExtension, type PhoneButton } from "./editor/phoneBar";
 import {
   normalizePhoneButtons,
@@ -238,6 +239,10 @@ export default class BrassPlugin extends Plugin {
       createBlankLineLockExtension(this),
       createBoneyardMarkerExtension(this),
       createLineCommentExtension(this),
+      createSynopsisHideExtension({
+        showSynopses: () => this.settings.showSynopses,
+        isScreenplayFile: (file) => this.isScreenplayFile(file),
+      }),
       // Phones and tablets only: buttons for screenplay elements.
       ...(Platform.isMobile
         ? [

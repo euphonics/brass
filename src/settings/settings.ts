@@ -161,6 +161,8 @@ export interface BrassSettings {
   phoneButtonLabels: "words" | "emoji";
   /** Phone toolbar: Convert in a row above the others, or in the row. */
   phoneConvertPlacement: "above" | "row";
+  /** Off: synopsis lines ("= ...") fold away until the cursor is on them (#352). */
+  showSynopses: boolean;
   sceneTypeMinimumLetters: number;
   sceneTypeMatchCase: boolean;
   characterMatchCase: boolean;
@@ -456,6 +458,7 @@ export const DEFAULT_SETTINGS: BrassSettings = {
   phoneButtonItems: DEFAULT_PHONE_BUTTONS.map((item) => ({ ...item })),
   phoneButtonLabels: "emoji",
   phoneConvertPlacement: "above",
+  showSynopses: true,
   sceneTypeMinimumLetters: 2,
   sceneTypeMatchCase: false,
   characterMatchCase: true,
@@ -815,6 +818,7 @@ export const SETTING_SECTIONS: {
       "bottomTypingMargin",
       "lineCommentColor",
       "threadColor",
+      "showSynopses",
     ],
   },
   {
@@ -2254,6 +2258,15 @@ export class BrassSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Show synopses",
+        desc: "Off: synopsis lines (= The heist goes wrong.) are hidden until the cursor is on one, and the slugline or heading above shows 📝. Click it to see the synopsis.",
+        control: {
+          type: "toggle",
+          key: "showSynopses",
+          defaultValue: DEFAULT_SETTINGS.showSynopses,
+        },
+      },
+      {
         name: "Show fountain code blocks as a script",
         desc: "In any note, a code block marked fountain shows with screenplay formatting. When off, it shows as plain code. Reopen notes after changing this.",
         control: {
@@ -2767,7 +2780,8 @@ export class BrassSettingTab extends PluginSettingTab {
       key === "bottomTypingMargin" ||
       key === "highlightVariablesScript" ||
       key === "highlightVariablesPlain" ||
-      key === "variablePrefix"
+      key === "variablePrefix" ||
+      key === "showSynopses"
     ) {
       this.app.workspace.updateOptions();
     }
@@ -2819,6 +2833,7 @@ export class BrassSettingTab extends PluginSettingTab {
       case "lockBlankLinesScript":
       case "lockBlankLinesPlain":
       case "renderFountainCodeBlocks":
+      case "showSynopses":
       case "sceneTypeMatchCase":
       case "characterMatchCase":
       case "namesInAction":
