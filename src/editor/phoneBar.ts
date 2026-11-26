@@ -25,6 +25,8 @@ export interface PhoneButton {
   /** Accessible name and tooltip. */
   name: string;
   run: (view: EditorView, editor: Editor) => void;
+  /** For a modifier button (Convert): whether it is pressed now. */
+  pressed?: () => boolean;
 }
 
 export interface PhoneBarHost {
@@ -76,11 +78,24 @@ export function createPhoneBarExtension(host: PhoneBarHost): Extension {
       private build(): void {
         this.built = host.version();
         this.dom.empty();
-        for (const { label, name, run } of host.buttons()) {
+        const modifiers: [HTMLElement, () => boolean][] = [];
+        // A tap on any button can press or release a modifier: redraw them.
+        const showPressed = () => {
+          for (const [el, pressed] of modifiers) {
+            const on = pressed();
+            el.toggleClass("is-active", on);
+            el.setAttribute("aria-pressed", String(on));
+          }
+        };
+        for (const { label, name, run, pressed } of host.buttons()) {
           const button = this.dom.createEl("button", {
             text: label,
             attr: { "aria-label": name, title: name },
           });
+          if (pressed) {
+            button.addClass("brass-phone-modifier");
+            modifiers.push([button, pressed]);
+          }
           // Keep the editor focused and the keyboard up while tapping. Only
           // pointerdown is stopped, so the bar can still scroll sideways.
           button.addEventListener("pointerdown", (event) =>
@@ -92,8 +107,10 @@ export function createPhoneBarExtension(host: PhoneBarHost): Extension {
               false,
             )?.editor;
             if (editor) run(this.view, editor);
+            showPressed();
           });
         }
+        showPressed();
       }
 
       private sync(): void {

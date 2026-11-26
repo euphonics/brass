@@ -44,9 +44,11 @@ describe("phone toolbar settings", () => {
     ).toBe("emoji");
   });
 
-  it("start with the toolbar on and converting off", () => {
+  it("start with the toolbar on and drop the old convert setting", () => {
     const settings = migrateSettings(null);
     expect(settings.phoneButtons).toBe(true);
-    expect(settings.phoneButtonsConvert).toBe(false);
+    expect(
+      "phoneButtonsConvert" in migrateSettings({ phoneButtonsConvert: true }),
+    ).toBe(false);
   });
 });

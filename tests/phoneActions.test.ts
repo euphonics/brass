@@ -27,9 +27,10 @@ const shown = (items: { action: string; shown: boolean }[]) =>
   items.filter((item) => item.shown).map((item) => item.action);
 
 describe("phone toolbar buttons", () => {
-  it("starts with the writer's five, in order, and lists every action once", () => {
+  it("starts with the writer's six, in order, and lists every action once", () => {
     expect(shown([...DEFAULT_PHONE_BUTTONS])).toEqual([
       "tab-back",
+      "convert",
       "slug",
       "action",
       "character",
@@ -54,12 +55,24 @@ describe("phone toolbar buttons", () => {
       { action: "transition", shown: false },
       { action: "slug" },
     ]);
-    expect(items.slice(0, 2)).toEqual([
+    expect(items.slice(0, 3)).toEqual([
+      { action: "convert", shown: true },
       { action: "transition", shown: true },
       { action: "slug", shown: false },
     ]);
     expect(items).toHaveLength(PHONE_ACTIONS.length);
-    expect(shown(items)).toEqual(["transition"]);
+    expect(shown(items)).toEqual(["convert", "transition"]);
+  });
+
+  it("adds Convert, shown, after <--Tab to lists saved before it existed", () => {
+    const items = normalizePhoneButtons([
+      { action: "tab-back", shown: true },
+      { action: "slug", shown: true },
+    ]);
+    expect(shown(items)).toEqual(["tab-back", "convert", "slug"]);
+    // Once saved, the writer's choice stands.
+    const hidden = normalizePhoneButtons([{ action: "convert", shown: false }]);
+    expect(shown(hidden)).toEqual([]);
   });
 
   it("uses the defaults when nothing is saved", () => {
@@ -69,7 +82,7 @@ describe("phone toolbar buttons", () => {
   it("moves a button up or down, and not past the ends", () => {
     const items = normalizePhoneButtons(undefined);
     const up = movePhoneButton(items, 1, -1);
-    expect(up[0]?.action).toBe("slug");
+    expect(up[0]?.action).toBe("convert");
     expect(up[1]?.action).toBe("tab-back");
     expect(movePhoneButton(items, 0, -1)).toEqual(items);
     expect(items[0]?.action).toBe("tab-back");

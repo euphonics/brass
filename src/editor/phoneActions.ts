@@ -18,6 +18,7 @@
 /** The actions a phone toolbar button can run. */
 export type PhoneAction =
   | "tab-back"
+  | "convert"
   | "slug"
   | "mini-slug"
   | "action"
@@ -42,6 +43,12 @@ export interface PhoneActionInfo {
 /** Every action, in the order new ones are listed in settings. */
 export const PHONE_ACTIONS: readonly PhoneActionInfo[] = [
   { id: "tab-back", words: "<--Tab", emoji: "⬅️", name: "Smart Tab back" },
+  {
+    id: "convert",
+    words: "Convert",
+    emoji: "🔄",
+    name: "Convert: the next element button changes the current line",
+  },
   { id: "slug", words: "Slug", emoji: "🎬", name: "New scene" },
   { id: "mini-slug", words: "Mini slug", emoji: "📍", name: "Mini slug (.)" },
   { id: "action", words: "Action", emoji: "🏃", name: "Action" },
@@ -72,6 +79,7 @@ export interface PhoneButtonItem {
 /** The buttons a new install shows, in this order; the rest start hidden. */
 const DEFAULT_SHOWN: readonly PhoneAction[] = [
   "tab-back",
+  "convert",
   "slug",
   "action",
   "character",
@@ -107,7 +115,14 @@ export function normalizePhoneButtons(saved: unknown): PhoneButtonItem[] {
   } else {
     return DEFAULT_PHONE_BUTTONS.map((item) => ({ ...item }));
   }
-  // Actions added in a later version start hidden.
+  // Convert replaced the "Convert the current line" setting: lists saved
+  // before it get it shown, after <--Tab.
+  if (!seen.has("convert")) {
+    const at = items.findIndex((item) => item.action === "tab-back") + 1;
+    items.splice(at, 0, { action: "convert", shown: true });
+    seen.add("convert");
+  }
+  // Other actions added in a later version start hidden.
   for (const { action } of DEFAULT_PHONE_BUTTONS)
     if (!seen.has(action)) items.push({ action, shown: false });
   return items;

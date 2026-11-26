@@ -990,24 +990,35 @@ export default class BrassPlugin extends Plugin {
             name: info.name,
             run: (cm: EditorView, editor: Editor) =>
               this.runPhoneAction(action, cm, editor),
+            ...(action === "convert"
+              ? { pressed: () => this.phoneConvertPressed }
+              : {}),
           },
         ];
       });
   }
 
+  /** The phone toolbar's Convert button is pressed (waiting for an element). */
+  phoneConvertPressed = false;
+
   /**
-   * What a phone toolbar button does. With "Convert the current line" on,
-   * an element button on a line with text turns that line into the element
-   * (like the "Set line to" commands) instead of starting a new one.
+   * What a phone toolbar button does. After Convert, the next element
+   * button turns the current line into the element (like the "Set line to"
+   * commands) instead of starting a new one; any button releases Convert.
    */
   private runPhoneAction(
     action: PhoneAction,
     cm: EditorView,
     editor: Editor,
   ): void {
+    if (action === "convert") {
+      this.phoneConvertPressed = !this.phoneConvertPressed;
+      return;
+    }
+    const converting = this.phoneConvertPressed;
+    this.phoneConvertPressed = false;
     const convert = (element: ForcedElement): boolean => {
-      if (!this.settings.phoneButtonsConvert) return false;
-      if (editor.getLine(editor.getCursor().line).trim() === "") return false;
+      if (!converting) return false;
       forceElement(cm, element);
       return true;
     };

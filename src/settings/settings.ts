@@ -159,8 +159,6 @@ export interface BrassSettings {
   phoneButtonItems: PhoneButtonItem[];
   /** Phone toolbar labels: short words or emoji. */
   phoneButtonLabels: "words" | "emoji";
-  /** Phone toolbar: on a line with text, convert it instead of adding a line. */
-  phoneButtonsConvert: boolean;
   sceneTypeMinimumLetters: number;
   sceneTypeMatchCase: boolean;
   characterMatchCase: boolean;
@@ -455,7 +453,6 @@ export const DEFAULT_SETTINGS: BrassSettings = {
   phoneButtons: true,
   phoneButtonItems: DEFAULT_PHONE_BUTTONS.map((item) => ({ ...item })),
   phoneButtonLabels: "emoji",
-  phoneButtonsConvert: false,
   sceneTypeMinimumLetters: 2,
   sceneTypeMatchCase: false,
   characterMatchCase: true,
@@ -568,6 +565,8 @@ export function migrateSettings(
   settings.enterTargets = normalizeEnterTargets(rest.enterTargets);
   settings.pdfBold = normalizePdfBold(rest.pdfBold);
   settings.phoneButtonItems = normalizePhoneButtons(rest.phoneButtonItems);
+  // Replaced by the phone toolbar's Convert button.
+  delete (settings as Record<string, unknown>).phoneButtonsConvert;
   if (settings.phoneButtonLabels !== "words")
     settings.phoneButtonLabels = "emoji";
   // Clean export had one set of options for every format; each format
@@ -911,12 +910,7 @@ export const SETTING_SECTIONS: {
   {
     heading: "Phone toolbar",
     master: "phoneButtons",
-    keys: [
-      "phoneButtons",
-      PHONE_BUTTONS_KEY,
-      "phoneButtonLabels",
-      "phoneButtonsConvert",
-    ],
+    keys: ["phoneButtons", PHONE_BUTTONS_KEY, "phoneButtonLabels"],
   },
   {
     heading: "Advanced",
@@ -2240,15 +2234,6 @@ export class BrassSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Convert the current line",
-        desc: "On: a button pressed on a line with text turns that line into the element (Char makes it a character, Slug a slugline) instead of starting a new line. On an empty line the buttons work as usual.",
-        control: {
-          type: "toggle",
-          key: "phoneButtonsConvert",
-          defaultValue: DEFAULT_SETTINGS.phoneButtonsConvert,
-        },
-      },
-      {
         name: "Show fountain code blocks as a script",
         desc: "In any note, a code block marked fountain shows with screenplay formatting. When off, it shows as plain code. Reopen notes after changing this.",
         control: {
@@ -2763,11 +2748,7 @@ export class BrassSettingTab extends PluginSettingTab {
     ) {
       this.app.workspace.updateOptions();
     }
-    if (
-      key === "phoneButtons" ||
-      key === "phoneButtonLabels" ||
-      key === "phoneButtonsConvert"
-    ) {
+    if (key === "phoneButtons" || key === "phoneButtonLabels") {
       this.plugin.phoneToolbarChanged();
     }
     if (
@@ -2833,7 +2814,6 @@ export class BrassSettingTab extends PluginSettingTab {
       case "customExtensionsFirst":
       case "tabAtDialogueStartAddsWryly":
       case "phoneButtons":
-      case "phoneButtonsConvert":
         this.plugin.settings[key] = value;
     }
   }
