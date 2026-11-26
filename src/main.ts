@@ -94,6 +94,7 @@ import {
   createScreenplayCompletionExtension,
   forceElement,
   newCharacterLine,
+  newSceneLine,
 } from "./editor/completion";
 import type { ForcedElement } from "./editor/forceElement";
 import {
@@ -1018,7 +1019,7 @@ export default class BrassPlugin extends Plugin {
         pressTab(cm, false);
         return;
       case "slug":
-        if (!convert("scene-heading")) openNewScene(this, editor);
+        if (!convert("scene-heading")) newSceneLine(cm);
         return;
       case "mini-slug":
         if (!convert("scene-heading")) openMiniSlug(this, editor);

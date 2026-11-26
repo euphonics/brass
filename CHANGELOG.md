@@ -15,6 +15,7 @@ project follows
 
 ### Fixed
 
+- **Phone Slug button.** It opens the scene type list in the editor, as the Character button does, instead of a run of full-screen pickers.
 - **Phone toolbar.** The Action button on an empty cue line with the character list open now closes the list and moves the cursor to the left margin. The buttons are taller and spread evenly across the bar, and the Character button shows 🧑, which is easier to see than 🗣️ on a dark theme. With word labels, buttons use full words (Action, Character, Transition…).
 - **Link scene headings asks nothing per scene.** It links every scene that has an outline heading of the same name, both ways, and names the scenes it couldn't match in a notice. With no outline set yet, it uses "<script> Outline" from the script's folder and asks only when there is none.
 - **Emphasis in thread text.** `[&poison|*Savvy viewers suspect her.*]` shows its text in italics with the stars hidden; `**bold**` and `_underline_` work too.

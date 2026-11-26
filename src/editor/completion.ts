@@ -295,6 +295,22 @@ export function characterLinePlan(
  * editor (the phone toolbar's Character button).
  */
 export function newCharacterLine(view: EditorView): void {
+  newElementLine(view, "character");
+}
+
+/**
+ * Start a scene heading on a new line with Brass's scene type list open in
+ * the editor (the phone toolbar's Slug button), instead of the full-screen
+ * New Scene pickers.
+ */
+export function newSceneLine(view: EditorView): void {
+  newElementLine(view, "scene-heading");
+}
+
+function newElementLine(
+  view: EditorView,
+  element: "character" | "scene-heading",
+): void {
   const { state } = view;
   const line = state.doc.lineAt(state.selection.main.head);
   const above = line.number > 1 ? state.doc.line(line.number - 1).text : null;
@@ -308,7 +324,7 @@ export function newCharacterLine(view: EditorView): void {
       userEvent: "input",
     });
   }
-  forceElement(view, "character");
+  forceElement(view, element);
 }
 
 /**
