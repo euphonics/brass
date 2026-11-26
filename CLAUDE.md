@@ -180,6 +180,12 @@ npm run build
 npm run license:headers:check
 ```
 
+`npm run format` covers docs too: ROADMAP.md and CHANGELOG.md rows added
+by a script still need Prettier's table padding, or CI fails. Run
+`npm run format:check` right before every push, and after every push confirm
+the CI run passed (`gh run list -R euphonics/brass -L 1`); fix a failure at
+once, since each failed run emails the writer.
+
 `npm run build` also checks the bundle size. For typing behavior, also test
 in Obsidian: `npm run install-vault` (builds and installs into the Dev
 vault), reload the plugin, and run the keystrokes in a note with
