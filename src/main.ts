@@ -130,6 +130,10 @@ import {
 } from "./settings/settings";
 import { SCENES_VIEW_TYPE, ScenesView } from "./ui/scenesView";
 import { THREADS_VIEW_TYPE, ThreadsView } from "./ui/threadsView";
+import {
+  PLACEHOLDERS_VIEW_TYPE,
+  PlaceholdersView,
+} from "./ui/placeholdersView";
 import { CheatSheetModal } from "./ui/cheatSheetModal";
 import { StatisticsModal } from "./ui/statisticsModal";
 import { StatisticsWorker } from "./workers/statisticsClient";
@@ -328,6 +332,10 @@ export default class BrassPlugin extends Plugin {
       THREADS_VIEW_TYPE,
       (leaf) => new ThreadsView(leaf, this),
     );
+    this.registerOwnView(
+      PLACEHOLDERS_VIEW_TYPE,
+      (leaf) => new PlaceholdersView(leaf, this),
+    );
     this.addRibbonIcon(BRASS_ICON, "Open scenes", () => {
       void this.openScenes();
     });
@@ -336,6 +344,12 @@ export default class BrassPlugin extends Plugin {
       id: "open-scene-workspace",
       name: "Open scenes",
       callback: () => void this.openScenes(),
+    });
+    this.addCommand({
+      id: "show-placeholders",
+      name: "Show placeholders",
+      icon: "dollar-sign",
+      callback: () => void this.openPlaceholders(),
     });
     this.addCommand({
       id: "inspect-continuity",
@@ -854,7 +868,8 @@ export default class BrassPlugin extends Plugin {
       }),
     );
     const onVaultChange = () => {
-      if (this.scenesOpen() || this.threadsOpen()) this.scheduleRefresh();
+      if (this.scenesOpen() || this.threadsOpen() || this.placeholdersOpen())
+        this.scheduleRefresh();
     };
     // Notes coming, going or moving change which script a note belongs with.
     const onFolderChange = () => {
@@ -1332,6 +1347,7 @@ export default class BrassPlugin extends Plugin {
     this.refreshProjectViewClasses();
     this.refreshScenes();
     this.refreshThreads();
+    this.refreshPlaceholders();
     if (this.refreshTimer !== null) {
       window.clearTimeout(this.refreshTimer);
       this.refreshTimer = null;
@@ -1753,6 +1769,34 @@ export default class BrassPlugin extends Plugin {
   private refreshThreads(): void {
     for (const leaf of this.app.workspace.getLeavesOfType(THREADS_VIEW_TYPE)) {
       if (leaf.view instanceof ThreadsView) leaf.view.refresh();
+    }
+  }
+
+  /** Open the Placeholders panel (#341) in the right sidebar. */
+  async openPlaceholders(): Promise<void> {
+    this.activeMarkdownView();
+    let leaf: WorkspaceLeaf | null =
+      this.app.workspace.getLeavesOfType(PLACEHOLDERS_VIEW_TYPE)[0] ?? null;
+    if (leaf === null) {
+      leaf = this.app.workspace.getRightLeaf(false);
+      if (leaf === null) return;
+      await leaf.setViewState({ type: PLACEHOLDERS_VIEW_TYPE, active: false });
+    }
+    await this.app.workspace.revealLeaf(leaf);
+    if (leaf.view instanceof PlaceholdersView) leaf.view.refresh();
+  }
+
+  private placeholdersOpen(): boolean {
+    return (
+      this.app.workspace.getLeavesOfType(PLACEHOLDERS_VIEW_TYPE).length > 0
+    );
+  }
+
+  private refreshPlaceholders(): void {
+    for (const leaf of this.app.workspace.getLeavesOfType(
+      PLACEHOLDERS_VIEW_TYPE,
+    )) {
+      if (leaf.view instanceof PlaceholdersView) leaf.view.refresh();
     }
   }
 
