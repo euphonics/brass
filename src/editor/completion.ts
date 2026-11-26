@@ -28,6 +28,7 @@ import {
   dismissedCueLineField,
   lineKindField,
   replacesWholeNote,
+  setDismissedCueLine,
   setLineKind,
 } from "./lineKindOverride";
 import { forceElementPlan, type ForcedElement } from "./forceElement";
@@ -234,7 +235,13 @@ export function forceElement(view: EditorView, element: ForcedElement): void {
   // one that was set to another element before.
   const layout = setLineKind.of({ from: line.from, kind: element });
   if (plan === null) {
-    if (layout) view.dispatch({ effects: layout });
+    const effects: StateEffect<unknown>[] = [setForcedList.of(null), layout];
+    // An empty line laid out as the next cue (after a speech, or the Char
+    // button) stays action, as Escape leaves it, so the cursor moves to
+    // the left margin and the cue list doesn't come back.
+    if (element === "action" && line.text.trim() === "")
+      effects.push(setDismissedCueLine.of(line.from));
+    view.dispatch({ effects });
     return;
   }
   const forced =

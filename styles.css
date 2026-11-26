@@ -244,7 +244,7 @@
   color: var(--text-accent);
 }
 
-/* Threads ("[&name]"), a Brass addition: a small 🧵 that goes to the
+/* Threads ("[&name]"), a Brass addition: a small ðŸ§µ that goes to the
    next place in the thread; the text, in its own color, while the cursor is
    on it. A snippet can set --brass-thread-color. */
 body {
@@ -1017,7 +1017,7 @@ body {
 .brass-phone-bar {
   display: flex;
   gap: 6px;
-  padding: 6px 8px;
+  padding: 8px;
   overflow-x: auto;
   scrollbar-width: none;
   background: var(--background-primary);
@@ -1026,12 +1026,25 @@ body {
 .brass-phone-bar::-webkit-scrollbar {
   display: none;
 }
+/* Buttons share the bar's width evenly, up to a limit; auto margins center
+   them, and unlike justify-content they keep the first button reachable
+   when there are more than fit and the bar scrolls. */
 .brass-phone-bar button {
-  flex: 0 0 auto;
-  min-height: 36px;
-  padding: 0 12px;
+  flex: 1 1 0;
+  min-width: fit-content;
+  max-width: 120px;
+  height: 48px;
+  min-height: 48px;
+  padding: 0 8px;
+  line-height: 1;
   white-space: nowrap;
-  font-size: var(--font-ui-small);
+  font-size: var(--font-ui-medium);
+}
+.brass-phone-bar button:first-child {
+  margin-inline-start: auto;
+}
+.brass-phone-bar button:last-child {
+  margin-inline-end: auto;
 }
 
 /* Fountain emphasis inside a thread's text (#338). */

@@ -45,7 +45,7 @@ export const PHONE_ACTIONS: readonly PhoneActionInfo[] = [
   { id: "slug", words: "Slug", emoji: "🎬", name: "New scene" },
   { id: "mini-slug", words: "Mini", emoji: "📍", name: "Mini slug (.)" },
   { id: "action", words: "Actn", emoji: "🏃", name: "Action" },
-  { id: "character", words: "Char", emoji: "🗣️", name: "Character" },
+  { id: "character", words: "Char", emoji: "🧑", name: "Character" },
   {
     id: "extension",
     words: "Ext",

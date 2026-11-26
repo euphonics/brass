@@ -13,6 +13,7 @@ project follows
 
 ### Fixed
 
+- **Phone toolbar.** Actn on an empty cue line with the character list open now closes the list and moves the cursor to the left margin. The buttons are taller and spread evenly across the bar, and Char shows 🧑, which is easier to see than 🗣️ on a dark theme.
 - **Link scene headings asks nothing per scene.** It links every scene that has an outline heading of the same name, both ways, and names the scenes it couldn't match in a notice. With no outline set yet, it uses "<script> Outline" from the script's folder and asks only when there is none.
 - **Emphasis in thread text.** `[&poison|*Savvy viewers suspect her.*]` shows its text in italics with the stars hidden; `**bold**` and `_underline_` work too.
 
