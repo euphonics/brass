@@ -91,6 +91,12 @@ flowchart TD
   (`+je`, `+mary a`). Picking one replaces the `+` and the typed letters
   with the name. Not after a letter, digit or `+` (`C++`, `1+1`), and not
   in dialogue, cues or other marked lines. Escape keeps what you typed.
+- **On a Markdown list line, Enter picks from an open list too** (#349),
+  instead of Obsidian adding a new bullet. With no list open, Enter adds the
+  bullet as usual.
+  - `- text +z|` {Zorana listed}, Enter: `- text Zorana|`.
+  - `- [ ] call +z|` {list}, Enter: `- [ ] call Zorana|`.
+  - `- text|` {no list}, Enter: `- text` then `- |`.
 - The name is written in mixed case: as the note already spells it in
   action (`McAllister`), or else each word capitalized (`Mary Ann`).
   Typed capitals (`+JE`) give capitals (`JEN`).

@@ -220,6 +220,25 @@ const keepTabCue = EditorState.transactionExtender.of((tr) => {
 });
 
 /**
+ * Whether Enter picks the highlighted item of Brass's open suggestion list
+ * (script mode; plain mode closes the list instead). Brass's own Enter,
+ * which runs first, does the pick: left to CodeMirror's list keymap,
+ * Obsidian's Enter ran before it and, on a Markdown list item
+ * (`- text +z`), continued the list instead of picking `Zorana` (#349).
+ */
+/** A Markdown list item ("- ", "* ", "+ ", "1. ", "- [ ] "), where Obsidian's own Enter adds a bullet (#349). */
+export function onListLine(text: string): boolean {
+  return /^\s*(?:[-*+]|\d+[.)])\s/u.test(text);
+}
+
+export function enterPicksFromList(
+  status: "active" | "pending" | null,
+  scriptMode: boolean,
+): boolean {
+  return scriptMode && status === "active";
+}
+
+/**
  * Turn the cursor's line into `element` (a "Set line to …" command): see
  * forceElementPlan. Opens the element's suggestion list on a blank line.
  */
@@ -1422,7 +1441,11 @@ export function createScreenplayCompletionExtension(
     if (emptyPick) {
       if (!acceptCompletion(view)) return true;
     } else if (wryly === "pick") acceptCompletion(view);
-    else if (completionStatus(view.state) === "active") return false;
+    else if (
+      enterPicksFromList(completionStatus(view.state), plugin.isScriptMode())
+    ) {
+      return acceptCompletion(view);
+    }
     const dropped = plugin.settings.smartEnterEnabled
       ? dropEmptyWrylyAbove(view)
       : null;
@@ -2203,6 +2226,29 @@ export function createScreenplayCompletionExtension(
         { key: "Enter", run: enter },
         { key: "Shift-Enter", run: shiftEnter },
       ]),
+    ),
+    // On a Markdown list line ("- text +z"), Obsidian's own Enter (a new
+    // bullet) comes before every keymap, so the open list never got the
+    // Enter. This runs before the keymaps, only then (#349). O(1).
+    Prec.highest(
+      EditorView.domEventHandlers({
+        keydown: (event, view) => {
+          if (event.key !== "Enter" || event.isComposing) return false;
+          if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey)
+            return false;
+          if (completionStatus(view.state) !== "active") return false;
+          const { state } = view;
+          if (!onListLine(state.doc.lineAt(state.selection.main.head).text))
+            return false;
+          const file = state.field(editorInfoField, false)?.file ?? null;
+          if (file === null || !plugin.isProjectNote(file)) return false;
+          const done = plugin.isScreenplayFile(file)
+            ? enter(view)
+            : acceptCompletion(view);
+          if (done) event.preventDefault();
+          return done;
+        },
+      }),
     ),
     // Typing ")" right before the ")" that closes a wryly or an extension
     // ("(beat|)", "JEN (V.O.|)") steps over it, as in Fade In, instead of
