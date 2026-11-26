@@ -33,6 +33,7 @@ import {
 } from "../screenplay/lines";
 import type BrassPlugin from "../main";
 import { docLineKinds } from "./docLines";
+import { stripThreads } from "../screenplay/threads";
 
 /*
  * Keep the cursor off blank lines between elements. A single blank line
@@ -133,7 +134,20 @@ export function actionBlocksJoin(
   const textBelow = doc.line(blank + 1);
   // The whole note: a cue is only a cue with its dialogue below it.
   const kinds = docLineKinds(doc);
-  if (kinds[blank - 2] !== "action" || kinds[blank] !== "action") return null;
+  // A line holding only a thread ("[&gun]") reads as a note, so it doesn't
+  // break a speech, but on its own between action it joins like action
+  // (#350).
+  const joinsAsAction = (index: number, text: string): boolean =>
+    kinds[index] === "action" ||
+    (kinds[index] === "note" &&
+      text.includes("[&") &&
+      stripThreads(text).trim() === "");
+  if (
+    !joinsAsAction(blank - 2, textAbove.text) ||
+    !joinsAsAction(blank, textBelow.text)
+  ) {
+    return null;
+  }
   const trimmedEnd = textAbove.from + textAbove.text.trimEnd().length;
   const startBelow =
     textBelow.from +

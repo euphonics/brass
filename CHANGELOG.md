@@ -16,6 +16,7 @@ project follows
 
 ### Fixed
 
+- **Backspace before a thread line.** Backspace at the start of a line holding only a thread (`[&black widow Fiona]`) joins it to the action above, as with any action line.
 - **Enter picks a name on a bullet line.** On `- text +z`, Enter now writes Zorana instead of starting a new bullet.
 - **Introducing a character in action.** Typing `TYLER (` in action no longer turns the line into a character with the extension list open, so `TYLER (30) walks in.` stays action. `TYLER (30s)` then Enter still makes a cue.
 - **Phone toolbar looks plainer and stays put.** Just the emoji, with no bar or round button shapes, and the buttons no longer slide up and down when nudged.

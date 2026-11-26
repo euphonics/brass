@@ -29,6 +29,7 @@ vi.mock("obsidian", async () => {
 });
 
 const {
+  actionBlocksJoin,
   createBlankLineLockExtension,
   cueGetsDialogue,
   cursorOffSeparator,
@@ -357,5 +358,31 @@ describe("cueGetsDialogue", () => {
     expect(
       cueGetsDialogue(bang, bang.line(2).to, bang.line(2).to + 1),
     ).toBeNull();
+  });
+});
+
+describe("actionBlocksJoin with a thread on its own line (#350)", () => {
+  const join = (text: string) => {
+    const doc = Text.of(text.split("\n"));
+    // Backspace at the start of the last line removes the break above it.
+    const last = doc.line(doc.lines);
+    return actionBlocksJoin(doc, last.from - 1, last.from);
+  };
+
+  it("joins a thread-only line onto the action above", () => {
+    const text = "Test. Test.\n\n[&black widow Fiona]";
+    const merge = join(text);
+    expect(merge).not.toBeNull();
+    if (merge === null) return;
+    const doc = text.slice(0, merge.from) + merge.insert + text.slice(merge.to);
+    expect(doc).toBe("Test. Test. [&black widow Fiona]");
+  });
+
+  it("joins action onto a thread-only line above", () => {
+    expect(join("[&gun]\n\nShe runs.")).not.toBeNull();
+  });
+
+  it("doesn't join a comment-only line", () => {
+    expect(join("Test.\n\n// a note")).toBeNull();
   });
 });

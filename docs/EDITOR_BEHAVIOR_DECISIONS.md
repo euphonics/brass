@@ -538,7 +538,12 @@ Test cases:
   reads it.
 - **Two action blocks join**: Backspace at the start of an action block
   right after another one (or Delete at the end of the first) makes one
-  paragraph, with a space between, as in Fade In.
+  paragraph, with a space between, as in Fade In. A line holding only a
+  thread counts as action here (#350), though it reads as a note elsewhere
+  so it doesn't break a speech:
+  - `Test. Test.` / blank / `|[&black widow Fiona]`, Backspace:
+    `Test. Test. |[&black widow Fiona]`.
+  - A line holding only a comment (`// note`) doesn't join this way.
 - Backspace at the start of a block goes to the end of the block above,
   and Delete at the end of a block does nothing: the single blank line
   between two blocks can't be deleted this way (it would merge them). An
