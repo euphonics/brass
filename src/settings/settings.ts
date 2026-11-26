@@ -159,6 +159,8 @@ export interface BrassSettings {
   phoneButtonItems: PhoneButtonItem[];
   /** Phone toolbar labels: short words or emoji. */
   phoneButtonLabels: "words" | "emoji";
+  /** Phone toolbar: Convert in a row above the others, or in the row. */
+  phoneConvertPlacement: "above" | "row";
   sceneTypeMinimumLetters: number;
   sceneTypeMatchCase: boolean;
   characterMatchCase: boolean;
@@ -453,6 +455,7 @@ export const DEFAULT_SETTINGS: BrassSettings = {
   phoneButtons: true,
   phoneButtonItems: DEFAULT_PHONE_BUTTONS.map((item) => ({ ...item })),
   phoneButtonLabels: "emoji",
+  phoneConvertPlacement: "above",
   sceneTypeMinimumLetters: 2,
   sceneTypeMatchCase: false,
   characterMatchCase: true,
@@ -569,6 +572,8 @@ export function migrateSettings(
   delete (settings as Record<string, unknown>).phoneButtonsConvert;
   if (settings.phoneButtonLabels !== "words")
     settings.phoneButtonLabels = "emoji";
+  if (settings.phoneConvertPlacement !== "row")
+    settings.phoneConvertPlacement = "above";
   // Clean export had one set of options for every format; each format
   // starts from it (#277).
   settings.cleanExport = normalizeCleanExportOptions(
@@ -910,7 +915,12 @@ export const SETTING_SECTIONS: {
   {
     heading: "Phone toolbar",
     master: "phoneButtons",
-    keys: ["phoneButtons", PHONE_BUTTONS_KEY, "phoneButtonLabels"],
+    keys: [
+      "phoneButtons",
+      PHONE_BUTTONS_KEY,
+      "phoneButtonLabels",
+      "phoneConvertPlacement",
+    ],
   },
   {
     heading: "Advanced",
@@ -2234,6 +2244,16 @@ export class BrassSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "Convert button",
+        desc: "Above: on its own, over the last button. In the row: with the others, in the order above.",
+        control: {
+          type: "dropdown",
+          key: "phoneConvertPlacement",
+          options: { above: "Above", row: "In the row" },
+          defaultValue: DEFAULT_SETTINGS.phoneConvertPlacement,
+        },
+      },
+      {
         name: "Show fountain code blocks as a script",
         desc: "In any note, a code block marked fountain shows with screenplay formatting. When off, it shows as plain code. Reopen notes after changing this.",
         control: {
@@ -2713,6 +2733,9 @@ export class BrassSettingTab extends PluginSettingTab {
     } else if (key === "phoneButtonLabels") {
       if (value !== "words" && value !== "emoji") return;
       this.plugin.settings.phoneButtonLabels = value;
+    } else if (key === "phoneConvertPlacement") {
+      if (value !== "above" && value !== "row") return;
+      this.plugin.settings.phoneConvertPlacement = value;
     } else if (key === "pageSize") {
       if (value !== "us-letter" && value !== "a4") return;
       this.plugin.settings.pageSize = value;
@@ -2748,7 +2771,11 @@ export class BrassSettingTab extends PluginSettingTab {
     ) {
       this.app.workspace.updateOptions();
     }
-    if (key === "phoneButtons" || key === "phoneButtonLabels") {
+    if (
+      key === "phoneButtons" ||
+      key === "phoneButtonLabels" ||
+      key === "phoneConvertPlacement"
+    ) {
       this.plugin.phoneToolbarChanged();
     }
     if (

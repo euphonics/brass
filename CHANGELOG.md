@@ -9,7 +9,7 @@ project follows
 
 ### Added
 
-- **Convert button on the phone toolbar.** Tap 🔄 and it stays lit; the next element button (Slug, Character, Wryly, Transition…) changes the current line into that element instead of starting a new one, then Convert releases. It replaces the "Convert the current line" setting.
+- **Convert button on the phone toolbar.** Tap 🔄 and it stays lit; the next element button (Slug, Character, Wryly, Transition…) changes the current line into that element instead of starting a new one, then Convert releases. It sits above the other buttons at the right (the **Convert button** setting can put it in the row). It replaces the "Convert the current line" setting.
 - **`&&` closes the thread too.** Typing `&&` now gives `[&]` with the cursor inside, and typing `]` at the end steps over the bracket instead of adding another.
 - **Threads panel hint.** The "only place" thread notice says Ctrl+click (Cmd+click on a Mac) shows the Threads panel.
 - **Delete a thread everywhere.** Each thread in the Threads panel has a trash button. It says how many places in how many notes will change and that it can't be undone, and Delete only works after you type YES. The new setting **Deleting a thread leaves** decides what's left: its text (`[&gun|the pistol]` becomes `the pistol`, the default) or nothing.

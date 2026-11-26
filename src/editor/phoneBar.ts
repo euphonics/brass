@@ -27,6 +27,8 @@ export interface PhoneButton {
   run: (view: EditorView, editor: Editor) => void;
   /** For a modifier button (Convert): whether it is pressed now. */
   pressed?: () => boolean;
+  /** Sits in a row above the main one, over its last button (Convert). */
+  above?: boolean;
 }
 
 export interface PhoneBarHost {
@@ -78,6 +80,19 @@ export function createPhoneBarExtension(host: PhoneBarHost): Extension {
       private build(): void {
         this.built = host.version();
         this.dom.empty();
+        const buttons = host.buttons();
+        const main = buttons.filter((button) => !button.above);
+        const raised = buttons.filter((button) => button.above);
+        // The row above lines up with the main row: blank spaces the size
+        // of the main buttons, then the raised buttons over the last ones.
+        const aboveRow =
+          raised.length > 0
+            ? this.dom.createDiv({ cls: "brass-phone-bar-above" })
+            : null;
+        if (aboveRow)
+          for (let i = raised.length; i < main.length; i++)
+            aboveRow.createSpan({ cls: "brass-phone-bar-blank" });
+        const mainRow = this.dom.createDiv({ cls: "brass-phone-bar-row" });
         const modifiers: [HTMLElement, () => boolean][] = [];
         // A tap on any button can press or release a modifier: redraw them.
         const showPressed = () => {
@@ -87,8 +102,12 @@ export function createPhoneBarExtension(host: PhoneBarHost): Extension {
             el.setAttribute("aria-pressed", String(on));
           }
         };
-        for (const { label, name, run, pressed } of host.buttons()) {
-          const button = this.dom.createEl("button", {
+        for (const { label, name, run, pressed, above } of [
+          ...raised,
+          ...main,
+        ]) {
+          const row = above && aboveRow ? aboveRow : mainRow;
+          const button = row.createEl("button", {
             text: label,
             attr: { "aria-label": name, title: name },
           });

@@ -1016,20 +1016,28 @@ body {
 /* Phones and tablets: element buttons under a script (src/editor/phoneBar.ts). */
 .brass-phone-bar {
   display: flex;
+  flex-direction: column;
   gap: 6px;
   padding: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
   background: var(--background-primary);
   border-top: 1px solid var(--background-modifier-border);
 }
-.brass-phone-bar::-webkit-scrollbar {
+.brass-phone-bar-row,
+.brass-phone-bar-above {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.brass-phone-bar-row::-webkit-scrollbar,
+.brass-phone-bar-above::-webkit-scrollbar {
   display: none;
 }
 /* Buttons share the bar's width evenly, up to a limit; auto margins center
    them, and unlike justify-content they keep the first button reachable
    when there are more than fit and the bar scrolls. */
-.brass-phone-bar button {
+.brass-phone-bar button,
+.brass-phone-bar-blank {
   flex: 1 1 0;
   min-width: fit-content;
   max-width: 120px;
@@ -1040,11 +1048,21 @@ body {
   white-space: nowrap;
   font-size: var(--font-ui-medium);
 }
-.brass-phone-bar button:first-child {
+.brass-phone-bar-row > :first-child,
+.brass-phone-bar-above > :first-child {
   margin-inline-start: auto;
 }
-.brass-phone-bar button:last-child {
+.brass-phone-bar-row > :last-child,
+.brass-phone-bar-above > :last-child {
   margin-inline-end: auto;
+}
+/* The row above is a little shorter; its blanks only hold the place. */
+.brass-phone-bar .brass-phone-bar-above > * {
+  height: 40px;
+  min-height: 40px;
+}
+.brass-phone-bar-blank {
+  visibility: hidden;
 }
 
 /* Fountain emphasis inside a thread's text (#338). */

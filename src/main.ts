@@ -991,7 +991,10 @@ export default class BrassPlugin extends Plugin {
             run: (cm: EditorView, editor: Editor) =>
               this.runPhoneAction(action, cm, editor),
             ...(action === "convert"
-              ? { pressed: () => this.phoneConvertPressed }
+              ? {
+                  pressed: () => this.phoneConvertPressed,
+                  above: this.settings.phoneConvertPlacement === "above",
+                }
               : {}),
           },
         ];

@@ -44,6 +44,16 @@ describe("phone toolbar settings", () => {
     ).toBe("emoji");
   });
 
+  it("put Convert above the row unless set to the row", () => {
+    expect(migrateSettings(null).phoneConvertPlacement).toBe("above");
+    expect(
+      migrateSettings({ phoneConvertPlacement: "row" }).phoneConvertPlacement,
+    ).toBe("row");
+    expect(
+      migrateSettings({ phoneConvertPlacement: "odd" }).phoneConvertPlacement,
+    ).toBe("above");
+  });
+
   it("start with the toolbar on and drop the old convert setting", () => {
     const settings = migrateSettings(null);
     expect(settings.phoneButtons).toBe(true);
