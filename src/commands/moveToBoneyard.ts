@@ -45,6 +45,13 @@ import {
 
 const PROPERTY = "boneyard";
 
+/** The picker's hint, the first time a note's text goes to a boneyard. */
+export const BONEYARD_PLACEHOLDER = "Pick or create a note to use as boneyard";
+
+/** Shown with that picker, so it's clear why it opened (#351). */
+export const FIRST_BONEYARD_NOTICE =
+  "Brass: You're archiving text to the boneyard for the first time in this note. Assign an existing note or create a new note to be the boneyard.";
+
 /**
  * Where the text comes from: a screenplay, or the note a screenplay names
  * as its outline (#300), which has its own boneyard note.
@@ -87,9 +94,11 @@ async function boneyardTarget(
   }
   const set = noteFromProperty(app, file, editor.getValue(), PROPERTY);
   if (set !== null) return set;
+  // The first time in this note: say what the picker is for (#351).
+  new Notice(FIRST_BONEYARD_NOTICE, 10000);
   const target = await pickNearbyNote(app, file, {
     title: `Boneyard note for this ${what}`,
-    placeholder: "Pick a note, or create one",
+    placeholder: BONEYARD_PLACEHOLDER,
     create: {
       label: `Create "${file.basename} Boneyard" next to this ${what}`,
       path: siblingPath(file, "Boneyard"),

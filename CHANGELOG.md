@@ -16,6 +16,7 @@ project follows
 
 ### Fixed
 
+- **Clearer first boneyard picker.** The first time a note's text goes to a boneyard, a notice says why the picker opened, and its hint reads "Pick or create a note to use as boneyard".
 - **Backspace before a thread line.** Backspace at the start of a line holding only a thread (`[&black widow Fiona]`) joins it to the action above, as with any action line.
 - **Enter picks a name on a bullet line.** On `- text +z`, Enter now writes Zorana instead of starting a new bullet.
 - **Introducing a character in action.** Typing `TYLER (` in action no longer turns the line into a character with the extension list open, so `TYLER (30) walks in.` stays action. `TYLER (30s)` then Enter still makes a cue.
