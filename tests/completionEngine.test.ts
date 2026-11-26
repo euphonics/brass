@@ -238,16 +238,27 @@ describe("screenplay completion engine", () => {
     ]);
   });
 
-  it("offers extensions for a new name in capitals starting a block", () => {
-    const plan = (source: string) =>
+  it("offers extensions for a new name only on a line set to a character", () => {
+    const plan = (source: string, force?: "character") =>
       getScreenplayCompletionPlan(
         source,
         source.length,
         DEFAULT_COMPLETION_PREFERENCES,
+        false,
+        undefined,
+        undefined,
+        force,
       )?.kind;
-    expect(plan("My action.\n\nJOHN (")).toBe("character-extension");
-    expect(plan("My action.\n\nJOHN(")).toBe("character-extension");
-    // Not inside an action paragraph, and not for ordinary text.
+    // Set to a character (Tab, the Character button): the list opens.
+    expect(plan("My action.\n\nJOHN (", "character")).toBe(
+      "character-extension",
+    );
+    expect(plan("My action.\n\nJOHN(", "character")).toBe(
+      "character-extension",
+    );
+    // In action, "TYLER (30) walks in" introduces a character: no list
+    // (#348). Enter at the end of "TYLER (30s)" still makes it a cue.
+    expect(plan("My action.\n\nTYLER (")).not.toBe("character-extension");
     expect(plan("My action.\nJOHN (")).not.toBe("character-extension");
     expect(plan("My action.\n\nShe waves (")).not.toBe("character-extension");
   });

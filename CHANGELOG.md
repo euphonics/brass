@@ -16,6 +16,7 @@ project follows
 
 ### Fixed
 
+- **Introducing a character in action.** Typing `TYLER (` in action no longer turns the line into a character with the extension list open, so `TYLER (30) walks in.` stays action. `TYLER (30s)` then Enter still makes a cue.
 - **Phone toolbar looks plainer and stays put.** Just the emoji, with no bar or round button shapes, and the buttons no longer slide up and down when nudged.
 - **Phone Slug button.** It opens the scene type list in the editor, as the Character button does, instead of a run of full-screen pickers.
 - **Phone toolbar.** The Action button on an empty cue line with the character list open now closes the list and moves the cursor to the left margin. The buttons are taller and spread evenly across the bar, and the Character button shows 🧑, which is easier to see than 🗣️ on a dark theme. With word labels, buttons use full words (Action, Character, Transition…).

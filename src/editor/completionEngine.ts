@@ -228,7 +228,8 @@ function extensionPlan(
   const character = typed.replace(/^@/u, "").trim().toLocaleUpperCase();
   if (!character) return null;
   // A known character, or a new one: a name in capitals (or "@name")
-  // starting a block, before it has any dialogue.
+  // starting a block on a line set to a character, before it has any
+  // dialogue.
   if (
     !characters.includes(character) &&
     !(startsBlock && looksLikeCharacterCue(typed))
@@ -820,7 +821,10 @@ export function getScreenplayCompletionPlan(
     from,
     cursorOffset,
     characterNames,
-    from === 0 || previousLine.trim() === "",
+    // A new name only on a line already set to a character (Tab, the
+    // Character button): "TYLER (30) walks in" introduces a character in
+    // action, so typing "(" there leaves the line action (#348).
+    force === "character" && (from === 0 || previousLine.trim() === ""),
     preferences.customExtensionsFirst === true,
   );
   if (extensions) return extensions;

@@ -247,8 +247,15 @@ Test cases:
   (ON RADIO), (ON PHONE), then the other extensions the script already uses,
   most used first (`(UNINTELLIGIBLE)` once it's been typed). Setting **Your
   extensions first** (off by default) puts the script's own before the
-  standard ones. It opens even for a name not yet in the script, if the line
-  starts a block (changed 2026-11-22).
+  standard ones. For a name not yet in the script it opens only on a line
+  already set to a character (Tab, the Character button) that starts a block
+  (changed 2026-11-22; narrowed 2026-11-26, #348). In action, a new name and
+  `(` stay action, because characters are introduced that way:
+  - `TYLER (|`: action, no list. `TYLER (30) walks in.|`: action.
+  - `TYLER (30s)|`, Enter: a cue, with a dialogue line below (the line ends
+    without punctuation, see below).
+  - Empty line, Tab (character column), `TYLER (|`: the extension list.
+  - `JANE (|` in action with JANE already a cue in the script: the list.
 - **A cue whose text is deleted stays a cue line** (list open, capitals),
   and a name pasted there is put in capitals.
 - **An empty line after a speech is the next cue's line only when nothing
