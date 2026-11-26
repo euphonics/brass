@@ -2231,7 +2231,7 @@ export class BrassSettingTab extends PluginSettingTab {
       },
       {
         name: "Button labels",
-        desc: "Emoji (🎬, 🧑) or short words (Slug, Char). The list above shows both.",
+        desc: "Emoji (🎬, 🧑) or words (Slug, Character). The list above shows both.",
         control: {
           type: "dropdown",
           key: "phoneButtonLabels",

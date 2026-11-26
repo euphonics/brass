@@ -21,7 +21,7 @@ vi.mock("obsidian", () => ({ editorInfoField: {} }));
 
 const { characterLinePlan } = await import("../src/editor/completion");
 
-describe("Char button: a new character line", () => {
+describe("Character button: a new character line", () => {
   it("adds a blank line and a new line after a line with text", () => {
     expect(characterLinePlan("She runs.", "")).toEqual({
       insert: "\n\n",

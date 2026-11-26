@@ -292,7 +292,7 @@ export function characterLinePlan(
 /**
  * Start a character cue on a new line, as Enter and then Smart Tab would:
  * the cue is laid out indented and Brass's character list opens in the
- * editor (the phone toolbar's Char button).
+ * editor (the phone toolbar's Character button).
  */
 export function newCharacterLine(view: EditorView): void {
   const { state } = view;
@@ -2207,8 +2207,8 @@ export function createScreenplayCompletionExtension(
       return true;
     }),
     // Typing "&&" in a screenplay or a note of its project (#321) starts a
-    // thread: it becomes "[&", and the thread list opens (#299). Faster
-    // than reaching for "[".
+    // thread: it becomes "[&]" with the cursor before "]" (#339), and the
+    // thread list opens (#299). Faster than reaching for "[".
     EditorView.inputHandler.of((view, from, to, text) => {
       if (text !== "&" || from !== to) return false;
       const { settings } = plugin;
@@ -2223,11 +2223,26 @@ export function createScreenplayCompletionExtension(
       if (before === "[" || before === "&") return false;
       const file = state.field(editorInfoField, false)?.file ?? null;
       if (file === null || !plugin.isProjectNote(file)) return false;
+      // The "]" is added too, unless one already follows.
+      const close = state.doc.sliceString(to, to + 1) === "]" ? "" : "]";
       view.dispatch({
-        changes: { from: from - 1, to, insert: "[&" },
+        changes: { from: from - 1, to, insert: `[&${close}` },
         selection: { anchor: from + 1 },
         userEvent: "input.type",
       });
+      return true;
+    }),
+    // Typing "]" just before a thread's own "]" steps over it rather than
+    // adding a second one (#339).
+    EditorView.inputHandler.of((view, from, to, text) => {
+      if (text !== "]" || from !== to) return false;
+      if (!plugin.settings.threadsEnabled) return false;
+      const { state } = view;
+      if (state.selection.ranges.length > 1) return false;
+      if (state.doc.sliceString(from, from + 1) !== "]") return false;
+      const line = state.doc.lineAt(from);
+      if (!threadOpenBefore(line.text.slice(0, from - line.from))) return false;
+      view.dispatch({ selection: { anchor: from + 1 }, userEvent: "select" });
       return true;
     }),
     // Suggestion lists fit inside the editor pane, so one opened near the
@@ -2249,6 +2264,11 @@ export function createScreenplayCompletionExtension(
     }),
     EditorState.languageData.of(() => [{ autocomplete: source }]),
   ];
+}
+
+/** Whether `before` (a line up to the cursor) ends inside a `[&…`. */
+export function threadOpenBefore(before: string): boolean {
+  return /\[&[^\]\n]*$/u.test(before);
 }
 
 /**

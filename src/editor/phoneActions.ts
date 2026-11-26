@@ -43,19 +43,24 @@ export interface PhoneActionInfo {
 export const PHONE_ACTIONS: readonly PhoneActionInfo[] = [
   { id: "tab-back", words: "<--Tab", emoji: "⬅️", name: "Smart Tab back" },
   { id: "slug", words: "Slug", emoji: "🎬", name: "New scene" },
-  { id: "mini-slug", words: "Mini", emoji: "📍", name: "Mini slug (.)" },
-  { id: "action", words: "Actn", emoji: "🏃", name: "Action" },
-  { id: "character", words: "Char", emoji: "🧑", name: "Character" },
+  { id: "mini-slug", words: "Mini slug", emoji: "📍", name: "Mini slug (.)" },
+  { id: "action", words: "Action", emoji: "🏃", name: "Action" },
+  { id: "character", words: "Character", emoji: "🧑", name: "Character" },
   {
     id: "extension",
-    words: "Ext",
+    words: "Extension",
     emoji: "🎙️",
     name: "Character extension (V.O.)",
   },
   { id: "wryly", words: "Wryly", emoji: "🤔", name: "Wryly" },
-  { id: "transition", words: "Trans", emoji: "✂️", name: "Transition" },
-  { id: "centered", words: "><", emoji: "🎯", name: "Centered text" },
-  { id: "dual-dialogue", words: "Dual", emoji: "👥", name: "Dual dialogue" },
+  { id: "transition", words: "Transition", emoji: "✂️", name: "Transition" },
+  { id: "centered", words: "Centered", emoji: "🎯", name: "Centered text" },
+  {
+    id: "dual-dialogue",
+    words: "Dual dialogue",
+    emoji: "👥",
+    name: "Dual dialogue",
+  },
   { id: "tab", words: "Tab-->", emoji: "➡️", name: "Smart Tab" },
 ];
 

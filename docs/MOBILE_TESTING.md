@@ -35,7 +35,7 @@ impractical; use BRAT.
 ## Element buttons
 
 In a script, Brass shows its own row of buttons above the keyboard toolbar:
-<--Tab, Slug, Actn, Char and Tab--> (settings
+⬅️ Smart Tab back, 🎬 Slug, 🏃 Action, 🧑 Character and ➡️ Smart Tab (settings
 section **Phone toolbar**: pick and order the buttons, emoji labels, convert
 the current line). Test that each button
 works, that the keyboard stays up when tapping, that the row scrolls sideways

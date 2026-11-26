@@ -19,6 +19,7 @@ import {
   EditorSuggest,
   MarkdownView,
   Notice,
+  Platform,
   TFile,
   editorInfoField,
   type App,
@@ -105,6 +106,21 @@ export function threadScope(
 }
 
 /** The threads in each reachable note, read when asked and cached. */
+/**
+ * The notice when a thread has nowhere else to go, with the Threads panel
+ * hint (#340): Ctrl+click, or Cmd+click on a Mac.
+ */
+export function onlyPlaceNotice(
+  name: string,
+  across: boolean,
+  mac: boolean,
+): string {
+  const panel = `${mac ? "Cmd" : "Ctrl"}+click to show the Threads panel.`;
+  return across
+    ? `🧵 ${name}: this is the only place in this thread. ${panel}`
+    : `🧵 ${name}: the only place in this note. Alt+click to look in the project and linked notes. ${panel}`;
+}
+
 export class ThreadIndex {
   private cache = new Map<
     string,
@@ -209,11 +225,7 @@ export class ThreadNavigator {
       step,
     );
     if (target === null) {
-      new Notice(
-        across
-          ? `🧵 ${mark.name}: this is the only place in this thread.`
-          : `🧵 ${mark.name}: the only place in this note. Alt+click to look in the project and linked notes.`,
-      );
+      new Notice(onlyPlaceNotice(mark.name, across, Platform.isMacOS));
       return;
     }
     if (target.path === file.path && !newTab) {
@@ -270,11 +282,7 @@ export class ThreadNavigator {
       step,
     );
     if (target === null) {
-      new Notice(
-        across
-          ? `🧵 ${mark.name}: this is the only place in this thread.`
-          : `🧵 ${mark.name}: the only place in this note. Alt+click to look in the project and linked notes.`,
-      );
+      new Notice(onlyPlaceNotice(mark.name, across, Platform.isMacOS));
       return;
     }
     await this.goTo(target.path, target.to);
