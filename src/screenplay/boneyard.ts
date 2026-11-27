@@ -29,6 +29,18 @@ export interface BoneyardBlock {
    * there is none.
    */
   heading: string | null;
+  /**
+   * The Markdown headings the block sits under, outermost first
+   * (`# Act 1`, then `## The heist`), so the boneyard note can file it
+   * under the same headings (#355). Empty when there are none.
+   */
+  headings?: BoneyardHeading[];
+}
+
+/** A Markdown heading: its level (1 for "#") and its text. */
+export interface BoneyardHeading {
+  level: number;
+  text: string;
 }
 
 /** A change to the script: replace `from`..`to` with `insert`. */
@@ -82,6 +94,27 @@ export function findBoneyard(
     }
     return null;
   };
+  // Every heading above, each one level up from the last: "# Act 1",
+  // then "## The heist", outermost first.
+  const headingsBefore = (offset: number): BoneyardHeading[] => {
+    const found: BoneyardHeading[] = [];
+    let below = 7;
+    let at = lineStartOf(offset);
+    while (at > bodyStart && below > 1) {
+      const previousEnd = at - 1;
+      const previousStart = lineStartOf(previousEnd);
+      const heading = /^(#{1,6})[ \t]+(.+?)[ \t#]*$/u.exec(
+        source.slice(previousStart, previousEnd),
+      );
+      const level = heading?.[1]?.length ?? 7;
+      if (heading && level < below) {
+        found.unshift({ level, text: heading[2] ?? "" });
+        below = level;
+      }
+      at = previousStart;
+    }
+    return found;
+  };
   const sceneBefore = (offset: number): string | null => {
     let at = lineStartOf(offset);
     while (at > bodyStart) {
@@ -97,10 +130,12 @@ export function findBoneyard(
   // One block, from `open` to `blockEnd`, its text `inner`.
   const take = (open: number, blockEnd: number, inner: string): void => {
     const text = inner.trim();
+    const headings = headingsBefore(open);
     blocks.push({
       text,
       scene: sceneBefore(open),
       heading: headingBefore(open),
+      ...(headings.length > 0 ? { headings } : {}),
     });
 
     const startLine = lineStartOf(open);
@@ -231,6 +266,119 @@ export function boneyardSection(
         }]]\n\n${texts.filter((text) => text !== "").join("\n\n")}\n`,
     )
     .join("\n");
+}
+
+/** The headings of a Markdown note: line, level, text (not in code). */
+function noteHeadings(
+  lines: readonly string[],
+): { line: number; level: number; text: string }[] {
+  const found: { line: number; level: number; text: string }[] = [];
+  let start = 0;
+  if (lines[0]?.trim() === "---") {
+    const close = lines.findIndex(
+      (line, at) => at > 0 && line.trim() === "---",
+    );
+    if (close > 0) start = close + 1;
+  }
+  let fence = false;
+  for (let at = start; at < lines.length; at += 1) {
+    const text = lines[at] ?? "";
+    if (/^\s*(```|~~~)/u.test(text)) fence = !fence;
+    if (fence) continue;
+    const heading = /^(#{1,6})[ \t]+(.+?)[ \t#]*$/u.exec(text);
+    if (heading) {
+      found.push({
+        line: at,
+        level: heading[1]?.length ?? 1,
+        text: heading[2] ?? "",
+      });
+    }
+  }
+  return found;
+}
+
+const sameHeading = (a: string, b: string): boolean =>
+  a.trim().toLocaleLowerCase() === b.trim().toLocaleLowerCase();
+
+/**
+ * The boneyard note with `blocks` added (#355). Text that sat under
+ * headings in the script (`# Act 1`, `## The heist`) goes under the same
+ * headings in the boneyard note: found where they are, or added at the end
+ * of their parent heading's section (or of the note). Under them, each
+ * scene's text gets a heading of its own one level down, then the
+ * "Archived on" line, as before. Text under no heading goes at the end.
+ */
+export function addToBoneyard(
+  note: string,
+  blocks: readonly BoneyardBlock[],
+  date: string,
+  scriptName: string,
+  outline = false,
+): string {
+  // Consecutive blocks under the same headings and scene go together.
+  const groups: { blocks: BoneyardBlock[]; key: string }[] = [];
+  for (const block of blocks) {
+    const key = JSON.stringify([block.headings ?? [], block.scene]);
+    const last = groups[groups.length - 1];
+    if (last !== undefined && last.key === key) last.blocks.push(block);
+    else groups.push({ blocks: [block], key });
+  }
+  let text = note;
+  for (const group of groups) {
+    const first = group.blocks[0];
+    if (first === undefined) continue;
+    const path = first.headings ?? [];
+    const section = boneyardSection(group.blocks, date, scriptName, outline);
+    if (path.length === 0) {
+      text = text.trim() === "" ? section : `${text.trimEnd()}\n\n${section}`;
+      continue;
+    }
+    const lines = text.trim() === "" ? [] : text.trimEnd().split("\n");
+    const headings = noteHeadings(lines);
+    // Find each heading of the path inside the section of the one before.
+    let from = 0;
+    let to = lines.length;
+    let found = 0;
+    for (const want of path) {
+      const match = headings.find(
+        (heading) =>
+          heading.line >= from &&
+          heading.line < to &&
+          heading.level === want.level &&
+          sameHeading(heading.text, want.text),
+      );
+      if (match === undefined) break;
+      const next = headings.find(
+        (heading) => heading.line > match.line && heading.level <= match.level,
+      );
+      from = match.line + 1;
+      to = Math.min(to, next?.line ?? lines.length);
+      found += 1;
+    }
+    const deepest = path[path.length - 1]?.level ?? 1;
+    const added = path
+      .slice(found)
+      .map((heading) => `${"#".repeat(heading.level)} ${heading.text}`);
+    // From an outline the title was the heading itself, now above it:
+    // the date instead.
+    const marks = "#".repeat(Math.min(6, deepest + 1));
+    const entry = outline
+      ? section.trimEnd().replace(/^## .*/u, `${marks} ${date}`)
+      : section.trimEnd().replace(/^## /u, `${marks} `);
+    // At the end of the section, before the blank lines that close it.
+    let insertAt = to;
+    while (insertAt > from && (lines[insertAt - 1] ?? "").trim() === "") {
+      insertAt -= 1;
+    }
+    const before = lines.slice(0, insertAt).join("\n").trimEnd();
+    const after = lines.slice(insertAt).join("\n").trim();
+    const chunk = [...added, entry].join("\n\n");
+    text =
+      (before === "" ? "" : `${before}\n\n`) +
+      chunk +
+      (after === "" ? "\n" : `\n\n${after}\n`);
+  }
+  return text;
 }
 
 /**

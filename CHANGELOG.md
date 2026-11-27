@@ -7,8 +7,14 @@ project follows
 
 ## [Unreleased]
 
+### Changed
+
+- **Suggestion lists close when they're no use**, like Fade In: once the only item is what you've typed (`FIONA`, `(beat)`), the list goes away and Enter does its usual job.
+
 ### Added
 
+- **Boneyard keeps your headings.** Text moved to the boneyard lands under the same headings it had in the script (`# Act 1`, `## The heist`), which are added to the boneyard note if they aren't there yet.
+- **`+` names in every element.** The `+` character list now works in dialogue, wrylies, sluglines and cues too; sluglines and cues get the name in capitals.
 - **Placeholders panel.** The command **Show placeholders** lists every `$placeholder` in the note and its project folder, with where each is used; click a line to go there.
 - **Hide synopses.** Turn off **Show synopses** (Look of the page) and synopsis lines (`= ...`) are hidden until the cursor is on one; the slugline or heading above shows 📝, and clicking it shows the synopsis.
 - **Convert button on the phone toolbar.** Tap 🔄 and it stays lit; the next element button (Slug, Character, Wryly, Transition…) changes the current line into that element instead of starting a new one, then Convert releases. It sits above the other buttons at the right (the **Convert button** setting can put it in the row). It replaces the "Convert the current line" setting.

@@ -94,6 +94,7 @@ import {
 import {
   characterExtensionChoices,
   getScreenplayCompletionPlan,
+  listIsUseless,
   noteNameCandidates,
   type CompletionCandidate,
 } from "./completionEngine";
@@ -473,6 +474,14 @@ export function createScreenplayCompletionExtension(
       others,
     );
     if (names.length === 0) return null;
+    if (
+      listIsUseless(
+        state.doc.sliceString(from, pos),
+        names.map((label) => ({ label })),
+      )
+    ) {
+      return null;
+    }
     return {
       from,
       to: pos,
@@ -501,6 +510,8 @@ export function createScreenplayCompletionExtension(
     index: ScreenplayIndex,
     editorSource: string,
     inScript: boolean,
+    /** Sluglines, cues and transitions take names in capitals (#354). */
+    capitals = false,
   ): CompletionResult | null => {
     const mentionPrefix = plugin.settings.characterMentionPrefix;
     const from = context.pos - typed.length - mentionPrefix.length;
@@ -539,15 +550,28 @@ export function createScreenplayCompletionExtension(
       groups.length,
       Math.max(3, limit - names.length),
     );
+    const inCase = (text: string): string =>
+      capitals ? text.toLocaleUpperCase() : text;
     const items = [
       ...names
         .slice(0, Math.max(0, limit - keepGroups))
-        .map((text) => ({ text, detail: "Character" })),
+        .map((text) => ({ text: inCase(text), detail: "Character" })),
       ...groups
         .slice(0, keepGroups)
-        .map((text) => ({ text, detail: "Characters" })),
-    ];
+        .map((text) => ({ text: inCase(text), detail: "Characters" })),
+    ].filter(
+      (item, at, all) =>
+        all.findIndex((other) => other.text === item.text) === at,
+    );
     if (items.length === 0) return null;
+    if (
+      listIsUseless(
+        context.state.doc.sliceString(from, context.pos),
+        items.map(({ text }) => ({ label: text })),
+      )
+    ) {
+      return null;
+    }
     return {
       from,
       to: context.pos,
@@ -726,13 +750,24 @@ export function createScreenplayCompletionExtension(
       line.text.slice(0, context.pos - line.from),
       mentionPrefix,
     );
-    if (
-      mention !== null &&
-      (actionLine ||
-        docLineKinds(context.state.doc, line.number - 1)[line.number - 1] ===
-          "action")
-    ) {
-      return mentionResult(context, mention.typed, index, editorSource, true);
+    // "+" works in every element (#354): action, dialogue, wrylies,
+    // sluglines. Sluglines, cues and transitions get the name in capitals.
+    if (mention !== null) {
+      const kind = actionLine
+        ? "action"
+        : docLineKinds(context.state.doc, line.number - 1)[line.number - 1];
+      const capitals =
+        kind === "scene-heading" ||
+        kind === "character" ||
+        kind === "transition";
+      return mentionResult(
+        context,
+        mention.typed,
+        index,
+        editorSource,
+        true,
+        capitals,
+      );
     }
     const forced =
       context.state.field(forcedListField, false) ??
@@ -791,6 +826,18 @@ export function createScreenplayCompletionExtension(
           : [{ label, applyText: own, detail: "Current" }]),
         ...candidates.filter((candidate) => !matches(candidate.label)),
       ];
+    }
+
+    // Only what's already typed left: no list (#353). Not over a selected
+    // part, where the list is there to swap the part for another.
+    if (
+      !overSelection &&
+      listIsUseless(
+        context.state.doc.sliceString(plan.from, plan.to),
+        candidates,
+      )
+    ) {
+      return null;
     }
 
     return {

@@ -23,7 +23,7 @@ const now = (): { format: (pattern: string) => string } =>
 import type { App, Editor, MarkdownView, TFile } from "obsidian";
 import type BrassPlugin from "../main";
 import {
-  boneyardSection,
+  addToBoneyard,
   findBoneyard,
   toggleBoneyardMarkers,
 } from "../screenplay/boneyard";
@@ -124,14 +124,11 @@ async function moveBlocks(
   source: BoneyardSource,
 ): Promise<void> {
   const app = plugin.app;
-  const section = boneyardSection(
-    blocks,
-    today(app),
-    app.metadataCache.fileToLinktext(file, target.path),
-    source === "outline",
-  );
+  const date = today(app);
+  const scriptName = app.metadataCache.fileToLinktext(file, target.path);
+  // Under the same headings as in the script, found or added (#355).
   await app.vault.process(target, (text) =>
-    text.trim() === "" ? section : `${text.trimEnd()}\n\n${section}`,
+    addToBoneyard(text, blocks, date, scriptName, source === "outline"),
   );
   // Take the text out of the script in one step, so one Undo puts it
   // back (the boneyard note keeps its copy).

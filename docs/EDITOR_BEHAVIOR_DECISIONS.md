@@ -85,12 +85,31 @@ flowchart TD
 - Two `$` on one line can look like Obsidian inline math (`$a and '$b`):
   Obsidian then renders the text between them as math.
 
+## Lists that are no use close (#353)
+
+- Like Fade In, a suggestion list closes once its only item is exactly
+  what's typed (a space or line break the pick would add doesn't count).
+  Enter and Tab then do their usual jobs.
+- It stays when picking would change something (case, a filled-in time,
+  the `+`), and over a selected part (Tab's Next part), where it's there to
+  swap the part.
+  - [ ] Characters FIONA, JEN, JENNY. New block, type `FIONA`: no list.
+        Enter: `FIONA` then `|` on a dialogue line.
+  - [ ] Type `JEN`: the list shows JEN and JENNY.
+  - [ ] Wryly, type `(beat`: `(beat|)`, no list.
+
 ## + character names in action (Brass addition)
 
-- Typing `+` in an action line lists the characters, narrowed as you type
-  (`+je`, `+mary a`). Picking one replaces the `+` and the typed letters
-  with the name. Not after a letter, digit or `+` (`C++`, `1+1`), and not
-  in dialogue, cues or other marked lines. Escape keeps what you typed.
+- Typing `+` lists the characters, narrowed as you type (`+je`,
+  `+mary a`). Picking one replaces the `+` and the typed letters with the
+  name. Not after a letter, digit or `+` (`C++`, `1+1`). Escape keeps what
+  you typed.
+- **In every element** (#354, 2026-11-26; was action only): dialogue,
+  wrylies, sluglines, cues and transitions too. Sluglines, cues and
+  transitions get the name in capitals.
+  - [ ] Dialogue `I saw +fi|`, Enter: `I saw Fiona|`.
+  - [ ] Wryly `(to +fi|)`, Enter: `(to Fiona|)`.
+  - [ ] Slugline `INT. +fi|`, Enter: `INT. FIONA|`.
 - **On a Markdown list line, Enter picks from an open list too** (#349),
   instead of Obsidian adding a new bullet. With no list open, Enter adds the
   bullet as usual.

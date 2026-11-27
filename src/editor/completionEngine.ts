@@ -771,6 +771,25 @@ export function noteNameCandidates(
     : { from: before.length - word.length, names };
 }
 
+/**
+ * True when a list would only offer what is already typed (#353): one
+ * item, and picking it changes nothing but a space or line break after
+ * it ("FIONA" with only FIONA left, "(beat)" in a wryly). Like Fade In,
+ * the list then closes, so Enter and Tab do their usual jobs.
+ */
+export function listIsUseless(
+  typed: string,
+  candidates: readonly { label: string; applyText?: string }[],
+): boolean {
+  if (candidates.length !== 1) return false;
+  const only = candidates[0];
+  if (only === undefined) return false;
+  const text = typed.trim();
+  if (text === "") return false;
+  const result = (only.applyText ?? only.label).trim();
+  return result === text;
+}
+
 export function getScreenplayCompletionPlan(
   source: string,
   cursorOffset: number,
