@@ -44,6 +44,14 @@ describe("phone toolbar settings", () => {
     ).toBe("emoji");
   });
 
+  it("start with Enter adding a line above on phones (#361)", () => {
+    expect(migrateSettings(null).phoneEnterAddsLineAbove).toBe(true);
+    expect(
+      migrateSettings({ phoneEnterAddsLineAbove: false })
+        .phoneEnterAddsLineAbove,
+    ).toBe(false);
+  });
+
   it("drop the old Convert placement setting (#360)", () => {
     expect(
       "phoneConvertPlacement" in

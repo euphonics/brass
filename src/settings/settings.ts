@@ -146,6 +146,11 @@ export interface BrassSettings {
    * under the cue as Fade In does (off).
    */
   enterAfterCueMovesDown: boolean;
+  /**
+   * On phones and tablets, Enter at the start of a line with a blank line
+   * above moves the line down and leaves an empty line above it (#361).
+   */
+  phoneEnterAddsLineAbove: boolean;
   /** Tab at the start of dialogue with text adds "()" above (off: Fade In). */
   tabAtDialogueStartAddsWryly: boolean;
   editorLayout: EditorLayout;
@@ -423,6 +428,7 @@ export const DEFAULT_SETTINGS: BrassSettings = {
   tabWithListScript: "pick",
   backspaceEmptyCueToAction: true,
   enterAfterCueMovesDown: true,
+  phoneEnterAddsLineAbove: true,
   tabAtDialogueStartAddsWryly: true,
   indentActionWithSpaces: true,
   capitalizeLineStartsScript: true,
@@ -825,6 +831,7 @@ export const SETTING_SECTIONS: {
       "tabAtDialogueStartAddsWryly",
       "backspaceEmptyCueToAction",
       "enterAfterCueMovesDown",
+      "phoneEnterAddsLineAbove",
       "shiftTabInsideScript",
       "shiftTabInsidePlain",
       "indentActionWithSpaces",
@@ -2519,6 +2526,15 @@ export class BrassSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: "On phones, Enter at the start of a line adds a line above",
+        desc: "Phones and tablets, strict cursor placement on. Enter at the start of a slugline, character or other element with a blank line above moves it down and leaves an empty line above it to type in, as in Fade In. Off: Enter does nothing there (action still moves down).",
+        control: {
+          type: "toggle",
+          key: "phoneEnterAddsLineAbove",
+          defaultValue: DEFAULT_SETTINGS.phoneEnterAddsLineAbove,
+        },
+      },
+      {
         name: "Indent action with spaces",
         desc: "Spaces at the start of an action line indent it, in the preview and in exports too, as Fountain allows (for a note, a sign, a letter). Tabs don't indent action: Tab moves between elements. Turn off to ignore those spaces in the preview and exports.",
         control: {
@@ -2826,6 +2842,7 @@ export class BrassSettingTab extends PluginSettingTab {
       case "showCurrentElement":
       case "backspaceEmptyCueToAction":
       case "enterAfterCueMovesDown":
+      case "phoneEnterAddsLineAbove":
       case "pdfContinued":
       case "customExtensionsFirst":
       case "tabAtDialogueStartAddsWryly":

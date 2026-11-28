@@ -368,6 +368,18 @@ Test cases:
 - **Enter never leaves improper formatting (strict, both modes):**
   - On an empty line, or at the start of a line, with a blank line above:
     nothing. The line is already where the next element goes.
+    - On phones and tablets (setting **On phones, Enter at the start of a
+      line adds a line above**, on by default, #361): at the start of a
+      line with text, the line moves down and an empty action line is left
+      above it, cursor there, as in Fade In. Without it there was no way
+      to add a line above the first element of a note. An empty line
+      still does nothing; computers keep the rule above.
+      - [ ] Phone, `|TEST` at the top (frontmatter, blank above), Enter:
+            `|`, blank, `TEST`; the cursor at the left margin.
+      - [ ] Phone, `|INT. HOUSE - DAY` after action, Enter: `|`, blank,
+            the slugline.
+      - [ ] Phone, empty line with a blank above, Enter: nothing.
+      - [ ] Computer, `|TEST`, Enter: nothing.
   - At the end of an unfinished slugline (`INT.`, `INT. HOUSE - `):
     nothing.
   - On an empty `()` with the wryly list closed (or in plain mode): with

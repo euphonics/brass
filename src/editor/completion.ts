@@ -72,7 +72,7 @@ import {
   type TransactionSpec,
 } from "@codemirror/state";
 import { EditorView, keymap, tooltips } from "@codemirror/view";
-import { editorInfoField, type TFile } from "obsidian";
+import { Platform, editorInfoField, type TFile } from "obsidian";
 import type { ScreenplayIndex } from "../screenplay/model";
 import type BrassPlugin from "../main";
 import {
@@ -1633,6 +1633,25 @@ export function createScreenplayCompletionExtension(
     }
     if (doc.line(line.number - 1).text.trim() !== "") return false;
     if (inCodeBlock(doc, line.number)) return false;
+    // On a phone (setting, #361): any element moves down, leaving an empty
+    // line above it to type in, cursor there. Without it there was no way
+    // to add a line above the first element of a note.
+    if (
+      line.text.trim() !== "" &&
+      Platform.isMobile &&
+      plugin.settings.phoneEnterAddsLineAbove
+    ) {
+      view.dispatch({
+        changes: { from: line.from, insert: "\n\n" },
+        selection: { anchor: line.from },
+        scrollIntoView: true,
+        userEvent: "input",
+      });
+      // The new line starts as action, at the left margin (not laid out
+      // as the next cue).
+      forceElement(view, "action");
+      return true;
+    }
     // At the start of an action paragraph: the paragraph moves down with
     // the cursor, leaving an empty action above it (as in Fade In).
     if (

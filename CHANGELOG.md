@@ -9,6 +9,7 @@ project follows
 
 ### Changed
 
+- **On phones, Enter at the start of a line adds a line above.** With the cursor at the start of a slugline, character or any element after a blank line (the first element under the frontmatter included), Enter moves it down and leaves an empty line above to type in, as in Fade In. Before, Enter did nothing there, so nothing could go above the first element. Setting: **On phones, Enter at the start of a line adds a line above** (Typing helpers, on by default).
 - **🔄 on the phone toolbar now cycles the element.** Each tap changes the line to the next element: slugline, action, character, transition, and round. On an empty line it changes what the line is about to become; on a line with text it converts the text, and going all the way round gives the text back as it was. In a speech it toggles wryly and dialogue. It takes the place of ⬅️ Smart Tab back, which is now hidden by default (show it again under **Phone toolbar**). It replaces the Convert button and its placement setting.
 
 ## [0.3.0] - 2026-11-27
