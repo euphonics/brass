@@ -7,6 +7,8 @@ project follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-27
+
 ### Changed
 
 - **Suggestion lists close when they're no use**, like Fade In: once the only item is what you've typed (`FIONA`, `(beat)`), the list goes away and Enter does its usual job.
