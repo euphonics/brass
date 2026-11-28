@@ -24,6 +24,7 @@ project follows
 
 ### Fixed
 
+- **Text after a boneyard is no longer italic.** After `/* ... */` (in a wryly or inside a line), the rest of the paragraph showed in italics; it now shows as typed.
 - **Enter in a code block adds one line.** Typing a ``` block in a screenplay note no longer adds an empty line with each Enter before the closing fence is typed.
 - **Clearer first boneyard picker.** The first time a note's text goes to a boneyard, a notice says why the picker opened, and its hint reads "Pick or create a note to use as boneyard".
 - **Backspace before a thread line.** Backspace at the start of a line holding only a thread (`[&black widow Fiona]`) joins it to the action above, as with any action line.

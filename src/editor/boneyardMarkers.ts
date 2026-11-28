@@ -29,6 +29,7 @@ import {
   type EditorView,
   type ViewUpdate,
 } from "@codemirror/view";
+import { syntaxTree } from "@codemirror/language";
 import { editorInfoField } from "obsidian";
 import type BrassPlugin from "../main";
 import { findLineComment } from "../screenplay/lines";
@@ -113,22 +114,51 @@ export function boneyardStars(text: string): number[] {
 }
 
 export function createBoneyardMarkerExtension(plugin: BrassPlugin): Extension {
+  const plainText = Decoration.mark({ class: "brass-not-emphasis" });
   const build = (view: EditorView): DecorationSet => {
     const file = view.state.field(editorInfoField, false)?.file ?? null;
     if (file === null || !plugin.isScreenplayFile(file)) return Decoration.none;
-    const builder = new RangeSetBuilder<Decoration>();
+    const ranges: Range<Decoration>[] = [];
     const visible = view.visibleRanges;
+    const stars = new Set<number>();
     for (const at of boneyardStars(view.state.doc.toString())) {
       if (!visible.some((range) => at >= range.from && at < range.to)) {
         continue;
       }
-      builder.add(
-        at,
-        at + 1,
-        Decoration.replace({ widget: new MarkerWidget("*") }),
+      stars.add(at);
+      ranges.push(
+        Decoration.replace({ widget: new MarkerWidget("*") }).range(at, at + 1),
       );
     }
-    return builder.finish();
+    // Obsidian reads the "*" of "*\/" as the start of italics, so the text
+    // after a boneyard turned italic up to the next blank line (#359).
+    // Italics that a boneyard star opened show as plain text.
+    if (stars.size > 0) {
+      const tree = syntaxTree(view.state);
+      for (const { from, to } of visible) {
+        let plain = false;
+        tree.iterate({
+          from,
+          to,
+          enter: (node) => {
+            if (node.from === node.to) return;
+            const names = node.name.split("_");
+            if (names.includes("formatting-em")) {
+              if (stars.has(node.from)) plain = true;
+              else if (plain) {
+                ranges.push(plainText.range(node.from, node.to));
+                plain = false;
+              }
+              return;
+            }
+            if (plain && names.includes("em")) {
+              ranges.push(plainText.range(node.from, node.to));
+            }
+          },
+        });
+      }
+    }
+    return Decoration.set(ranges, true);
   };
   return Prec.highest(
     ViewPlugin.fromClass(

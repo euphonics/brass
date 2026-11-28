@@ -1124,3 +1124,11 @@ body {
   cursor: pointer;
   user-select: none;
 }
+
+/* Text after a boneyard ("/* ... *\/") that Obsidian reads as italics:
+   plain, as Fountain shows it (#359). */
+.markdown-source-view.mod-cm6 .brass-not-emphasis,
+.markdown-source-view.mod-cm6 .brass-not-emphasis .cm-em,
+.markdown-source-view.mod-cm6 .cm-em .brass-not-emphasis {
+  font-style: normal !important;
+}
