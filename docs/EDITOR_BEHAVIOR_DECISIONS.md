@@ -85,6 +85,15 @@ flowchart TD
 - Two `$` on one line can look like Obsidian inline math (`$a and '$b`):
   Obsidian then renders the text between them as math.
 
+## Enter in a code block (#358)
+
+- On a ``` opening fence or inside a code block, closed or not, Enter is
+  Obsidian's own: one new line, no screenplay spacing. After the closing
+  fence, Enter is a screenplay Enter again.
+  - [ ] ` ```| ` (no closing fence), Enter: ` ``` ` then `|`.
+  - [ ] ` ``` ` / `The function.|`, Enter: one new line, `|`.
+  - [ ] ` ``` ` / `One.` / ` ```| `, Enter: a blank line, then `|`.
+
 ## Lists that are no use close (#353)
 
 - Like Fade In, a suggestion list closes once its only item is exactly

@@ -34,6 +34,7 @@ import {
 import { forceElementPlan, type ForcedElement } from "./forceElement";
 import { menuLineKind } from "./layoutClassifier";
 import { docLineKinds, docLines } from "./docLines";
+import { inCodeFence } from "./codeFence";
 import { variableAtEnd, variableSuggestions } from "./variables";
 import { ProjectVariables } from "./projectVariables";
 import {
@@ -1441,6 +1442,9 @@ export function createScreenplayCompletionExtension(
   // dialogue, a new speaker. An open suggestion menu keeps Enter for
   // accepting.
   const enter = (view: EditorView): boolean => {
+    // Inside a code block, closed or not: Obsidian's own Enter, one line
+    // and no screenplay spacing (#358).
+    if (inCodeFence(view.state, view.state.selection.main.head)) return false;
     // Script mode, the wryly list open on a bare "()": Enter picks the
     // highlighted wryly and goes on, as with a typed one (below). With the
     // list closed, the empty-"()" rules apply.
