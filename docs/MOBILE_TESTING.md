@@ -35,9 +35,10 @@ impractical; use BRAT.
 ## Element buttons
 
 In a script, Brass shows its own row of buttons above the keyboard toolbar:
-⬅️ Smart Tab back, 🎬 Slug, 🏃 Action, 🧑 Character and ➡️ Smart Tab (settings
-section **Phone toolbar**: pick and order the buttons, emoji labels, convert
-the current line). Test that each button
+🔄 Cycle, 🎬 Slug, 🏃 Action, 🧑 Character and ➡️ Smart Tab (settings
+section **Phone toolbar**: pick and order the buttons, emoji labels). Cycle
+steps the line through slugline, action, character and transition (wryly and
+dialogue in a speech). Test that each button
 works, that the keyboard stays up when tapping, that the row scrolls sideways
 on a narrow phone, and that it never shows in a plain note.
 

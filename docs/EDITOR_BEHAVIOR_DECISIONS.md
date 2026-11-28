@@ -622,6 +622,37 @@ Test cases:
   wouldn't read as a character.
 - After a line is set to character, anything typed on it is uppercased
   (setting: **Uppercase character names as you type**).
+- A line holding only an element's start (`> `, `()`, `.`) counts as empty:
+  it starts over as the new element (#360). `> ` set to slugline is an empty
+  slugline line with the scene types open, not a lone `.`.
+
+### Cycle button on the phone toolbar (#360)
+
+- 🔄 Cycle changes the cursor's line to the next element: slugline, action,
+  character, transition, then slugline again. On an empty line it changes
+  the element the line is about to become (its column and list); on a line
+  with text it converts the text, as the Set line to commands do. A blank
+  line or another element (centered) counts as action, so it goes to
+  character next.
+- Under a character (the line right below a cue, wryly or dialogue), only
+  wryly and dialogue keep the speech valid Fountain, so it toggles between
+  them. Fade In cycles through every element; Fountain infers dialogue from
+  the cue above, so the other elements can't sit there.
+- Taps in a row convert the line's text from before the first tap, so going
+  round doesn't pile up changes: `she waits` round to action is `she waits`
+  again, not `!SHE WAITS`. Any other edit or moving the cursor ends the run.
+- ⬅️ Smart Tab back is hidden by default (Cycle takes its place); the
+  Phone toolbar setting can show it again. Cycle replaced the Convert
+  button and its placement setting; a saved Convert button becomes Cycle in
+  its place.
+  - [ ] Empty line after action, Cycle ×4: character column (list), `> `
+        with transitions, slugline column with scene types, action column.
+  - [ ] `she waits|`, Cycle ×4: `SHE WAITS`, `> SHE WAITS`, `.SHE WAITS`,
+        `she waits`.
+  - [ ] `FIONA` / `hello there|`, Cycle: `(hello there)`; again:
+        `hello there`.
+  - [ ] `FIONA` / `|`, Cycle: `(|)` with the wryly list; again: `|` as
+        dialogue.
 
 - **Toggle dual dialogue** (command, #211): with the cursor anywhere in a
   speech, adds ` ^` to its cue (`BLAKE` → `BLAKE ^`), or removes it. It

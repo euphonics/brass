@@ -18,7 +18,7 @@
 /** The actions a phone toolbar button can run. */
 export type PhoneAction =
   | "tab-back"
-  | "convert"
+  | "cycle"
   | "slug"
   | "mini-slug"
   | "action"
@@ -44,10 +44,10 @@ export interface PhoneActionInfo {
 export const PHONE_ACTIONS: readonly PhoneActionInfo[] = [
   { id: "tab-back", words: "<--Tab", emoji: "⬅️", name: "Smart Tab back" },
   {
-    id: "convert",
-    words: "Convert",
+    id: "cycle",
+    words: "Cycle",
     emoji: "🔄",
-    name: "Convert: the next element button changes the current line",
+    name: "Cycle the line's element (slugline, action, character...)",
   },
   { id: "slug", words: "Slug", emoji: "🎬", name: "New scene" },
   { id: "mini-slug", words: "Mini slug", emoji: "📍", name: "Mini slug (.)" },
@@ -78,8 +78,7 @@ export interface PhoneButtonItem {
 
 /** The buttons a new install shows, in this order; the rest start hidden. */
 const DEFAULT_SHOWN: readonly PhoneAction[] = [
-  "tab-back",
-  "convert",
+  "cycle",
   "slug",
   "action",
   "character",
@@ -103,7 +102,9 @@ export function normalizePhoneButtons(saved: unknown): PhoneButtonItem[] {
   const seen = new Set<string>();
   if (Array.isArray(saved)) {
     for (const entry of saved as unknown[]) {
-      const action = (entry as { action?: unknown } | null)?.action;
+      const raw = (entry as { action?: unknown } | null)?.action;
+      // Cycle replaced the Convert button, in its place.
+      const action = raw === "convert" ? "cycle" : raw;
       if (typeof action !== "string" || !known.has(action) || seen.has(action))
         continue;
       seen.add(action);
@@ -115,12 +116,25 @@ export function normalizePhoneButtons(saved: unknown): PhoneButtonItem[] {
   } else {
     return DEFAULT_PHONE_BUTTONS.map((item) => ({ ...item }));
   }
-  // Convert replaced the "Convert the current line" setting: lists saved
-  // before it get it shown, after <--Tab.
-  if (!seen.has("convert")) {
-    const at = items.findIndex((item) => item.action === "tab-back") + 1;
-    items.splice(at, 0, { action: "convert", shown: true });
-    seen.add("convert");
+  // The old default row (<--Tab, Convert, Slug, Action, Character, Tab-->)
+  // becomes the new one: Cycle takes <--Tab's place.
+  const OLD_DEFAULT = [
+    "tab-back",
+    "cycle",
+    "slug",
+    "action",
+    "character",
+    "tab",
+  ];
+  const shownNow = items
+    .filter((item) => item.shown)
+    .map((item) => item.action);
+  if (
+    items.length >= OLD_DEFAULT.length &&
+    OLD_DEFAULT.every((action, index) => items[index]?.action === action) &&
+    shownNow.join() === OLD_DEFAULT.join()
+  ) {
+    return DEFAULT_PHONE_BUTTONS.map((item) => ({ ...item }));
   }
   // Other actions added in a later version start hidden.
   for (const { action } of DEFAULT_PHONE_BUTTONS)

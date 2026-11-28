@@ -244,10 +244,20 @@ export function enterPicksFromList(
  * Turn the cursor's line into `element` (a "Set line to …" command): see
  * forceElementPlan. Opens the element's suggestion list on a blank line.
  */
-export function forceElement(view: EditorView, element: ForcedElement): void {
+export function forceElement(
+  view: EditorView,
+  element: ForcedElement,
+  /** Text to convert instead of the line's own (the Cycle button's first). */
+  source?: string,
+): void {
   const { state } = view;
   const line = state.doc.lineAt(state.selection.main.head);
-  const plan = forceElementPlan(line.text, element);
+  const from = source ?? line.text;
+  const plan =
+    forceElementPlan(from, element) ??
+    (from === line.text
+      ? null
+      : { text: from, cursor: from.length, complete: null });
   // Whatever list is open belongs to the old element: close it. The new
   // element's own list (if it has one) opens below.
   closeCompletion(view);

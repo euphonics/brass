@@ -44,14 +44,11 @@ describe("phone toolbar settings", () => {
     ).toBe("emoji");
   });
 
-  it("put Convert above the row unless set to the row", () => {
-    expect(migrateSettings(null).phoneConvertPlacement).toBe("above");
+  it("drop the old Convert placement setting (#360)", () => {
     expect(
-      migrateSettings({ phoneConvertPlacement: "row" }).phoneConvertPlacement,
-    ).toBe("row");
-    expect(
-      migrateSettings({ phoneConvertPlacement: "odd" }).phoneConvertPlacement,
-    ).toBe("above");
+      "phoneConvertPlacement" in
+        migrateSettings({ phoneConvertPlacement: "row" }),
+    ).toBe(false);
   });
 
   it("start with the toolbar on and drop the old convert setting", () => {

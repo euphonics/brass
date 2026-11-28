@@ -16,6 +16,7 @@
  */
 
 import {
+  type LineKind,
   isSceneHeading,
   isTransitionText,
   looksLikeCharacterCue,
@@ -73,8 +74,10 @@ export function forceElementPlan(
   element: ForcedElement,
 ): ForceElementPlan | null {
   const trimmed = line.trim();
-  const blank = trimmed === "";
   const content = withoutMarkers(line);
+  // Only an element's start ("> ", "()", ".") counts as blank: the line
+  // starts over as the new element (#360).
+  const blank = content === "" || /^\(\s*\)$/u.test(content);
 
   switch (element) {
     case "scene-heading": {
@@ -118,7 +121,7 @@ export function forceElementPlan(
       return plan(`> ${content} <`);
 
     case "action": {
-      if (blank) return null;
+      if (blank) return trimmed === "" ? null : plan("");
       // A wryly set to action loses its brackets: "(text)" -> "text".
       const unwrapped = /^\(.*\)$/u.test(content)
         ? content.slice(1, -1).trim()
@@ -132,4 +135,38 @@ export function forceElementPlan(
       return text === trimmed ? null : plan(text);
     }
   }
+}
+
+/** Elements the phone toolbar's Cycle button steps through (#360). */
+export type CycleKind =
+  | "scene-heading"
+  | "action"
+  | "character"
+  | "transition"
+  | "parenthetical"
+  | "dialogue";
+
+/** On their own: slugline, action, character, transition, and round. */
+const STANDALONE: readonly CycleKind[] = [
+  "scene-heading",
+  "action",
+  "character",
+  "transition",
+];
+
+/**
+ * The element after `current` in the cycle. Under a character (a line in
+ * a speech), only wryly and dialogue keep the speech valid Fountain, so it
+ * toggles between them. Anything else (a blank line, centered text) counts
+ * as action.
+ */
+export function nextCycleKind(
+  current: LineKind | null,
+  inSpeech: boolean,
+): CycleKind {
+  if (inSpeech)
+    return current === "parenthetical" ? "dialogue" : "parenthetical";
+  const found = STANDALONE.indexOf(current as CycleKind);
+  const at = found < 0 ? STANDALONE.indexOf("action") : found;
+  return STANDALONE[(at + 1) % STANDALONE.length] ?? "action";
 }

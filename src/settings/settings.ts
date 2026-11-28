@@ -159,8 +159,6 @@ export interface BrassSettings {
   phoneButtonItems: PhoneButtonItem[];
   /** Phone toolbar labels: short words or emoji. */
   phoneButtonLabels: "words" | "emoji";
-  /** Phone toolbar: Convert in a row above the others, or in the row. */
-  phoneConvertPlacement: "above" | "row";
   /** Off: synopsis lines ("= ...") fold away until the cursor is on them (#352). */
   showSynopses: boolean;
   sceneTypeMinimumLetters: number;
@@ -457,7 +455,6 @@ export const DEFAULT_SETTINGS: BrassSettings = {
   phoneButtons: true,
   phoneButtonItems: DEFAULT_PHONE_BUTTONS.map((item) => ({ ...item })),
   phoneButtonLabels: "emoji",
-  phoneConvertPlacement: "above",
   showSynopses: true,
   sceneTypeMinimumLetters: 2,
   sceneTypeMatchCase: false,
@@ -571,12 +568,11 @@ export function migrateSettings(
   settings.enterTargets = normalizeEnterTargets(rest.enterTargets);
   settings.pdfBold = normalizePdfBold(rest.pdfBold);
   settings.phoneButtonItems = normalizePhoneButtons(rest.phoneButtonItems);
-  // Replaced by the phone toolbar's Convert button.
+  // Replaced by the phone toolbar's Convert button, then by Cycle (#360).
   delete (settings as Record<string, unknown>).phoneButtonsConvert;
+  delete (settings as Record<string, unknown>).phoneConvertPlacement;
   if (settings.phoneButtonLabels !== "words")
     settings.phoneButtonLabels = "emoji";
-  if (settings.phoneConvertPlacement !== "row")
-    settings.phoneConvertPlacement = "above";
   // Clean export had one set of options for every format; each format
   // starts from it (#277).
   settings.cleanExport = normalizeCleanExportOptions(
@@ -919,12 +915,7 @@ export const SETTING_SECTIONS: {
   {
     heading: "Phone toolbar",
     master: "phoneButtons",
-    keys: [
-      "phoneButtons",
-      PHONE_BUTTONS_KEY,
-      "phoneButtonLabels",
-      "phoneConvertPlacement",
-    ],
+    keys: ["phoneButtons", PHONE_BUTTONS_KEY, "phoneButtonLabels"],
   },
   {
     heading: "Advanced",
@@ -2248,16 +2239,6 @@ export class BrassSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "Convert button",
-        desc: "Above: on its own, over the last button. In the row: with the others, in the order above.",
-        control: {
-          type: "dropdown",
-          key: "phoneConvertPlacement",
-          options: { above: "Above", row: "In the row" },
-          defaultValue: DEFAULT_SETTINGS.phoneConvertPlacement,
-        },
-      },
-      {
         name: "Show synopses",
         desc: "Off: synopsis lines (= The heist goes wrong.) are hidden until the cursor is on one, and the slugline or heading above shows 📝. Click it to see the synopsis.",
         control: {
@@ -2746,9 +2727,6 @@ export class BrassSettingTab extends PluginSettingTab {
     } else if (key === "phoneButtonLabels") {
       if (value !== "words" && value !== "emoji") return;
       this.plugin.settings.phoneButtonLabels = value;
-    } else if (key === "phoneConvertPlacement") {
-      if (value !== "above" && value !== "row") return;
-      this.plugin.settings.phoneConvertPlacement = value;
     } else if (key === "pageSize") {
       if (value !== "us-letter" && value !== "a4") return;
       this.plugin.settings.pageSize = value;
@@ -2785,11 +2763,7 @@ export class BrassSettingTab extends PluginSettingTab {
     ) {
       this.app.workspace.updateOptions();
     }
-    if (
-      key === "phoneButtons" ||
-      key === "phoneButtonLabels" ||
-      key === "phoneConvertPlacement"
-    ) {
+    if (key === "phoneButtons" || key === "phoneButtonLabels") {
       this.plugin.phoneToolbarChanged();
     }
     if (

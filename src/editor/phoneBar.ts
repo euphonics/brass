@@ -25,10 +25,6 @@ export interface PhoneButton {
   /** Accessible name and tooltip. */
   name: string;
   run: (view: EditorView, editor: Editor) => void;
-  /** For a modifier button (Convert): whether it is pressed now. */
-  pressed?: () => boolean;
-  /** Sits in a row above the main one, over its last button (Convert). */
-  above?: boolean;
 }
 
 export interface PhoneBarHost {
@@ -80,43 +76,14 @@ export function createPhoneBarExtension(host: PhoneBarHost): Extension {
       private build(): void {
         this.built = host.version();
         this.dom.empty();
-        const buttons = host.buttons();
-        const main = buttons.filter((button) => !button.above);
-        const raised = buttons.filter((button) => button.above);
-        // The row above lines up with the main row: blank spaces the size
-        // of the main buttons, then the raised buttons over the last ones.
-        const aboveRow =
-          raised.length > 0
-            ? this.dom.createDiv({ cls: "brass-phone-bar-above" })
-            : null;
-        if (aboveRow)
-          for (let i = raised.length; i < main.length; i++)
-            aboveRow.createSpan({ cls: "brass-phone-bar-blank" });
         const mainRow = this.dom.createDiv({ cls: "brass-phone-bar-row" });
-        const modifiers: [HTMLElement, () => boolean][] = [];
-        // A tap on any button can press or release a modifier: redraw them.
-        const showPressed = () => {
-          for (const [el, pressed] of modifiers) {
-            const on = pressed();
-            el.toggleClass("is-active", on);
-            el.setAttribute("aria-pressed", String(on));
-          }
-        };
-        for (const { label, name, run, pressed, above } of [
-          ...raised,
-          ...main,
-        ]) {
-          const row = above && aboveRow ? aboveRow : mainRow;
-          const button = row.createEl("button", {
+        for (const { label, name, run } of host.buttons()) {
+          const button = mainRow.createEl("button", {
             text: label,
             attr: { "aria-label": name, title: name },
           });
           // Emoji labels draw larger than words.
           if (!/[A-Za-z]/u.test(label)) button.addClass("brass-phone-emoji");
-          if (pressed) {
-            button.addClass("brass-phone-modifier");
-            modifiers.push([button, pressed]);
-          }
           // Keep the editor focused and the keyboard up while tapping. Only
           // pointerdown is stopped, so the bar can still scroll sideways.
           button.addEventListener("pointerdown", (event) =>
@@ -128,10 +95,8 @@ export function createPhoneBarExtension(host: PhoneBarHost): Extension {
               false,
             )?.editor;
             if (editor) run(this.view, editor);
-            showPressed();
           });
         }
-        showPressed();
       }
 
       private sync(): void {

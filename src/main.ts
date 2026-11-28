@@ -19,6 +19,7 @@ import { createDualDialogueExtension } from "./editor/dualDialogueView";
 import { EditorView } from "@codemirror/view";
 import type { Extension } from "@codemirror/state";
 import { pressTab } from "./editor/pressTab";
+import { cycleElement } from "./editor/cycleElement";
 import { stripObsidianFrontmatter } from "./export/fountain";
 import type { ScreenplayStatistics } from "./screenplay/model";
 import {
@@ -1010,42 +1011,21 @@ export default class BrassPlugin extends Plugin {
             name: info.name,
             run: (cm: EditorView, editor: Editor) =>
               this.runPhoneAction(action, cm, editor),
-            ...(action === "convert"
-              ? {
-                  pressed: () => this.phoneConvertPressed,
-                  above: this.settings.phoneConvertPlacement === "above",
-                }
-              : {}),
           },
         ];
       });
   }
 
-  /** The phone toolbar's Convert button is pressed (waiting for an element). */
-  phoneConvertPressed = false;
-
-  /**
-   * What a phone toolbar button does. After Convert, the next element
-   * button turns the current line into the element (like the "Set line to"
-   * commands) instead of starting a new one; any button releases Convert.
-   */
+  /** What a phone toolbar button does. */
   private runPhoneAction(
     action: PhoneAction,
     cm: EditorView,
     editor: Editor,
   ): void {
-    if (action === "convert") {
-      this.phoneConvertPressed = !this.phoneConvertPressed;
-      return;
-    }
-    const converting = this.phoneConvertPressed;
-    this.phoneConvertPressed = false;
-    const convert = (element: ForcedElement): boolean => {
-      if (!converting) return false;
-      forceElement(cm, element);
-      return true;
-    };
     switch (action) {
+      case "cycle":
+        cycleElement(cm);
+        return;
       case "tab-back":
         pressTab(cm, true);
         return;
@@ -1053,16 +1033,16 @@ export default class BrassPlugin extends Plugin {
         pressTab(cm, false);
         return;
       case "slug":
-        if (!convert("scene-heading")) newSceneLine(cm);
+        newSceneLine(cm);
         return;
       case "mini-slug":
-        if (!convert("scene-heading")) openMiniSlug(this, editor);
+        openMiniSlug(this, editor);
         return;
       case "action":
         return forceElement(cm, "action");
       case "character":
         // A new line with the character list open, as Enter then Smart Tab.
-        if (!convert("character")) newCharacterLine(cm);
+        newCharacterLine(cm);
         return;
       case "extension":
         if (isLikelyCharacterCue(editor.getLine(editor.getCursor().line)))
@@ -1070,10 +1050,10 @@ export default class BrassPlugin extends Plugin {
         else new Notice("Put the cursor on a character name first.");
         return;
       case "wryly":
-        if (!convert("parenthetical")) openParenthetical(this, editor);
+        openParenthetical(this, editor);
         return;
       case "transition":
-        if (!convert("transition")) openTransition(this, editor);
+        openTransition(this, editor);
         return;
       case "centered":
         return forceElement(cm, "centered");

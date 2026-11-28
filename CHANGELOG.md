@@ -7,6 +7,10 @@ project follows
 
 ## [Unreleased]
 
+### Changed
+
+- **🔄 on the phone toolbar now cycles the element.** Each tap changes the line to the next element: slugline, action, character, transition, and round. On an empty line it changes what the line is about to become; on a line with text it converts the text, and going all the way round gives the text back as it was. In a speech it toggles wryly and dialogue. It takes the place of ⬅️ Smart Tab back, which is now hidden by default (show it again under **Phone toolbar**). It replaces the Convert button and its placement setting.
+
 ## [0.3.0] - 2026-11-27
 
 ### Changed

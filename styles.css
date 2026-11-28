@@ -1021,8 +1021,7 @@ body {
   padding: 4px 8px;
   background: transparent;
 }
-.brass-phone-bar-row,
-.brass-phone-bar-above {
+.brass-phone-bar-row {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1033,15 +1032,13 @@ body {
   overscroll-behavior: contain;
   scrollbar-width: none;
 }
-.brass-phone-bar-row::-webkit-scrollbar,
-.brass-phone-bar-above::-webkit-scrollbar {
+.brass-phone-bar-row::-webkit-scrollbar {
   display: none;
 }
 /* Buttons share the bar's width evenly, up to a limit; auto margins center
    them, and unlike justify-content they keep the first button reachable
    when there are more than fit and the bar scrolls. */
-.brass-phone-bar button,
-.brass-phone-bar-blank {
+.brass-phone-bar button {
   flex: 1 1 0;
   min-width: fit-content;
   max-width: 120px;
@@ -1053,8 +1050,7 @@ body {
   font-size: var(--font-ui-medium);
 }
 /* Just the emoji (or words): no button shape, border or shadow. */
-.brass-phone-bar .brass-phone-bar-row > button,
-.brass-phone-bar .brass-phone-bar-above > button {
+.brass-phone-bar .brass-phone-bar-row > button {
   background: transparent;
   border: none;
   box-shadow: none;
@@ -1063,21 +1059,11 @@ body {
 .brass-phone-bar button.brass-phone-emoji {
   font-size: 1.5em;
 }
-.brass-phone-bar-row > :first-child,
-.brass-phone-bar-above > :first-child {
+.brass-phone-bar-row > :first-child {
   margin-inline-start: auto;
 }
-.brass-phone-bar-row > :last-child,
-.brass-phone-bar-above > :last-child {
+.brass-phone-bar-row > :last-child {
   margin-inline-end: auto;
-}
-/* The row above is a little shorter; its blanks only hold the place. */
-.brass-phone-bar .brass-phone-bar-above > * {
-  height: 40px;
-  min-height: 40px;
-}
-.brass-phone-bar-blank {
-  visibility: hidden;
 }
 
 /* Fountain emphasis inside a thread's text (#338). */
@@ -1109,14 +1095,6 @@ body {
 }
 .brass-delete-thread-input {
   text-transform: uppercase;
-}
-
-/* The phone toolbar's Convert button while pressed: the next element
-   button changes the current line. */
-.brass-phone-bar .brass-phone-bar-above > button.brass-phone-modifier.is-active,
-.brass-phone-bar .brass-phone-bar-row > button.brass-phone-modifier.is-active {
-  background-color: var(--interactive-accent);
-  color: var(--text-on-accent);
 }
 
 /* The mark after a slugline or heading whose synopsis is hidden (#352). */
