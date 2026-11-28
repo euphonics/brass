@@ -25,6 +25,7 @@ import type BrassPlugin from "../main";
 import {
   addToBoneyard,
   findBoneyard,
+  scriptHeadings,
   toggleBoneyardMarkers,
 } from "../screenplay/boneyard";
 import {
@@ -127,8 +128,9 @@ async function moveBlocks(
   const date = today(app);
   const scriptName = app.metadataCache.fileToLinktext(file, target.path);
   // Under the same headings as in the script, found or added (#355).
+  const order = scriptHeadings(editor.getValue());
   await app.vault.process(target, (text) =>
-    addToBoneyard(text, blocks, date, scriptName, source === "outline"),
+    addToBoneyard(text, blocks, date, scriptName, source === "outline", order),
   );
   // Take the text out of the script in one step, so one Undo puts it
   // back (the boneyard note keeps its copy).

@@ -115,6 +115,10 @@ if (resetSettings) {
 for (const name of ["main.js", "manifest.json", "styles.css"]) {
   await copyFile(path.join(projectRoot, name), path.join(pluginRoot, name));
 }
+// The Hot Reload plugin only reloads a plugin folder with this marker, so
+// a computer that gets the vault through Dropbox picks up each build. It
+// was lost when the plugin folder was renamed to brass.
+await writeFile(path.join(pluginRoot, ".hotreload"), "");
 console.log(`Installed Brass in ${pluginRoot}`);
 
 // Reload the running plugin, so it reads the defaults rather than saving

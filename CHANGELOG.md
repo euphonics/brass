@@ -13,7 +13,7 @@ project follows
 
 ### Added
 
-- **Boneyard keeps your headings.** Text moved to the boneyard lands under the same headings it had in the script (`# Act 1`, `## The heist`), which are added to the boneyard note if they aren't there yet.
+- **Boneyard keeps your headings.** Text moved to the boneyard lands under the same headings it had in the script (`# Act 1`, `## The heist`). A heading the boneyard note doesn't have yet is added in the script's order, so `# Act 1` goes before `# Act 2`.
 - **`+` names in every element.** The `+` character list now works in dialogue, wrylies, sluglines and cues too; sluglines and cues get the name in capitals.
 - **Placeholders panel.** The command **Show placeholders** lists every `$placeholder` in the note and its project folder, with where each is used; click a line to go there.
 - **Hide synopses.** Turn off **Show synopses** (Look of the page) and synopsis lines (`= ...`) are hidden until the cursor is on one; the slugline or heading above shows 📝, and clicking it shows the synopsis.

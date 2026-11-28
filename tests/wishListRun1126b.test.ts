@@ -17,7 +17,11 @@
 
 import { describe, expect, it } from "vitest";
 import { listIsUseless } from "../src/editor/completionEngine";
-import { addToBoneyard, findBoneyard } from "../src/screenplay/boneyard";
+import {
+  addToBoneyard,
+  findBoneyard,
+  scriptHeadings,
+} from "../src/screenplay/boneyard";
 
 describe("no list when only what's typed is left (#353)", () => {
   it("closes on a fully typed name that is the only match", () => {
@@ -141,6 +145,23 @@ describe("boneyard keeps the script's headings (#355)", () => {
     );
     expect(result.indexOf("## The heist")).toBeLessThan(
       result.indexOf("# Act 2"),
+    );
+  });
+
+  it("adds a missing act before the later acts (#356)", () => {
+    const script = "# Act 1\n\n/* early */\n\n# Act 2\n\nx\n\n# Act 3\n\ny\n";
+    const early = findBoneyard(script).blocks;
+    const note = "# Act 2\n\nTwo.\n\n# Act 3\n\nThree.\n";
+    const result = addToBoneyard(
+      note,
+      early,
+      "D",
+      "Script",
+      false,
+      scriptHeadings(script),
+    );
+    expect(result).toBe(
+      "# Act 1\n\n## Before the first scene\n\nArchived on D from [[Script#Act 1]]\n\nearly\n\n# Act 2\n\nTwo.\n\n# Act 3\n\nThree.\n",
     );
   });
 

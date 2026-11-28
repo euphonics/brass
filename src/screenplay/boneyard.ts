@@ -297,6 +297,14 @@ function noteHeadings(
   return found;
 }
 
+/** Every Markdown heading of `source`, in order (#356). */
+export function scriptHeadings(source: string): BoneyardHeading[] {
+  return noteHeadings(source.split("\n")).map(({ level, text }) => ({
+    level,
+    text,
+  }));
+}
+
 const sameHeading = (a: string, b: string): boolean =>
   a.trim().toLocaleLowerCase() === b.trim().toLocaleLowerCase();
 
@@ -314,6 +322,8 @@ export function addToBoneyard(
   date: string,
   scriptName: string,
   outline = false,
+  /** Every heading of the script, in order, to place new ones (#356). */
+  order: readonly BoneyardHeading[] = [],
 ): string {
   // Consecutive blocks under the same headings and scene go together.
   const groups: { blocks: BoneyardBlock[]; key: string }[] = [];
@@ -365,8 +375,28 @@ export function addToBoneyard(
     const entry = outline
       ? section.trimEnd().replace(/^## .*/u, `${marks} ${date}`)
       : section.trimEnd().replace(/^## /u, `${marks} `);
-    // At the end of the section, before the blank lines that close it.
-    let insertAt = to;
+    // A heading that is added goes in the script's order among the
+    // headings beside it (#356): "# Act 1" before an "# Act 2" already
+    // there. Otherwise at the end of the section.
+    const missing = path[found];
+    const rank = (heading: BoneyardHeading): number =>
+      order.findIndex(
+        (other) =>
+          other.level === heading.level &&
+          sameHeading(other.text, heading.text),
+      );
+    const ownRank = missing === undefined ? -1 : rank(missing);
+    const later =
+      missing === undefined || ownRank === -1
+        ? undefined
+        : headings.find(
+            (heading) =>
+              heading.line >= from &&
+              heading.line < to &&
+              heading.level === missing.level &&
+              rank(heading) > ownRank,
+          );
+    let insertAt = later?.line ?? to;
     while (insertAt > from && (lines[insertAt - 1] ?? "").trim() === "") {
       insertAt -= 1;
     }
